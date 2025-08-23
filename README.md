@@ -1,32 +1,40 @@
-# MenuMate Clean Architecture
+# DineQ - MenuMate Platform
 
-Scaffold of a restaurant menu platform using Go with Clean Architecture principles.
+This project provides a modular restaurant menu service built with Go. It is designed to be flexible and scalable for modern web applications.
 
-## Layers
+## Architecture Overview
 
-- Domain: Entities & repository interfaces
-- Usecase: Application business logic
-- Infrastructure: DB, security, repository implementations
-- Interfaces: HTTP handlers, router, middleware
+- **Domain:** Core entities and repository interfaces.
+- **Use Case:** Business logic and service orchestration.
+- **Infrastructure:** Database interactions, security services, and repository implementations.
+- **Interfaces:** HTTP endpoints, routers, and middleware layers.
 
-## Quick Start
+## Getting Started
 
-```powershell
-# copy env
-cp config/.env.example .env
-# run with air (if installed)
-air
-# or build & run
-go build -o tmp/app ./cmd/api && ./tmp/app
-```
+1. Duplicate the sample environment file:
+    ```bash
+    cp config/.env.example .env
+    ```
+2. For rapid development, use Air:
+    ```bash
+    air
+    ```
+3. Alternatively, build and run the application:
+    ```bash
+    go build -o tmp/app ./cmd/api && ./tmp/app
+    ```
 
-## Tech
+## Technologies Used
 
-- Fiber (HTTP)
-- MongoDB
-- JWT (auth)
-- bcrypt / scrypt (password hashing)
+- Gin for HTTP routing.
+- MongoDB for data storage.
+- JWT for authentication.
+- bcrypt/scrypt for secure password hashing.
 
-## TODO
+## Next Steps
 
-Implement repository methods, usecases, handlers.
+- Complete repository methods.
+- Implement additional use cases.
+- Build out HTTP handlers and middleware.
+- Further testing and optimization.
+
