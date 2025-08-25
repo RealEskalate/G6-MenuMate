@@ -23,7 +23,7 @@ func main() {
 	logger.Log.Info().Msg("-------------Starting DineQ Menu Mate API---------------")
 
 	// Load environment & bootstrap app
-	app, err := bootstrap.InitApp(".env")
+	app, err := bootstrap.InitApp()
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("failed to initialize app")
 	}
