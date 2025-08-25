@@ -67,7 +67,9 @@ func NewAuthRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database) 
 		AuthService:          authService,
 		RefreshTokenUsecase:  usecase.NewRefreshTokenUsecase(repositories.NewRefreshTokenRepository(db, env.RefreshTokenCollection)),
 		PasswordResetUsecase: passwordResetUsecase,
-		Env:                  env,
+		GoogleClientID:       env.GoogleClientID,
+		GoogleClientSecret:   env.GoogleClientSecret,
+		GoogleRedirectURL:    env.GoogleRedirectURL,
 	}
 
 	auth := api.Group("/auth/")

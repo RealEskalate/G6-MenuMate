@@ -7,7 +7,6 @@ import (
 	"time"
 
 	utils "github.com/dinq/menumate/Utils"
-	"github.com/dinq/menumate/internal/bootstrap"
 	"github.com/dinq/menumate/internal/domain"
 	"github.com/dinq/menumate/internal/infrastructure/oauth"
 	"github.com/dinq/menumate/internal/infrastructure/security"
@@ -26,7 +25,9 @@ type AuthController struct {
 	OTP                  domain.IOTPUsecase
 	RefreshTokenUsecase  domain.IRefreshTokenUsecase
 	PasswordResetUsecase domain.IPasswordResetUsecase
-	Env                  *bootstrap.Env
+	GoogleClientID       string
+	GoogleClientSecret   string
+	GoogleRedirectURL    string
 }
 
 func (ac *AuthController) RegisterRequest(c *gin.Context) {
@@ -428,7 +429,7 @@ func (ac *AuthController) ResendOTPRequest(c *gin.Context) {
 //Oauth Google handlers
 
 func (ac *AuthController) GoogleLogin(c *gin.Context) {
-	conf := oauth.GetGoogleOAuthConfig(ac.Env.GoogleClientID, ac.Env.GoogleClientSecret, ac.Env.GoogleRedirectURL)
+	conf := oauth.GetGoogleOAuthConfig(ac.GoogleClientID, ac.GoogleClientSecret, ac.GoogleRedirectURL)
 	url := conf.AuthCodeURL("random-state")
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
@@ -440,7 +441,7 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		return
 	}
 
-	conf := oauth.GetGoogleOAuthConfig(ac.Env.GoogleClientID, ac.Env.GoogleClientSecret, ac.Env.GoogleRedirectURL)
+	conf := oauth.GetGoogleOAuthConfig(ac.GoogleClientID, ac.GoogleClientSecret, ac.GoogleRedirectURL)
 	token, err := conf.Exchange(context.Background(), code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to exchange token"})

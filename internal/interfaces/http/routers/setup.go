@@ -11,7 +11,7 @@ import (
 
 func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router *gin.Engine) {
 	router.GET("/", func(ctx *gin.Context) { ctx.Redirect(http.StatusPermanentRedirect, "/api") })
-	api := router.Group("/api")
+	api := router.Group("/api/v1")
 	{
 		NewAuthRoutes(env, api, db)
 		NewUserRoutes(env, api, db)
