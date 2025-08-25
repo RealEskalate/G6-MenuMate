@@ -78,13 +78,13 @@ type Env struct {
 }
 
 // Viper can be made injectable
-func NewEnv(env_file_path string) (*Env, error) {
+func NewEnv() (*Env, error) {
 	v := viper.New()
-	v.SetConfigFile(env_file_path)
+	v.AutomaticEnv() // dynamically load .env
 
-	if err := v.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
-	}
+	// Optionally load from .env file (for local development only)
+	// v.SetConfigFile(".env")
+	// _ = v.ReadInConfig() // ignore error if file doesn't exist
 
 	var env Env
 	if err := v.Unmarshal(&env); err != nil {

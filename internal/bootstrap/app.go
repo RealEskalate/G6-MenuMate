@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+
 	mongo "github.com/dinq/menumate/internal/infrastructure/database"
 )
 
@@ -10,8 +11,8 @@ type Application struct {
 	Mongo mongo.Client
 }
 
-func InitApp(envPath string) (*Application, error) {
-	env, err := NewEnv(envPath)
+func InitApp() (*Application, error) {
+	env, err := NewEnv()
 	if err != nil {
 		return nil, err
 	}
