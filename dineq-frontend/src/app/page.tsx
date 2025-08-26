@@ -1,4 +1,4 @@
-import NavBar from "@/components/restaurant/NavBar";
+import NavBar from "@/components/common/NavBar";
 import Image from "next/image";
 
 export default function Home() {
