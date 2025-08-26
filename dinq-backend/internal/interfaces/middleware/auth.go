@@ -64,6 +64,27 @@ func AdminOnly() gin.HandlerFunc {
 	}
 }
 
+func OwnerOnly() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        if c.GetString("role") != "OWNER" {
+            c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "owner only"})
+            return
+        }
+        c.Next()
+    }
+}
+
+func OwnerOrAdminOnly() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        role := c.GetString("role")
+        if role != "OWNER" && role != "ADMIN" {
+            c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "owner or admin only"})
+            return
+        }
+        c.Next()
+    }
+}
+
 func VerifiedUserOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		IsVerified := c.GetBool("is_verified")
