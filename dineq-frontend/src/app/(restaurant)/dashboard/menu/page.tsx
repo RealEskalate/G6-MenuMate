@@ -95,7 +95,7 @@ const MenusPage = () => {
               <p>Language</p>
               <p>Amh, Eng</p>
             </div>
-            <span style={{ fontSize: "30px" }}>🔳</span> {/* QR icon */}
+            <span style={{ fontSize: "30px" }}>🔳</span> 
           </div>
           <div
             style={{
