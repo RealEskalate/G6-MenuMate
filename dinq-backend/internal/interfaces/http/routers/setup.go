@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dinq/menumate/internal/bootstrap"
-	mongo "github.com/dinq/menumate/internal/infrastructure/database"
+	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
+	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,5 +15,6 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 	{
 		NewAuthRoutes(env, api, db)
 		NewUserRoutes(env, api, db)
+		NewRestaurantRoutes(env, api, db)
 	}
 }

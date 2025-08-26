@@ -4,8 +4,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/dinq/menumate/internal/domain"
-	"github.com/dinq/menumate/internal/interfaces/http/dto"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )

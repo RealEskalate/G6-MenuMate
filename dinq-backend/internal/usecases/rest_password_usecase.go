@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/dinq/menumate/internal/domain"
-	"github.com/dinq/menumate/internal/infrastructure/security"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
 	"github.com/google/uuid"
 
 	"golang.org/x/crypto/bcrypt"
