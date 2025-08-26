@@ -32,6 +32,9 @@ type Env struct {
 	// user collection
 	UserCollection string `mapstructure:"USER_COLLECTION"`
 
+	// restaurant collection
+	RestaurantCollection string `mapstructure:"RESTAURANT_COLLECTION"`
+	
 	// user refresh token collection
 	RefreshTokenCollection string `mapstructure:"REFRESH_TOKEN_COLLECTION"`
 
