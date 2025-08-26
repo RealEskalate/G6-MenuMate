@@ -28,7 +28,7 @@ const MenusPage = () => {
         + Add menu
       </button>
 
-      {/* Menus Title */}
+      
       <h2 style={{ fontSize: "24px", marginBottom: "20px" }}>Menus</h2>
 
       {/* Menu Cards Container */}
