@@ -67,7 +67,7 @@ function NavBar({ role }: Roles) {
             href="/restaurant/contact"
             className={linkClasses("/restaurant/contact")}
           >
-            Contact
+            Contacts
           </Link>
         </div>
       )}
