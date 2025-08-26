@@ -1,0 +1,203 @@
+@import "tailwindcss";
+/* Import Google Fonts Inter */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+
+
+:root {
+  /* Colors */
+  --color-primary: #FD7E14;
+  --color-alert: #FFC107;
+
+  /* Typography scale */
+  --font-family-roboto: 'Roboto', sans-serif;
+
+  /* Display */
+  --display-large-size: 57px;
+  --display-large-line: 64px;
+  --display-large-tracking: -0.25px;
+
+  --display-medium-size: 45px;
+  --display-medium-line: 52px;
+  --display-medium-tracking: 0px;
+
+  --display-small-size: 36px;
+  --display-small-line: 44px;
+  --display-small-tracking: 0px;
+
+  /* Headline */
+  --headline-large-size: 32px;
+  --headline-large-line: 40px;
+  --headline-large-tracking: 0px;
+
+  --headline-medium-size: 28px;
+  --headline-medium-line: 36px;
+  --headline-medium-tracking: 0px;
+
+  --headline-small-size: 24px;
+  --headline-small-line: 32px;
+  --headline-small-tracking: 0px;
+
+  /* Title */
+  --title-large-size: 22px;
+  --title-large-line: 28px;
+  --title-large-tracking: 0px;
+
+  --title-medium-size: 16px;
+  --title-medium-line: 24px;
+  --title-medium-tracking: 0.15px;
+
+  --title-small-size: 14px;
+  --title-small-line: 20px;
+  --title-small-tracking: 0.1px;
+
+  /* Label */
+  --label-large-size: 14px;
+  --label-large-line: 20px;
+  --label-large-tracking: 0.1px;
+
+  --label-medium-size: 12px;
+  --label-medium-line: 16px;
+  --label-medium-tracking: 0.5px;
+
+  --label-small-size: 11px;
+  --label-small-line: 16px;
+  --label-small-tracking: 0.5px;
+
+  /* Body */
+  --body-large-size: 16px;
+  --body-large-line: 24px;
+  --body-large-tracking: 0.5px;
+
+  --body-medium-size: 14px;
+  --body-medium-line: 20px;
+  --body-medium-tracking: 0.25px;
+
+  --body-small-size: 12px;
+  --body-small-line: 16px;
+  --body-small-tracking: 0.4px;
+}
+
+/* ================================
+   Typography Classes
+   ================================ */
+
+.display-large {
+  font-family: var(--font-family-roboto);
+  font-size: var(--display-large-size);
+  line-height: var(--display-large-line);
+  letter-spacing: var(--display-large-tracking);
+  font-weight: 400;
+}
+
+.display-medium {
+  font-family: var(--font-family-roboto);
+  font-size: var(--display-medium-size);
+  line-height: var(--display-medium-line);
+  letter-spacing: var(--display-medium-tracking);
+  font-weight: 400;
+}
+
+.display-small {
+  font-family: var(--font-family-roboto);
+  font-size: var(--display-small-size);
+  line-height: var(--display-small-line);
+  letter-spacing: var(--display-small-tracking);
+  font-weight: 400;
+}
+
+.headline-large {
+  font-family: var(--font-family-roboto);
+  font-size: var(--headline-large-size);
+  line-height: var(--headline-large-line);
+  letter-spacing: var(--headline-large-tracking);
+  font-weight: 400;
+}
+
+.headline-medium {
+  font-family: var(--font-family-roboto);
+  font-size: var(--headline-medium-size);
+  line-height: var(--headline-medium-line);
+  letter-spacing: var(--headline-medium-tracking);
+  font-weight: 400;
+}
+
+.headline-small {
+  font-family: var(--font-family-roboto);
+  font-size: var(--headline-small-size);
+  line-height: var(--headline-small-line);
+  letter-spacing: var(--headline-small-tracking);
+  font-weight: 400;
+}
+
+.title-large {
+  font-family: var(--font-family-roboto);
+  font-size: var(--title-large-size);
+  line-height: var(--title-large-line);
+  letter-spacing: var(--title-large-tracking);
+  font-weight: 400; /* Regular */
+}
+
+.title-medium {
+  font-family: var(--font-family-roboto);
+  font-size: var(--title-medium-size);
+  line-height: var(--title-medium-line);
+  letter-spacing: var(--title-medium-tracking);
+  font-weight: 500; /* Medium */
+}
+
+.title-small {
+  font-family: var(--font-family-roboto);
+  font-size: var(--title-small-size);
+  line-height: var(--title-small-line);
+  letter-spacing: var(--title-small-tracking);
+  font-weight: 500; /* Medium */
+}
+
+.label-large {
+  font-family: var(--font-family-roboto);
+  font-size: var(--label-large-size);
+  line-height: var(--label-large-line);
+  letter-spacing: var(--label-large-tracking);
+  font-weight: 500;
+}
+
+.label-medium {
+  font-family: var(--font-family-roboto);
+  font-size: var(--label-medium-size);
+  line-height: var(--label-medium-line);
+  letter-spacing: var(--label-medium-tracking);
+  font-weight: 500;
+}
+
+.label-small {
+  font-family: var(--font-family-roboto);
+  font-size: var(--label-small-size);
+  line-height: var(--label-small-line);
+  letter-spacing: var(--label-small-tracking);
+  font-weight: 500;
+}
+
+.body-large {
+  font-family: var(--font-family-roboto);
+  font-size: var(--body-large-size);
+  line-height: var(--body-large-line);
+  letter-spacing: var(--body-large-tracking);
+  font-weight: 400;
+}
+
+.body-medium {
+  font-family: var(--font-family-roboto);
+  font-size: var(--body-medium-size);
+  line-height: var(--body-medium-line);
+  letter-spacing: var(--body-medium-tracking);
+  font-weight: 400;
+}
+
+.body-small {
+  font-family: var(--font-family-roboto);
+  font-size: var(--body-small-size);
+  line-height: var(--body-small-line);
+  letter-spacing: var(--body-small-tracking);
+  font-weight: 400;
+}
