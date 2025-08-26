@@ -35,6 +35,9 @@ type Env struct {
 	// user refresh token collection
 	RefreshTokenCollection string `mapstructure:"REFRESH_TOKEN_COLLECTION"`
 
+	// restaurant collection
+	RestaurantCollection string `mapstructure:"RESTAURANT_COLLECTION"`
+
 	// password reset token collection
 	PasswordResetCollection string `mapstructure:"PASSWORD_RESET_TOKEN_COLLECTION"`
 	// password reset token expiry
@@ -83,8 +86,8 @@ func NewEnv() (*Env, error) {
 	v.AutomaticEnv() // dynamically load .env
 
 	// Optionally load from .env file (for local development only)
-	// v.SetConfigFile(".env")
-	// _ = v.ReadInConfig() // ignore error if file doesn't exist
+	v.SetConfigFile(".env")
+	_ = v.ReadInConfig() // ignore error if file doesn't exist
 
 	var env Env
 	if err := v.Unmarshal(&env); err != nil {

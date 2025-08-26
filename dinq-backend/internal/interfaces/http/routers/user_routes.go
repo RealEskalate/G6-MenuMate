@@ -3,13 +3,13 @@ package routers
 import (
 	"time"
 
-	"github.com/dinq/menumate/internal/bootstrap"
-	mongo "github.com/dinq/menumate/internal/infrastructure/database"
-	"github.com/dinq/menumate/internal/infrastructure/repositories"
-	"github.com/dinq/menumate/internal/infrastructure/storage"
-	handler "github.com/dinq/menumate/internal/interfaces/http/handlers"
-	"github.com/dinq/menumate/internal/interfaces/middleware"
-	usecase "github.com/dinq/menumate/internal/usecases"
+	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
+	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/repositories"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/storage"
+	handler "github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/handlers"
+	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/middleware"
+	usecase "github.com/RealEskalate/G6-MenuMate/internal/usecases"
 	"github.com/gin-gonic/gin"
 )
 

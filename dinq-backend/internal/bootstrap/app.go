@@ -3,7 +3,7 @@ package bootstrap
 import (
 	"context"
 
-	mongo "github.com/dinq/menumate/internal/infrastructure/database"
+	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
 )
 
 type Application struct {
