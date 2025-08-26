@@ -3,7 +3,7 @@ package middleware
 import (
 	"time"
 
-	"github.com/dinq/menumate/internal/infrastructure/logger"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/logger"
 	"github.com/gin-gonic/gin"
 )
 

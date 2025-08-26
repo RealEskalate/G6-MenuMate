@@ -1,6 +1,6 @@
 package usecase
 
-import "github.com/dinq/menumate/internal/domain"
+import "github.com/RealEskalate/G6-MenuMate/internal/domain"
 
 type ItemUsecase struct {
 	Repo domain.ItemRepository

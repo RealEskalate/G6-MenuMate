@@ -16,7 +16,7 @@ import (
 
 	_ "embed"
 
-	"github.com/dinq/menumate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/imagekit-developer/imagekit-go"
 	"github.com/imagekit-developer/imagekit-go/api/uploader"
 )
