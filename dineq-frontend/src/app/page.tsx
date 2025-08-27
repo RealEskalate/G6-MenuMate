@@ -6,7 +6,7 @@ import Dashboard from "./(restaurant)/dashboard/menu/page";
 export default function Home() {
   return (
     <div>
-      <Dashboard />
+      <Dashboard  />
     </div>
   );
 }
