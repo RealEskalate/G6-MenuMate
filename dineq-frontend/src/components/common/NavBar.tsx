@@ -3,8 +3,8 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import logo from "../../../public/Logo.png";
-import { Roles } from "../../../Types/type";
+import logo from "../../../public/logo.png";
+import Roles from "@/Types/type";
 
 function NavBar({ role }: Roles) {
   const pathname = usePathname();
@@ -67,7 +67,7 @@ function NavBar({ role }: Roles) {
             href="/restaurant/contact"
             className={linkClasses("/restaurant/contact")}
           >
-            Contact
+            Contacts
           </Link>
         </div>
       )}
