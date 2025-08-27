@@ -1,10 +1,13 @@
+"use client";
 import FoodHeader from '@/components/user/FoodSection/FoodHeader'
+import FoodMiniNavBar from '@/components/user/FoodSection/FoodMiniNavBar'
 import React from 'react'
-import logo from '../../../../public/logo.png'
 const FoodCard = () => {
   return (
-    <div>FoodCard
-        <FoodHeader image = {logo} title='Fried Chicken' price='$12.99' onFavorite={() => alert('Added to favorites!')} />
+    <div>
+        <FoodHeader image = "Logo.png" title='Fried Chicken' price='$12.99' onFavorite={() => alert('Added to favorites!')} />
+        <FoodMiniNavBar />
+        
           
     </div>
   )

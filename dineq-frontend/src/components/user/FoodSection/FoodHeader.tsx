@@ -1,11 +1,12 @@
+"use client";
 import { Heart } from "lucide-react";
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 
 interface FoodHeaderProps {
-  image: string;
+  image: string | StaticImageData;  
   title: string;
   price: string;
-  onFavorite?: () => void;
+  onFavorite: () => void;
 }
 
 export default function FoodHeader({ image, title, price, onFavorite }: FoodHeaderProps) {
