@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import logo from "../../../public/logo.png";
 import Roles from "@/Types/type";
 
-
 function NavBar({ role }: Roles) {
   const pathname = usePathname();
 

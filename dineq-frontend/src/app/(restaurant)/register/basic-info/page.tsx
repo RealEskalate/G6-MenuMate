@@ -1,4 +1,4 @@
-import BasicInfoForm from "@/components/restaurant/forms/BasicInfoForm"
+import BasicInfoForm from "@/components/restaurant/register/BasicInfoForm";
 
 export default function BasicInfoPage() {
   return (
