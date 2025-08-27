@@ -1,6 +1,6 @@
 "use client";
 
-import NavBar from "@/components/restaurant/NavBar";
+import NavBar from "@/components/common/NavBar";
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
 

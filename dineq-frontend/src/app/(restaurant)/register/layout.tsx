@@ -1,5 +1,5 @@
 // app/register/layout.tsx
-import NavBar from "@/components/restaurant/NavBar";
+import NavBar from "@/components/common/NavBar";
 import RegisterSidebar from "@/components/restaurant/RegisterSidebar";
 import { RegisterProvider } from "@/context/RegisterContext";
 
