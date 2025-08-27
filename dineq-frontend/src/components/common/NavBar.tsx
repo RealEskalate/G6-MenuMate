@@ -16,8 +16,8 @@ function NavBar({ role }: Roles) {
       : "px-4 text-gray-700 hover:text-primary";
 
   return (
-    <div className="border-b shadow-sm border-gray-300 px-6 py-2 flex justify-between w-full items-center">
-      <Image src={logo} alt="logo" width={100} height={100} />
+    <div className="border-b shadow-sm border-gray-300 px-10 py-2 flex justify-between w-full items-center">
+      <Image src={logo} alt="logo" width={100} height={120} />
       {role === "CUSTOMER" ? (         
 
           <div className="flex ml-4">
@@ -51,12 +51,7 @@ function NavBar({ role }: Roles) {
           </div>
       ) : (
         <div className="flex ml-4">
-          <Link
-            href="/restaurant/dashboard"
-            className={linkClasses("/restaurant/dashboard")}
-          >
-            Home
-          </Link>
+      
           <Link
             href="/restaurant/about"
             className={linkClasses("/restaurant/about")}
