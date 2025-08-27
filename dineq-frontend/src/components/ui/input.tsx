@@ -30,7 +30,7 @@ function Input({ className, type = "text", label, required, ...props }: InputPro
       {label && (
         <label
           htmlFor={id}
-          className="text-lg pb-1 text-gray-900 dark:text-gray-300"
+          className="text-md pb-1 text-gray-900 dark:text-gray-300"
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
