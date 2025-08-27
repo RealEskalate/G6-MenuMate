@@ -57,7 +57,10 @@ const AddMenuWithOCR = () => {
             <p className="mb-2 text-gray-600">or</p>
             <button
               className="bg-orange-500 text-white px-5 py-2 rounded-lg hover:bg-orange-600"
-              onClick={() => document.getElementById('fileInput').click()}
+              onClick={() => {
+                const input = document.getElementById('fileInput');
+                if (input) input.click();
+              }}
             >
               Choose File
             </button>
