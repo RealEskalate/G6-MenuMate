@@ -104,7 +104,8 @@ export const options: NextAuthOptions = {
           }
         } catch (err) {
           console.error('Token refresh error:', err);
-          return { ...token, error: 'RefreshAccessTokenError', errorDetails: err.message };
+          const errorMessage = (err instanceof Error) ? err.message : String(err);
+          return { ...token, error: 'RefreshAccessTokenError', errorDetails: errorMessage };
         }
       }
 
