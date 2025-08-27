@@ -6,10 +6,9 @@ import { Plus, Trash2 } from 'lucide-react';
 function Dashboard() {
   return (
     <div>
-      <NavBar role="MANAGER" />
       <div className="flex">
-        <SideBar />
-        <main className="flex-1 p-6">
+        
+        <main className="flex-1 px-6">
           <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-[0_4px_12px_#ffead4]">
             <div className="font-bold text-2xl">Menus</div>
             <a href="dashboard/menu/menu_option/" className="text-[#FD7E14]">

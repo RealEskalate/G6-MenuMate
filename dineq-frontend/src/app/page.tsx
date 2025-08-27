@@ -1,12 +1,14 @@
-import NavBar from "@/components/common/NavBar";
-import Image from "next/image";
-import SideBar from "@/components/restaurant/SideBar";
-import Dashboard from "./(restaurant)/dashboard/menu/page";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function Home() {
-  return (
-    <div>
-      <Dashboard  />
-    </div>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push("/dashboard/menu");
+  }, [router]);
+
+  return null; // Or a loading spinner
 }
