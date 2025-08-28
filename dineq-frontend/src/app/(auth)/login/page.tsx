@@ -31,16 +31,19 @@ export default function LoginPage() {
   const onSubmit = async (data: FormData) => {
     setAuthError(null);
 
-    const res = await signIn("credentials", {
-      redirect: false,
-      email: data.email,
-      password: data.password,
-    });
+const res = await signIn("credentials", {
+  redirect: false,
+  callbackUrl: "/dashboard/menu",
+  email: data.email,
+  password: data.password,
+});
+
+
 
     if (res?.error) {
       setAuthError(res.error);
     } else {
-      router.push("/dashboard"); // ✅ Redirect after login
+      router.push("/dashboard"); 
     }
   };
 

@@ -16,6 +16,9 @@ export const options: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        console.log("authorize received:", credentials);
+
+
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password are required");
         }
@@ -71,9 +74,9 @@ export const options: NextAuthOptions = {
         });
         token.user = {
           email: user.email,
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          // name: user.username,
+          // firstName: user.firstName,
+          // lastName: user.lastName,
           role: user.role,
         };
         token.email = user.email;
@@ -136,7 +139,7 @@ export const options: NextAuthOptions = {
       }
       console.log("Session updated:", {
         email: session.user?.email,
-        username: session.user?.username,
+        username: session.user?.name,
         exp: session.exp,
         error: session.error,
         errorDetails: session.errorDetails,
@@ -145,7 +148,7 @@ export const options: NextAuthOptions = {
     },
     async redirect({ url, baseUrl }) {
       if (url.includes("/api/auth/callback")) {
-        return `${baseUrl}/dashboard`;
+        return `${baseUrl}/dashboard/menu`;
       }
       return url;
     },
