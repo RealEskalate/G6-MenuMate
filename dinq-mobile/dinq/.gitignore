@@ -47,10 +47,8 @@ app.*.map.json
 # Custom exclusions for MenuMate project
 # ======================================
 
-# Presentation layer - exclude from version control
-/presentation/
-/**/presentation/
-
-# Temporary files and demo tools - exclude from version control
-**/temp/
-**/restaurant_data_source_demo_example.dart
+# Generated Flutter files - exclude from version control
+**/GeneratedPluginRegistrant.swift
+**/generated_plugin_registrant.cc
+**/generated_plugin_registrant.h
+**/generated_plugins.cmake
