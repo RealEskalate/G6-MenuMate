@@ -1,7 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL; /
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL; 
 
 export const options: NextAuthOptions = {
   providers: [
