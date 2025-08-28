@@ -3,6 +3,8 @@ import 'package:dio/dio.dart';
 import '../../../../core/constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/temp/app_config.dart';
+import '../../../../core/temp/demo_http_client.dart';
 import '../../domain/entities/category.dart';
 import '../../domain/entities/menu.dart';
 import '../../domain/entities/restaurant.dart';
@@ -19,8 +21,21 @@ const String _contentType = 'application/json';
 class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   final Dio dio;
   final NetworkInfo network;
+  late final DemoHttpClient _demoClient;
 
-  RestaurantRemoteDataSourceImpl({required this.dio, required this.network});
+  RestaurantRemoteDataSourceImpl({required this.dio, required this.network}) {
+    _demoClient = DemoHttpClient(dio);
+    _demoClient.setDemoMode(AppConfig.useDemoMode);
+  }
+
+  /// Toggle demo mode for this data source
+  void toggleDemoMode() {
+    _demoClient.setDemoMode(!_demoClient.isDemoMode);
+    print('🔄 Restaurant DataSource Demo Mode: ${_demoClient.isDemoMode ? 'ENABLED' : 'DISABLED'}');
+  }
+
+  /// Check if demo mode is enabled
+  bool get isDemoMode => _demoClient.isDemoMode;
 
   @override
   Future<List<Restaurant>> getRestaurants() async {
