@@ -43,3 +43,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Custom exclusions for MenuMate project
+# ======================================
+
+# Presentation layer - exclude from version control
+/presentation/
+/**/presentation/
+
+# Temporary files and demo tools - exclude from version control
+**/temp/
+**/restaurant_data_source_demo_example.dart
