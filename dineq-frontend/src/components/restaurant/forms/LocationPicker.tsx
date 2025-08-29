@@ -30,8 +30,8 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
   };
 
   return (
-    <div className="max-w-md space-y-1">
-      <label className="block text-sm font-medium text-gray-700">
+    <div className="max-w-xl space-y-1">
+      <label className="block text-lg font-medium text-gray-700">
         Location (auto-filled)
       </label>
       <div className="relative">
@@ -40,9 +40,9 @@ export default function LocationPicker({ value, onChange }: LocationPickerProps)
           value={value}
           readOnly
           placeholder="Latitude, Longitude"
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm bg-gray-50 cursor-not-allowed"
+          className="w-full pl-3 pr-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm bg-gray-50 cursor-not-allowed"
         />
-        <FaMapMarkerAlt className="absolute left-3 top-3 text-gray-400" />
+        <FaMapMarkerAlt className="absolute right-3 top-4 text-gray-400" />
       </div>
       <button
         type="button"

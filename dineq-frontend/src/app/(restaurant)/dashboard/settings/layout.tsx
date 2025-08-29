@@ -15,10 +15,10 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col gap-6 px-4">
+    <div className="flex flex-col gap-6 px-6">
       {/* Settings Title */}
-      <div className="border border-orange-200 rounded-xl p-4 shadow-sm bg-white">
-        <h1 className="text-2xl font-semibold">Settings</h1>
+      <div className="bg-white p-4 rounded-2xl shadow-[0_4px_12px_#ffead4]">
+        <h1 className="text-2xl font-bold">Settings</h1>
       </div>
 
       {/* Tabs */}
@@ -32,10 +32,10 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             <Link
               key={tab.name}
               href={tab.href}
-              className={`px-4 py-2 text-sm font-medium transition-all ${
+              className={`px-4 py-2 text-l font-medium transition-all ${
                 active
                   ? "text-orange-500 border-b-2 border-orange-500"
-                  : "text-gray-500 hover:text-gray-700"
+                  : "text-black-500 hover:text-black-700"
               }`}
             >
               {tab.name}

@@ -1,54 +1,54 @@
+// context/RegisterContext.tsx
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
+
+interface UploadedFile {
+  name: string;
+  size: number; // in MB
+}
 
 interface RegisterData {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
-  password: string;
   restaurant: string;
-  location: string;
+  address: string;
+  phone: string;
+  businessLicense?: UploadedFile | null;
+  // add other fields here as needed
 }
 
 interface RegisterContextType {
   data: RegisterData;
-  updateData: (fields: Partial<RegisterData>) => void;
+  updateData: (newData: Partial<RegisterData>) => void;
   resetData: () => void;
 }
 
 const RegisterContext = createContext<RegisterContextType | undefined>(undefined);
 
-export function RegisterProvider({ children }: { children: React.ReactNode }) {
+export const RegisterProvider = ({ children }: { children: ReactNode }) => {
   const [data, setData] = useState<RegisterData>({
-    firstName: "",
-    lastName: "",
+    name: "",
     email: "",
-    password: "",
     restaurant: "",
-    location: "",
+    address: "",
+    phone: "",
+    businessLicense: null,
   });
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("registerData");
-    if (saved) {
-      setData(JSON.parse(saved));
-    }
-  }, []);
-
-  // Save to localStorage whenever data changes
-  useEffect(() => {
-    localStorage.setItem("registerData", JSON.stringify(data));
-  }, [data]);
-
-  const updateData = (fields: Partial<RegisterData>) => {
-    setData((prev) => ({ ...prev, ...fields }));
+  const updateData = (newData: Partial<RegisterData>) => {
+    setData((prev) => ({ ...prev, ...newData }));
   };
 
   const resetData = () => {
-    setData({ firstName: "",lastName: "", email: "", password: "", restaurant: "", location: "" });
-    localStorage.removeItem("registerData");
+    setData({
+      name: "",
+      email: "",
+      restaurant: "",
+      address: "",
+      phone: "",
+      businessLicense: null,
+    });
   };
 
   return (
@@ -56,10 +56,12 @@ export function RegisterProvider({ children }: { children: React.ReactNode }) {
       {children}
     </RegisterContext.Provider>
   );
-}
+};
 
-export function useRegister() {
+export const useRegister = (): RegisterContextType => {
   const context = useContext(RegisterContext);
-  if (!context) throw new Error("useRegister must be used within RegisterProvider");
+  if (!context) {
+    throw new Error("useRegister must be used within RegisterProvider");
+  }
   return context;
-}
+};

@@ -4,7 +4,7 @@ import Navbar from "@/components/common/NavBar";
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="">
-        <Navbar />
+        <Navbar role="MANAGER"/>
       
         <div className="flex gap-8">
           <Sidebar />

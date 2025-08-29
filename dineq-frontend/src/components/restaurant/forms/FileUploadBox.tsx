@@ -34,16 +34,16 @@ export default function FileUploadBox({
   };
 
   return (
-    <div className="rounded-lg p-4 bg-white max-w-md">
+    <div className="rounded-lg bg-white max-w-xl">
       <div className="flex justify-between items-center mb-2">
-        <label className="font-medium">
+        <label className="font-medium text-lg">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
         {file && <CheckCircle className="w-5 h-5 text-green-500" />}
       </div>
 
       {file ? (
-        <div className="flex items-center justify-between bg-green-50 border border-green-200 px-3 py-2 rounded">
+        <div className="flex items-center justify-between bg-green-50 border border-green-200 px-3 py-4 rounded">
           <span className="text-sm text-gray-800">
             {file.name} ({file.size} MB)
           </span>
@@ -56,7 +56,7 @@ export default function FileUploadBox({
           </button>
         </div>
       ) : (
-        <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 text-center text-sm text-gray-500">
+        <label className="flex flex-col items-center py-4 justify-center h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 text-center text-sm text-gray-500">
           <Upload className="w-6 h-6 mb-1 text-gray-400" />
           Drag and drop your file here, or{" "}
           <span className="text-blue-600 underline">click to browse</span>

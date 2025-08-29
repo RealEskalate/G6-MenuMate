@@ -4,13 +4,12 @@ import React from "react";
 import NavBar from "@/components/common/NavBar";
 import SideBar from "@/components/restaurant/SideBar";
 import { Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
 
 function Dashboard() {
   return (
     <div>
-      <NavBar role="CUSTOMER" />
       <div className="flex">
-        <SideBar />
         <main className="flex-1 p-6">
           <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-[0_4px_12px_#ffead4]">
             <div className="font-bold text-2xl">Menus</div>
@@ -21,15 +20,17 @@ function Dashboard() {
           </div>
           <div>
             <div>How do you want to create your menu?</div>
-            <div className="flex">
+            <div className="flex justify-around items-center">
+              <Link href="/dashboard/menu/ocr_menu">
               <button className="bg-[#FD7E14]  px-4 py-2 rounded-md">
                 Scan With Ocr
               </button>
-              <a href="/dashboard/menu/manual_menu">
+              </Link>              
+              <Link href="/dashboard/menu/manual_menu">
                 <button className="bg-[#FD7E14]  px-4 py-2 rounded-md">
                   Add Manually
                 </button>
-              </a>
+                </Link>
             </div>
           </div>
         </main>

@@ -1,49 +1,62 @@
-// app/register/review/page.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Pencil, Eye, Trash2, FileText } from "lucide-react";
+import { Pencil, FileText } from "lucide-react";
+import { useRegister } from "@/context/RegisterContext";
 
 export default function ReviewPage() {
   const router = useRouter();
+  const { data } = useRegister();
 
-  // Mocked data (replace with props or context later)
   const basicInfo = {
-    name: "Yohannes Tamirat",
-    email: "yohannesT@gmail.com",
-    restaurant: "yohannes Restaurant",
-    address: "Addis Ababa, Ethiopia",
+    "Restaurant Name": data.restaurant,
+    "Phone Number": data.phone,
+    Location: data.address,
   };
 
-  const documents = [
-    { name: "business-license.pdf", size: 2.3 },
-    { name: "Food-safety-certificate.pdf", size: 2.3 },
-    { name: "Tax ID / EIN Certificate.png", size: 2.3 },
-    { name: "Liquor License.pdf", size: 2.3 },
-  ];
+  const documents = data.businessLicense ? [data.businessLicense] : [];
+
+  const handleSubmit = async () => {
+    // try {
+    //   const response = await fetch("/api/register", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify(data),
+    //   });
+
+    //   if (!response.ok) {
+    //     throw new Error("Failed to submit");
+    //   }
+
+    //   alert("Form submitted successfully!");
+    //   router.push("/thank-you"); // or wherever after submission
+    // } catch (error) {
+    //   alert("Error submitting form. Please try again.");
+    //   console.error(error);
+    // }
+  };
 
   return (
-    <div className="flex-1  p-8">
+    <div className="flex-1 pl-16 py-16">
       <div className="max-w-3xl mx-auto">
-        {/* Title */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="">
           <h1 className="text-2xl font-semibold">Review & Submit</h1>
-          <p className="text-gray-500 text-sm">Step 3 of 3</p>
         </div>
-        <p className="text-gray-600 mb-8">
+        <p className="text-gray-600 mt-1 mb-4">
           Please review and submit your information.
         </p>
 
-        {/* Basic Information */}
         <section className="mb-10">
-          <h2 className="text-lg font-semibold mb-4">Basic Information</h2>
-          <div className="space-y-4 max-w-md">
+          <h2 className="text-lg font-semibold mb-4">Restaurant Information</h2>
+          <div className="space-y-4 max-w-xl">
             {Object.entries(basicInfo).map(([key, value]) => (
               <div
                 key={key}
                 className="flex items-center justify-between border border-gray-300 rounded-lg px-4 py-2 bg-white"
               >
-                <span className="text-gray-700">{value}</span>
+                <span className="text-gray-700">{value || "-"}</span>
                 <button
                   className="text-gray-500 hover:text-gray-700"
                   onClick={() => router.push("/register/basic-info")}
@@ -55,10 +68,12 @@ export default function ReviewPage() {
           </div>
         </section>
 
-        {/* Legal Documents */}
         <section>
-          <h2 className="text-lg font-semibold mb-4">Legal Documents</h2>
-          <div className="space-y-3 max-w-md">
+          <h2 className="text-lg font-semibold mb-4">Business License</h2>
+          <div className="space-y-3 max-w-xl">
+            {documents.length === 0 && (
+              <p className="text-gray-500 italic">No documents uploaded.</p>
+            )}
             {documents.map((doc, idx) => (
               <div
                 key={idx}
@@ -71,29 +86,20 @@ export default function ReviewPage() {
                     <p className="text-xs text-gray-400">{doc.size} MB</p>
                   </div>
                 </div>
-                <div className="flex space-x-3">
-                  <button className="text-gray-500 hover:text-gray-700">
-                    <Eye className="w-4 h-4" />
-                  </button>
-                  <button className="text-red-500 hover:text-red-700">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Buttons */}
         <div className="flex justify-between mt-10">
           <button
-            onClick={() => router.push("/register/legal-documents")}
+            onClick={() => router.push("/register/basic-info")}
             className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
           >
             ← Back
           </button>
           <button
-            onClick={() => alert("Form Submitted!")}
+            onClick={handleSubmit}
             className="px-6 py-2 rounded-md bg-orange-500 text-white hover:bg-orange-600"
           >
             Submit →

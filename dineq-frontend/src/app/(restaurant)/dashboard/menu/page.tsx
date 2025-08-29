@@ -1,24 +1,30 @@
-import React from 'react'
-import NavBar from '@/components/common/NavBar'
-import SideBar from '@/components/restaurant/SideBar';
-import { Plus, Trash2 } from 'lucide-react';
+"use client";
+import React, { useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import MenuOptionModal from "@/components/restaurant/MenuOptionModal";
 
 function Dashboard() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div>
       <div className="flex">
-        
         <main className="flex-1 px-6">
+          {/* Header */}
           <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-[0_4px_12px_#ffead4]">
             <div className="font-bold text-2xl">Menus</div>
-            <a href="dashboard/menu/menu_option/" className="text-[#FD7E14]">
-              <button className="bg-[#FD7E14] text-white px-6 flex py-2 rounded">
-                <Plus size={16} />
-                Add Menu
-              </button>
-            </a>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-[#FD7E14] text-white px-6 flex py-2 rounded"
+            >
+              <Plus size={16} />
+              Add Menu
+            </button>
           </div>
-          <div className="flex">
+
+          {/* Menu cards */}
+          <div className="flex gap-6">
             <div className="relative w-96 bg-white text-black rounded-xl border border-orange-400 p-4">
               {/* Status + Delete */}
               <div className="flex justify-between items-start">
@@ -40,14 +46,13 @@ function Dashboard() {
                   <div>12 dishes</div>
                 </div>
                 <div className="h-16 border border-orange-400 rounded-md">
-                  <div>Languagues</div>
+                  <div>Languages</div>
                   <div>
                     <span>Amh</span>
                     <span>Eng</span>
                   </div>
                 </div>
                 <div className="h-16 border border-orange-400 rounded-md col-span-1">
-                  {" "}
                   <div>Avg rating</div>
                   <div>4.3</div>
                 </div>
@@ -66,6 +71,7 @@ function Dashboard() {
                 </button>
               </div>
             </div>
+
             <div className="relative w-96 bg-white text-black rounded-xl border border-orange-400 p-4">
               {/* Status + Delete */}
               <div className="flex justify-between items-start">
@@ -87,14 +93,13 @@ function Dashboard() {
                   <div>12 dishes</div>
                 </div>
                 <div className="h-16 border border-orange-400 rounded-md">
-                  <div>Languagues</div>
+                  <div>Languages</div>
                   <div>
                     <span>Amh</span>
                     <span>Eng</span>
                   </div>
                 </div>
                 <div className="h-16 border border-orange-400 rounded-md col-span-1">
-                  {" "}
                   <div>Avg rating</div>
                   <div>4.3</div>
                 </div>
@@ -116,8 +121,11 @@ function Dashboard() {
           </div>
         </main>
       </div>
+
+      {/* Popup Modal */}
+      <MenuOptionModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }
 
-export default Dashboard
+export default Dashboard;
