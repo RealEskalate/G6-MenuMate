@@ -1,97 +1,49 @@
-// import React from 'react'
-// import Image from 'next/image'
-// function SideBar() {
-//   return (
-//     <>
-//       <aside className="w-64 bg-white border border-gray-200 p-4 flex flex-col gap-6 rounded-2xl shadow-[0_4px_12px_#ffa55c] ml-3 mt-6">
-//         <div className="space-y-6 pt-6 pb-32 pl-1 pr-5">
-//           <button className="flex items-center gap-3 text-orange-600 font-medium">
-//             <Image src="/icons/menu.svg" alt="Menus" width={18} height={18} />{" "}
-//             Menus
-//           </button>
-//           <button className="flex items-center gap-3 text-gray-600 hover:text-orange-600">
-//             <Image src="/icons/qr.png" alt="QR" width={18} height={18} /> QR
-//             Manager
-//           </button>
-//           <button className="flex items-center gap-3 text-gray-600 hover:text-orange-600">
-//             <Image
-//               src="/icons/setting.png"
-//               alt="Settings"
-//               width={18}
-//               height={18}
-//             />{" "}
-//             Settings
-//           </button>
-//           <button className="flex items-center gap-3 text-gray-600 hover:text-orange-600">
-//             <Image
-//               src="/icons/Analytics.png"
-//               alt="Analytics"
-//               width={18}
-//               height={18}
-//             />{" "}
-//             Analytics
-//             <span className="ml-1 text-[10px] bg-orange-500 text-white px-1 rounded">
-//               PRO
-//             </span>
-//           </button>
-//         </div>
-//       </aside>
-//     </>
-//   );
-// }
+"use client";
 
-
-// export default SideBar;
 import React from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-const Sidebar = () => {
+function SideBar() {
+  const pathname = usePathname();
+
+  const links = [
+    { name: "Menus", href: "/dashboard/menu", icon: "/icons/menu.svg" },
+    { name: "QR Manager", href: "/dashboard/qr-manager", icon: "/icons/qr.png" },
+    { name: "Settings", href: "/dashboard/settings", icon: "/icons/setting.png" },
+    { name: "Analytics", href: "/dashboard/analytics", icon: "/icons/Analytics.png", pro: true },
+  ];
+
   return (
-    <div
-      style={{
-        width: "200px",
-        height: "100vh",
-        backgroundColor: "#fff",
-        borderRight: "1px solid #eee",
-        padding: "20px",
-        position: "fixed",
-        left: 0,
-        top: 0,
-        display: "flex",
-        flexDirection: "column",
-        gap: "20px",
-      }}
-    >
-      {/* Menus Icon */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <span style={{ fontSize: "20px" }}>🍴</span>{" "}
-        {/* Placeholder for fork/knife icon */}
-        <span>Menus</span>
-      </div>
+    <aside className="w-64 h-[82.5vh] bg-white border border-gray-200 p-4 flex flex-col gap-6 rounded-2xl shadow-[0_4px_12px_#ffd2a9] ml-6 mt-8">
+      <div className="space-y-6 pt-6 pb-32 pl-4 pr-5">
+        {links.map((link) => {
+          const active = pathname.startsWith(link.href);
 
-      {/* QR Manager Icon */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <span style={{ fontSize: "20px" }}>🔳</span>{" "}
-        {/* Placeholder for QR icon */}
-        <span>QR manager</span>
+          return (
+            <Link
+              key={link.name}
+              href={link.href}
+              className={`flex items-center gap-3 font-medium transition-colors ${
+                active ? "text-orange-600" : "text-gray-600 hover:text-orange-600"
+              }`}
+            >
+              <Image src={link.icon} alt={link.name} width={18} height={18} />
+              <span className="flex items-center gap-1">
+                {link.name}
+                {link.pro && (
+                  <sup className="text-[8px] text-orange-500 px-1 font-bold">
+                    PRO
+                  </sup>
+                )}
+              </span>
+            </Link>
+          );
+        })}
       </div>
-
-      {/* Settings Icon */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <span style={{ fontSize: "20px" }}>⚙️</span>{" "}
-        {/* Placeholder for gear icon */}
-        <span>Settings</span>
-      </div>
-
-      {/* Analytics Pro Icon */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <span style={{ fontSize: "20px" }}>📊</span>{" "}
-        {/* Placeholder for chart icon */}
-        <span>
-          Analytics<sup>Pro</sup>
-        </span>
-      </div>
-    </div>
+    </aside>
   );
-};
+}
 
-export default Sidebar;
+export default SideBar;

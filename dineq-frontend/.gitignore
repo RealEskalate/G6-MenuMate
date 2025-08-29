@@ -3,7 +3,7 @@
 # dependencies
 
 .next
-/node_modules
+node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -12,7 +12,7 @@
 !.yarn/releases
 !.yarn/versions
 
-# testin
+# testing
 /coverage
 
 # next.js
@@ -60,26 +60,49 @@ yarn-error.log*
 pnpm-debug.log*
 *.log
 
-# Local environment variables
+# --- Environment variables ---
+.env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-.env
 
-# Mac/Linux/Windows system files
+# --- OS & Editor junk ---
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
+*.swn
+*.swm
+.vscode/
+.idea/
 
-# VSCode settings
-.vscode/*
-!.vscode/extensions.json
+# --- Cache & temporary files ---
+.cache/
+.parcel-cache/
+.turbo/
+.eslintcache
+.next/cache/
+coverage/
 
-# Typescript cache
+# --- Misc large/unneeded files ---
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.bak
+*.tmp
+
+# --- Databases / secrets ---
+*.sqlite
+*.db
+*.pdb
+*.mdb
+
+# --- TypeScript build artifacts ---
 *.tsbuildinfo
-next-env.d.ts
 
-# Optional: lock files (only if you don’t want them in git)
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+# --- Local test files ---
+playwright-report/
+test-results/
