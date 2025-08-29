@@ -138,19 +138,27 @@ export const options: NextAuthOptions = {
         session.error = token.error;
         session.errorDetails = token.errorDetails;
       }
-    
+
       return session;
     },
+    // async redirect({ url, baseUrl }) {
+    //   console.log("Redirect callback:", { url, baseUrl });
+    //   if (url.includes("/api/auth/callback")) {
+    //     const targetUrl = `http://localhost:3000/dashboard/menu`;
+    //     console.log("Constructed redirect URL:", targetUrl);
+    //     return targetUrl;
+    //   }
+    //   return url;
+    // },
     async redirect({ url, baseUrl }) {
-      console.log("Redirect callback:", { url, baseUrl });
-      if (url.includes("/api/auth/callback")) {
-        const targetUrl = `${baseUrl}/dashboard/menu`;
-        console.log("Constructed redirect URL:", targetUrl);
-        return targetUrl;
+      // If it’s an internal callback, just go to the dashboard
+      if (url.startsWith(baseUrl)) {
+        return `${baseUrl}/dashboard/menu`;
       }
-      return url;
+      return baseUrl;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV !== "production",
+  debug: true,
+  // debug: process.env.NODE_ENV !== "production",
 };

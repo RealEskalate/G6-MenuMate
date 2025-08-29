@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Mail, Lock } from "lucide-react";
 import LoginImage from "@/components/auth/page";
  import { getSession } from "next-auth/react";
+import { truncate } from "fs";
 
 const schema = z.object({
   email: z.string().email("Invalid email address"),
@@ -30,7 +31,7 @@ export default function LoginPage() {
   });
 
 const onSubmit = async (data: FormData) => {
-  console.log("Form submitted:", data);
+  // console.log("Form submitted:", data);
   setAuthError(null);
 
   const res = await signIn("credentials", {
@@ -46,12 +47,13 @@ const onSubmit = async (data: FormData) => {
     console.log("Login successful, redirecting...");
     const session = await getSession();
     console.log("Session:", session);
-     if (session?.user.role === "CUSTOMER") {
-      router.push("/user/dashboard"); // Changed to relative path
-    } else if (session?.user.role === "OWNER") {
+    if (session?.user.role==="user"){
+      router.push("/user")
+    }
+     else if (session?.user.role === "OWNER") {
       router.push("/restaurant/dashboard"); // Changed to relative path
     } else {
-      router.push("user/dashboard"); // Changed to relative path
+      router.push("/dashboard/menu"); // Changed to relative path
     }
   } else {
     console.log("Sign-in error:", res.error);

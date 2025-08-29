@@ -3,7 +3,6 @@ import { DefaultSession, DefaultUser } from "next-auth";
 import { DefaultJWT } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 
-// Extend next-auth User and Session
 declare module "next-auth" {
   interface User extends DefaultUser {
     username?: string;

@@ -1,7 +1,7 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import type { NextRequestWithAuth } from "next-auth/middleware"; 
+import type { NextRequestWithAuth } from "next-auth/middleware";
 export default withAuth(
   async function middleware(request: NextRequestWithAuth) {
     const token = request.nextauth.token;
@@ -14,7 +14,7 @@ export default withAuth(
       console.log(
         `Middleware: No token, redirecting to /signin from ${pathname}`
       );
-      return NextResponse.redirect(new URL("/signin", request.url));
+      return NextResponse.redirect(new URL("/signin", request.nextUrl.origin));
     }
 
     const role = token.role as string;
@@ -22,8 +22,7 @@ export default withAuth(
 
     const roleRedirects: { [key: string]: string } = {
       OWNER: "/restaurant/dashboard",
-      CUSTOMER: "/user/dashboard",
-      user: "/user/dashboard", // Add mapping for API's "user" role
+      user: "/user", // Add mapping for API's "user" role
     };
 
     const redirectUrl = roleRedirects[role] || "/dashboard";
@@ -35,27 +34,32 @@ export default withAuth(
     ) {
       if (!role) {
         console.log("Middleware: No role defined, redirecting to /dashboard");
-        return NextResponse.redirect(new URL("/dashboard", request.url));
+        return NextResponse.redirect(
+          new URL("/dashboard", request.nextUrl.origin)
+        );
       }
       console.log(`Middleware: Redirecting ${role} to ${redirectUrl}`);
-      return NextResponse.redirect(new URL(redirectUrl, request.url));
+      return NextResponse.redirect(
+        new URL(redirectUrl, request.nextUrl.origin)
+      );
     }
 
     if (pathname.startsWith("/restaurant") && role !== "OWNER") {
       console.log(
         `Middleware: Unauthorized restaurant access by ${role}, redirecting to ${redirectUrl}`
       );
-      return NextResponse.redirect(new URL(redirectUrl, request.url));
+      // Changed request.url to request.nextUrl.origin here
+      return NextResponse.redirect(
+        new URL(redirectUrl, request.nextUrl.origin)
+      );
     }
-    if (
-      pathname.startsWith("/user") &&
-      role !== "CUSTOMER" &&
-      role !== "user"
-    ) {
+    if (pathname.startsWith("/user") && role !== "user") {
       console.log(
         `Middleware: Unauthorized user access by ${role}, redirecting to ${redirectUrl}`
       );
-      return NextResponse.redirect(new URL(redirectUrl, request.url));
+      return NextResponse.redirect(
+        new URL(redirectUrl, request.nextUrl.origin)
+      );
     }
 
     console.log("Middleware: Allowing access to", pathname);

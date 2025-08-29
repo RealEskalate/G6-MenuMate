@@ -13,12 +13,12 @@ export default function Hero() {
         before you order.
       </p>
       <div className="mt-8 flex justify-center space-x-4">
-        <Link
+        <a
           href="/"
           className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600"
         >
           I'm a Customer
-        </Link>
+        </a>
         <a
           href="#"
           className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-100"
