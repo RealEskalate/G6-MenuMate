@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/util/theme.dart';
-import 'features/dinq/search/presentation/pages/menu_page.dart';
+import 'core/routing/app_routing.dart';
 
 void main() {
   runApp(const MyApp());
@@ -23,7 +23,8 @@ class MyApp extends StatelessWidget {
           foregroundColor: Colors.white,
         ),
       ),
-      home: const MenuPage(restaurantId: 'restaurant-123'),
+      initialRoute: '/explore',
+      onGenerateRoute: generateRoute,
     );
   }
 }

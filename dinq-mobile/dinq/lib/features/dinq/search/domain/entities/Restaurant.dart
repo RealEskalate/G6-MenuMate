@@ -15,8 +15,10 @@ class Restaurant {
   final DateTime updatedAt;
   final bool isDeleted;
   final int viewCount;
+  final String bannerUrl;
 
-  Restaurant({
+  Restaurant( {
+    required this.bannerUrl,
     required this.id,
     required this.name,
     this.about,
