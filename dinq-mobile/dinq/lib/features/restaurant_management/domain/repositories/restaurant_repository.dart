@@ -1,9 +1,9 @@
 import 'package:dartz/dartz.dart';
-import 'package:dinq/core/error/failures.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/category.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/menu.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/restaurant.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/review.dart';
+import '../../../../core/error/failures.dart';
+import '../entities/category.dart';
+import '../entities/menu.dart';
+import '../entities/restaurant.dart';
+import '../entities/review.dart';
 
 abstract class RestaurantRepository {
   Future<Either<Failure, List<Restaurant>>> getRestaurants();

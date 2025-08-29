@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/constants.dart';
 import '../../../../core/error/exceptions.dart';
-import '../../../../core/network/network_info.dart';
 import '../../../../core/temp/app_config.dart';
 import '../../../../core/temp/demo_http_client.dart';
 import '../../domain/entities/category.dart';
@@ -20,10 +19,9 @@ const String _contentType = 'application/json';
 
 class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   final Dio dio;
-  final NetworkInfo network;
   late final DemoHttpClient _demoClient;
 
-  RestaurantRemoteDataSourceImpl({required this.dio, required this.network}) {
+  RestaurantRemoteDataSourceImpl({required this.dio}) {
     _demoClient = DemoHttpClient(dio);
     _demoClient.setDemoMode(AppConfig.useDemoMode);
   }
@@ -31,6 +29,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   /// Toggle demo mode for this data source
   void toggleDemoMode() {
     _demoClient.setDemoMode(!_demoClient.isDemoMode);
+    // ignore: avoid_print
     print('🔄 Restaurant DataSource Demo Mode: ${_demoClient.isDemoMode ? 'ENABLED' : 'DISABLED'}');
   }
 
@@ -39,7 +38,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<List<Restaurant>> getRestaurants() async {
-    if (await network.isConnected) {
       try {
         final response = await dio.get(
           '$_baseUrl/restaurants',
@@ -74,16 +72,11 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
           'Unexpected error occurred while fetching restaurants list: ${e.toString()}',
         );
       }
-    } else {
-      throw NetworkException(
-        'No internet connection available. Please check your network settings and try again.',
-      );
-    }
+    
   }
 
   @override
   Future<Menu> getMenu(String restaurantId) async {
-    if (await network.isConnected) {
       try {
         final response = await dio.get(
           '$_baseUrl/restaurants/$restaurantId/menu',
@@ -115,16 +108,10 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
           'Unexpected error occurred while fetching menu for restaurant $restaurantId: ${e.toString()}',
         );
       }
-    } else {
-      throw NetworkException(
-        'No internet connection available. Please check your network settings and try again.',
-      );
-    }
   }
 
   @override
   Future<List<Category>> getCategories(String tabId) async {
-    if (await network.isConnected) {
       try {
         final response = await dio.get(
           '$_baseUrl/tabs/$tabId/categories',
@@ -159,16 +146,10 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
           'Unexpected error occurred while fetching categories for tab $tabId: ${e.toString()}',
         );
       }
-    } else {
-      throw NetworkException(
-        'No internet connection available. Please check your network settings and try again.',
-      );
-    }
   }
 
   @override
   Future<List<Review>> getReviews(String itemId) async {
-    if (await network.isConnected) {
       try {
         final response = await dio.get(
           '$_baseUrl/items/$itemId/reviews',
@@ -203,16 +184,10 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
           'Unexpected error occurred while fetching reviews for item $itemId: ${e.toString()}',
         );
       }
-    } else {
-      throw NetworkException(
-        'No internet connection available. Please check your network settings and try again.',
-      );
-    }
   }
 
   @override
   Future<List<String>> getUserImages(String slug) async {
-    if (await network.isConnected) {
       try {
         final response = await dio.get(
           '$_baseUrl/items/$slug/images',
@@ -245,10 +220,5 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
           'Unexpected error occurred while fetching user images for item $slug: ${e.toString()}',
         );
       }
-    } else {
-      throw NetworkException(
-        'No internet connection available. Please check your network settings and try again.',
-      );
-    }
   }
 }

@@ -1,5 +1,8 @@
 /// Configuration for demo mode
 /// This file controls whether the app uses demo data or real API calls
+library;
+// ignore_for_file: avoid_print
+
 class AppConfig {
   /// Whether to use demo mode (mock data) instead of real API
   static bool useDemoMode = true;

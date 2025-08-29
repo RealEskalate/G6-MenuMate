@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dinq/core/error/failures.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/menu.dart';
-import 'package:dinq/features/restaurant_management/domain/repositories/restaurant_repository.dart';
+import '../../../../core/error/failures.dart';
+import '../entities/menu.dart';
+import '../repositories/restaurant_repository.dart';
 
 class GetMenu {
   final RestaurantRepository repository;

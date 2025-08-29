@@ -1,6 +1,9 @@
+// ignore_for_file: avoid_print
+
 import 'package:dio/dio.dart';
-import '../temp/demo_http_client.dart';
+
 import '../temp/demo_api_responses.dart';
+import '../temp/demo_http_client.dart';
 
 /// Example implementation showing how to use the demo HTTP client
 /// This demonstrates integration with your existing data sources

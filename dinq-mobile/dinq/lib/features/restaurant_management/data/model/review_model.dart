@@ -1,10 +1,11 @@
 import 'dart:convert';
 
-import 'package:dinq/features/restaurant_management/domain/entities/review.dart';
+import '../../domain/entities/review.dart';
 
 class ReviewModel extends Review {
   const ReviewModel({
     required super.id,
+    required super.itemId,
     required super.userId,
     required super.userName,
     required super.userAvatar,
@@ -18,6 +19,7 @@ class ReviewModel extends Review {
 
   factory ReviewModel.fromMap(Map<String, dynamic> data) => ReviewModel(
     id: data['id'] ?? '',
+    itemId: data['itemId'] ?? '',
     userId: data['userId'] ?? '',
     userName: data['userName'] ?? '',
     userAvatar: data['userAvatar'] ?? '',
@@ -35,6 +37,7 @@ class ReviewModel extends Review {
 
   Map<String, dynamic> toMap() => {
     'id': id,
+    'itemId': itemId,
     'userId': userId,
     'userName': userName,
     'userAvatar': userAvatar,
@@ -54,6 +57,7 @@ class ReviewModel extends Review {
 
   ReviewModel copyWith({
     String? id,
+    String? itemId,
     String? userId,
     String? userName,
     String? userAvatar,
@@ -66,6 +70,7 @@ class ReviewModel extends Review {
   }) {
     return ReviewModel(
       id: id ?? this.id,
+      itemId: itemId ?? this.itemId,
       userId: userId ?? this.userId,
       userName: userName ?? this.userName,
       userAvatar: userAvatar ?? this.userAvatar,

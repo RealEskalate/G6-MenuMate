@@ -21,12 +21,11 @@ class RestaurantDataSourceUsageExample {
     ));
 
     // Mock network info (in real app, inject the actual implementation)
-    final networkInfo = MockNetworkInfo();
+  
 
     // 3. Create data source
     final dataSource = RestaurantRemoteDataSourceImpl(
       dio: dio,
-      network: networkInfo,
     );
 
     print('📊 Demo mode status: ${dataSource.isDemoMode}');
