@@ -8,19 +8,22 @@ export const options: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: {
+        identifier: {
           label: "Email",
           type: "email",
           placeholder: "you@example.com",
         },
         password: { label: "Password", type: "password" },
       },
+
       async authorize(credentials) {
         console.log("authorize received:", credentials);
 
-
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email and password are required");
+        if (!credentials?.identifier) {
+          throw new Error("Email required");
+        }
+        if (!credentials?.password) {
+          throw new Error("Password required");
         }
 
         try {
@@ -28,7 +31,7 @@ export const options: NextAuthOptions = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              email: credentials.email,
+              identifier: credentials.identifier,
               password: credentials.password,
             }),
           });
@@ -58,7 +61,7 @@ export const options: NextAuthOptions = {
     }),
   ],
   pages: {
-    signIn: "/login",
+    signIn: "/signin",
   },
   session: {
     strategy: "jwt",
@@ -74,9 +77,9 @@ export const options: NextAuthOptions = {
         });
         token.user = {
           email: user.email,
-          // name: user.username,
-          // firstName: user.firstName,
-          // lastName: user.lastName,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: user.role,
         };
         token.email = user.email;
@@ -104,10 +107,8 @@ export const options: NextAuthOptions = {
           }
           const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token.refreshToken}`,
-            },
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: token.refreshToken }),
           });
           const result = await res.json();
 
@@ -137,18 +138,15 @@ export const options: NextAuthOptions = {
         session.error = token.error;
         session.errorDetails = token.errorDetails;
       }
-      console.log("Session updated:", {
-        email: session.user?.email,
-        username: session.user?.name,
-        exp: session.exp,
-        error: session.error,
-        errorDetails: session.errorDetails,
-      });
+    
       return session;
     },
     async redirect({ url, baseUrl }) {
+      console.log("Redirect callback:", { url, baseUrl });
       if (url.includes("/api/auth/callback")) {
-        return `${baseUrl}/dashboard/menu`;
+        const targetUrl = `${baseUrl}/dashboard/menu`;
+        console.log("Constructed redirect URL:", targetUrl);
+        return targetUrl;
       }
       return url;
     },

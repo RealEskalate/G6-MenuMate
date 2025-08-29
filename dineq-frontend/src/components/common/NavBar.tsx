@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import logo from "../../../public/logo.png";
-import Roles from "@/types/type";
+import Roles from "@/Types/role";
 
 function NavBar({ role }: Roles) {
   const pathname = usePathname();

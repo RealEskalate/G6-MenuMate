@@ -1,44 +1,82 @@
-import { Session, User, JWT } from 'next-auth';
 
-declare module 'next-auth' {
-  interface User {
-    id?: string;
-    email?: string | null;
-    name?: string | null;
-    image?: string | null;
-    role?: 'OWNER' | 'CUSTOMER' ;
+import { DefaultSession, DefaultUser } from "next-auth";
+import { DefaultJWT } from "next-auth/jwt";
+import { NextRequest } from "next/server";
+
+// Extend next-auth User and Session
+declare module "next-auth" {
+  interface User extends DefaultUser {
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+    role?: string;
     accessToken?: string;
-    refreshToken?: string;
+    refreshToken?: string | null;
   }
 
-  interface Session {
+  interface Session extends DefaultSession {
     user: {
       id?: string;
-      email?: string | null;
-      name?: string | null;
-      image?: string | null;
-      role?: 'OWNER' | 'CUSTOMER' ;
+      email?: string|null;
+      username?: string;
+      firstName?: string;
+      lastName?: string;
+      role?: string;
     };
     accessToken?: string;
-    refreshToken?: string;
+    refreshToken?: string | null;
     exp?: number;
     error?: string;
     errorDetails?: string;
   }
 }
 
-declare module 'next-auth/jwt' {
-  interface JWT {
-    user?: {
+// Extend next-auth/jwt JWT
+declare module "next-auth/jwt" {
+  interface JWT extends DefaultJWT {
+    user: {
       email?: string | null;
-      role?: 'OWNER' | 'CUSTOMER' ;
+      username?: string;
+      firstName?: string;
+      lastName?: string;
+      role?: string;
     };
-    email?: string | null;
-    role?:'OWNER' | 'CUSTOMER' ;
+    email?: string|null;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+    role?: string;
     accessToken?: string;
-    refreshToken?: string;
+    refreshToken?: string | null;
     exp?: number;
     error?: string;
     errorDetails?: string;
+  }
+}
+
+// Extend NextRequest to include nextauth
+declare module "next/server" {
+  interface NextRequest {
+    nextauth: {
+      token: {
+        user?: {
+          email?: string|null;
+          username?: string;
+          firstName?: string;
+          lastName?: string;
+          role?: string;
+        };
+        email?: string|null;
+        username?: string;
+        firstName?: string;
+        lastName?: string;
+        role?: string;
+        accessToken?: string;
+        refreshToken?: string | null;
+        exp?: number;
+        error?: string;
+        errorDetails?: string;
+      } | null;
+    };
   }
 }
