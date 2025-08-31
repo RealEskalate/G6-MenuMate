@@ -422,7 +422,7 @@ void main() {
     group('equality and hashCode', () {
       test('should support equality comparison', () {
         // Arrange
-        final model1 = ItemModel(
+        final model1 = const ItemModel(
           id: 'test_1',
           name: 'Test Item',
           nameAm: 'የምክክር ንጥል',
@@ -434,7 +434,7 @@ void main() {
           averageRating: 3.5,
           reviewIds: ['r1'],
         );
-        final model2 = ItemModel(
+        final model2 = const ItemModel(
           id: 'test_1',
           name: 'Test Item',
           nameAm: 'የምክክር ንጥል',
@@ -453,7 +453,7 @@ void main() {
 
       test('should support hashCode generation', () {
         // Arrange
-        final model1 = ItemModel(
+        final model1 = const ItemModel(
           id: 'test_1',
           name: 'Test Item',
           nameAm: 'የምክክር ንጥል',
@@ -465,7 +465,7 @@ void main() {
           averageRating: 3.5,
           reviewIds: ['r1'],
         );
-        final model2 = ItemModel(
+        final model2 = const ItemModel(
           id: 'test_1',
           name: 'Test Item',
           nameAm: 'የምክክር ንጥል',

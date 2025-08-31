@@ -225,7 +225,7 @@ void main() {
         expect(result.createdAt, isA<DateTime>());
         expect(
           result.createdAt.isAfter(
-            DateTime.now().subtract(Duration(seconds: 1)),
+            DateTime.now().subtract(const Duration(seconds: 1)),
           ),
           true,
         );

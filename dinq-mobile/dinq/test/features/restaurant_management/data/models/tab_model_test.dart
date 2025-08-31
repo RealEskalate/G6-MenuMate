@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   // Mock CategoryModel data for testing
-  final mockCategoryModel = CategoryModel(
+  final mockCategoryModel = const CategoryModel(
     id: 'category_1',
     tabId: 'tab_1',
     name: 'Meat Dishes',
@@ -14,7 +14,7 @@ void main() {
     items: [],
   );
 
-  final mockCategoryModel2 = CategoryModel(
+  final mockCategoryModel2 = const CategoryModel(
     id: 'category_2',
     tabId: 'tab_1',
     name: 'Vegetarian',
@@ -252,7 +252,7 @@ void main() {
 
       test('should handle empty categories list in toMap', () {
         // Arrange
-        final tabWithEmptyCategories = TabModel(
+        final tabWithEmptyCategories = const TabModel(
           id: 'empty_tab',
           menuId: 'menu_1',
           name: 'Empty Tab',
@@ -417,7 +417,7 @@ void main() {
 
       test('should return the same instance when no fields are updated', () {
         // Arrange
-        final originalTab = TabModel(
+        final originalTab = const TabModel(
           id: 'same_tab',
           menuId: 'menu_1',
           name: 'Same Tab',
@@ -459,7 +459,7 @@ void main() {
     group('toEntity', () {
       test('should return the same instance since TabModel extends Tab', () {
         // Arrange
-        final tabModel = TabModel(
+        final tabModel = const TabModel(
           id: 'entity_tab',
           menuId: 'menu_1',
           name: 'Entity Tab',
@@ -503,7 +503,7 @@ void main() {
           categories: [mockCategoryModel],
           isDeleted: false,
         );
-        final tab3 = TabModel(
+        final tab3 = const TabModel(
           id: 'test_tab_2',
           menuId: 'menu_1',
           name: 'Different Tab',
@@ -519,7 +519,7 @@ void main() {
 
       test('should support hashCode generation', () {
         // Arrange
-        final tab1 = TabModel(
+        final tab1 = const TabModel(
           id: 'hash_tab',
           menuId: 'menu_1',
           name: 'Hash Tab',
@@ -527,7 +527,7 @@ void main() {
           categories: [],
           isDeleted: false,
         );
-        final tab2 = TabModel(
+        final tab2 = const TabModel(
           id: 'hash_tab',
           menuId: 'menu_1',
           name: 'Hash Tab',

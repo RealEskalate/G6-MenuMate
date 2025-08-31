@@ -25,6 +25,7 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     on<LoadRestaurants>(_onLoadRestaurants);
     on<LoadMenu>(_onLoadMenu);
     on<LoadCategories>(_onLoadCategories);
+    on<LoadUserImages>(_onLoadUserImages);
     on<LoadReviews>(_onLoadReviews);
   }
 
@@ -81,6 +82,18 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
       (reviews) => emit(ReviewsLoaded(reviews)),
+    );
+  }
+
+  Future<void> _onLoadUserImages(
+    LoadUserImages event,
+    Emitter<RestaurantState> emit,
+  ) async {
+    emit(const RestaurantLoading());
+    final result = await getUserImages(event.slug);
+    result.fold(
+      (failure) => emit(RestaurantError(failure.message)),
+      (images) => emit(UserImagesLoaded(images)),
     );
   }
 }

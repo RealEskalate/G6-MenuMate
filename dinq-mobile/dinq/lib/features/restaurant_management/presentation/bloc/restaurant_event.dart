@@ -29,7 +29,6 @@ class LoadCategories extends RestaurantEvent {
   List<Object?> get props => [tabId];
 }
 
-
 class LoadReviews extends RestaurantEvent {
   final String itemId;
 
@@ -37,4 +36,13 @@ class LoadReviews extends RestaurantEvent {
 
   @override
   List<Object?> get props => [itemId];
+}
+
+class LoadUserImages extends RestaurantEvent {
+  final String slug;
+
+  const LoadUserImages(this.slug);
+
+  @override
+  List<Object?> get props => [slug];
 }

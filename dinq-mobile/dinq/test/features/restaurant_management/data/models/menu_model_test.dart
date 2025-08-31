@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   // Mock TabModel data for testing
-  final mockTabModel = TabModel(
+  final mockTabModel = const TabModel(
     id: 'tab_1',
     menuId: 'menu_1',
     name: 'Main Course',
@@ -15,7 +15,7 @@ void main() {
     isDeleted: false,
   );
 
-  final mockTabModelDeleted = TabModel(
+  final mockTabModelDeleted = const TabModel(
     id: 'tab_deleted',
     menuId: 'menu_1',
     name: 'Deleted Tab',
@@ -234,7 +234,7 @@ void main() {
 
       test('should handle empty tabs list in toMap', () {
         // Arrange
-        final menuWithEmptyTabs = MenuModel(
+        final menuWithEmptyTabs = const MenuModel(
           id: 'empty_menu',
           restaurantId: 'restaurant_1',
           isPublished: false,
@@ -404,7 +404,7 @@ void main() {
 
       test('should return the same instance when no fields are updated', () {
         // Arrange
-        final originalMenu = MenuModel(
+        final originalMenu = const MenuModel(
           id: 'same_menu',
           restaurantId: 'restaurant_1',
           isPublished: true,
@@ -444,7 +444,7 @@ void main() {
     group('toEntity', () {
       test('should return the same instance since MenuModel extends Menu', () {
         // Arrange
-        final menuModel = MenuModel(
+        final menuModel = const MenuModel(
           id: 'entity_menu',
           restaurantId: 'restaurant_1',
           isPublished: true,
@@ -485,7 +485,7 @@ void main() {
           tabs: [mockTabModel],
           viewCount: 100,
         );
-        final menu3 = MenuModel(
+        final menu3 = const MenuModel(
           id: 'test_menu_2',
           restaurantId: 'restaurant_1',
           isPublished: false,
@@ -500,14 +500,14 @@ void main() {
 
       test('should support hashCode generation', () {
         // Arrange
-        final menu1 = MenuModel(
+        final menu1 = const MenuModel(
           id: 'hash_menu',
           restaurantId: 'restaurant_1',
           isPublished: true,
           tabs: [],
           viewCount: 75,
         );
-        final menu2 = MenuModel(
+        final menu2 = const MenuModel(
           id: 'hash_menu',
           restaurantId: 'restaurant_1',
           isPublished: true,

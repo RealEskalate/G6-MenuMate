@@ -29,29 +29,38 @@ class DemoHttpClient {
             print(
               '🚀 [DEMO MODE] Intercepting request: ${options.method} ${options.path}',
             );
-            return handler.reject(
-              DioException(
+
+            // Get demo response directly in request interceptor
+            final demoResponse = _getDemoResponse(options);
+
+            if (demoResponse != null) {
+              print(
+                '📦 [DEMO MODE] Returning demo response for: ${options.path}',
+              );
+
+              // Resolve with demo data instead of rejecting
+              final response = Response(
                 requestOptions: options,
-                type: DioExceptionType.unknown,
-                error: 'Demo mode: Request intercepted',
-              ),
-            );
+                statusCode: 200,
+                statusMessage: 'Demo Response',
+                data: demoResponse,
+              );
+
+              return handler.resolve(response);
+            } else {
+              print(
+                '❌ [DEMO MODE] No demo response found for: ${options.path}',
+              );
+              print('📋 Check demo_api_responses.dart for available endpoints');
+            }
           }
+
+          // If not demo mode or no demo response, proceed normally
           return handler.next(options);
         },
         onError: (error, handler) {
-          if (_isDemoMode) {
-            final demoResponse = _getDemoResponse(error.requestOptions);
-            final response = Response(
-              requestOptions: error.requestOptions,
-              statusCode: 200,
-              data: demoResponse,
-            );
-            print(
-              '📦 [DEMO MODE] Returning demo response for: ${error.requestOptions.path}',
-            );
-            return handler.resolve(response);
-          }
+          // Keep error handling for non-demo cases
+          print('⚠️ [DEMO MODE] Error interceptor called: ${error.message}');
           return handler.next(error);
         },
       ),

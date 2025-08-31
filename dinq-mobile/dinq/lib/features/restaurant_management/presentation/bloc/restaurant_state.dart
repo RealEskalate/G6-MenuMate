@@ -74,6 +74,15 @@ class ReviewsLoaded extends RestaurantState {
   List<Object?> get props => [reviews];
 }
 
+class UserImagesLoaded extends RestaurantState {
+  final List<String> images;
+
+  const UserImagesLoaded(this.images);
+
+  @override
+  List<Object?> get props => [images];
+}
+
 class RestaurantError extends RestaurantState {
   final String message;
 

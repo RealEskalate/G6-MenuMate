@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 class Restaurant extends Equatable {
+  // TODO: add average rating field.
   final String id;
   final String name;
   final String description;

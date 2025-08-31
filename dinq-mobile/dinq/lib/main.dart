@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/injection.dart' as di;
+import 'core/routing/app_routing.dart';
+import 'core/temp/app_config.dart';
+import 'core/utils/theme.dart';
 import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
-import 'features/restaurant_management/presentation/pages/restaurant_menu_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  ConfigPresets.developmentDemo();
   await di.init();
   runApp(const MyApp());
 }
@@ -23,57 +26,22 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'DineQ - Restaurant Management',
+        title: 'DinQ',
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          useMaterial3: true,
+          primaryColor: AppColors.primaryColor,
+          colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryColor),
+          scaffoldBackgroundColor: Colors.grey[100],
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: Colors.white,
+          ),
         ),
-        home: const HomePage(),
+        initialRoute: '/explore',
+        onGenerateRoute: generateRoute,
       ),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('DineQ'), centerTitle: true),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Welcome to DineQ',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Restaurant Management System',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: () {
-                // Navigate to restaurant menu page
-                // For demo purposes, using a hardcoded restaurant ID
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const RestaurantMenuPage(
-                      restaurantId:
-                          'restaurant-1', // This should come from a restaurant list
-                    ),
-                  ),
-                );
-              },
-              child: const Text('View Restaurant Menu'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

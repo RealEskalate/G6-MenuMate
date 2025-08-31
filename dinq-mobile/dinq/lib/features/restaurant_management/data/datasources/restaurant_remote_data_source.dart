@@ -1,7 +1,7 @@
-import 'package:dinq/features/restaurant_management/domain/entities/category.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/menu.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/restaurant.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/review.dart';
+import '../../domain/entities/category.dart';
+import '../../domain/entities/menu.dart';
+import '../../domain/entities/restaurant.dart';
+import '../../domain/entities/review.dart';
 
 abstract class RestaurantRemoteDataSource {
   
