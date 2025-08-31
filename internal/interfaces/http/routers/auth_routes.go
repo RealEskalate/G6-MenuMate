@@ -8,7 +8,7 @@ import (
 	"github.com/dinq/menumate/internal/infrastructure/email"
 	"github.com/dinq/menumate/internal/infrastructure/repositories"
 	"github.com/dinq/menumate/internal/infrastructure/security"
-	"github.com/dinq/menumate/internal/infrastructure/storage"
+	services "github.com/dinq/menumate/internal/infrastructure/service"
 	handler "github.com/dinq/menumate/internal/interfaces/http/handlers"
 	"github.com/dinq/menumate/internal/interfaces/middleware"
 	usecase "github.com/dinq/menumate/internal/usecases"
@@ -55,17 +55,23 @@ func NewAuthRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database) 
 	otpUsecase := usecase.NewOTPUsecase(otpRepo, emailService, ctxTimeout, time.Duration(env.OtpExpireMinutes)*time.Minute, env.OtpMaximumAttempts, env.SecretSalt)
 
 	// storage services
-	imageKitStorageService := storage.NewImageKitStorage(
-		env.ImageKitPrivateKey,
-		env.ImageKitPrivateKey,
-		env.ImageKitEndpoint,
+	cloudinaryStorage := services.NewCloudinaryStorage(
+		env.CloudinaryName,
+		env.CloudinaryAPIKey,
+		env.CloudinarySecret,
 	)
 
+	// Notifcation
+	notifyRepo := repositories.NewNotificationRepository(db, env.NotificationCollection)
+	notifySvc := services.NewNotificationService()
+	notificationUseCase := usecase.NewNotificationUseCase(notifyRepo, notifySvc)
+
 	authController := handler.AuthController{
-		UserUsecase:          usecase.NewUserUsecase(userRepo, imageKitStorageService, ctxTimeout),
+		UserUsecase:          usecase.NewUserUsecase(userRepo, cloudinaryStorage, ctxTimeout),
 		OTP:                  otpUsecase,
 		AuthService:          authService,
 		RefreshTokenUsecase:  usecase.NewRefreshTokenUsecase(repositories.NewRefreshTokenRepository(db, env.RefreshTokenCollection)),
+		NotificationUseCase:  notificationUseCase,
 		PasswordResetUsecase: passwordResetUsecase,
 		GoogleClientID:       env.GoogleClientID,
 		GoogleClientSecret:   env.GoogleClientSecret,

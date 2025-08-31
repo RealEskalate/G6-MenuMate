@@ -4,20 +4,21 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/dinq/menumate/internal/domain"
 	"github.com/dinq/menumate/internal/infrastructure/security"
+	services "github.com/dinq/menumate/internal/infrastructure/service"
 )
 
 type UserUsecase struct {
 	userRepo       domain.IUserRepository
-	storageService domain.StorageService
+	storageService services.StorageService
 	ctxtimeout     time.Duration
+NotificationUseCase domain.INotificationUseCase
 }
 
-func NewUserUsecase(userRepo domain.IUserRepository, storageService domain.StorageService, timeout time.Duration) domain.IUserUsecase {
+func NewUserUsecase(userRepo domain.IUserRepository, storageService services.StorageService, timeout time.Duration) domain.IUserUsecase {
 	return &UserUsecase{
 		userRepo:       userRepo,
 		storageService: storageService,
@@ -28,45 +29,17 @@ func NewUserUsecase(userRepo domain.IUserRepository, storageService domain.Stora
 func (uc *UserUsecase) Register(request *domain.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxtimeout)
 	defer cancel()
-
+    if request.Role == "" {
 	request.Role = domain.RoleUser // Default role is User
-	user, err := uc.userRepo.FindByUsernameOrEmail(ctx, request.Username)
-	if err == nil && (user != domain.User{}) {
-		return errors.New("username already exists")
 	}
-
-	user, err = uc.userRepo.FindByUsernameOrEmail(ctx, request.Email)
-	if err == nil && (user != domain.User{}) {
-		return errors.New("email already exists")
+	user, err := uc.userRepo.GetUserByEmail(ctx, request.Email)
+	if err == nil && user != nil {
+		return domain.ErrEmailAlreadyInUse
 	}
-	hashed, _ := security.HashPassword(request.Password)
-	request.Password = hashed
 	request.IsVerified = false
 	request.CreatedAt = time.Now()
 	request.UpdatedAt = time.Now()
 	return uc.userRepo.CreateUser(ctx, request)
-}
-
-// Logout
-func (uc *UserUsecase) Logout(userID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxtimeout)
-	defer cancel()
-
-	return uc.userRepo.InvalidateTokens(ctx, userID)
-}
-
-// find user by username or id
-func (uc *UserUsecase) FindByUsernameOrEmail(ctx context.Context, identifier string) (*domain.User, error) {
-	emailRegex := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
-	isEmail, _ := regexp.MatchString(emailRegex, identifier)
-	var user *domain.User
-	var err error
-	if isEmail {
-		user, err = uc.userRepo.GetUserByEmail(ctx, identifier)
-	} else {
-		user, err = uc.userRepo.GetUserByUsername(ctx, identifier)
-	}
-	return user, err
 }
 
 func (uc *UserUsecase) FindUserByID(uid string) (*domain.User, error) {
@@ -105,9 +78,11 @@ func (uc *UserUsecase) UpdateProfile(userID string, update domain.UserProfileUpd
 		return nil, err
 	}
 	fmt.Println(update.FirstName, update.LastName)
+	var publicId string
 	// Handle avatar upload
 	if len(update.AvatarData) > 0 {
-		avatarURL, err := uc.storageService.UploadFile(ctx, fileName, update.AvatarData)
+		avatarURL, pubId, err := uc.storageService.UploadFile(ctx, fileName, update.AvatarData, "profile")
+		publicId = pubId
 		if err != nil {
 			return nil, fmt.Errorf("failed to upload avatar: %w", err)
 		}
@@ -120,14 +95,11 @@ func (uc *UserUsecase) UpdateProfile(userID string, update domain.UserProfileUpd
 			// Continue if no timeout or cancellation
 		}
 
-		user.AvatarURL = avatarURL
+		user.ProfileImage = avatarURL
 	}
-	fmt.Println(user)
 
 	// Apply updates
-	if update.Bio != "" {
-		user.Bio = update.Bio
-	}
+
 	if update.FirstName != "" {
 		user.FirstName = update.FirstName
 	}
@@ -137,6 +109,7 @@ func (uc *UserUsecase) UpdateProfile(userID string, update domain.UserProfileUpd
 
 	// Update in repository
 	if err := uc.userRepo.UpdateUser(ctx, user.ID, user); err != nil {
+		uc.storageService.DeleteFile(ctx, publicId)
 		return nil, err
 	}
 
@@ -166,5 +139,22 @@ func (uc *UserUsecase) ChangePassword(userID, oldPassword, newPassword string) e
 
 	// Update password
 	user.Password = hashedPassword
+	return uc.userRepo.UpdateUser(ctx, user.ID, user)
+}
+
+// assign Role
+func (uc *UserUsecase) AssignRole(userID string, branchID string, role domain.UserRole) error {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxtimeout)
+	defer cancel()
+
+	// Find user
+	user, err := uc.userRepo.FindUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+
+	// Assign role
+	user.Role = role
 	return uc.userRepo.UpdateUser(ctx, user.ID, user)
 }

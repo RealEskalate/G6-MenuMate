@@ -10,11 +10,11 @@ import (
 type PasswordResetTokenDB struct {
 	ID        bson.ObjectID `bson:"_id,omitempty"`
 	Email     string        `bson:"email"`
-	RateLimit int64         `bson:"rate_limit"`
-	TokenHash string        `bson:"token_hash"`
-	ExpiresAt time.Time     `bson:"expires_at"`
+	RateLimit int64         `bson:"rateLimit"`
+	TokenHash string        `bson:"tokenHash"`
+	ExpiresAt time.Time     `bson:"expiresAt"`
 	Used      bool          `bson:"used"`
-	CreatedAt time.Time     `bson:"created_at"`
+	CreatedAt time.Time     `bson:"createdAt"`
 }
 
 func PasswordResetTokenFromDomain(token *domain.PasswordResetToken) *PasswordResetTokenDB {

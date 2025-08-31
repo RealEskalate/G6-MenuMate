@@ -60,7 +60,7 @@ func (otpuc *OTPUsecase) RequestOTP(email string) error {
 
 	err = otpuc.EmailService.SendEmail(ctx, email, "Your OTP Code", body)
 	if err != nil {
-		return fmt.Errorf("failed to send OTP email: %w", err)
+		return err
 	}
 	if otpExist {
 		err = otpuc.OTPRepo.UpdateOTPByID(ctx, otp)
@@ -72,7 +72,7 @@ func (otpuc *OTPUsecase) RequestOTP(email string) error {
 
 	err = otpuc.OTPRepo.SaveOTP(ctx, otp)
 	if err != nil {
-		return fmt.Errorf("failed to save OTP: %w", err)
+		return err
 	}
 	return nil
 }
@@ -158,7 +158,7 @@ func (otpuc *OTPUsecase) VerifyOTP(email, code string) (*domain.OTP, error) {
 
 	if time.Now().After(otp.ExpiresAt) {
 		if err := otpuc.DeleteByID(otp.ID); err != nil {
-			return nil, fmt.Errorf("failed to delete expired OTP: %w", err)
+			return nil, err
 		}
 		return nil, domain.ErrOTPExpired
 	}

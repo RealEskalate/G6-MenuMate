@@ -3,9 +3,9 @@ package usecase
 import "github.com/dinq/menumate/internal/domain"
 
 type RestaurantUsecase struct {
-	Repo domain.RestaurantRepository
+	Repo domain.IRestaurantRepository
 }
 
-func NewRestaurantUsecase(r domain.RestaurantRepository) *RestaurantUsecase {
-	return &RestaurantUsecase{Repo: r}
-}
+// func NewRestaurantUsecase(r domain.IRestaurantRepository) *domain.IRestaurantUseCase {
+// 	return &RestaurantUsecase{Repo: r}
+// }

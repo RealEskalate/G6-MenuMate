@@ -16,6 +16,12 @@ type PasswordResetToken struct {
 	Used      bool
 	CreatedAt time.Time
 }
+type TokenType string
+
+const (
+	AccessTokenType     TokenType = "accessToken"
+	RefreshTokenType TokenType = "refreshToken"
+)
 
 type RefreshToken struct {
 	Token     string

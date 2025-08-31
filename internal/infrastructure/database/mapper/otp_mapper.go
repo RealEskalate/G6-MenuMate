@@ -10,10 +10,10 @@ import (
 type OtpDB struct {
 	ID        bson.ObjectID `bson:"_id,omitempty"`
 	Email     string        `bson:"email"`
-	CodeHash  string        `bson:"code_hash"`
-	ExpiresAt time.Time     `bson:"expires_at"`
+	CodeHash  string        `bson:"codeHash"`
+	ExpiresAt time.Time     `bson:"expiresAt"`
 	Attempts  int           `bson:"attempts"`
-	CreatedAt time.Time     `bson:"created_at"`
+	CreatedAt time.Time     `bson:"createdAt"`
 }
 
 // from otp to db model

@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/dinq/menumate/internal/domain"
@@ -24,11 +23,14 @@ func NewUserRepository(db mongo.Database, collection string) domain.IUserReposit
 }
 
 func (repo *UserRepository) CreateUser(ctx context.Context, user *domain.User) error {
-	// user.ID = bson.NewObjectID()
 	usermodel := mapper.UserFromDomain(user)
-	_, err := repo.DB.Collection(repo.Collection).InsertOne(ctx, usermodel)
+	res, err := repo.DB.Collection(repo.Collection).InsertOne(ctx, usermodel)
 	if err != nil {
 		return err
+	}
+	// The ID is already set in the mapper, but we can update it with the inserted ID if needed
+	if oid, ok := res.InsertedID.(bson.ObjectID); ok {
+		user.ID = oid.Hex()
 	}
 	return nil
 }
@@ -66,13 +68,13 @@ func (repo *UserRepository) UpdateUser(ctx context.Context, id string, user *dom
 func (repo *UserRepository) FindUserByID(ctx context.Context, id string) (*domain.User, error) {
 	uid, err := bson.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, fmt.Errorf("invalid user ID: %v", err)
+		return nil, err
 	}
 	var userModel *mapper.UserModel
 	err = repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"_id": uid}).Decode(&userModel)
 	if err != nil {
 		if err == mongo.ErrNoDocuments() {
-			return nil, fmt.Errorf("user not found")
+			return nil, err
 		}
 		return nil, err
 	}
@@ -84,7 +86,7 @@ func (repo *UserRepository) GetUserByUsername(ctx context.Context, username stri
 	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"username": bson.M{"$regex": username, "$options": "i"}}).Decode(&userModel)
 	if err != nil {
 		if err == mongo.ErrNoDocuments() {
-			return nil, fmt.Errorf("user not found")
+			return nil, err
 		}
 		return nil, err
 	}
@@ -96,42 +98,55 @@ func (repo *UserRepository) GetUserByEmail(ctx context.Context, email string) (*
 	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"email": bson.M{"$regex": email, "$options": "i"}}).Decode(&userModel)
 	if err != nil {
 		if err == mongo.ErrNoDocuments() {
-			return nil, fmt.Errorf("user not found")
+			return nil, err
 		}
 		return nil, err
 	}
 	return mapper.UserToDomain(userModel), nil
 }
 
-func (repo *UserRepository) FindByUsernameOrEmail(ctx context.Context, key string) (domain.User, error) {
-	var userModel mapper.UserModel
-	filter := bson.M{"$or": []bson.M{
-		{"username": key},
-		{"email": key},
-	}}
-	err := repo.DB.Collection(repo.Collection).FindOne(ctx, filter).Decode(&userModel)
-	if err != nil {
-		return domain.User{}, err
-	}
-	return *mapper.UserToDomain(&userModel), nil
-}
-
-func (repo *UserRepository) InvalidateTokens(ctx context.Context, userID string) error {
-	_, err := repo.DB.Collection(repo.Collection).UpdateOne(ctx, bson.M{"_id": userID}, bson.M{"$set": bson.M{"tokens": []string{}}})
-	return err
-}
-
-func (repo *UserRepository) ChangeRole(ctx context.Context, targetUserID string, role string, username string) error {
+func (repo *UserRepository) AssignRole(ctx context.Context, branchID, targetUserID string, role domain.UserRole) error {
 	objID, err := bson.ObjectIDFromHex(targetUserID)
 	if err != nil {
-		return fmt.Errorf("invalid user ID: %v", err)
+		return err
 	}
 	_, err = repo.DB.Collection(repo.Collection).UpdateOne(ctx, bson.M{"_id": objID}, bson.M{
 		"$set": bson.M{
-			"role":       role,
-			"updated_at": time.Now(),
-			"username":   username,
+			"role":       string(role),
+			"updatedAt": time.Now(),
+			"branchId":   branchID,
 		},
 	})
 	return err
+}
+
+// save fcm
+func (repo *UserRepository) SaveFCMToken(userID string, token string) error {
+	objID, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	_, err = repo.DB.Collection(repo.Collection).UpdateOne(context.Background(), bson.M{"_id": objID}, bson.M{
+		"$set": bson.M{
+			"fcmToken":  token,
+			"updatedAt": time.Now(),
+		},
+	})
+	return err
+}
+
+// get fcm
+func (repo *UserRepository) GetFCMToken(userID string) (string, error) {
+	objID, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		return "", err
+	}
+	var result struct {
+		FCMToken string `bson:"fcmToken"`
+	}
+	err = repo.DB.Collection(repo.Collection).FindOne(context.Background(), bson.M{"_id": objID}).Decode(&result)
+	if err != nil {
+		return "", err
+	}
+	return result.FCMToken, nil
 }

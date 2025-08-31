@@ -6,14 +6,20 @@ import (
 
 	"github.com/dinq/menumate/internal/bootstrap"
 	mongo "github.com/dinq/menumate/internal/infrastructure/database"
+	services "github.com/dinq/menumate/internal/infrastructure/service"
 	"github.com/gin-gonic/gin"
 )
 
 func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router *gin.Engine) {
+    // Notification services
+	notifySvc := services.NewNotificationService()
+
 	router.GET("/", func(ctx *gin.Context) { ctx.Redirect(http.StatusPermanentRedirect, "/api") })
 	api := router.Group("/api/v1")
 	{
 		NewAuthRoutes(env, api, db)
 		NewUserRoutes(env, api, db)
+		NewOCRJobRoutes(env, api, db, notifySvc)
+		NewNotificationRoutes(env, api, db, notifySvc)
 	}
 }

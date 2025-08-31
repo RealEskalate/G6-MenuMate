@@ -10,53 +10,49 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
-type UserController struct {
-	uc domain.IUserUsecase
+type UserHandler struct {
+	UserUsecase       domain.IUserUsecase
+	NotificationUseCase domain.INotificationUseCase
 }
-
-func NewUserController(uc domain.IUserUsecase) *UserController {
-	return &UserController{uc: uc}
-}
-
-func (ctrl *UserController) UpdateProfile(c *gin.Context) {
-	userID, exists := c.Get("user_id")
+func (ctrl *UserHandler) UpdateProfile(c *gin.Context) {
+	userID, exists := c.Get("userId")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": domain.ErrUnauthorized.Error()})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error()})
 		return
 	}
 
 	var req dto.UserUpdateProfileRequest
 	if err := c.ShouldBindWith(&req, binding.FormMultipart); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid form data", "details": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
 
 	// validate
 	if err := validate.Struct(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
 		return
 	}
 
 	var avatarData []byte
 	var fileName string
 
-	file, err := c.FormFile("avatar_file")
+	file, err := c.FormFile("profileImage")
 	if err == nil {
 		f, err := file.Open()
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to open uploaded file"})
+			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: err.Error()})
 			return
 		}
 		defer f.Close()
 
 		avatarData, err = io.ReadAll(f)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to read uploaded file"})
+			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: err.Error()})
 			return
 		}
 		fileName = file.Filename
 	} else if err != http.ErrMissingFile {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Error uploading file"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: err.Error()})
 		return
 	} else {
 		// No file uploaded, use default avatar or leave it empty
@@ -65,48 +61,66 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	}
 
 	update := domain.UserProfileUpdate{
-		Bio:        req.Bio,
 		AvatarData: avatarData,
 		FirstName:  req.FirstName,
 		LastName:   req.LastName,
 	}
 
-	updatedUser, err := ctrl.uc.UpdateProfile(userID.(string), update, fileName)
+	updatedUser, err := ctrl.UserUsecase.UpdateProfile(userID.(string), update, fileName)
 	if err == domain.ErrUserNotFound {
-		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error()})
 		return
 	}
 	if err == domain.ErrInvalidFile {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file format"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error()})
 		return
 	}
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.ToUserResponse(*updatedUser))
+	// send notifcation
+	if err := ctrl.NotificationUseCase.SendNotificationFromRoute(c.Request.Context(), userID.(string), "Your profile has been updated successfully!", domain.InfoUpdate); err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		return
+	}
+
+	userDto := dto.UserDTO{}
+
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: userDto.FromDomain(updatedUser)})
 }
 
-func (ctrl *UserController) ChangePassword(c *gin.Context) {
+func (ctrl *UserHandler) ChangePassword(c *gin.Context) {
 	var req dto.ChangePasswordRequest
 	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
 	if err := validate.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
 		return
 	}
-	userID := c.GetString("user_id")
+	userID := c.GetString("userId")
 	if userID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error()})
 		return
 	}
 
-	if err := ctrl.uc.ChangePassword(userID, req.OldPassword, req.NewPassword); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// check password strength
+	if err := dto.ValidatePasswordStrength(req.NewPassword); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
+
+	if err := ctrl.UserUsecase.ChangePassword(userID, req.OldPassword, req.NewPassword); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
+		return
+	}
+	if err := ctrl.NotificationUseCase.SendNotificationFromRoute(c.Request.Context(), userID, "Your password has been changed successfully!", domain.InfoUpdate); err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgUpdated})
 }

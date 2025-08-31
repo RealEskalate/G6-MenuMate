@@ -14,7 +14,7 @@ import (
 // AuthMiddleware checks if the user is authenticated by verifying the JWT token
 func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := utils.GetCookie(c, "access_token")
+		tokenStr, err := utils.GetCookie(c, "accessToken")
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found in cookies, please login again"})
 			c.Abort()
@@ -38,17 +38,17 @@ func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 		}
 
 		// Set user ID and role in the context for further use
-		c.Set("user_id", claims["sub"].(string))
+		c.Set("userId", claims["sub"].(string))
 		if role, ok := claims["role"]; ok {
 			c.Set("role", role.(string))
 		}
 
-		// set is_verified in context
-		isVerified := claims["is_verified"].(bool)
+		// set isVerified in context
+		isVerified := claims["isVerified"].(bool)
 		if isVerified {
-			c.Set("is_verified", true)
+			c.Set("isVerified", true)
 		} else {
-			c.Set("is_verified", false)
+			c.Set("isVerified", false)
 		}
 		c.Next()
 	}
@@ -66,7 +66,7 @@ func AdminOnly() gin.HandlerFunc {
 
 func VerifiedUserOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		IsVerified := c.GetBool("is_verified")
+		IsVerified := c.GetBool("isVerified")
 		if !IsVerified {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "user not verified"})
 			return

@@ -1,94 +1,133 @@
 package dto
 
 import (
+	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/dinq/menumate/internal/domain"
+	"github.com/dinq/menumate/internal/infrastructure/security"
 )
 
-type UserRequest struct {
-	ID         string    `json:"id" validate:"omitempty"`
-	Username   string    `json:"username" validate:"required,min=3,max=50"`
-	Email      string    `json:"email" validate:"required,email"`
-	Password   string    `json:"password" validate:"required,min=6,max=100"`
-	FirstName  string    `json:"first_name" validate:"required,alpha,min=2,max=50"`
-	LastName   string    `json:"last_name" validate:"required,alpha,min=2,max=50"`
-	Role       string    `json:"role"`
-	Bio        string    `json:"bio" validate:"max=500"`
-	IsVerified bool      `json:"is_verified" validate:"omitempty"`
-	AvatarURL  string    `json:"avatar_url" validate:"omitempty,url"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	Provider   string    `json:"provider" validate:"required,oneof=manual google"`
+// UserDTO represents the data transfer object for a User
+type UserDTO struct {
+    ID           string         `json:"id"`
+    Email        string         `json:"email,omitempty"`
+    PhoneNumber  string         `json:"phoneNumber,omitempty"`
+    Password     string         `json:"password,omitempty"` // Raw password for sign-up
+    PasswordHash string         `json:"passwordHash,omitempty"` // Hashed password (read-only in responses)
+    AuthProvider string         `json:"authProvider"`
+    IsVerified   bool           `json:"isVerified"`
+    FirstName         string         `json:"firstName,omitempty"`
+    LastName          string         `json:"lastName,omitempty"`
+    ProfileImage string         `json:"profileImage,omitempty"`
+    Role         string         `json:"role"`
+    Status       string         `json:"status"`
+    Preferences  PreferencesDTO `json:"preferences,omitempty"`
+    LastLoginAt  time.Time      `json:"lastLoginAt"`
+    CreatedAt    time.Time      `json:"createdAt"`
+    UpdatedAt    time.Time      `json:"updatedAt"`
+    IsDeleted    bool           `json:"isDeleted"`
 }
 
-type UserResponse struct {
-	ID         string    `json:"id"`
-	Username   string    `json:"username"`
-	Email      string    `json:"email"`
-	FirstName  string    `json:"first_name"`
-	LastName   string    `json:"last_name"`
-	Role       string    `json:"role"`
-	Bio        string    `json:"bio"`
-	AvatarURL  string    `json:"avatar_url"`
-	IsVerified bool      `json:"is_verified"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+type PreferencesDTO struct {
+    Language     string `json:"language,omitempty"`     // e.g., "am-ET", "en-US"
+    Theme        string `json:"theme,omitempty"`        // e.g., "dark", "light"
+    Notifications bool  `json:"notifications,omitempty"` // true/false
 }
 
-// user registration request mapper
-func ToDomainUser(req UserRequest) domain.User {
-	return domain.User{
-		Username:   req.Username,
-		Email:      req.Email,
-		Password:   req.Password, // Ensure to hash the password before saving to the domain
-		FirstName:  req.FirstName,
-		LastName:   req.LastName,
-		Role:       domain.UserRole(req.Role),
-		Bio:        req.Bio,
-		IsVerified: req.IsVerified,
-		AvatarURL:  req.AvatarURL,
-		CreatedAt:  req.CreatedAt,
-		UpdatedAt:  req.UpdatedAt,
-		Provider:   req.Provider,
-	}
+// Validate checks the UserDTO for required fields and password strength
+func (u *UserDTO) Validate() error {
+    if (u.Email == "" && u.PhoneNumber == "") || u.AuthProvider == "" || u.Role == "" {
+        return fmt.Errorf("email or phoneNumber, authProvider, and role are required")
+    }
+    // Validate password only if provided (e.g., during sign-up)
+    if u.Password != "" {
+        if err := ValidatePasswordStrength(u.Password); err != nil {
+            return err
+        }
+    }
+    return nil
 }
 
-func ToUserResponse(user domain.User) UserResponse {
-	return UserResponse{
-		ID:         user.ID,
-		Username:   user.Username,
-		Email:      user.Email,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		Role:       string(user.Role),
-		Bio:        user.Bio,
-		IsVerified: user.IsVerified,
-		AvatarURL:  user.AvatarURL,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
-	}
+// ToDomain converts the UserDTO to a domain.User entity, hashing the password
+func (u *UserDTO) ToDomain() (*domain.User, error) {
+    passwordHash, err := security.HashPassword(u.Password)
+    if err != nil {
+        return nil, err
+    }
+    return &domain.User{
+        ID:           u.ID,
+        Email:        u.Email,
+        PhoneNumber:  u.PhoneNumber,
+        Password: passwordHash,
+        AuthProvider: domain.AuthProvider(u.AuthProvider),
+        IsVerified:   u.IsVerified,
+        FirstName:         u.FirstName,
+        LastName: u.LastName,
+        ProfileImage: u.ProfileImage,
+        Role:         domain.UserRole(u.Role),
+        Status:       domain.UserStatus(u.Status),
+        Preferences:  domain.Preferences{
+            Language:     u.Preferences.Language,
+            Theme:        u.Preferences.Theme,
+            Notifications: u.Preferences.Notifications,
+        },
+        LastLoginAt:  u.LastLoginAt,
+        CreatedAt:    u.CreatedAt,
+        UpdatedAt:    u.UpdatedAt,
+        IsDeleted:    u.IsDeleted,
+    }, nil
 }
 
-// to response list
-func ToUserResponseList(users []*domain.User) []UserResponse {
-	var responses []UserResponse
-	for _, user := range users {
-		responses = append(responses, ToUserResponse(*user))
-	}
-	return responses
+// FromDomain converts a domain.User entity to a UserDTO
+func (u *UserDTO) FromDomain(user *domain.User) *UserDTO {
+    return &UserDTO{
+        ID:           user.ID,
+        Email:        user.Email,
+        PhoneNumber:  user.PhoneNumber,
+        // Password and PasswordHash omitted in response for security
+        AuthProvider: string(user.AuthProvider),
+        IsVerified:   user.IsVerified,
+        FirstName:         user.FirstName,
+        LastName:  user.LastName,
+        ProfileImage: user.ProfileImage,
+        Role:         string(user.Role),
+        Status:       string(user.Status),
+        Preferences:  PreferencesDTO{
+            Language:     user.Preferences.Language,
+            Theme:        user.Preferences.Theme,
+            Notifications: user.Preferences.Notifications,
+        },
+        LastLoginAt:  user.LastLoginAt,
+        CreatedAt:    user.CreatedAt,
+        UpdatedAt:    user.UpdatedAt,
+        IsDeleted:    user.IsDeleted,
+    }
 }
 
-// / 	USER UPDATE REQUEST
-// user update profile request
-type UserUpdateProfileRequest struct {
-	Bio       string `form:"bio" validate:"omitempty,max=500"`
-	FirstName string `form:"first_name" validate:"omitempty,alpha,min=2,max=50"`
-	LastName  string `form:"last_name" validate:"omitempty,alpha,min=2,max=50"`
+// validatePasswordStrength checks if the password meets strength requirements
+func ValidatePasswordStrength(password string) error {
+    if len(password) < 8 {
+        return domain.ErrPasswordShortLen
+    }
+    if !regexp.MustCompile(`[A-Z]`).MatchString(password) {
+        return domain.ErrPasswordMustContainUpperLetter
+    }
+    if !regexp.MustCompile(`[a-z]`).MatchString(password) {
+        return domain.ErrPasswordMustContainLowerLetter
+    }
+    if !regexp.MustCompile(`[0-9]`).MatchString(password) {
+        return domain.ErrPasswordMustContainNumber
+    }
+    if !regexp.MustCompile(`[!@#\$%^&*]`).MatchString(password) {
+        return domain.ErrPasswordMustContainSpecialChar
+    }
+    return nil
 }
 
-// change password request
-type ChangePasswordRequest struct {
-	OldPassword string `json:"old_password" validate:"required,min=6,max=100"`
-	NewPassword string `json:"new_password" validate:"required,min=6,max=100"`
+// userprofile update req
+type UserUpdateProfileRequest struct{
+    FirstName string `json:"firstName"`
+    LastName string `json:"lastName"`
 }

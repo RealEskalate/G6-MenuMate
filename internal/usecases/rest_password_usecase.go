@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/dinq/menumate/internal/domain"
@@ -47,11 +46,11 @@ func (u *PasswordResetUsecase) RequestReset(email string) error {
 	existingToken, err := u.PasswordResetRepo.FindByEmail(context.Background(), user.Email)
 	if err == nil && existingToken != nil {
 		if !existingToken.Used && existingToken.ExpiresAt.After(time.Now()) {
-			return errors.New("a reset token has already been requested. Please wait until it expires or use the existing token")
+			return domain.ErrPasswordResetTokenExists
 		}
 		if existingToken.RateLimit >= 5 {
 			if time.Since(existingToken.CreatedAt) < 24*time.Hour {
-				return errors.New("rate limit exceeded. You can only request up to 5 password resets in a day")
+				return domain.ErrPasswordResetRateLimitExceeded
 			}
 			existingToken.RateLimit = 0
 		}
@@ -107,11 +106,11 @@ func (u *PasswordResetUsecase) ResetPassword(email, token, newPassword string) e
 
 	// Check if token is expired or already used
 	if resetToken.Used || resetToken.ExpiresAt.Before(time.Now()) {
-		return errors.New("invalid or expired reset token")
+		return domain.ErrTokenInvalidOrExpired
 	}
 	// validate db token with provided token
 	if resetToken.TokenHash != token {
-		return errors.New("invalid reset token")
+		return domain.ErrTokenInvalidOrExpired
 	}
 
 	// Get user
