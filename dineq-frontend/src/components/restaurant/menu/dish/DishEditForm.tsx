@@ -4,7 +4,16 @@ import { useState } from "react";
 import IngredientTag from "./IngredientTag";
 import FileUpload from "./FileUpload";
 
-export default function DishEditForm({ dish }: { dish: any }) {
+interface Dish {
+  section: string;
+  name: string;
+  price: number | string; // you can normalize later
+  ingredients: string[];
+  description?: string;
+  howToEat?: string;
+}
+
+export default function DishEditForm({ dish }: { dish: Dish }) {
   const [form, setForm] = useState(dish);
 
   return (

@@ -4,10 +4,10 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 const tabs = [
-  { name: "Profile", href: "/dashboard/settings" },
-  { name: "Legal info", href: "/dashboard/settings/legal-info" },
-  { name: "Branding", href: "/dashboard/settings/branding" },
-  { name: "Billings", href: "/dashboard/settings/billings" },
+  { name: "Profile", href: "/restaurant/dashboard/settings" },
+  { name: "Legal info", href: "/restaurant/dashboard/settings/legal-info" },
+  { name: "Branding", href: "/restaurant/dashboard/settings/branding" },
+  { name: "Billings", href: "/restaurant/dashboard/settings/billings" },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
@@ -24,8 +24,8 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       <div className="flex overflow-x-auto flex-nowrap border border-orange-200 rounded-xl bg-white p-2 sm:justify-around">
         {tabs.map((tab) => {
           const active =
-            (tab.href === "/dashboard/settings" && pathname === "/dashboard/settings") ||
-            (tab.href !== "/dashboard/settings" && pathname.startsWith(tab.href));
+            (tab.href === "/restaurant/dashboard/settings" && pathname === "/restaurant/dashboard/settings") ||
+            (tab.href !== "/restaurant/dashboard/settings" && pathname.startsWith(tab.href));
 
           return (
             <Link
