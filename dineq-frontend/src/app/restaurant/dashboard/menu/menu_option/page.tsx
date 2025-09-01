@@ -1,9 +1,9 @@
 
 import React from "react";
 
-import NavBar from "@/components/common/NavBar";
-import SideBar from "@/components/restaurant/SideBar";
-import { Plus, Trash2 } from "lucide-react";
+// import NavBar from "@/components/common/NavBar";
+// import SideBar from "@/components/restaurant/SideBar";
+import { Plus, } from "lucide-react";
 import Link from "next/link";
 
 function Dashboard() {
