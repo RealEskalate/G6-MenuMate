@@ -24,11 +24,12 @@ const (
 )
 
 type RefreshToken struct {
-	Token     string
-	UserID    string
-	ExpiresAt time.Time
-	Revoked   bool
-	CreatedAt time.Time
+	Token     string    `bson:"-"`
+	TokenHash string    `bson:"tokenhash"`
+	UserID    string    `bson:"user_id"`
+	ExpiresAt time.Time `bson:"expires_at"`
+	Revoked   bool      `bson:"revoked"`
+	CreatedAt time.Time `bson:"created_at"`
 }
 
 type RefreshTokenResponse struct {

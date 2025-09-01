@@ -2,6 +2,8 @@ package repositories
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -23,6 +25,7 @@ func NewRefreshTokenRepository(db mongo.Database, collection string) domain.IRef
 }
 
 func (repo *RefreshTokenRepository) Save(ctx context.Context, token *domain.RefreshToken) error {
+	if token.TokenHash == "" && token.Token != "" { token.TokenHash = hashToken(token.Token) }
 	tokenDb := mapper.FromRefreshTokenEntityToDB(token)
 	res, err := repo.DB.Collection(repo.Collection).InsertOne(ctx, tokenDb)
 	if err != nil {
@@ -34,9 +37,10 @@ func (repo *RefreshTokenRepository) Save(ctx context.Context, token *domain.Refr
 	return nil
 }
 
-func (repo *RefreshTokenRepository) FindByToken(ctx context.Context, token string) (*domain.RefreshToken, error) {
+func (repo *RefreshTokenRepository) FindByToken(ctx context.Context, rawToken string) (*domain.RefreshToken, error) {
 	var tokenDB mapper.RefreshTokenDB
-	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"token": token}).Decode(&tokenDB)
+	tokenHash := hashToken(rawToken)
+	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"tokenhash": tokenHash}).Decode(&tokenDB)
 	if err != nil {
 		if err == mongo.ErrNoDocuments() {
 			return nil, domain.ErrRefreshTokenNotFound
@@ -58,6 +62,7 @@ func (repo *RefreshTokenRepository) DeleteByUserID(ctx context.Context, userID s
 }
 
 func (repo *RefreshTokenRepository) ReplaceTokenByUserID(ctx context.Context, token *domain.RefreshToken) error {
+	if token.TokenHash == "" && token.Token != "" { token.TokenHash = hashToken(token.Token) }
 	tokenDB := mapper.FromRefreshTokenEntityToDB(token)
 	fmt.Println("Replacing token for user ID:", token.UserID, tokenDB)
 	_, err := repo.DB.Collection(repo.Collection).UpdateOne(
@@ -72,10 +77,11 @@ func (repo *RefreshTokenRepository) ReplaceTokenByUserID(ctx context.Context, to
 }
 
 // revoke refresh token
-func (repo *RefreshTokenRepository) RevokeToken(ctx context.Context, token string) error {
+func (repo *RefreshTokenRepository) RevokeToken(ctx context.Context, rawToken string) error {
+	tokenHash := hashToken(rawToken)
 	res, err := repo.DB.Collection(repo.Collection).UpdateOne(
 		ctx,
-		bson.M{"token": token},
+		bson.M{"tokenhash": tokenHash},
 		bson.M{"$set": bson.M{"revoked": true}},
 	)
 	if err != nil {
@@ -98,4 +104,10 @@ func (repo *RefreshTokenRepository) FindTokenByUserID(ctx context.Context, userI
 		return nil, err
 	}
 	return mapper.FromRefreshTokenDBToEntity(&tokenDB), nil
+}
+
+// hashToken derives a hex SHA-256 digest of a refresh token string.
+func hashToken(t string) string {
+	h := sha256.Sum256([]byte(t))
+	return hex.EncodeToString(h[:])
 }
