@@ -22,10 +22,21 @@ func InitApp() (*Application, error) {
 		return nil, err
 	}
 
-	return &Application{
+	app := &Application{
 		Env:   env,
 		Mongo: mongoClient,
-	}, nil
+	}
+
+	// Ensure indexes early (non-fatal on partial failures)
+	mongo.EnsureIndexes(mongoClient, env.DB_Name, mongo.IndexConfig{
+		RestaurantCollection:    env.RestaurantCollection,
+		UserCollection:          env.UserCollection,
+		RefreshTokenCollection:  env.RefreshTokenCollection,
+		PasswordResetCollection: env.PasswordResetCollection,
+		OtpCollection:           env.OtpCollection,
+	})
+
+	return app, nil
 }
 
 func (app *Application) CloseDBConnection() {

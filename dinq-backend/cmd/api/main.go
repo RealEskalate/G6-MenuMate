@@ -27,7 +27,6 @@ func main() {
 	}
 	env := app.Env
 	db := app.Mongo.Database(env.DB_Name)
-	bootstrap.EnsureIndexes(app.Mongo, env)
 	defer app.CloseDBConnection()
 
 	logger.Log.Info().Str("db", env.DB_Name).Msg("Database acquired")
