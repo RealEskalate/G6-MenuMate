@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
@@ -32,19 +33,13 @@ type AuthController struct {
 }
 
 func (ac *AuthController) RegisterRequest(c *gin.Context) {
-	var newUser dto.UserDTO
+	var newUser dto.UserRequest
 	if err := c.ShouldBindJSON(&newUser); err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
 	if err := validate.Struct(newUser); err != nil {
-<<<<<<< HEAD
-		c.JSON(http.StatusBadRequest, gin.H{"error": "validation failed", "details": err.Error()})
-		return
-	}
-	// Manual logical validation: must supply username + password + (email or phone)
-	if newUser.Username == "" || newUser.Password == "" || (newUser.Email == "" && newUser.PhoneNumber == "") {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "username, password and either email or phone number are required"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
 		return
 	}
 
@@ -104,32 +99,7 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 			RefreshToken: tokens.RefreshToken,
 		},
 	})
-=======
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
-		return
-	}
-
-	if err := newUser.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
-		return
-	}
-
-	user, err := newUser.ToDomain()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
-		return
-	}
-	err = ac.UserUsecase.Register(user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
-		return
-	}
-	response := dto.SuccessResponse{
-		Message: domain.MsgCreated,
-		Data:    newUser.FromDomain(user),
-	}
-	c.JSON(http.StatusCreated, response)
->>>>>>> Backend_develop
+	return
 }
 
 func (ac *AuthController) LoginRequest(c *gin.Context) {
@@ -138,34 +108,22 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
-	if loginRequest.Email == "" || loginRequest.Password == "" {
+	if loginRequest.Identifier == "" || loginRequest.Password == "" {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: domain.ErrPasswordAndEmailRequired.Error()})
 		return
 	}
 
-<<<<<<< HEAD
 	// Look up by email / username / phone (repository handles all via $or)
 	user, err := ac.UserUsecase.FindByUsernameOrEmail(c.Request.Context(), loginRequest.Identifier)
-=======
-	// Check if user exists
-	user, err := ac.UserUsecase.GetUserByEmail(loginRequest.Email)
->>>>>>> Backend_develop
 	if err != nil {
 		// Use generic error message for both user not found and password mismatch
 		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error(), Error: err.Error()})
 		return
 	}
 
-<<<<<<< HEAD
-	// Validate the password using Password
-	storedHash := user.Password
-	if err := security.ValidatePassword(storedHash, loginRequest.Password); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
-=======
 	// Validate the password
 	if err := security.ValidatePassword(user.Password, loginRequest.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrInvalidCredentials.Error(), Error: err.Error()})
->>>>>>> Backend_develop
 		return
 	}
 
@@ -610,14 +568,12 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			Secure:   false,
 			SameSite: http.SameSiteStrictMode,
 		})
-		userDTO := dto.UserDTO{}
-		c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: userDTO.FromDomain(user)})
+		c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.ToUserResponse(*user)})
 		return
 	}
 
 	// If user not found – register new one
 	newUser := &domain.User{
-<<<<<<< HEAD
 		Username:     strings.Split(userInfo.Email, "@")[0],
 		Email:        userInfo.Email,
 		FirstName:    userInfo.GivenName,
@@ -627,23 +583,6 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		ProfileImage: userInfo.Picture,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
-=======
-		Email:        userInfo.Email,
-		PhoneNumber:  "",
-		Password:     "",
-		AuthProvider: domain.AuthGoogle,
-		IsVerified:   false,
-		FirstName:    userInfo.GivenName,
-		LastName:     userInfo.FamilyName,
-		ProfileImage: userInfo.Picture,
-		Role:         domain.RoleUser,
-		Status:       domain.Active,
-		Preferences:  domain.Preferences{},
-		LastLoginAt:  time.Time{},
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-		IsDeleted:    false,
->>>>>>> Backend_develop
 	}
 
 	if err := ac.UserUsecase.Register(newUser); err != nil {
@@ -692,6 +631,5 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		Secure:   false,
 		SameSite: http.SameSiteStrictMode,
 	})
-	userDTO := dto.UserDTO{}
-	c.JSON(http.StatusCreated, dto.SuccessResponse{Message: domain.MsgCreated, Data: userDTO.FromDomain(newUser)})
+	c.JSON(http.StatusCreated, dto.SuccessResponse{Message: domain.MsgCreated, Data: dto.ToUserResponse(*newUser)})
 }

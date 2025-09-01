@@ -111,6 +111,21 @@ func (repo *UserRepository) GetUserByPhone(ctx context.Context, phone string) (*
     return mapper.UserToDomain(&model), nil
 }
 
+// ExistsAny checks if any user exists matching provided non-empty username/email/phone (case-insensitive for username/email).
+func (repo *UserRepository) ExistsAny(ctx context.Context, username, email, phone string) (bool, error) {
+    var or []bson.M
+    if username != "" { or = append(or, bson.M{"username": bson.M{"$regex": username, "$options": "i"}}) }
+    if email != "" { or = append(or, bson.M{"email": bson.M{"$regex": email, "$options": "i"}}) }
+    if phone != "" { or = append(or, bson.M{"phone_number": phone}) }
+    if len(or) == 0 { return false, nil }
+    filter := bson.M{"$or": or}
+    // Use CountDocuments with limit via options? Driver v2 lacks Direct limit param; fallback to FindOne
+    var tmp mapper.UserModel
+    err := repo.DB.Collection(repo.Collection).FindOne(ctx, filter).Decode(&tmp)
+    if err != nil { return false, err }
+    return true, nil
+}
+
 func (repo *UserRepository) FindByUsernameOrEmail(ctx context.Context, key string) (domain.User, error) {
     var model mapper.UserModel
     filter := bson.M{"$or": []bson.M{
