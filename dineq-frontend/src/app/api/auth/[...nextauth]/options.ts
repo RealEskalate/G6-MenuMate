@@ -1,23 +1,29 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL; 
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const options: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: {
+        identifier: {
           label: "Email",
           type: "email",
           placeholder: "you@example.com",
         },
         password: { label: "Password", type: "password" },
       },
+
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email and password are required");
+        console.log("authorize received:", credentials);
+
+        if (!credentials?.identifier) {
+          throw new Error("Email required");
+        }
+        if (!credentials?.password) {
+          throw new Error("Password required");
         }
 
         try {
@@ -25,7 +31,7 @@ export const options: NextAuthOptions = {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              email: credentials.email,
+              identifier: credentials.identifier,
               password: credentials.password,
             }),
           });
@@ -33,14 +39,16 @@ export const options: NextAuthOptions = {
           const result = await res.json();
           console.log("Authorize response:", result);
 
-          // ✅ Adapt this depending on your backend response
-          if (res.ok && result?.token) {
+          if (res.ok && result?.tokens?.access_token) {
             return {
-              id: result.user?.id || credentials.email,
-              email: result.user?.email || credentials.email,
-              role: result.user?.role || "user",
-              accessToken: result.token,
-              refreshToken: result.refresh_token ?? null, // if your backend gives it
+              id: result.user.id,
+              email: result.user.email,
+              username: result.user.username,
+              firstName: result.user.first_name,
+              lastName: result.user.last_name,
+              role: result.user.role,
+              accessToken: result.tokens.access_token,
+              refreshToken: result.tokens.refresh_token ?? null,
             };
           }
 
@@ -53,7 +61,7 @@ export const options: NextAuthOptions = {
     }),
   ],
   pages: {
-    signIn: "/login", // ✅ match your page name
+    signIn: "/signin",
   },
   session: {
     strategy: "jwt",
@@ -62,19 +70,28 @@ export const options: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user, trigger }) {
       if (user) {
-        console.log("Initial sign-in:", { email: user.email, role: user.role });
+        console.log("Initial sign-in:", {
+          email: user.email,
+          username: user.username,
+          role: user.role,
+        });
         token.user = {
           email: user.email,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
           role: user.role,
         };
         token.email = user.email;
+        token.username = user.username;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
         token.role = user.role;
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
         token.exp = Math.floor(Date.now() / 1000) + 15 * 60; // 15 min
       }
 
-      // ✅ refresh logic (if your backend supports it)
       if (
         trigger === "update" ||
         (token.exp && Date.now() > token.exp * 1000)
@@ -90,15 +107,13 @@ export const options: NextAuthOptions = {
           }
           const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token.refreshToken}`,
-            },
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: token.refreshToken }),
           });
           const result = await res.json();
 
-          if (res.ok && result?.token) {
-            token.accessToken = result.token;
+          if (res.ok && result?.tokens?.access_token) {
+            token.accessToken = result.tokens.access_token;
             token.exp = Math.floor(Date.now() / 1000) + 15 * 60;
             delete token.error;
             delete token.errorDetails;
@@ -107,10 +122,7 @@ export const options: NextAuthOptions = {
           }
         } catch (err) {
           console.error("Token refresh error:", err);
-          const errorDetails =
-            typeof err === "object" && err !== null && "message" in err
-              ? (err as { message?: string }).message
-              : String(err);
+          const errorDetails = err instanceof Error ? err.message : String(err);
           return { ...token, error: "RefreshAccessTokenError", errorDetails };
         }
       }
@@ -126,15 +138,27 @@ export const options: NextAuthOptions = {
         session.error = token.error;
         session.errorDetails = token.errorDetails;
       }
-      console.log("Session updated:", {
-        email: session.user?.email,
-        exp: session.exp,
-        error: session.error,
-        errorDetails: session.errorDetails,
-      });
+
       return session;
+    },
+    // async redirect({ url, baseUrl }) {
+    //   console.log("Redirect callback:", { url, baseUrl });
+    //   if (url.includes("/api/auth/callback")) {
+    //     const targetUrl = `http://localhost:3000/dashboard/menu`;
+    //     console.log("Constructed redirect URL:", targetUrl);
+    //     return targetUrl;
+    //   }
+    //   return url;
+    // },
+    async redirect({ url, baseUrl }) {
+      // If it’s an internal callback, just go to the dashboard
+      if (url.startsWith(baseUrl)) {
+        return `${baseUrl}/dashboard/menu`;
+      }
+      return baseUrl;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: true,
+  // debug: process.env.NODE_ENV !== "production",
 };

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import logo from "../../../public/logo.png";
-import Roles from "@/Types/type";
+import Roles from "@/Types/role";
 
 function NavBar({ role }: Roles) {
   const pathname = usePathname();
@@ -33,7 +33,7 @@ function NavBar({ role }: Roles) {
       <Image src={logo} alt="logo" width={100} height={120} />
 
       {/* CUSTOMER links */}
-      {role === "CUSTOMER" && (
+      {role === "user" && (
         <div className="hidden md:flex ml-4">
           <Link href="/" className={linkClasses("/")}>Home</Link>
           <Link href="/customer/restaurants" className={linkClasses("/customer/restaurants")}>Restaurants</Link>
@@ -44,7 +44,7 @@ function NavBar({ role }: Roles) {
       )}
 
   
-      {role !== "CUSTOMER" && role !== "MANAGER" && (
+      {role !== "user" && role !== "MANAGER" && (
         <div className="hidden md:flex ml-4">
           <Link href="/restaurant/about" className={linkClasses("/restaurant/about")}>About</Link>
           <Link href="/restaurant/contact" className={linkClasses("/restaurant/contact")}>Contacts</Link>
