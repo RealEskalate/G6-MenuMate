@@ -398,6 +398,47 @@
       ]
     },
     {
+      "name": "System",
+      "description": "System level endpoints (health, diagnostics)",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] },
+            "description": "Returns overall system health and component statuses (currently database)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "OCR",
+      "description": "OCR job submission and status endpoints for extracting menu data.",
+      "item": [
+        {
+          "name": "Create OCR Job",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "url": { "raw": "{{base_url}}/ocr-jobs", "host": ["{{base_url}}"], "path": ["ocr-jobs"] },
+            "body": { "mode": "raw", "raw": "{\n  \"image_url\": \"https://example.com/menu.jpg\"\n}" },
+            "description": "Submit a new OCR job by providing an image URL of a menu."
+          },
+          "response": []
+        },
+        {
+          "name": "Get OCR Job",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/ocr-jobs/:jobId", "host": ["{{base_url}}"], "path": ["ocr-jobs", ":jobId"], "variable": [{"key":"jobId","value":"job_id"}] },
+            "description": "Fetch OCR job status and extracted data if completed."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "User Management",
       "description": "User profile and account management endpoints",
       "item": [
