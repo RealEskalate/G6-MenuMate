@@ -107,6 +107,18 @@ func (repo *UserRepository) GetUserByEmail(ctx context.Context, email string) (*
 	return mapper.UserToDomain(userModel), nil
 }
 
+func (repo *UserRepository) GetUserByPhone(ctx context.Context, phone string) (*domain.User, error) {
+	var userModel *mapper.UserModel
+	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"phone_number": phone}).Decode(&userModel)
+	if err != nil {
+		if err == mongo.ErrNoDocuments() {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, err
+	}
+	return mapper.UserToDomain(userModel), nil
+}
+
 func (repo *UserRepository) FindByUsernameOrEmail(ctx context.Context, key string) (domain.User, error) {
 	var userModel mapper.UserModel
 	filter := bson.M{"$or": []bson.M{{"username": key}, {"email": key}, {"phone_number": key}}}

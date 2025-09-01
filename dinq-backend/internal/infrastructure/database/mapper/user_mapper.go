@@ -11,6 +11,7 @@ type UserModel struct {
 	ID           bson.ObjectID      `bson:"_id,omitempty"`
 	Email        string             `bson:"email,omitempty"`
 	PhoneNumber  string             `bson:"phone_number,omitempty"`
+	Username     string             `bson:"username,omitempty"`
 	PasswordHash string             `bson:"password_hash,omitempty"`
 	AuthProvider string             `bson:"auth_provider,omitempty"`
 	IsVerified   bool               `bson:"is_verified"`
@@ -25,13 +26,6 @@ type UserModel struct {
 	CreatedAt    time.Time          `bson:"created_at"`
 	UpdatedAt    time.Time          `bson:"updated_at"`
 	IsDeleted    bool               `bson:"is_deleted"`
-
-	// legacy fields
-	Username  string `bson:"username,omitempty"`
-	Bio       string `bson:"bio,omitempty"`
-	AvatarURL string `bson:"avatar_url,omitempty"`
-	Provider  string `bson:"provider,omitempty"`
-	Password  string `bson:"password,omitempty"`
 }
 
 func UserToDomain(user *UserModel) *domain.User {
@@ -40,6 +34,7 @@ func UserToDomain(user *UserModel) *domain.User {
 		ID:           user.ID.Hex(),
 		Email:        user.Email,
 		PhoneNumber:  user.PhoneNumber,
+		Username:     user.Username,
 		PasswordHash: user.PasswordHash,
 		AuthProvider: domain.AuthProvider(user.AuthProvider),
 		IsVerified:   user.IsVerified,
@@ -54,11 +49,6 @@ func UserToDomain(user *UserModel) *domain.User {
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
 		IsDeleted:    user.IsDeleted,
-		Username:     user.Username,
-		Bio:          user.Bio,
-		AvatarURL:    user.AvatarURL,
-		Provider:     user.Provider,
-		Password:     user.Password,
 	}
 }
 
@@ -67,6 +57,7 @@ func UserFromDomain(user *domain.User) *UserModel {
 	return &UserModel{
 		Email:        user.Email,
 		PhoneNumber:  user.PhoneNumber,
+		Username:     user.Username,
 		PasswordHash: user.PasswordHash,
 		AuthProvider: string(user.AuthProvider),
 		IsVerified:   user.IsVerified,
@@ -81,11 +72,6 @@ func UserFromDomain(user *domain.User) *UserModel {
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
 		IsDeleted:    user.IsDeleted,
-		Username:     user.Username,
-		Bio:          user.Bio,
-		AvatarURL:    user.AvatarURL,
-		Provider:     user.Provider,
-		Password:     user.Password,
 	}
 }
 

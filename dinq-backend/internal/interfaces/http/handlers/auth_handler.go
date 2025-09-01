@@ -37,14 +37,24 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 		return
 	}
 	if err := validate.Struct(newUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "validation failed", "details": err.Error()})
+		return
+	}
+	// Manual logical validation: must supply username + password + (email or phone)
+	if newUser.Username == "" || newUser.Password == "" || (newUser.Email == "" && newUser.PhoneNumber == "") {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "username, password and either email or phone number are required"})
 		return
 	}
 
 	user := dto.ToDomainUser(newUser)
 	err := ac.UserUsecase.Register(&user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		status := http.StatusInternalServerError
+		switch err.Error() {
+		case "username already exists", "email already exists", "phone number already exists":
+			status = http.StatusConflict
+		}
+		c.JSON(status, gin.H{"error": err.Error()})
 		return
 	}
 	// Generate access and refresh tokens for the newly registered user
@@ -113,9 +123,8 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		return
 	}
 
-	// Validate the password (prefer PasswordHash)
-	storedHash := user.Password
-	if user.PasswordHash != "" { storedHash = user.PasswordHash }
+	// Validate the password using PasswordHash
+	storedHash := user.PasswordHash
 	if err := security.ValidatePassword(storedHash, loginRequest.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
@@ -558,16 +567,15 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 
 	// If user not found – register new one
 	newUser := &domain.User{
-		Username:  strings.Split(userInfo.Email, "@")[0],
-		Email:     userInfo.Email,
-		FirstName: userInfo.GivenName,
-		LastName:  userInfo.FamilyName,
-		Role:      "user",
-		Bio:       "",
-		AvatarURL: userInfo.Picture,
-		Provider:  "google",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Username:     strings.Split(userInfo.Email, "@")[0],
+		Email:        userInfo.Email,
+		FirstName:    userInfo.GivenName,
+		LastName:     userInfo.FamilyName,
+		Role:         domain.RoleCustomer,
+		AuthProvider: domain.AuthGoogle,
+		ProfileImage: userInfo.Picture,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 
 	if err := ac.UserUsecase.Register(newUser); err != nil {
