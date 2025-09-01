@@ -13,8 +13,8 @@ import SingleRestaurant from "./user/restaurant-display/[id]/page";
 export default function Home() {
   return (
     <div>
-      {/* <LandingPage /> */}
-      <Restaurants/>
+      <LandingPage />
+      {/* <Restaurants/> */}
       {/* <WhoAreYou/> */}
       {/* <EmailVerification/> */}
       {/* <FoodCard/> */}

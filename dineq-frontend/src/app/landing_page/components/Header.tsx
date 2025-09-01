@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -26,12 +27,12 @@ export default function Header() {
           <a href="#" className="text-gray-600 hover:text-orange-500">
             Log in
           </a>
-          <a
-            href="#"
+          <Link
+            href="/user-routes/whoareyou"
             className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
           >
             Get started
-          </a>
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
