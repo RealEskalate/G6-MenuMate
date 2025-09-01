@@ -2,8 +2,8 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
@@ -25,18 +25,20 @@ type AuthController struct {
 	OTP                  domain.IOTPUsecase
 	RefreshTokenUsecase  domain.IRefreshTokenUsecase
 	PasswordResetUsecase domain.IPasswordResetUsecase
+	NotificationUseCase  domain.INotificationUseCase
 	GoogleClientID       string
 	GoogleClientSecret   string
 	GoogleRedirectURL    string
 }
 
 func (ac *AuthController) RegisterRequest(c *gin.Context) {
-	var newUser dto.UserRequest
+	var newUser dto.UserDTO
 	if err := c.ShouldBindJSON(&newUser); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
 	if err := validate.Struct(newUser); err != nil {
+<<<<<<< HEAD
 		c.JSON(http.StatusBadRequest, gin.H{"error": "validation failed", "details": err.Error()})
 		return
 	}
@@ -102,38 +104,75 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 			RefreshToken: tokens.RefreshToken,
 		},
 	})
+=======
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
+		return
+	}
+
+	if err := newUser.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
+		return
+	}
+
+	user, err := newUser.ToDomain()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		return
+	}
+	err = ac.UserUsecase.Register(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		return
+	}
+	response := dto.SuccessResponse{
+		Message: domain.MsgCreated,
+		Data:    newUser.FromDomain(user),
+	}
+	c.JSON(http.StatusCreated, response)
+>>>>>>> Backend_develop
 }
 
 func (ac *AuthController) LoginRequest(c *gin.Context) {
 	var loginRequest dto.LoginRequest
 	if err := c.ShouldBindJSON(&loginRequest); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
-	if loginRequest.Identifier == "" || loginRequest.Password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Username/email and password are required"})
+	if loginRequest.Email == "" || loginRequest.Password == "" {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: domain.ErrPasswordAndEmailRequired.Error()})
 		return
 	}
 
+<<<<<<< HEAD
 	// Look up by email / username / phone (repository handles all via $or)
 	user, err := ac.UserUsecase.FindByUsernameOrEmail(c.Request.Context(), loginRequest.Identifier)
+=======
+	// Check if user exists
+	user, err := ac.UserUsecase.GetUserByEmail(loginRequest.Email)
+>>>>>>> Backend_develop
 	if err != nil {
 		// Use generic error message for both user not found and password mismatch
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error(), Error: err.Error()})
 		return
 	}
 
+<<<<<<< HEAD
 	// Validate the password using Password
 	storedHash := user.Password
 	if err := security.ValidatePassword(storedHash, loginRequest.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+=======
+	// Validate the password
+	if err := security.ValidatePassword(user.Password, loginRequest.Password); err != nil {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrInvalidCredentials.Error(), Error: err.Error()})
+>>>>>>> Backend_develop
 		return
 	}
 
 	// Generate access and refresh tokens
 	response, err := ac.AuthService.GenerateTokens(*user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrTokenGenerationIssue.Error(), Error: err.Error()})
 		return
 	}
 
@@ -148,36 +187,36 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 
 	// Check if the user already has a refresh token in DB
 	existingToken, findErr := ac.RefreshTokenUsecase.FindByUserID(user.ID)
-	if findErr != nil && findErr.Error() != "refresh token not found" {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check existing refresh token"})
+	if findErr != nil && findErr.Error() != domain.ErrRefreshTokenNotFound.Error() {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: findErr.Error()})
 		return
 	}
-	if findErr != nil && findErr.Error() == "refresh token not found" {
+	if findErr != nil && findErr.Error() == domain.ErrRefreshTokenNotFound.Error() {
 		existingToken = nil // Explicitly set to nil if no token is found
 	}
 
 	if existingToken != nil {
 		// Revoke the old token
 		if err := ac.RefreshTokenUsecase.RevokedToken(existingToken); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to revoke existing refresh token"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRevokeToken.Error(), Error: err.Error()})
 			return
 		}
 		// Replace with the new token
 		if err := ac.RefreshTokenUsecase.ReplaceToken(refreshToken); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update existing refresh token"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToUpdateToken.Error(), Error: err.Error()})
 			return
 		}
 	} else {
 		// Save the new refresh token
 		if err := ac.RefreshTokenUsecase.Save(refreshToken); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save refresh token"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToSaveToken.Error(), Error: err.Error()})
 			return
 		}
 	}
 
 	// Set the refresh token in the cookies
 	utils.SetCookie(c, utils.CookieOptions{
-		Name:     "refresh_token",
+		Name:     string(domain.RefreshTokenType),
 		Value:    response.RefreshToken,
 		MaxAge:   int(time.Until(response.RefreshTokenExpiresAt).Seconds()),
 		Path:     "/",
@@ -188,7 +227,7 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 	})
 	// Set the access token in the cookies
 	utils.SetCookie(c, utils.CookieOptions{
-		Name:     "access_token",
+		Name:     string(domain.AccessTokenType),
 		Value:    response.AccessToken,
 		MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
 		Path:     "/",
@@ -199,19 +238,16 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 	})
 
 	c.JSON(http.StatusOK,
-		gin.H{
-			"message": "Login successful",
-			"user":    dto.ToUserResponse(*user),
-			"tokens": dto.LoginResponse{
-				AccessToken:  response.AccessToken,
-				RefreshToken: response.RefreshToken,
-			}})
+		dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.LoginResponse{
+			AccessToken:  response.AccessToken,
+			RefreshToken: response.RefreshToken,
+		}})
 }
 
 func (ac *AuthController) RefreshToken(c *gin.Context) {
 	var req dto.RefreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid payload"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
 
@@ -221,35 +257,39 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		if tokenDoc != nil {
 			_ = ac.RefreshTokenUsecase.DeleteByUserID(tokenDoc.UserID)
 		}
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrTokenInvalidOrExpired.Error(), Error: err.Error()})
+		} else {
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrTokenInvalidOrExpired.Error(), Error: domain.ErrRefreshTokenNotFound.Error()})
+		}
 		return
 	}
 
 	// check both the token is valid and not expired
-	_, err = utils.GetCookie(c, "refresh_token")
+	_, err = utils.GetCookie(c, string(domain.RefreshTokenType))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "No refresh token found in cookies, please login again"})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrRefreshTokenNotFound.Error(), Error: err.Error()})
 		return
 	}
 
 	// Validate the refresh token
 	_, err = ac.AuthService.ValidateRefreshToken(req.RefreshToken)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token provided"})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrTokenInvalidOrExpired.Error(), Error: err.Error()})
 		return
 	}
 
 	// find the user of the token
 	user, err := ac.UserUsecase.FindUserByID(tokenDoc.UserID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error(), Error: err.Error()})
 		return
 	}
 
 	// generate new access token
 	response, err := ac.AuthService.GenerateTokens(*user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create token"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrTokenGenerationIssue.Error(), Error: err.Error()})
 		return
 	}
 
@@ -270,12 +310,12 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 			CreatedAt: time.Now(),
 		}
 		if err := ac.RefreshTokenUsecase.RevokedToken(tokenDoc); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to revoke old refresh token"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRevokeToken.Error(), Error: err.Error()})
 			return
 
 		}
 		if err := ac.RefreshTokenUsecase.ReplaceToken(refreshToken); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update refresh token"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToUpdateToken.Error(), Error: err.Error()})
 			return
 		}
 		refreshTokenValue = response.RefreshToken
@@ -288,7 +328,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 
 	// Set the refresh token in the cookies
 	utils.SetCookie(c, utils.CookieOptions{
-		Name:     "refresh_token",
+		Name:     string(domain.RefreshTokenType),
 		Value:    refreshTokenValue,
 		MaxAge:   int(time.Until(refreshTokenExpiry).Seconds()),
 		Path:     "/",
@@ -299,7 +339,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 	})
 	// Set the access token in the cookies
 	utils.SetCookie(c, utils.CookieOptions{
-		Name:     "access_token",
+		Name:     string(domain.AccessTokenType),
 		Value:    response.AccessToken,
 		MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
 		Path:     "/",
@@ -308,7 +348,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
-
+	fmt.Println("user id", user.ID)
 	c.JSON(http.StatusOK, dto.LoginResponse{
 		AccessToken:  response.AccessToken,
 		RefreshToken: refreshTokenValue,
@@ -319,33 +359,43 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 func (ac *AuthController) LogoutRequest(c *gin.Context) {
 
 	// get the refresh token from cookies
-	refreshToken, err := utils.GetCookie(c, "refresh_token")
-	utils.DeleteCookie(c, "refresh_token")
-	utils.DeleteCookie(c, "access_token")
+	refreshToken, err := utils.GetCookie(c, string(domain.RefreshTokenType))
+	utils.DeleteCookie(c, string(domain.RefreshTokenType))
+	utils.DeleteCookie(c, string(domain.AccessTokenType))
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "You are not logged in or your session has expired"})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUserAlreadyLoggedOut.Error(), Error: err.Error()})
 		return
 	}
 
 	tokenDoc, err := ac.RefreshTokenUsecase.FindByToken(refreshToken)
-	if err != nil || tokenDoc == nil || tokenDoc.Revoked || time.Now().After(tokenDoc.ExpiresAt) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "You are not logged in or your session has expired"})
+	if err != nil || tokenDoc == nil {
+		errorMsg := ""
+		if err != nil {
+			errorMsg = err.Error()
+		} else {
+			errorMsg = domain.ErrRefreshTokenNotFound.Error()
+		}
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUserAlreadyLoggedOut.Error(), Error: errorMsg})
+		return
+	}
+	if tokenDoc.Revoked || time.Now().After(tokenDoc.ExpiresAt) {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUserAlreadyLoggedOut.Error(), Error: domain.ErrTokenInvalidOrExpired.Error()})
 		return
 	}
 	// revoke the token
 	if err := ac.RefreshTokenUsecase.RevokedToken(tokenDoc); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to revoke token"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRevokeToken.Error(), Error: err.Error()})
 		return
 	}
 
 	// delete the token from the database
 	if err := ac.RefreshTokenUsecase.DeleteByUserID(tokenDoc.UserID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete token"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToDeleteToken.Error(), Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
 // forget password here
@@ -353,72 +403,72 @@ func (ac *AuthController) ForgotPasswordRequest(c *gin.Context) {
 
 	var req dto.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid email"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
 
 	if err := validate.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
 		return
 	}
 
 	err := ac.PasswordResetUsecase.RequestReset(req.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to process request", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToProcessRequest.Error(), Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset link sent to email"})
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
 // Reset password here
 func (ac *AuthController) ResetPasswordRequest(c *gin.Context) {
 	var req dto.ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
 
 	if err := validate.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
 		return
 	}
 
 	err := ac.PasswordResetUsecase.ResetPassword(req.Email, req.Token, req.NewPassword)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to reset password", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToResetPassword.Error(), Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
 // verify email request
 func (ac *AuthController) VerifyEmailRequest(c *gin.Context) {
 	var req dto.VerifyEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
 
 	if err := validate.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
 		return
 	}
 
 	user, err := ac.UserUsecase.GetUserByEmail(req.Email)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": domain.ErrNotFound.Error()})
+		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error(), Error: err.Error()})
 		return
 	}
 
 	err = ac.OTP.RequestOTP(user.Email)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrOTPNotFound.Error(), Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Please check your email for the OTP to verify your account"})
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
 // verify otp
@@ -426,41 +476,41 @@ func (ac *AuthController) VerifyOTPRequest(c *gin.Context) {
 	userID := c.GetString("user_id")
 	var req dto.VerifyOTPRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
 
 	if err := validate.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
 		return
 	}
 
 	user, err := ac.UserUsecase.FindUserByID(userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": domain.ErrNotFound.Error()})
+		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error(), Error: err.Error()})
 		return
 	}
 
 	otp, err := ac.OTP.VerifyOTP(user.Email, req.Code)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrOTPInvalid.Error(), Error: err.Error()})
 		return
 	}
 
 	// update user verification status
 	user.IsVerified = true
 	if _, err := ac.UserUsecase.UpdateUser(user.ID, user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user verification status"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToVerifyUser.Error(), Error: err.Error()})
 		return
 	}
 
 	// delete the OTP after successful verification
 	if err := ac.OTP.DeleteByID(otp.ID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": domain.ErrOTPFailedToDelete.Error()})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrOTPFailedToDelete.Error(), Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Email verified successfully"})
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgUpdated})
 }
 
 // otp resend request
@@ -468,17 +518,17 @@ func (ac *AuthController) ResendOTPRequest(c *gin.Context) {
 	userID := c.GetString("user_id")
 	user, err := ac.UserUsecase.FindUserByID(userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": domain.ErrNotFound.Error()})
+		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error(), Error: err.Error()})
 		return
 	}
 
 	err = ac.OTP.RequestOTP(user.Email)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to resend OTP", "error": err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToResendOTP.Error(), Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "OTP resent successfully"})
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
 //Oauth Google handlers
@@ -492,37 +542,37 @@ func (ac *AuthController) GoogleLogin(c *gin.Context) {
 func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	code := c.Query("code")
 	if code == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "code not found"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: domain.ErrCodeNotFound.Error()})
 		return
 	}
 
 	conf := oauth.GetGoogleOAuthConfig(ac.GoogleClientID, ac.GoogleClientSecret, ac.GoogleRedirectURL)
 	token, err := conf.Exchange(context.Background(), code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to exchange token"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrTokenGenerationIssue.Error(), Error: err.Error()})
 		return
 	}
 
 	client := conf.Client(context.Background(), token)
 	service, err := oauth2v2.NewService(c.Request.Context(), option.WithHTTPClient(client))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create oauth service"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToCreateOAuthService.Error(), Error: err.Error()})
 		return
 	}
 
 	userInfo, err := service.Userinfo.Get().Do()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get user info"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToGetUserInfo.Error(), Error: err.Error()})
 		return
 	}
 
 	// Try finding user by email
-	user, err := ac.UserUsecase.FindByUsernameOrEmail(c.Request.Context(), userInfo.Email)
+	user, err := ac.UserUsecase.GetUserByEmail(userInfo.Email)
 	if err == nil && user != nil {
 		// User exists - login flow
 		response, err := ac.AuthService.GenerateTokens(*user)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrTokenGenerationIssue.Error(), Error: err.Error()})
 			return
 		}
 
@@ -542,7 +592,7 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		}
 
 		utils.SetCookie(c, utils.CookieOptions{
-			Name:     "refresh_token",
+			Name:     string(domain.RefreshTokenType),
 			Value:    response.RefreshToken,
 			MaxAge:   int(time.Until(response.RefreshTokenExpiresAt).Seconds()),
 			Path:     "/",
@@ -552,7 +602,7 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		})
 
 		utils.SetCookie(c, utils.CookieOptions{
-			Name:     "access_token",
+			Name:     string(domain.AccessTokenType),
 			Value:    response.AccessToken,
 			MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
 			Path:     "/",
@@ -560,13 +610,14 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			Secure:   false,
 			SameSite: http.SameSiteStrictMode,
 		})
-
-		c.JSON(http.StatusOK, gin.H{"message": "Login successful via Google", "user": dto.ToUserResponse(*user)})
+		userDTO := dto.UserDTO{}
+		c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: userDTO.FromDomain(user)})
 		return
 	}
 
 	// If user not found – register new one
 	newUser := &domain.User{
+<<<<<<< HEAD
 		Username:     strings.Split(userInfo.Email, "@")[0],
 		Email:        userInfo.Email,
 		FirstName:    userInfo.GivenName,
@@ -576,17 +627,34 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		ProfileImage: userInfo.Picture,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
+=======
+		Email:        userInfo.Email,
+		PhoneNumber:  "",
+		Password:     "",
+		AuthProvider: domain.AuthGoogle,
+		IsVerified:   false,
+		FirstName:    userInfo.GivenName,
+		LastName:     userInfo.FamilyName,
+		ProfileImage: userInfo.Picture,
+		Role:         domain.RoleUser,
+		Status:       domain.Active,
+		Preferences:  domain.Preferences{},
+		LastLoginAt:  time.Time{},
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+		IsDeleted:    false,
+>>>>>>> Backend_develop
 	}
 
 	if err := ac.UserUsecase.Register(newUser); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to register user"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRegisterUser.Error(), Error: err.Error()})
 		return
 	}
 
 	// Generate token for new user
 	response, err := ac.AuthService.GenerateTokens(*newUser)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrTokenGenerationIssue.Error(), Error: err.Error()})
 		return
 	}
 
@@ -606,7 +674,7 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	}
 
 	utils.SetCookie(c, utils.CookieOptions{
-		Name:     "refresh_token",
+		Name:     string(domain.RefreshTokenType),
 		Value:    response.RefreshToken,
 		MaxAge:   int(time.Until(response.RefreshTokenExpiresAt).Seconds()),
 		Path:     "/",
@@ -616,7 +684,7 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	})
 
 	utils.SetCookie(c, utils.CookieOptions{
-		Name:     "access_token",
+		Name:     string(domain.AccessTokenType),
 		Value:    response.AccessToken,
 		MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
 		Path:     "/",
@@ -624,6 +692,6 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		Secure:   false,
 		SameSite: http.SameSiteStrictMode,
 	})
-
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered successfully via Google", "user": dto.ToUserResponse(*newUser)})
+	userDTO := dto.UserDTO{}
+	c.JSON(http.StatusCreated, dto.SuccessResponse{Message: domain.MsgCreated, Data: userDTO.FromDomain(newUser)})
 }

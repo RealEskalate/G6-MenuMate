@@ -1,14 +1,14 @@
 package security
 
-import(
+import (
 	"fmt"
 	"net/smtp"
 )
 
 type Mailer struct {
-	Host	 string
-	Port	 string
-	Username string	
+	Host     string
+	Port     string
+	Username string
 	Password string
 	From     string
 }

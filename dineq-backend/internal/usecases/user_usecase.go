@@ -8,15 +8,17 @@ import (
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
 )
 
 type UserUsecase struct {
-	userRepo       domain.IUserRepository
-	storageService domain.StorageService
-	ctxtimeout     time.Duration
+	userRepo            domain.IUserRepository
+	storageService      services.StorageService
+	ctxtimeout          time.Duration
+	NotificationUseCase domain.INotificationUseCase
 }
 
-func NewUserUsecase(userRepo domain.IUserRepository, storageService domain.StorageService, timeout time.Duration) domain.IUserUsecase {
+func NewUserUsecase(userRepo domain.IUserRepository, storageService services.StorageService, timeout time.Duration) domain.IUserUsecase {
 	return &UserUsecase{
 		userRepo:       userRepo,
 		storageService: storageService,
@@ -28,6 +30,7 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxtimeout)
 	defer cancel()
 
+<<<<<<< HEAD
 	// Default role if not supplied
 	if request.Role == "" {
 		request.Role = domain.RoleCustomer
@@ -77,6 +80,19 @@ func (uc *UserUsecase) FindByUsernameOrEmail(ctx context.Context, identifier str
 		return nil, err
 	}
 	return &u, nil
+=======
+	if request.Role == "" {
+		request.Role = domain.RoleUser // Default role is User
+	}
+	user, err := uc.userRepo.GetUserByEmail(ctx, request.Email)
+	if err == nil && user != nil {
+		return domain.ErrEmailAlreadyInUse
+	}
+	request.IsVerified = false
+	request.CreatedAt = time.Now()
+	request.UpdatedAt = time.Now()
+	return uc.userRepo.CreateUser(ctx, request)
+>>>>>>> Backend_develop
 }
 
 func (uc *UserUsecase) FindUserByID(uid string) (*domain.User, error) {
@@ -115,9 +131,11 @@ func (uc *UserUsecase) UpdateProfile(userID string, update domain.UserProfileUpd
 		return nil, err
 	}
 	fmt.Println(update.FirstName, update.LastName)
+	var publicId string
 	// Handle avatar upload
 	if len(update.AvatarData) > 0 {
-		avatarURL, err := uc.storageService.UploadFile(ctx, fileName, update.AvatarData)
+		avatarURL, pubId, err := uc.storageService.UploadFile(ctx, fileName, update.AvatarData, "profile")
+		publicId = pubId
 		if err != nil {
 			return nil, fmt.Errorf("failed to upload avatar: %w", err)
 		}
@@ -132,9 +150,12 @@ func (uc *UserUsecase) UpdateProfile(userID string, update domain.UserProfileUpd
 
 		user.ProfileImage = avatarURL
 	}
-	fmt.Println(user)
 
 	// Apply updates
+<<<<<<< HEAD
+=======
+
+>>>>>>> Backend_develop
 	if update.FirstName != "" {
 		user.FirstName = update.FirstName
 	}
@@ -144,6 +165,7 @@ func (uc *UserUsecase) UpdateProfile(userID string, update domain.UserProfileUpd
 
 	// Update in repository
 	if err := uc.userRepo.UpdateUser(ctx, user.ID, user); err != nil {
+		uc.storageService.DeleteFile(ctx, publicId)
 		return nil, err
 	}
 
@@ -174,5 +196,21 @@ func (uc *UserUsecase) ChangePassword(userID, oldPassword, newPassword string) e
 
 	// Update password
 	user.Password = hashedPassword
+	return uc.userRepo.UpdateUser(ctx, user.ID, user)
+}
+
+// assign Role
+func (uc *UserUsecase) AssignRole(userID string, branchID string, role domain.UserRole) error {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxtimeout)
+	defer cancel()
+
+	// Find user
+	user, err := uc.userRepo.FindUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	// Assign role
+	user.Role = role
 	return uc.userRepo.UpdateUser(ctx, user.ID, user)
 }

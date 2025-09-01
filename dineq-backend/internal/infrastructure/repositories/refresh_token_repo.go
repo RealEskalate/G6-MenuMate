@@ -24,8 +24,12 @@ func NewRefreshTokenRepository(db mongo.Database, collection string) domain.IRef
 
 func (repo *RefreshTokenRepository) Save(ctx context.Context, token *domain.RefreshToken) error {
 	tokenDb := mapper.FromRefreshTokenEntityToDB(token)
-	if _, err := repo.DB.Collection(repo.Collection).InsertOne(ctx, tokenDb); err != nil {
+	res, err := repo.DB.Collection(repo.Collection).InsertOne(ctx, tokenDb)
+	if err != nil {
 		return err
+	}
+	if res == nil {
+		return domain.ErrFailedToSaveToken
 	}
 	return nil
 }
@@ -35,7 +39,7 @@ func (repo *RefreshTokenRepository) FindByToken(ctx context.Context, token strin
 	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"token": token}).Decode(&tokenDB)
 	if err != nil {
 		if err == mongo.ErrNoDocuments() {
-			return nil, fmt.Errorf("refresh token not found")
+			return nil, domain.ErrRefreshTokenNotFound
 		}
 		return nil, err
 	}
@@ -43,19 +47,25 @@ func (repo *RefreshTokenRepository) FindByToken(ctx context.Context, token strin
 }
 
 func (repo *RefreshTokenRepository) DeleteByUserID(ctx context.Context, userID string) error {
-	_, err := repo.DB.Collection(repo.Collection).DeleteOne(ctx, bson.M{"_id": userID})
-	return err
+	res, err := repo.DB.Collection(repo.Collection).DeleteOne(ctx, bson.M{"_id": userID})
+	if err != nil {
+		return err
+	}
+	if res == 0 {
+		return domain.ErrFailedToDeleteToken
+	}
+	return nil
 }
 
 func (repo *RefreshTokenRepository) ReplaceTokenByUserID(ctx context.Context, token *domain.RefreshToken) error {
 	tokenDB := mapper.FromRefreshTokenEntityToDB(token)
+	fmt.Println("Replacing token for user ID:", token.UserID, tokenDB)
 	_, err := repo.DB.Collection(repo.Collection).UpdateOne(
 		ctx,
 		bson.M{"user_id": token.UserID},
 		bson.M{"$set": tokenDB},
 	)
 	if err != nil {
-		fmt.Println(err.Error())
 		return err
 	}
 	return nil
@@ -63,13 +73,16 @@ func (repo *RefreshTokenRepository) ReplaceTokenByUserID(ctx context.Context, to
 
 // revoke refresh token
 func (repo *RefreshTokenRepository) RevokeToken(ctx context.Context, token string) error {
-	_, err := repo.DB.Collection(repo.Collection).UpdateOne(
+	res, err := repo.DB.Collection(repo.Collection).UpdateOne(
 		ctx,
 		bson.M{"token": token},
 		bson.M{"$set": bson.M{"revoked": true}},
 	)
 	if err != nil {
-		return fmt.Errorf("failed to revoke token: %w", err)
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return domain.ErrFailedToRevokeToken
 	}
 	return nil
 }
