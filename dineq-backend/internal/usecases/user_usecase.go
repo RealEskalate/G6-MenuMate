@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/repositories"
+
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
 	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
@@ -39,20 +41,14 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 		request.AuthProvider = domain.AuthEmail
 	}
 
-	// Uniqueness checks (explicit for clearer error messages)
-	if request.Username != "" {
-		if existing, err := uc.userRepo.GetUserByUsername(ctx, request.Username); err == nil && existing != nil {
-			return errors.New("username already exists")
-		}
-	}
-	if request.Email != "" {
-		if existing, err := uc.userRepo.GetUserByEmail(ctx, request.Email); err == nil && existing != nil {
-			return errors.New("email already exists")
-		}
-	}
-	if request.PhoneNumber != "" {
-		if existing, err := uc.userRepo.GetUserByPhone(ctx, request.PhoneNumber); err == nil && existing != nil {
-			return errors.New("phone number already exists")
+	// Consolidated uniqueness check to minimize round-trips
+	if concrete, ok := uc.userRepo.(*repositories.UserRepository); ok {
+		if exists, err := concrete.ExistsAny(ctx, request.Username, request.Email, request.PhoneNumber); err == nil && exists {
+		// Disambiguate which field conflicts (best-effort single additional lookup each when set)
+		if request.Username != "" { if u, err := uc.userRepo.GetUserByUsername(ctx, request.Username); err == nil && u != nil { return errors.New("username already exists") } }
+		if request.Email != "" { if u, err := uc.userRepo.GetUserByEmail(ctx, request.Email); err == nil && u != nil { return errors.New("email already exists") } }
+		if request.PhoneNumber != "" { if u, err := uc.userRepo.GetUserByPhone(ctx, request.PhoneNumber); err == nil && u != nil { return errors.New("phone number already exists") } }
+		return errors.New("user already exists")
 		}
 	}
 
