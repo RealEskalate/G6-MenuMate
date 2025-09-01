@@ -40,7 +40,7 @@ export default function LoginPage() {
     if (res?.error) {
       setAuthError(res.error);
     } else {
-      router.push("/dashboard"); // ✅ Redirect after login
+      router.push("/dashboard");
     }
   };
 

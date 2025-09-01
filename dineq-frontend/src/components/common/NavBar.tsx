@@ -11,7 +11,6 @@ function NavBar({ role }: Roles) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  // Close dropdown on route change
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
@@ -21,7 +20,6 @@ function NavBar({ role }: Roles) {
       ? "px-4 text-primary underline underline-offset-4 font-medium"
       : "px-4 text-gray-700 hover:text-primary";
 
-  // Manager sidebar links for dropdown
   const managerLinks = [
     { name: "Menus", href: "/dashboard/menu", icon: "/icons/menu.svg" },
     { name: "QR Manager", href: "/dashboard/qr-manager", icon: "/icons/qr.png" },
