@@ -18,7 +18,7 @@ function NavBar({ role }: Roles) {
   return (
     <div className="border-b shadow-sm border-gray-300 px-6 py-2 flex justify-between w-full items-center">
       <Image src={logo} alt="logo" width={100} height={100} />
-      {role === "user" ? (         
+      {role === "CUSTOMER" ? (         
 
           <div className="flex ml-4">
             <Link href="/" className={linkClasses("/")}>
