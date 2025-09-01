@@ -27,11 +27,13 @@ func (s *stubUserRepo) FindByUsernameOrEmail(ctx context.Context, key string) (d
 }
 func (s *stubUserRepo) InvalidateTokens(ctx context.Context, id string) error { return nil }
 func (s *stubUserRepo) ChangeRole(ctx context.Context, targetUserID, role, username string) error { return nil }
+func (s *stubUserRepo) AssignRole(ctx context.Context, userID, branchID string, role domain.UserRole) error { return nil }
 
 // storage stub
 type noopStorage struct{}
-func (n noopStorage) UploadFile(ctx context.Context, name string, data []byte) (string, error) { return "", nil }
-func (n noopStorage) DeleteFile(ctx context.Context, name string) error { return nil }
+// Updated to satisfy services.StorageService (UploadFile returns url, publicID, error)
+func (n noopStorage) UploadFile(ctx context.Context, fileName string, data []byte, folder string) (string, string, error) { return "", "", nil }
+func (n noopStorage) DeleteFile(ctx context.Context, publicID string) error { return nil }
 
 func TestFindByIdentifier_UserEmailUsernamePhone(t *testing.T) {
     repo := &stubUserRepo{}
