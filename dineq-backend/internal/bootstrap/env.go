@@ -100,7 +100,6 @@ type Env struct {
 
 	// menu collection
 	MenuCollection string `mapstructure:"MENU_COLLECTION"`
-
 }
 
 // Viper can be made injectable

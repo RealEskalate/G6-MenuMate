@@ -9,7 +9,7 @@ import (
 )
 
 type MenuHandler struct {
-	UseCase domain.IMenuUseCase
+	UseCase             domain.IMenuUseCase
 	NotificationUseCase domain.INotificationUseCase
 }
 
@@ -75,7 +75,7 @@ func (h *MenuHandler) PublishMenu(c *gin.Context) {
 // GenerateQRCode generates a QR code for a menu
 func (h *MenuHandler) GenerateQRCode(c *gin.Context) {
 	id := c.Param("id")
-	qrCode, err := h.UseCase.GenerateQRCode( id)
+	qrCode, err := h.UseCase.GenerateQRCode(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
 		return

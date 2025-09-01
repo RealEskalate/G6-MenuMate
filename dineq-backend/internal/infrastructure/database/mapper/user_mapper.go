@@ -23,7 +23,7 @@ type UserModel struct {
 	AvatarURL    string        `bson:"avatarUrl"`
 	Role         string        `bson:"role"`
 	Status       string        `bson:"status"`
-	Preferences  any   `bson:"preferences"` // adjust type if needed
+	Preferences  any           `bson:"preferences"` // adjust type if needed
 	IsVerified   bool          `bson:"isVerified"`
 	LastLoginAt  time.Time     `bson:"lastLoginAt"`
 	CreatedAt    time.Time     `bson:"createdAt"`

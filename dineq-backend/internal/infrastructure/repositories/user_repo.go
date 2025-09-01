@@ -112,9 +112,9 @@ func (repo *UserRepository) AssignRole(ctx context.Context, branchID, targetUser
 	}
 	_, err = repo.DB.Collection(repo.Collection).UpdateOne(ctx, bson.M{"_id": objID}, bson.M{
 		"$set": bson.M{
-			"role":       string(role),
+			"role":      string(role),
 			"updatedAt": time.Now(),
-			"branchId":   branchID,
+			"branchId":  branchID,
 		},
 	})
 	return err

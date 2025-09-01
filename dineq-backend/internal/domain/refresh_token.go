@@ -19,7 +19,7 @@ type PasswordResetToken struct {
 type TokenType string
 
 const (
-	AccessTokenType     TokenType = "accessToken"
+	AccessTokenType  TokenType = "accessToken"
 	RefreshTokenType TokenType = "refreshToken"
 )
 

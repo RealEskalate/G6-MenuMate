@@ -25,7 +25,7 @@ type AuthController struct {
 	OTP                  domain.IOTPUsecase
 	RefreshTokenUsecase  domain.IRefreshTokenUsecase
 	PasswordResetUsecase domain.IPasswordResetUsecase
-	NotificationUseCase   domain.INotificationUseCase
+	NotificationUseCase  domain.INotificationUseCase
 	GoogleClientID       string
 	GoogleClientSecret   string
 	GoogleRedirectURL    string
@@ -59,7 +59,7 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 	}
 	response := dto.SuccessResponse{
 		Message: domain.MsgCreated,
-		Data: newUser.FromDomain(user),
+		Data:    newUser.FromDomain(user),
 	}
 	c.JSON(http.StatusCreated, response)
 }
@@ -268,7 +268,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
-    fmt.Println("user id", user.ID)
+	fmt.Println("user id", user.ID)
 	c.JSON(http.StatusOK, dto.LoginResponse{
 		AccessToken:  response.AccessToken,
 		RefreshToken: refreshTokenValue,
@@ -530,7 +530,7 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			Secure:   false,
 			SameSite: http.SameSiteStrictMode,
 		})
-        userDTO := dto.UserDTO{}
+		userDTO := dto.UserDTO{}
 		c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: userDTO.FromDomain(user)})
 		return
 	}
@@ -582,7 +582,7 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	}
 
 	utils.SetCookie(c, utils.CookieOptions{
-		Name:    string(domain.RefreshTokenType),
+		Name:     string(domain.RefreshTokenType),
 		Value:    response.RefreshToken,
 		MaxAge:   int(time.Until(response.RefreshTokenExpiresAt).Seconds()),
 		Path:     "/",
@@ -600,6 +600,6 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		Secure:   false,
 		SameSite: http.SameSiteStrictMode,
 	})
-    userDTO := dto.UserDTO{}
-		c.JSON(http.StatusCreated, dto.SuccessResponse{Message: domain.MsgCreated, Data: userDTO.FromDomain(newUser)})
+	userDTO := dto.UserDTO{}
+	c.JSON(http.StatusCreated, dto.SuccessResponse{Message: domain.MsgCreated, Data: userDTO.FromDomain(newUser)})
 }

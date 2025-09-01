@@ -34,7 +34,7 @@ func (h *ItemHandler) CreateItem(c *gin.Context) {
 		return
 	}
 
- c.JSON(http.StatusCreated, dto.FromDomain(item))
+	c.JSON(http.StatusCreated, dto.FromDomain(item))
 }
 
 // GetItemByID retrieves an item by ID

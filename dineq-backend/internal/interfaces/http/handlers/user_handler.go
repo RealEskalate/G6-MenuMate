@@ -11,9 +11,10 @@ import (
 )
 
 type UserHandler struct {
-	UserUsecase       domain.IUserUsecase
+	UserUsecase         domain.IUserUsecase
 	NotificationUseCase domain.INotificationUseCase
 }
+
 func (ctrl *UserHandler) UpdateProfile(c *gin.Context) {
 	userID, exists := c.Get("userId")
 	if !exists {

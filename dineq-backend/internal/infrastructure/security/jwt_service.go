@@ -26,11 +26,11 @@ func NewJWTService(accessSecret, refreshSecret string, accessExpiry, refreshExpi
 
 func (s *JwtService) GenerateTokens(user domain.User) (domain.RefreshTokenResponse, error) {
 	accessClaims := jwt.MapClaims{
-		"sub":         user.ID,
+		"sub":        user.ID,
 		"email":      user.Email,
 		"isVerified": user.IsVerified,
-		"role":        user.Role,
-		"exp":         time.Now().Add(s.AccessExpiry).Unix(),
+		"role":       user.Role,
+		"exp":        time.Now().Add(s.AccessExpiry).Unix(),
 	}
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
 	accessTokenStr, err := accessToken.SignedString([]byte(s.AccessSecret))
@@ -39,9 +39,9 @@ func (s *JwtService) GenerateTokens(user domain.User) (domain.RefreshTokenRespon
 	}
 
 	refreshClaims := jwt.MapClaims{
-		"sub":      user.ID,
-		"email":   user.Email,
-		"exp":      time.Now().Add(s.RefreshExpiry).Unix(),
+		"sub":   user.ID,
+		"email": user.Email,
+		"exp":   time.Now().Add(s.RefreshExpiry).Unix(),
 	}
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
 	refreshTokenStr, err := refreshToken.SignedString([]byte(s.RefreshSecret))
