@@ -54,9 +54,9 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 		}
 	}
 
-	if request.PasswordHash != "" { // hash raw password provided (DTO mapped plaintext into PasswordHash)
-		h, _ := security.HashPassword(request.PasswordHash)
-		request.PasswordHash = h
+	if request.Password != "" { // hash raw password provided (DTO mapped plaintext into Password)
+		h, _ := security.HashPassword(request.Password)
+		request.Password = h
 	}
 	request.IsVerified = false
 	now := time.Now()
@@ -67,14 +67,6 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 		return err
 	}
 	return nil
-}
-
-// Logout
-func (uc *UserUsecase) Logout(userID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxtimeout)
-	defer cancel()
-
-	return uc.userRepo.InvalidateTokens(ctx, userID)
 }
 
 // find user by username or id
@@ -169,7 +161,7 @@ func (uc *UserUsecase) ChangePassword(userID, oldPassword, newPassword string) e
 	}
 
 	// Check old password
-	storedHash := user.PasswordHash
+	storedHash := user.Password
 	if err := security.ValidatePassword(storedHash, oldPassword); err != nil {
 		return errors.New("invalid old password")
 	}
@@ -181,6 +173,6 @@ func (uc *UserUsecase) ChangePassword(userID, oldPassword, newPassword string) e
 	}
 
 	// Update password
-	user.PasswordHash = hashedPassword
+	user.Password = hashedPassword
 	return uc.userRepo.UpdateUser(ctx, user.ID, user)
 }

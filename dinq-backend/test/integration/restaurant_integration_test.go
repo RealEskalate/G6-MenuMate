@@ -64,9 +64,6 @@ func TestRestaurantLifecycle_RedirectAndDeletion(t *testing.T) {
         t.Skip("missing required env vars for integration test")
     }
 
-    // Ensure indexes (idempotent)
-    bootstrap.EnsureIndexes(app.Mongo, env)
-
     managerID := newHexObjectID()
     jwtToken := makeJWT(t, env, managerID)
 

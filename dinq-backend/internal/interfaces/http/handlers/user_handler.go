@@ -65,7 +65,6 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	}
 
 	update := domain.UserProfileUpdate{
-		Bio:        req.Bio,
 		AvatarData: avatarData,
 		FirstName:  req.FirstName,
 		LastName:   req.LastName,

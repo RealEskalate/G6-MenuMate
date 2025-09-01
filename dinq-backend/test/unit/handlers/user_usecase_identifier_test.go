@@ -1,12 +1,12 @@
 package handlers_test
 
 import (
-    "context"
-    "testing"
-    "time"
+	"context"
+	"testing"
+	"time"
 
-    "github.com/RealEskalate/G6-MenuMate/internal/domain"
-    usecase "github.com/RealEskalate/G6-MenuMate/internal/usecases"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	usecase "github.com/RealEskalate/G6-MenuMate/internal/usecases"
 )
 
 // stubUserRepo implements the subset of IUserRepository needed for identifier lookup tests.
@@ -37,7 +37,7 @@ func TestFindByIdentifier_UserEmailUsernamePhone(t *testing.T) {
     repo := &stubUserRepo{}
     uc := usecase.NewUserUsecase(repo, noopStorage{}, 2*time.Second)
 
-    user := domain.User{ID: "1", Username: "alpha", Email: "alpha@example.com", PhoneNumber: "+15551234567", PasswordHash: "hash"}
+    user := domain.User{ID: "1", Username: "alpha", Email: "alpha@example.com", PhoneNumber: "+15551234567", Password: "hash"}
     repo.CreateUser(context.Background(), &user)
 
     cases := []struct{ in, field string }{

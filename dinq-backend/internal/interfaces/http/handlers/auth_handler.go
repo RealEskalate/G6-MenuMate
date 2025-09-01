@@ -123,8 +123,8 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		return
 	}
 
-	// Validate the password using PasswordHash
-	storedHash := user.PasswordHash
+	// Validate the password using Password
+	storedHash := user.Password
 	if err := security.ValidatePassword(storedHash, loginRequest.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return

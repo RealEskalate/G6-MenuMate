@@ -125,7 +125,7 @@ func (u *PasswordResetUsecase) ResetPassword(email, token, newPassword string) e
 	if err != nil {
 		return err
 	}
-	user.PasswordHash = string(hashedPassword)
+	user.Password = string(hashedPassword)
 
 	// Update user
 	if err := u.UserRepo.UpdateUser(context.Background(), user.ID, user); err != nil {
