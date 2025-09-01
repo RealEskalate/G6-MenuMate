@@ -7,6 +7,7 @@ import (
 	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
 	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
 	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
+	handler "github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/handlers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,5 +26,7 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 		NewOCRJobRoutes(env, api, db, notifySvc)
 		NewNotificationRoutes(env, api, db, notifySvc)
 		NewRestaurantRoutes(env, api, db)
+		h := handler.NewHealthHandler(db, 2*time.Second)
+		api.GET("/health", h.Health)
 	}
 }
