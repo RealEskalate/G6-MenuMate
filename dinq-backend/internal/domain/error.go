@@ -22,4 +22,5 @@ var (
 	ErrOTPInvalid         = errors.New("invalid OTP")
 	ErrOTPFailedToDelete  = errors.New("failed to delete OTP")
 	ErrRestaurantNotFound = errors.New("restaurant not found")
+	ErrRestaurantDeleted  = errors.New("restaurant deleted")
 )

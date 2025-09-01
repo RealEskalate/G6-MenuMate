@@ -8,7 +8,7 @@ import (
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/repositories"
 	handler "github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/handlers"
 	usecase "github.com/RealEskalate/G6-MenuMate/internal/usecases"
-
+	middleware "github.com/RealEskalate/G6-MenuMate/internal/interfaces/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,17 +20,18 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 	restaurantUsecase := usecase.NewRestaurantUsecase(restaurantRepo, ctxTimeout)
 	restaurantHandler := handler.NewRestaurantHandler(restaurantUsecase)
 
-	api := group.Group("/restaurants")
-	{
-		// CRUD
-		api.POST("", restaurantHandler.CreateRestaurant)
-		api.GET("/:slug", restaurantHandler.GetRestaurant)
-		api.PUT("/:slug", restaurantHandler.UpdateRestaurant)
-		api.DELETE("/:id", restaurantHandler.DeleteRestaurant)
+       api := group.Group("/restaurants")
+       api.Use(middleware.AuthMiddleware(*env))
+       {
+	       // CRUD
+	       api.POST("", restaurantHandler.CreateRestaurant)
+	       api.GET("/:slug", restaurantHandler.GetRestaurant)
+	       api.PUT("/:slug", restaurantHandler.UpdateRestaurant)
+	       api.DELETE("/:id", restaurantHandler.DeleteRestaurant)
 
-		// Listing
-		api.GET("/:slug/branches", restaurantHandler.GetBranches) //all restaurants with a given slug
-		api.GET("", restaurantHandler.GetUniqueRestaurants)       // List unique restaurants
-	}
+	       // Listing
+	       api.GET("/:slug/branches", restaurantHandler.GetBranches) 
+	       api.GET("", restaurantHandler.GetUniqueRestaurants)       
+       }
 
 }
