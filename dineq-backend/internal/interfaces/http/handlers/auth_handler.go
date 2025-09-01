@@ -31,6 +31,8 @@ type AuthController struct {
 	GoogleClientID       string
 	GoogleClientSecret   string
 	GoogleRedirectURL    string
+	CookieSecure         bool
+	CookieDomain         string
 }
 
 func (ac *AuthController) RegisterRequest(c *gin.Context) {
@@ -77,7 +79,7 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 		MaxAge:   int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-		Secure:   false,
+	Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -87,7 +89,7 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 		MaxAge:   int(time.Until(tokens.AccessTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-		Secure:   false,
+	Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -178,7 +180,7 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		MaxAge:   int(time.Until(response.RefreshTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-		Secure:   false,
+	Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -189,7 +191,7 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-		Secure:   false,
+	Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})

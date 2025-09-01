@@ -32,6 +32,10 @@ type Env struct {
 	// user collection
 	UserCollection string `mapstructure:"USER_COLLECTION"`
 
+	// Cookie / Security settings
+	CookieSecure bool `mapstructure:"COOKIE_SECURE"`
+	CookieDomain string `mapstructure:"COOKIE_DOMAIN"`
+
 	// user refresh token collection
 	RefreshTokenCollection string `mapstructure:"REFRESH_TOKEN_COLLECTION"`
 
