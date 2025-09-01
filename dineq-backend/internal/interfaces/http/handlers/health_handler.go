@@ -6,50 +6,42 @@ import (
 	"time"
 
 	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
-	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/ocr"
 	"github.com/gin-gonic/gin"
 )
 
 type HealthHandler struct {
-    db mongo.Database
-    ocrClient *ocr.Client // may be nil if not configured
-    ocrBase string
-    timeout time.Duration
-    httpClient *http.Client
+	db      mongo.Database
+	timeout time.Duration
 }
 
-func NewHealthHandler(db mongo.Database, ocrClient *ocr.Client, ocrBase string, timeout time.Duration) *HealthHandler {
-    return &HealthHandler{db: db, ocrClient: ocrClient, ocrBase: ocrBase, timeout: timeout, httpClient: &http.Client{Timeout: 4 * time.Second}}
+func NewHealthHandler(db mongo.Database, timeout time.Duration) *HealthHandler {
+	return &HealthHandler{db: db, timeout: timeout}
 }
 
 // GET /api/v1/health
 func (h *HealthHandler) Health(c *gin.Context) {
-    ctx, cancel := context.WithTimeout(c.Request.Context(), h.timeout)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(c.Request.Context(), h.timeout)
+	defer cancel()
 
-    status := gin.H{"database": "ok"}
-    if err := h.db.Client().Ping(ctx); err != nil { status["database"] = "error" }
+	start := time.Now()
+	comp := gin.H{}
 
-    if h.ocrClient != nil && h.ocrBase != "" {
-        ocrCtx, cancelO := context.WithTimeout(ctx, 3*time.Second)
-        defer cancelO()
-        url := h.ocrBase + "/health"
-        req, _ := http.NewRequestWithContext(ocrCtx, http.MethodGet, url, nil)
-        resp, err := h.httpClient.Do(req)
-        if err != nil || (resp != nil && resp.StatusCode >= 400) {
-            status["ocr_service"] = "error"
-        } else if resp != nil {
-            status["ocr_service"] = "ok"
-            resp.Body.Close()
-        }
-    } else {
-        status["ocr_service"] = "disabled"
-    }
+	if err := h.db.Client().Ping(ctx); err != nil {
+		comp["database"] = gin.H{"status": "error", "error": err.Error()}
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"status":     "degraded",
+			"components": comp,
+			"timestamp":  time.Now().UTC(),
+			"latency_ms": time.Since(start).Milliseconds(),
+		})
+		return
+	}
+	comp["database"] = gin.H{"status": "ok"}
 
-    overall := "ok"
-    if status["database"] != "ok" || (status["ocr_service"] == "error") {
-        overall = "degraded"
-    }
-
-    c.JSON(http.StatusOK, gin.H{"status": overall, "components": status, "timestamp": time.Now().UTC()})
+	c.JSON(http.StatusOK, gin.H{
+		"status":     "ok",
+		"components": comp,
+		"timestamp":  time.Now().UTC(),
+		"latency_ms": time.Since(start).Milliseconds(),
+	})
 }
