@@ -6,67 +6,91 @@ import (
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 )
 
+type PreferencePayload struct {
+	Language      string `json:"language" validate:"omitempty,min=2,max=8"`
+	Theme         string `json:"theme" validate:"omitempty,oneof=light dark system"`
+	Notifications *bool  `json:"notifications" validate:"omitempty"`
+}
+
 type UserRequest struct {
-	ID         string    `json:"id" validate:"omitempty"`
-	Username   string    `json:"username" validate:"required,min=3,max=50"`
-	Email      string    `json:"email" validate:"required,email"`
-	Password   string    `json:"password" validate:"required,min=6,max=100"`
-	FirstName  string    `json:"first_name" validate:"required,alpha,min=2,max=50"`
-	LastName   string    `json:"last_name" validate:"required,alpha,min=2,max=50"`
-	Role       string    `json:"role"`
-	Bio        string    `json:"bio" validate:"max=500"`
-	IsVerified bool      `json:"is_verified" validate:"omitempty"`
-	AvatarURL  string    `json:"avatar_url" validate:"omitempty,url"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
-	Provider   string    `json:"provider" validate:"required,oneof=manual google"`
+	ID           string             `json:"id" validate:"omitempty"`
+	Email        string             `json:"email" validate:"omitempty,email"`
+	PhoneNumber  string             `json:"phone_number" validate:"omitempty,e164"`
+	Password     string             `json:"password" validate:"required_without=AuthProvider,min=6,max=100"`
+	FirstName    string             `json:"first_name" validate:"required_without=FullName,omitempty,alpha,min=2,max=50"`
+	LastName     string             `json:"last_name" validate:"required_without=FullName,omitempty,alpha,min=2,max=50"`
+	FullName     string             `json:"full_name" validate:"omitempty,min=2,max=100"`
+	Role         string             `json:"role" validate:"omitempty,oneof=OWNER MANAGER STAFF CUSTOMER ADMIN"`
+	AuthProvider string             `json:"auth_provider" validate:"required,oneof=EMAIL GOOGLE PHONE"`
+	Status       string             `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE SUSPENDED"`
+	ProfileImage string             `json:"profile_image" validate:"omitempty,url"`
+	IsVerified   bool               `json:"is_verified" validate:"omitempty"`
+	Preferences  *PreferencePayload `json:"preferences" validate:"omitempty,dive"`
 }
 
 type UserResponse struct {
-	ID         string    `json:"id"`
-	Username   string    `json:"username"`
-	Email      string    `json:"email"`
-	FirstName  string    `json:"first_name"`
-	LastName   string    `json:"last_name"`
-	Role       string    `json:"role"`
-	Bio        string    `json:"bio"`
-	AvatarURL  string    `json:"avatar_url"`
-	IsVerified bool      `json:"is_verified"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	ID           string            `json:"id"`
+	Email        string            `json:"email,omitempty"`
+	PhoneNumber  string            `json:"phone_number,omitempty"`
+	FullName     string            `json:"full_name,omitempty"`
+	FirstName    string            `json:"first_name,omitempty"`
+	LastName     string            `json:"last_name,omitempty"`
+	Role         string            `json:"role"`
+	Status       string            `json:"status"`
+	AuthProvider string            `json:"auth_provider"`
+	ProfileImage string            `json:"profile_image,omitempty"`
+	IsVerified   bool              `json:"is_verified"`
+	Preferences  *PreferencePayload `json:"preferences,omitempty"`
+	CreatedAt    time.Time         `json:"created_at"`
+	UpdatedAt    time.Time         `json:"updated_at"`
 }
 
 // user registration request mapper
 func ToDomainUser(req UserRequest) domain.User {
+	var pref *domain.Preference
+	if req.Preferences != nil {
+		p := &domain.Preference{Language: req.Preferences.Language, Theme: req.Preferences.Theme}
+		if req.Preferences.Notifications != nil { p.Notifications = *req.Preferences.Notifications }
+		pref = p
+	}
 	return domain.User{
-		Username:   req.Username,
-		Email:      req.Email,
-		Password:   req.Password, // Ensure to hash the password before saving to the domain
-		FirstName:  req.FirstName,
-		LastName:   req.LastName,
-		Role:       domain.UserRole(req.Role),
-		Bio:        req.Bio,
-		IsVerified: req.IsVerified,
-		AvatarURL:  req.AvatarURL,
-		CreatedAt:  req.CreatedAt,
-		UpdatedAt:  req.UpdatedAt,
-		Provider:   req.Provider,
+		Email:        req.Email,
+		PhoneNumber:  req.PhoneNumber,
+		PasswordHash: req.Password, // caller should hash before persistence
+		FirstName:    req.FirstName,
+		LastName:     req.LastName,
+		FullName:     req.FullName,
+		Role:         domain.UserRole(req.Role),
+		AuthProvider: domain.AuthProvider(req.AuthProvider),
+		Status:       domain.UserStatus(req.Status),
+		ProfileImage: req.ProfileImage,
+		IsVerified:   req.IsVerified,
+		Preferences:  pref,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 }
 
 func ToUserResponse(user domain.User) UserResponse {
+	var pref *PreferencePayload
+	if user.Preferences != nil {
+		pref = &PreferencePayload{Language: user.Preferences.Language, Theme: user.Preferences.Theme, Notifications: &user.Preferences.Notifications}
+	}
 	return UserResponse{
-		ID:         user.ID,
-		Username:   user.Username,
-		Email:      user.Email,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		Role:       string(user.Role),
-		Bio:        user.Bio,
-		IsVerified: user.IsVerified,
-		AvatarURL:  user.AvatarURL,
-		CreatedAt:  user.CreatedAt,
-		UpdatedAt:  user.UpdatedAt,
+		ID:           user.ID,
+		Email:        user.Email,
+		PhoneNumber:  user.PhoneNumber,
+		FullName:     user.FullName,
+		FirstName:    user.FirstName,
+		LastName:     user.LastName,
+		Role:         string(user.Role),
+		Status:       string(user.Status),
+		AuthProvider: string(user.AuthProvider),
+		ProfileImage: user.ProfileImage,
+		IsVerified:   user.IsVerified,
+		Preferences:  pref,
+		CreatedAt:    user.CreatedAt,
+		UpdatedAt:    user.UpdatedAt,
 	}
 }
 

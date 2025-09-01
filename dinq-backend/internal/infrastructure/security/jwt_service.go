@@ -30,6 +30,7 @@ func (s *JwtService) GenerateTokens(user domain.User) (domain.RefreshTokenRespon
 		"username":    user.Username,
 		"is_verified": user.IsVerified,
 		"role":        user.Role,
+		"status":      user.Status,
 		"exp":         time.Now().Add(s.AccessExpiry).Unix(),
 	}
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
