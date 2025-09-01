@@ -1,15 +1,5 @@
 package usecase
 
-<<<<<<< HEAD
-import "github.com/RealEskalate/G6-MenuMate/internal/domain"
-
-type ItemUsecase struct {
-	Repo domain.ItemRepository
-}
-
-func NewItemUsecase(r domain.ItemRepository) *ItemUsecase {
-	return &ItemUsecase{Repo: r}
-=======
 import (
 	"context"
 	"time"
@@ -42,5 +32,4 @@ func (uc *ItemUseCase) GetItemByID(ctx context.Context, id string) (*domain.Item
 
 func (uc *ItemUseCase) AddReview(ctx context.Context, itemID, reviewID string) error {
 	return uc.repo.AddReview(ctx, itemID, reviewID)
->>>>>>> Backend_develop
 }

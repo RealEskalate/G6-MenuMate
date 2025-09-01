@@ -1,17 +1,6 @@
 package handler
 
 import (
-<<<<<<< HEAD
-	"github.com/gin-gonic/gin"
-)
-
-type MenuHandler struct{}
-
-func NewMenuHandler() *MenuHandler { return &MenuHandler{} }
-
-func (h *MenuHandler) Register(c *gin.Context) {
-	c.JSON(200, gin.H{"message": "list of menus"})
-=======
 	"net/http"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -102,5 +91,4 @@ func (h *MenuHandler) DeleteMenu(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Menu deleted successfully"})
->>>>>>> Backend_develop
 }

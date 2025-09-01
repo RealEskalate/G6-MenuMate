@@ -1,15 +1,5 @@
 package usecase
 
-<<<<<<< HEAD
-import "github.com/RealEskalate/G6-MenuMate/internal/domain"
-
-type MenuUsecase struct {
-	Repo domain.MenuRepository
-}
-
-func NewMenuUsecase(r domain.MenuRepository) *MenuUsecase {
-	return &MenuUsecase{Repo: r}
-=======
 import (
 	"context"
 	"time"
@@ -79,5 +69,4 @@ func (uc *MenuUseCase) DeleteMenu(id string) error {
 	}
 	menu.IsDeleted = true
 	return uc.menuRepo.Update(ctx, id, menu)
->>>>>>> Backend_develop
 }
