@@ -1,0 +1,9 @@
+.env
+tmp
+.air.toml
+serviceAccountKey.json
+menu_prompt.txt
+menu_promptj.txt
+worker.go
+web_socket.go
+ai_parsed_handler.go
