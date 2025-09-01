@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
-
-	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/repositories"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
 	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type UserUsecase struct {
@@ -41,16 +41,10 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 		request.AuthProvider = domain.AuthEmail
 	}
 
-	// Consolidated uniqueness check to minimize round-trips
-	if concrete, ok := uc.userRepo.(*repositories.UserRepository); ok {
-		if exists, err := concrete.ExistsAny(ctx, request.Username, request.Email, request.PhoneNumber); err == nil && exists {
-		// Disambiguate which field conflicts (best-effort single additional lookup each when set)
-		if request.Username != "" { if u, err := uc.userRepo.GetUserByUsername(ctx, request.Username); err == nil && u != nil { return errors.New("username already exists") } }
-		if request.Email != "" { if u, err := uc.userRepo.GetUserByEmail(ctx, request.Email); err == nil && u != nil { return errors.New("email already exists") } }
-		if request.PhoneNumber != "" { if u, err := uc.userRepo.GetUserByPhone(ctx, request.PhoneNumber); err == nil && u != nil { return errors.New("phone number already exists") } }
-		return errors.New("user already exists")
-		}
-	}
+	// Normalize inputs (lowercase email & username, trim spaces)
+	request.Email = strings.TrimSpace(strings.ToLower(request.Email))
+	request.Username = strings.TrimSpace(strings.ToLower(request.Username))
+	request.PhoneNumber = strings.TrimSpace(request.PhoneNumber)
 
 	if request.Password != "" { // hash raw password provided (DTO mapped plaintext into Password)
 		h, _ := security.HashPassword(request.Password)
@@ -62,6 +56,23 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 	request.UpdatedAt = now
 	err := uc.userRepo.CreateUser(ctx, request)
 	if err != nil {
+		// Handle duplicate key errors from Mongo instead of racing with manual existence queries
+		var writeExc *mongo.WriteException
+		if errors.As(err, &writeExc) {
+			for _, we := range writeExc.WriteErrors {
+				// Inspect message for index names we set: ux_email, ux_username, ux_phone_number
+				if strings.Contains(we.Message, "ux_email") {
+					return domain.ErrEmailAlreadyInUse
+				}
+				if strings.Contains(we.Message, "ux_username") {
+					return domain.ErrUsernameAlreadyInUse
+				}
+				if strings.Contains(we.Message, "ux_phone_number") {
+					return domain.ErrPhoneAlreadyInUse
+				}
+			}
+			return domain.ErrDuplicateUser
+		}
 		return err
 	}
 	return nil

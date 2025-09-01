@@ -10,6 +10,9 @@ type DomainError struct {
 var (
 	ErrNotFound                       = errors.New("not found")
 	ErrUserNotFound                   = errors.New("user not found")
+	ErrDuplicateUser                  = errors.New("user already exists")
+	ErrUsernameAlreadyInUse           = errors.New("username already in use")
+	ErrPhoneAlreadyInUse              = errors.New("phone number already in use")
 	ErrTokenExpired                   = errors.New("token expired")
 	ErrInvalidInput                   = errors.New("invalid input")
 	ErrUnauthorized                   = errors.New("User not authenticated or authorized")

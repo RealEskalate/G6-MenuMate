@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -47,11 +48,10 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 	err := ac.UserUsecase.Register(&user)
 	if err != nil {
 		status := http.StatusInternalServerError
-		switch err.Error() {
-		case "username already exists", "email already exists", "phone number already exists":
+		if errors.Is(err, domain.ErrEmailAlreadyInUse) || errors.Is(err, domain.ErrUsernameAlreadyInUse) || errors.Is(err, domain.ErrPhoneAlreadyInUse) || errors.Is(err, domain.ErrDuplicateUser) {
 			status = http.StatusConflict
 		}
-		c.JSON(status, gin.H{"error": err.Error()})
+		c.JSON(status, dto.ErrorResponse{Message: err.Error(), Error: err.Error()})
 		return
 	}
 	// Generate access and refresh tokens for the newly registered user
