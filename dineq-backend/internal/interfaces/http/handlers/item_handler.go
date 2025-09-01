@@ -1,17 +1,6 @@
 package handler
 
 import (
-<<<<<<< HEAD
-	"github.com/gin-gonic/gin"
-)
-
-type ItemHandler struct{}
-
-func NewItemHandler() *ItemHandler { return &ItemHandler{} }
-
-func (h *ItemHandler) Register(c *gin.Context) {
-	c.JSON(200, gin.H{"message": "list of items"})
-=======
 	"net/http"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -93,5 +82,4 @@ func (h *ItemHandler) AddReview(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Review added successfully"})
->>>>>>> Backend_develop
 }
