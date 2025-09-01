@@ -5,10 +5,7 @@ import (
 	"regexp"
 	"strconv"
 
-<<<<<<< HEAD
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
-=======
->>>>>>> Backend_develop
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
 	"github.com/gin-gonic/gin"
@@ -32,7 +29,6 @@ func IsValidObjectID(id string) bool {
 
 func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 	var input dto.RestaurantResponse
-<<<<<<< HEAD
 	manager := c.GetString("user_id")
 
        if err := c.ShouldBindJSON(&input); err != nil {
@@ -73,36 +69,12 @@ func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
 		// Redirect (permanent, preserve method) to new slug
 		c.Header("Location", "/api/v1/restaurants/"+old.Slug)
 		c.JSON(http.StatusPermanentRedirect, gin.H{"redirect_to": old.Slug})
-=======
-	manager := c.GetString("userid")
-
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	input.ManagerID = manager
-	r := dto.ToDomainRestaurant(&input)
-	if err := h.RestaurantUsecase.CreateRestaurant(c.Request.Context(), r); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusCreated, dto.ToRestaurantResponse(r))
-}
-
-func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
-
-	slug := c.Param("slug")
-	r, err := h.RestaurantUsecase.GetRestaurantBySlug(c.Request.Context(), slug)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
->>>>>>> Backend_develop
 		return
 	}
 	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
 }
 
 func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
-<<<<<<< HEAD
 	slug := c.Param("slug")
 	manager := c.GetString("user_id")
 
@@ -126,15 +98,10 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 	}
 
 	var input dto.RestaurantResponse
-=======
-	var input dto.RestaurantResponse
-	manager := c.GetString("userid")
->>>>>>> Backend_develop
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-<<<<<<< HEAD
 
 	// Merge allowed mutable fields; if name changes, regenerate slug & store previous
 	if input.Name != "" {
@@ -198,20 +165,6 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 
 func (h *RestaurantHandler) DeleteRestaurant(c *gin.Context) {
 	manager := c.GetString("user_id")
-=======
-	input.ManagerID = manager
-
-	r := dto.ToDomainRestaurant(&input)
-	if err := h.RestaurantUsecase.UpdateRestaurant(c.Request.Context(), r); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
-}
-
-func (h *RestaurantHandler) DeleteRestaurant(c *gin.Context) {
-	manager := c.GetString("userid")
->>>>>>> Backend_develop
 	id := c.Param("id")
 	if err := h.RestaurantUsecase.DeleteRestaurant(c.Request.Context(), id, manager); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
