@@ -3,7 +3,7 @@
 import { useRegister } from "@/context/RegisterContext";
 import { useRouter } from "next/navigation";
 import { FaStore, FaPhoneAlt } from "react-icons/fa";
-import React, { useState } from "react";
+import React, { useState} from "react";
 import LocationPicker from "./LocationPicker";
 import FileUploadBox from "./FileUploadBox";
 

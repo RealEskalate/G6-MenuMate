@@ -23,7 +23,7 @@ export default function Header() {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-4">
-          <a href="#" className="text-gray-600 hover:text-orange-500">
+          <a href="/auth/signin" className="text-gray-600 hover:text-orange-500">
             Log in
           </a>
           <a

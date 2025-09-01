@@ -59,9 +59,21 @@ export const options: NextAuthOptions = {
         }
       },
     }),
+    CredentialsProvider({
+      id: "google-backend",
+      name: "Google (Backend)",
+      credentials: {},
+      async authorize() {
+        // NOTE: This won’t be called directly, since Google flow happens in backend.
+        // You’ll only use this if you trigger it after your API callback.
+        return null;
+      },
+    }),
   ],
+
   pages: {
-    signIn: "/signin",
+    signIn: "/auth/signin",
+    error: "/auth/signin", // Error code passed in query string as ?error=
   },
   session: {
     strategy: "jwt",
@@ -162,3 +174,4 @@ export const options: NextAuthOptions = {
   debug: true,
   // debug: process.env.NODE_ENV !== "production",
 };
+

@@ -1,4 +1,4 @@
-
+import Link from "next/link";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -15,16 +15,16 @@ export default function Hero() {
       </p>
       <div className="mt-8 flex justify-center space-x-4">
         <Link
-          href="/auth/user-signup"
+          href="/"
           className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600"
         >
-          I'm a Customer
+          I&lsquo;m a Customer
         </Link>
         <Link
-          href="/auth/manager-signup"
+          href="#"
           className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-100"
         >
-          I'm a Restaurant
+          I&lsquo;m a Restaurant
         </Link>
       </div>
       <div
