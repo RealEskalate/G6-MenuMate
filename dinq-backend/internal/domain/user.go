@@ -18,7 +18,7 @@ type User struct {
 	Email         string
 	PhoneNumber   string
 	Username      string
-	PasswordHash  string
+	Password  string
 	AuthProvider  AuthProvider
 	IsVerified    bool
 	FullName      string
@@ -63,7 +63,6 @@ const (
 type UserProfileUpdate struct {
 	FirstName  string
 	LastName   string
-	Bio        string
 	AvatarData []byte
 }
 
@@ -76,7 +75,6 @@ type IUserUsecase interface {
 	ChangePassword(userID, oldPassword, newPassword string) error
 
 	Register(request *User) error
-	Logout(userID string) error
 }
 
 type IUserRepository interface {
@@ -88,6 +86,5 @@ type IUserRepository interface {
 	UpdateUser(context.Context, string, *User) error
 	GetAllUsers(context.Context) ([]*User, error)
 	FindByUsernameOrEmail(context.Context, string) (User, error)
-	InvalidateTokens(context.Context, string) error
 	ChangeRole(context.Context, string, string, string) error
 }

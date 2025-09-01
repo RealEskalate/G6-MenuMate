@@ -6,7 +6,7 @@ import (
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 )
 
-type PreferencePayload struct {
+type Preference struct {
 	Language      string `json:"language" validate:"omitempty,min=2,max=8"`
 	Theme         string `json:"theme" validate:"omitempty,oneof=light dark system"`
 	Notifications *bool  `json:"notifications" validate:"omitempty"`
@@ -26,7 +26,7 @@ type UserRequest struct {
 	Status       string             `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE SUSPENDED"`
 	ProfileImage string             `json:"profile_image" validate:"omitempty,url"`
 	IsVerified   bool               `json:"is_verified" validate:"omitempty"`
-	Preferences  *PreferencePayload `json:"preferences" validate:"omitempty,dive"`
+	Preferences  *Preference `json:"preferences" validate:"omitempty,dive"`
 }
 
 type UserResponse struct {
@@ -42,7 +42,7 @@ type UserResponse struct {
 	AuthProvider string            `json:"auth_provider"`
 	ProfileImage string            `json:"profile_image,omitempty"`
 	IsVerified   bool              `json:"is_verified"`
-	Preferences  *PreferencePayload `json:"preferences,omitempty"`
+	Preferences  *Preference `json:"preferences,omitempty"`
 	CreatedAt    time.Time         `json:"created_at"`
 	UpdatedAt    time.Time         `json:"updated_at"`
 }
@@ -59,7 +59,7 @@ func ToDomainUser(req UserRequest) domain.User {
 		Email:        req.Email,
 		Username:     req.Username,
 		PhoneNumber:  req.PhoneNumber,
-		PasswordHash: req.Password, // caller should hash before persistence
+		Password: req.Password, // caller should hash before persistence
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		FullName:     req.FullName,
@@ -69,15 +69,13 @@ func ToDomainUser(req UserRequest) domain.User {
 		ProfileImage: req.ProfileImage,
 		IsVerified:   req.IsVerified,
 		Preferences:  pref,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
 	}
 }
 
 func ToUserResponse(user domain.User) UserResponse {
-	var pref *PreferencePayload
+	var pref *Preference
 	if user.Preferences != nil {
-		pref = &PreferencePayload{Language: user.Preferences.Language, Theme: user.Preferences.Theme, Notifications: &user.Preferences.Notifications}
+		pref = &Preference{Language: user.Preferences.Language, Theme: user.Preferences.Theme, Notifications: &user.Preferences.Notifications}
 	}
 	return UserResponse{
 		ID:           user.ID,

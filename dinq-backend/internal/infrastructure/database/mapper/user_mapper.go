@@ -12,7 +12,7 @@ type UserModel struct {
 	Email        string             `bson:"email,omitempty"`
 	PhoneNumber  string             `bson:"phone_number,omitempty"`
 	Username     string             `bson:"username,omitempty"`
-	PasswordHash string             `bson:"password_hash,omitempty"`
+	Password string             `bson:"password_hash,omitempty"`
 	AuthProvider string             `bson:"auth_provider,omitempty"`
 	IsVerified   bool               `bson:"is_verified"`
 	FullName     string             `bson:"full_name,omitempty"`
@@ -35,7 +35,7 @@ func UserToDomain(user *UserModel) *domain.User {
 		Email:        user.Email,
 		PhoneNumber:  user.PhoneNumber,
 		Username:     user.Username,
-		PasswordHash: user.PasswordHash,
+		Password: user.Password,
 		AuthProvider: domain.AuthProvider(user.AuthProvider),
 		IsVerified:   user.IsVerified,
 		FullName:     user.FullName,
@@ -58,7 +58,7 @@ func UserFromDomain(user *domain.User) *UserModel {
 		Email:        user.Email,
 		PhoneNumber:  user.PhoneNumber,
 		Username:     user.Username,
-		PasswordHash: user.PasswordHash,
+		Password: user.Password,
 		AuthProvider: string(user.AuthProvider),
 		IsVerified:   user.IsVerified,
 		FullName:     user.FullName,
