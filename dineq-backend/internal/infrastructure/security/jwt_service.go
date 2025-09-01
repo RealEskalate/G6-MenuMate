@@ -26,12 +26,20 @@ func NewJWTService(accessSecret, refreshSecret string, accessExpiry, refreshExpi
 
 func (s *JwtService) GenerateTokens(user domain.User) (domain.RefreshTokenResponse, error) {
 	accessClaims := jwt.MapClaims{
+<<<<<<< HEAD
 		"sub":         user.ID,
 		"username":    user.Username,
 		"is_verified": user.IsVerified,
 		"role":        user.Role,
 		"status":      user.Status,
 		"exp":         time.Now().Add(s.AccessExpiry).Unix(),
+=======
+		"sub":        user.ID,
+		"email":      user.Email,
+		"isVerified": user.IsVerified,
+		"role":       user.Role,
+		"exp":        time.Now().Add(s.AccessExpiry).Unix(),
+>>>>>>> Backend_develop
 	}
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
 	accessTokenStr, err := accessToken.SignedString([]byte(s.AccessSecret))
@@ -40,9 +48,9 @@ func (s *JwtService) GenerateTokens(user domain.User) (domain.RefreshTokenRespon
 	}
 
 	refreshClaims := jwt.MapClaims{
-		"sub":      user.ID,
-		"username": user.Username,
-		"exp":      time.Now().Add(s.RefreshExpiry).Unix(),
+		"sub":   user.ID,
+		"email": user.Email,
+		"exp":   time.Now().Add(s.RefreshExpiry).Unix(),
 	}
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
 	refreshTokenStr, err := refreshToken.SignedString([]byte(s.RefreshSecret))
@@ -66,12 +74,12 @@ func (s *JwtService) ValidateToken(token string) (jwt.MapClaims, error) {
 		return []byte(s.AccessSecret), nil
 	})
 	if err != nil {
-		return nil, errors.New("invalid token: " + err.Error())
+		return nil, err
 	}
 	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
 		return claims, nil
 	}
-	return nil, errors.New("invalid token")
+	return nil, err
 }
 
 func (s *JwtService) ValidateRefreshToken(token string) (jwt.MapClaims, error) {
@@ -82,10 +90,10 @@ func (s *JwtService) ValidateRefreshToken(token string) (jwt.MapClaims, error) {
 		return []byte(s.RefreshSecret), nil
 	})
 	if err != nil {
-		return nil, errors.New("invalid token: " + err.Error())
+		return nil, err
 	}
 	if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
 		return claims, nil
 	}
-	return nil, errors.New("invalid token")
+	return nil, err
 }

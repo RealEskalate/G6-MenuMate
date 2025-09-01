@@ -55,11 +55,6 @@ type Env struct {
 	GeminiAPIKey    string `mapstructure:"GEMINI_API_KEY"`
 	GeminiModelName string `mapstructure:"GEMINI_MODEL_NAME"`
 
-	// Imagekit configuration
-	ImageKitPrivateKey string `mapstructure:"IMAGEKIT_PRIVATE_KEY"`
-	ImageKitPublicKey  string `mapstructure:"IMAGEKIT_PUBLIC_KEY"`
-	ImageKitEndpoint   string `mapstructure:"IMAGEKIT_URL_ENDPOINT"`
-
 	// OTP secret salt
 	SecretSalt         string `mapstructure:"MY_SUPER_SECRET_SALT"`
 	OtpCollection      string `mapstructure:"OTP_COLLECTION"`
@@ -78,6 +73,33 @@ type Env struct {
 	GoogleClientID     string `mapstructure:"GOOGLE_CLIENT_ID"`
 	GoogleClientSecret string `mapstructure:"GOOGLE_CLIENT_SECRET"`
 	GoogleRedirectURL  string `mapstructure:"GOOGLE_REDIRECT_URL"`
+
+	// Translation API configuration
+	RapidAPIKey         string `mapstructure:"RAPIDAPI_KEY"`
+	RapidAPIHost        string `mapstructure:"RAPIDAPI_HOST"`
+	RapidAPIContentType string `mapstructure:"RAPIDAPI_CONTENT_TYPE"`
+
+	// Programmable search engine config
+	SearchEngineID string `mapstructure:"SEARCH_ENGINE_ID"`
+	SearchAPIKey   string `mapstructure:"SEARCH_ENGINE_API_KEY"`
+
+	// Cloudinary Config
+	CloudinaryAPIKey string `mapstructure:"CLD_API_KEY"`
+	CloudinarySecret string `mapstructure:"CLD_SECRET"`
+	CloudinaryName   string `mapstructure:"CLD_NAME"`
+
+	OCRJobCollection string `mapstructure:"OCR_JOB_COLLECTION"`
+
+	VeryfiClientID     string `mapstructure:"VERIFY_CLIENT_ID"`
+	VeryfiClientSecret string `mapstructure:"VERIFY_CLIENT_SECRET"`
+	VeryfiAPIKey       string `mapstructure:"VERIFY_API_KEY"`
+	VeryfiUsername     string `mapstructure:"VERIFY_USERNAME"`
+
+	// notification collection
+	NotificationCollection string `mapstructure:"NOTIFICATION_COLLECTION"`
+
+	// menu collection
+	MenuCollection string `mapstructure:"MENU_COLLECTION"`
 }
 
 // Viper can be made injectable

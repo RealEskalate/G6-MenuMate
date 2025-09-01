@@ -6,7 +6,7 @@ import (
 	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
 	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/repositories"
-	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/storage"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
 	handler "github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/handlers"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/middleware"
 	usecase "github.com/RealEskalate/G6-MenuMate/internal/usecases"
@@ -18,15 +18,21 @@ func NewUserRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 	ctxTimeout := time.Duration(env.CtxTSeconds) * time.Second
 
 	// storage services
-	imageKitStorageService := storage.NewImageKitStorage(
-		env.ImageKitPrivateKey,
-		env.ImageKitPrivateKey,
-		env.ImageKitEndpoint,
+	cloudinaryStorage := services.NewCloudinaryStorage(
+		env.CloudinaryName,
+		env.CloudinaryAPIKey,
+		env.CloudinarySecret,
 	)
+
+	// Notifcation
+	notifyRepo := repositories.NewNotificationRepository(db, env.NotificationCollection)
+	notifySvc := services.NewNotificationService()
+	notificationUseCase := usecase.NewNotificationUseCase(notifyRepo, notifySvc)
+
 	// repositories and usecases
 	userRepo := repositories.NewUserRepository(db, env.UserCollection)
-	userUsecase := usecase.NewUserUsecase(userRepo, imageKitStorageService, ctxTimeout)
-	userController := handler.NewUserController(userUsecase)
+	userUsecase := usecase.NewUserUsecase(userRepo, cloudinaryStorage, ctxTimeout)
+	userController := handler.UserHandler{UserUsecase: userUsecase, NotificationUseCase: notificationUseCase}
 
 	group.PATCH("/users/update-profile", middleware.AuthMiddleware(*env), userController.UpdateProfile)
 	group.PATCH("/users/change-password", middleware.AuthMiddleware(*env), userController.ChangePassword)
