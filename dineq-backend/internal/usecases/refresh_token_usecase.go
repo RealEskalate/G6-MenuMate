@@ -53,3 +53,10 @@ func (uc *RefreshTokenUsecase) FindByUserID(userID string) (*domain.RefreshToken
 	defer cancel()
 	return uc.Repo.FindTokenByUserID(ctx, userID)
 }
+
+// RevokeByUserID revokes the current refresh token for the given user id
+func (uc *RefreshTokenUsecase) RevokeByUserID(userID string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	return uc.Repo.RevokeTokenByUserID(ctx, userID)
+}

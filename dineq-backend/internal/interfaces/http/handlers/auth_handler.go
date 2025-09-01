@@ -155,10 +155,8 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 	}
 
 	if existingToken != nil {
-		// Revoke the old token
-		if err := ac.RefreshTokenUsecase.RevokedToken(existingToken); err != nil {
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRevokeToken.Error(), Error: err.Error()})
-			return
+		if err := ac.RefreshTokenUsecase.RevokeByUserID(existingToken.UserID); err != nil {
+			fmt.Printf("warn: failed to revoke old refresh token for user %s: %v\n", existingToken.UserID, err)
 		}
 		// Replace with the new token
 		if err := ac.RefreshTokenUsecase.ReplaceToken(refreshToken); err != nil {
@@ -180,7 +178,7 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		MaxAge:   int(time.Until(response.RefreshTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-	Secure:   ac.CookieSecure,
+		Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -191,7 +189,7 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-	Secure:   ac.CookieSecure,
+		Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -268,10 +266,9 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 			ExpiresAt: response.RefreshTokenExpiresAt,
 			CreatedAt: time.Now(),
 		}
-		if err := ac.RefreshTokenUsecase.RevokedToken(tokenDoc); err != nil {
+		if err := ac.RefreshTokenUsecase.RevokeByUserID(tokenDoc.UserID); err != nil {
 			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRevokeToken.Error(), Error: err.Error()})
 			return
-
 		}
 		if err := ac.RefreshTokenUsecase.ReplaceToken(refreshToken); err != nil {
 			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToUpdateToken.Error(), Error: err.Error()})
@@ -280,8 +277,8 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		refreshTokenValue = response.RefreshToken
 		refreshTokenExpiry = response.RefreshTokenExpiresAt
 	} else {
-		// Do not rotate: keep the old refresh token
-		refreshTokenValue = tokenDoc.Token
+		// Do not rotate: keep using the existing valid refresh token string from the request body
+		refreshTokenValue = req.RefreshToken
 		refreshTokenExpiry = tokenDoc.ExpiresAt
 	}
 
@@ -292,7 +289,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		MaxAge:   int(time.Until(refreshTokenExpiry).Seconds()),
 		Path:     "/",
 		Domain:   "",
-		Secure:   false,
+		Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -303,7 +300,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-		Secure:   false,
+		Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -343,7 +340,7 @@ func (ac *AuthController) LogoutRequest(c *gin.Context) {
 		return
 	}
 	// revoke the token
-	if err := ac.RefreshTokenUsecase.RevokedToken(tokenDoc); err != nil {
+	if err := ac.RefreshTokenUsecase.RevokeByUserID(tokenDoc.UserID); err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRevokeToken.Error(), Error: err.Error()})
 		return
 	}
