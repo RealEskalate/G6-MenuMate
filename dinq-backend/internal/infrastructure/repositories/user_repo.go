@@ -26,9 +26,13 @@ func NewUserRepository(db mongo.Database, collection string) domain.IUserReposit
 func (repo *UserRepository) CreateUser(ctx context.Context, user *domain.User) error {
 	// user.ID = bson.NewObjectID()
 	usermodel := mapper.UserFromDomain(user)
-	_, err := repo.DB.Collection(repo.Collection).InsertOne(ctx, usermodel)
+	result, err := repo.DB.Collection(repo.Collection).InsertOne(ctx, usermodel)
 	if err != nil {
 		return err
+	}
+	// Set the domain user ID to the generated ObjectID
+	if oid, ok := result.InsertedID.(interface{ Hex() string }); ok {
+		user.ID = oid.Hex()
 	}
 	return nil
 }
@@ -105,10 +109,7 @@ func (repo *UserRepository) GetUserByEmail(ctx context.Context, email string) (*
 
 func (repo *UserRepository) FindByUsernameOrEmail(ctx context.Context, key string) (domain.User, error) {
 	var userModel mapper.UserModel
-	filter := bson.M{"$or": []bson.M{
-		{"username": key},
-		{"email": key},
-	}}
+	filter := bson.M{"$or": []bson.M{{"username": key}, {"email": key}, {"phone_number": key}}}
 	err := repo.DB.Collection(repo.Collection).FindOne(ctx, filter).Decode(&userModel)
 	if err != nil {
 		return domain.User{}, err

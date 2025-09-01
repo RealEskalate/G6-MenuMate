@@ -47,7 +47,51 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, dto.ToUserResponse(user))
+	// Generate access and refresh tokens for the newly registered user
+	tokens, err := ac.AuthService.GenerateTokens(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+	// Prepare refresh token for DB
+	refreshToken := &domain.RefreshToken{
+		Token:     tokens.RefreshToken,
+		UserID:    user.ID,
+		Revoked:   false,
+		ExpiresAt: tokens.RefreshTokenExpiresAt,
+		CreatedAt: time.Now(),
+	}
+	// Save the refresh token
+	_ = ac.RefreshTokenUsecase.Save(refreshToken)
+	// Set the tokens in cookies
+	utils.SetCookie(c, utils.CookieOptions{
+		Name:     "refresh_token",
+		Value:    tokens.RefreshToken,
+		MaxAge:   int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()),
+		Path:     "/",
+		Domain:   "",
+		Secure:   false,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+	utils.SetCookie(c, utils.CookieOptions{
+		Name:     "access_token",
+		Value:    tokens.AccessToken,
+		MaxAge:   int(time.Until(tokens.AccessTokenExpiresAt).Seconds()),
+		Path:     "/",
+		Domain:   "",
+		Secure:   false,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Registration successful",
+		"user": dto.ToUserResponse(user),
+		"tokens": dto.LoginResponse{
+			AccessToken:  tokens.AccessToken,
+			RefreshToken: tokens.RefreshToken,
+		},
+	})
 }
 
 func (ac *AuthController) LoginRequest(c *gin.Context) {
@@ -61,7 +105,7 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		return
 	}
 
-	// Check if user exists
+	// Look up by email / username / phone (repository handles all via $or)
 	user, err := ac.UserUsecase.FindByUsernameOrEmail(c.Request.Context(), loginRequest.Identifier)
 	if err != nil {
 		// Use generic error message for both user not found and password mismatch
@@ -69,8 +113,10 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		return
 	}
 
-	// Validate the password
-	if err := security.ValidatePassword(user.Password, loginRequest.Password); err != nil {
+	// Validate the password (prefer PasswordHash)
+	storedHash := user.Password
+	if user.PasswordHash != "" { storedHash = user.PasswordHash }
+	if err := security.ValidatePassword(storedHash, loginRequest.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
 		return
 	}

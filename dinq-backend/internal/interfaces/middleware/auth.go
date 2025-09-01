@@ -13,45 +13,55 @@ import (
 
 // AuthMiddleware checks if the user is authenticated by verifying the JWT token
 func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		tokenStr, err := utils.GetCookie(c, "access_token")
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found in cookies, please login again"})
-			c.Abort()
-			return
-		}
+       return func(c *gin.Context) {
+	       var tokenStr string
+	       var err error
 
-		// Parse and validate the JWT
-		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-			return []byte(env.ATS), nil
-		})
+	       // Try to get token from Authorization header first
+	       authHeader := c.GetHeader("Authorization")
+	       if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+		       tokenStr = authHeader[7:]
+	       } else {
+		       // Fallback to cookie
+		       tokenStr, err = utils.GetCookie(c, "access_token")
+		       if err != nil {
+			       c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found, please login again"})
+			       c.Abort()
+			       return
+		       }
+	       }
 
-		if err != nil || !token.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-			return
-		}
-		claims := token.Claims.(jwt.MapClaims)
-		// check if the token has not expired
-		if exp, ok := claims["exp"].(float64); !ok || exp < float64(time.Now().Unix()) {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "token expired"})
-			return
-		}
+	       // Parse and validate the JWT
+	       token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		       return []byte(env.ATS), nil
+	       })
 
-		// Set user ID and role in the context for further use
-		c.Set("user_id", claims["sub"].(string))
-		if role, ok := claims["role"]; ok {
-			c.Set("role", role.(string))
-		}
+	       if err != nil || !token.Valid {
+		       c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		       return
+	       }
+	       claims := token.Claims.(jwt.MapClaims)
+	       // check if the token has not expired
+	       if exp, ok := claims["exp"].(float64); !ok || exp < float64(time.Now().Unix()) {
+		       c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "token expired"})
+		       return
+	       }
 
-		// set is_verified in context
-		isVerified := claims["is_verified"].(bool)
-		if isVerified {
-			c.Set("is_verified", true)
-		} else {
-			c.Set("is_verified", false)
-		}
-		c.Next()
-	}
+	       // Set user ID and role in the context for further use
+	       c.Set("user_id", claims["sub"].(string))
+	       if role, ok := claims["role"]; ok {
+		       c.Set("role", role.(string))
+	       }
+
+	       // set is_verified in context
+	       isVerified := claims["is_verified"].(bool)
+	       if isVerified {
+		       c.Set("is_verified", true)
+	       } else {
+		       c.Set("is_verified", false)
+	       }
+	       c.Next()
+       }
 }
 
 func AdminOnly() gin.HandlerFunc {

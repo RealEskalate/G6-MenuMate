@@ -29,22 +29,46 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxtimeout)
 	defer cancel()
 
-	request.Role = domain.RoleUser // Default role is User
-	user, err := uc.userRepo.FindByUsernameOrEmail(ctx, request.Username)
-	if err == nil && (user != domain.User{}) {
-		return errors.New("username already exists")
+	// Default role if not supplied
+	if request.Role == "" {
+		request.Role = domain.RoleCustomer
+	}
+	// Default auth provider if empty
+	if request.AuthProvider == "" {
+		request.AuthProvider = domain.AuthEmail
 	}
 
-	user, err = uc.userRepo.FindByUsernameOrEmail(ctx, request.Email)
-	if err == nil && (user != domain.User{}) {
-		return errors.New("email already exists")
+	// Basic uniqueness check on email (legacy username flow retained only if provided)
+	if request.Username != "" {
+		if existing, err := uc.userRepo.FindByUsernameOrEmail(ctx, request.Username); err == nil && (existing != domain.User{}) {
+			return errors.New("username already exists")
+		}
 	}
-	hashed, _ := security.HashPassword(request.Password)
-	request.Password = hashed
+	if request.Email != "" {
+		if existing, err := uc.userRepo.FindByUsernameOrEmail(ctx, request.Email); err == nil && (existing != domain.User{}) {
+			return errors.New("email already exists")
+		}
+	}
+
+	if request.PasswordHash != "" { // hash raw password provided in PasswordHash field
+		h, _ := security.HashPassword(request.PasswordHash)
+		request.PasswordHash = h
+	}
+	// migrate legacy Password field if provided instead
+	if request.Password != "" && request.PasswordHash == "" {
+		h, _ := security.HashPassword(request.Password)
+		request.PasswordHash = h
+		request.Password = "" // clear legacy
+	}
 	request.IsVerified = false
-	request.CreatedAt = time.Now()
-	request.UpdatedAt = time.Now()
-	return uc.userRepo.CreateUser(ctx, request)
+	now := time.Now()
+	request.CreatedAt = now
+	request.UpdatedAt = now
+	err := uc.userRepo.CreateUser(ctx, request)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Logout
@@ -153,8 +177,10 @@ func (uc *UserUsecase) ChangePassword(userID, oldPassword, newPassword string) e
 		return err
 	}
 
-	// Check old password
-	if err := security.ValidatePassword(user.Password, oldPassword); err != nil {
+	// Check old password (prefer PasswordHash)
+	storedHash := user.Password
+	if user.PasswordHash != "" { storedHash = user.PasswordHash }
+	if err := security.ValidatePassword(storedHash, oldPassword); err != nil {
 		return errors.New("invalid old password")
 	}
 
@@ -165,6 +191,7 @@ func (uc *UserUsecase) ChangePassword(userID, oldPassword, newPassword string) e
 	}
 
 	// Update password
-	user.Password = hashedPassword
+	user.PasswordHash = hashedPassword
+	user.Password = "" // clear legacy
 	return uc.userRepo.UpdateUser(ctx, user.ID, user)
 }

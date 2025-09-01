@@ -5,30 +5,65 @@ import (
 	"time"
 )
 
+// Preference captures per-user UI / notification settings.
+type Preference struct {
+	Language      string
+	Theme         string
+	Notifications bool
+}
+
+// User represents an application user. Legacy fields (Username, Bio, AvatarURL, Provider) are kept for backward compatibility.
 type User struct {
-	ID         string
+	ID            string
+	Email         string
+	PhoneNumber   string
+	PasswordHash  string
+	AuthProvider  AuthProvider
+	IsVerified    bool
+	FullName      string
+	FirstName     string
+	LastName      string
+	ProfileImage  string
+	Role          UserRole
+	Status        UserStatus
+	Preferences   *Preference
+	LastLoginAt   *time.Time
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	IsDeleted     bool
+
+	// Legacy / transitional fields (to be removed after migration)
 	Username   string
-	Email      string
-	FirstName  string
-	LastName   string
-	Password   string
-	Role       UserRole
 	Bio        string
 	AvatarURL  string
-	IsVerified bool
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
 	Provider   string
+	Password   string // old plain hashed password field; prefer PasswordHash
 }
 
 type UserRole string
 
 const (
-	RoleAdmin           UserRole = "admin"
-	RoleRestaurantOwner UserRole = "restaurant_owner"
-	RoleStaff           UserRole = "staff"
-	RoleManager         UserRole = "manager"
-	RoleUser            UserRole = "user"
+	RoleAdmin   UserRole = "ADMIN"
+	RoleOwner   UserRole = "OWNER"
+	RoleManager UserRole = "MANAGER"
+	RoleStaff   UserRole = "STAFF"
+	RoleCustomer UserRole = "CUSTOMER"
+)
+
+// AuthProvider enumerates authentication sources.
+type AuthProvider string
+const (
+	AuthEmail  AuthProvider = "EMAIL"
+	AuthGoogle AuthProvider = "GOOGLE"
+	AuthPhone  AuthProvider = "PHONE"
+)
+
+// UserStatus captures account lifecycle state.
+type UserStatus string
+const (
+	StatusActive    UserStatus = "ACTIVE"
+	StatusInactive  UserStatus = "INACTIVE"
+	StatusSuspended UserStatus = "SUSPENDED"
 )
 
 type UserProfileUpdate struct {
