@@ -3,8 +3,13 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+<<<<<<< HEAD
 import logo from "../../../public/Logo.png";
 import { Roles } from "../../../Types/type";
+=======
+import logo from "../../../public/logo.png";
+import Roles from "@/Types/role";
+>>>>>>> origin/frontend-main
 
 function NavBar({ role }: Roles) {
   const pathname = usePathname();

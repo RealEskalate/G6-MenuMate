@@ -30,7 +30,11 @@ function Input({ className, type = "text", label, required, ...props }: InputPro
       {label && (
         <label
           htmlFor={id}
+<<<<<<< HEAD
           className="text-lg pb-1 text-gray-900 dark:text-gray-300"
+=======
+          className="text-md pb-1 text-gray-900 dark:text-gray-300"
+>>>>>>> origin/frontend-main
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}

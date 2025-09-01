@@ -1,3 +1,4 @@
+import { Link } from "lucide-react";
 import Image from "next/image";
 
 export default function Hero() {
@@ -13,7 +14,7 @@ export default function Hero() {
       </p>
       <div className="mt-8 flex justify-center space-x-4">
         <a
-          href="#"
+          href="/"
           className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600"
         >
           I'm a Customer
