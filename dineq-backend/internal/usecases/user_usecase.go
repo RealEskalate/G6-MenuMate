@@ -30,7 +30,6 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxtimeout)
 	defer cancel()
 
-<<<<<<< HEAD
 	// Default role if not supplied
 	if request.Role == "" {
 		request.Role = domain.RoleCustomer
@@ -80,19 +79,6 @@ func (uc *UserUsecase) FindByUsernameOrEmail(ctx context.Context, identifier str
 		return nil, err
 	}
 	return &u, nil
-=======
-	if request.Role == "" {
-		request.Role = domain.RoleUser // Default role is User
-	}
-	user, err := uc.userRepo.GetUserByEmail(ctx, request.Email)
-	if err == nil && user != nil {
-		return domain.ErrEmailAlreadyInUse
-	}
-	request.IsVerified = false
-	request.CreatedAt = time.Now()
-	request.UpdatedAt = time.Now()
-	return uc.userRepo.CreateUser(ctx, request)
->>>>>>> Backend_develop
 }
 
 func (uc *UserUsecase) FindUserByID(uid string) (*domain.User, error) {
@@ -152,10 +138,6 @@ func (uc *UserUsecase) UpdateProfile(userID string, update domain.UserProfileUpd
 	}
 
 	// Apply updates
-<<<<<<< HEAD
-=======
-
->>>>>>> Backend_develop
 	if update.FirstName != "" {
 		user.FirstName = update.FirstName
 	}
