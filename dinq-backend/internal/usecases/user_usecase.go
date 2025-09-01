@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -38,27 +37,26 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 		request.AuthProvider = domain.AuthEmail
 	}
 
-	// Basic uniqueness check on email (legacy username flow retained only if provided)
+	// Uniqueness checks (explicit for clearer error messages)
 	if request.Username != "" {
-		if existing, err := uc.userRepo.FindByUsernameOrEmail(ctx, request.Username); err == nil && (existing != domain.User{}) {
+		if existing, err := uc.userRepo.GetUserByUsername(ctx, request.Username); err == nil && existing != nil {
 			return errors.New("username already exists")
 		}
 	}
 	if request.Email != "" {
-		if existing, err := uc.userRepo.FindByUsernameOrEmail(ctx, request.Email); err == nil && (existing != domain.User{}) {
+		if existing, err := uc.userRepo.GetUserByEmail(ctx, request.Email); err == nil && existing != nil {
 			return errors.New("email already exists")
 		}
 	}
+	if request.PhoneNumber != "" {
+		if existing, err := uc.userRepo.GetUserByPhone(ctx, request.PhoneNumber); err == nil && existing != nil {
+			return errors.New("phone number already exists")
+		}
+	}
 
-	if request.PasswordHash != "" { // hash raw password provided in PasswordHash field
+	if request.PasswordHash != "" { // hash raw password provided (DTO mapped plaintext into PasswordHash)
 		h, _ := security.HashPassword(request.PasswordHash)
 		request.PasswordHash = h
-	}
-	// migrate legacy Password field if provided instead
-	if request.Password != "" && request.PasswordHash == "" {
-		h, _ := security.HashPassword(request.Password)
-		request.PasswordHash = h
-		request.Password = "" // clear legacy
 	}
 	request.IsVerified = false
 	now := time.Now()
@@ -81,16 +79,12 @@ func (uc *UserUsecase) Logout(userID string) error {
 
 // find user by username or id
 func (uc *UserUsecase) FindByUsernameOrEmail(ctx context.Context, identifier string) (*domain.User, error) {
-	emailRegex := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
-	isEmail, _ := regexp.MatchString(emailRegex, identifier)
-	var user *domain.User
-	var err error
-	if isEmail {
-		user, err = uc.userRepo.GetUserByEmail(ctx, identifier)
-	} else {
-		user, err = uc.userRepo.GetUserByUsername(ctx, identifier)
+	// Delegate to repository which already supports username, email, or phone via $or filter.
+	u, err := uc.userRepo.FindByUsernameOrEmail(ctx, identifier)
+	if err != nil {
+		return nil, err
 	}
-	return user, err
+	return &u, nil
 }
 
 func (uc *UserUsecase) FindUserByID(uid string) (*domain.User, error) {
@@ -144,14 +138,11 @@ func (uc *UserUsecase) UpdateProfile(userID string, update domain.UserProfileUpd
 			// Continue if no timeout or cancellation
 		}
 
-		user.AvatarURL = avatarURL
+		user.ProfileImage = avatarURL
 	}
 	fmt.Println(user)
 
 	// Apply updates
-	if update.Bio != "" {
-		user.Bio = update.Bio
-	}
 	if update.FirstName != "" {
 		user.FirstName = update.FirstName
 	}
@@ -177,9 +168,8 @@ func (uc *UserUsecase) ChangePassword(userID, oldPassword, newPassword string) e
 		return err
 	}
 
-	// Check old password (prefer PasswordHash)
-	storedHash := user.Password
-	if user.PasswordHash != "" { storedHash = user.PasswordHash }
+	// Check old password
+	storedHash := user.PasswordHash
 	if err := security.ValidatePassword(storedHash, oldPassword); err != nil {
 		return errors.New("invalid old password")
 	}
@@ -192,6 +182,5 @@ func (uc *UserUsecase) ChangePassword(userID, oldPassword, newPassword string) e
 
 	// Update password
 	user.PasswordHash = hashedPassword
-	user.Password = "" // clear legacy
 	return uc.userRepo.UpdateUser(ctx, user.ID, user)
 }

@@ -14,8 +14,9 @@ type PreferencePayload struct {
 
 type UserRequest struct {
 	ID           string             `json:"id" validate:"omitempty"`
-	Email        string             `json:"email" validate:"omitempty,email"`
-	PhoneNumber  string             `json:"phone_number" validate:"omitempty,e164"`
+	Username     string             `json:"username" validate:"required,alphanum,min=3,max=50"`
+	Email        string             `json:"email" validate:"required_without=PhoneNumber,omitempty,email"`
+	PhoneNumber  string             `json:"phone_number" validate:"required_without=Email,omitempty,e164"`
 	Password     string             `json:"password" validate:"required_without=AuthProvider,min=6,max=100"`
 	FirstName    string             `json:"first_name" validate:"required_without=FullName,omitempty,alpha,min=2,max=50"`
 	LastName     string             `json:"last_name" validate:"required_without=FullName,omitempty,alpha,min=2,max=50"`
@@ -30,6 +31,7 @@ type UserRequest struct {
 
 type UserResponse struct {
 	ID           string            `json:"id"`
+	Username     string            `json:"username,omitempty"`
 	Email        string            `json:"email,omitempty"`
 	PhoneNumber  string            `json:"phone_number,omitempty"`
 	FullName     string            `json:"full_name,omitempty"`
@@ -55,6 +57,7 @@ func ToDomainUser(req UserRequest) domain.User {
 	}
 	return domain.User{
 		Email:        req.Email,
+		Username:     req.Username,
 		PhoneNumber:  req.PhoneNumber,
 		PasswordHash: req.Password, // caller should hash before persistence
 		FirstName:    req.FirstName,
@@ -78,6 +81,7 @@ func ToUserResponse(user domain.User) UserResponse {
 	}
 	return UserResponse{
 		ID:           user.ID,
+		Username:     user.Username,
 		Email:        user.Email,
 		PhoneNumber:  user.PhoneNumber,
 		FullName:     user.FullName,

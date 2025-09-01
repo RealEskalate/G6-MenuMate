@@ -12,11 +12,12 @@ type Preference struct {
 	Notifications bool
 }
 
-// User represents an application user. Legacy fields (Username, Bio, AvatarURL, Provider) are kept for backward compatibility.
+// User represents an application user.
 type User struct {
 	ID            string
 	Email         string
 	PhoneNumber   string
+	Username      string
 	PasswordHash  string
 	AuthProvider  AuthProvider
 	IsVerified    bool
@@ -31,13 +32,6 @@ type User struct {
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	IsDeleted     bool
-
-	// Legacy / transitional fields (to be removed after migration)
-	Username   string
-	Bio        string
-	AvatarURL  string
-	Provider   string
-	Password   string // old plain hashed password field; prefer PasswordHash
 }
 
 type UserRole string
@@ -90,6 +84,7 @@ type IUserRepository interface {
 	FindUserByID(context.Context, string) (*User, error)
 	GetUserByUsername(context.Context, string) (*User, error)
 	GetUserByEmail(context.Context, string) (*User, error)
+	GetUserByPhone(context.Context, string) (*User, error)
 	UpdateUser(context.Context, string, *User) error
 	GetAllUsers(context.Context) ([]*User, error)
 	FindByUsernameOrEmail(context.Context, string) (User, error)
