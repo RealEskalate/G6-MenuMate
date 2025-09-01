@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-// import Link from "next/link";
 import MenuOptionModal from "@/components/restaurant/MenuOptionModal";
 import Image from "next/image";
+import Link from "next/link";
 
 function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -58,7 +58,7 @@ function Dashboard() {
                   <div>4.3</div>
                 </div>
                 <div>
-                  <Image src="/Vector.png" alt="Menu Image" width={100} />
+                  <Image src="/Vector.png" alt="Menu Image" width={100} height={100} />
                 </div>
               </div>
 
@@ -67,9 +67,11 @@ function Dashboard() {
                 <button className="bg-white text-black px-4 py-2 rounded-md hover:bg-gray-100">
                   Manage QR
                 </button>
+                <Link href="/restaurant/dashboard/menu/edit-menu"> 
                 <button className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 flex items-center gap-1">
                   ✏️ Edit Menu
                 </button>
+                </Link>
               </div>
             </div>
 
@@ -105,7 +107,7 @@ function Dashboard() {
                   <div>4.3</div>
                 </div>
                 <div>
-                  <Image src="/Vector.png" alt="Menu Image" width={100} />
+                  <Image src="/Vector.png" alt="Menu Image" width={100} height={100} />
                 </div>
               </div>
 

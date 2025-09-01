@@ -6,7 +6,7 @@ export default function BillingSettings() {
       <h2 className="text-lg font-semibold">Billings</h2>
 
       {/* Current plan & Next invoice */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm mb-1">Current plan</label>
           <input
@@ -29,26 +29,26 @@ export default function BillingSettings() {
 
       {/* Invoice Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-200 rounded-lg">
+        <table className="min-w-full border border-gray-200 rounded-lg text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="text-left px-4 py-2 border-b border-gray-300 ">Invoice</th>
-              <th className="text-left px-4 py-2 border-b border-gray-300 ">Date</th>
-              <th className="text-left px-4 py-2 border-b border-gray-300 ">Amount</th>
+              <th scope="col" className="text-left px-4 py-2 border-b border-gray-300">Invoice</th>
+              <th scope="col" className="text-left px-4 py-2 border-b border-gray-300">Date</th>
+              <th scope="col" className="text-left px-4 py-2 border-b border-gray-300">Amount</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td className="px-4 py-2 border-b border-gray-300 ">#INV-0012</td>
-              <td className="px-4 py-2 border-b border-gray-300 ">2025-02-09</td>
-              <td className="px-4 py-2 border-b border-gray-300 ">100 ETB</td>
+            <tr className="odd:bg-white even:bg-gray-50">
+              <th scope="row" className="px-4 py-2 border-b border-gray-300 font-medium">#INV-0012</th>
+              <td className="px-4 py-2 border-b border-gray-300">2025-02-09</td>
+              <td className="px-4 py-2 border-b border-gray-300">100 ETB</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       {/* Upgrade button */}
-      <button className="bg-orange-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-fit">
+      <button className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 w-fit shadow-sm">
         ⬆️ Upgrade to Premium
       </button>
     </div>

@@ -12,7 +12,7 @@ interface FoodHeaderProps {
 export default function FoodHeader({ image, title, price, onFavorite }: FoodHeaderProps) {
   return (
     <div className="rounded-xl shadow-md overflow-hidden bg-white">
-      <Image src={image} alt={title} className="w-full h-48 object-cover" />
+      <Image src={image} alt={title} className=" h-48 object-cover" width={24} height={24} />
 
       <div className="p-4 flex flex-col gap-2">
         <h2 className="text-lg font-semibold">{title}</h2>
