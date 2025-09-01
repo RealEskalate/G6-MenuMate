@@ -99,7 +99,6 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 			RefreshToken: tokens.RefreshToken,
 		},
 	})
-	return
 }
 
 func (ac *AuthController) LoginRequest(c *gin.Context) {

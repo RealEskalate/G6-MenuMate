@@ -7,16 +7,16 @@ import (
 )
 
 type RefreshTokenDB struct {
-	Token     string    `bson:"token"`
-	UserID    string    `bson:"userId"`
+	TokenHash string    `bson:"tokenhash"`
+	UserID    string    `bson:"user_id"`
 	Revoked   bool      `bson:"revoked"`
-	ExpiresAt time.Time `bson:"expiresAt"`
-	CreatedAt time.Time `bson:"createdAt"`
+	ExpiresAt time.Time `bson:"expires_at"`
+	CreatedAt time.Time `bson:"created_at"`
 }
 
 func FromRefreshTokenEntityToDB(token *domain.RefreshToken) *RefreshTokenDB {
 	return &RefreshTokenDB{
-		Token:     token.Token,
+		TokenHash: token.TokenHash,
 		UserID:    token.UserID,
 		Revoked:   token.Revoked,
 		ExpiresAt: token.ExpiresAt,
@@ -26,7 +26,7 @@ func FromRefreshTokenEntityToDB(token *domain.RefreshToken) *RefreshTokenDB {
 
 func FromRefreshTokenDBToEntity(tokenDB *RefreshTokenDB) *domain.RefreshToken {
 	return &domain.RefreshToken{
-		Token:     tokenDB.Token,
+		TokenHash: tokenDB.TokenHash,
 		UserID:    tokenDB.UserID,
 		Revoked:   tokenDB.Revoked,
 		ExpiresAt: tokenDB.ExpiresAt,

@@ -1,14 +1,14 @@
 package mongo
 
 import (
-    "context"
-    "errors"
-    "time"
+	"context"
+	"errors"
+	"time"
 
-    "github.com/rs/zerolog/log"
-    "go.mongodb.org/mongo-driver/v2/bson"
-    "go.mongodb.org/mongo-driver/v2/mongo"
-    "go.mongodb.org/mongo-driver/v2/mongo/options"
+	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // CreateIndexes creates the provided indexes on the given collection.
@@ -82,10 +82,12 @@ func CreateRefreshTokenIndexes(db Database, collection string) error {
     ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second); defer cancel()
 
     idxView := mdb.db.Collection(collection).Indexes()
+
+    _ = idxView.DropOne(ctx, "ux_token")
+
     models := []mongo.IndexModel{
-        { // unique token text
-            Keys:    bson.D{{Key: "token", Value: 1}},
-            Options: options.Index().SetUnique(true).SetName("ux_token"),
+           { Keys:    bson.D{{Key: "tokenhash", Value: 1}},
+            Options: options.Index().SetUnique(true).SetName("ux_tokenhash"),
         },
         { // user id lookup
             Keys:    bson.D{{Key: "user_id", Value: 1}},
