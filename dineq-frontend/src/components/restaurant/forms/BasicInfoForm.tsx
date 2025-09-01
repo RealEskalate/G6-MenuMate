@@ -3,9 +3,9 @@
 import { useRegister } from "@/context/RegisterContext";
 import { useRouter } from "next/navigation";
 import { FaStore, FaPhoneAlt } from "react-icons/fa";
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import LocationPicker from "./LocationPicker";
-import FileUploadBox, { UploadedFile } from "./FileUploadBox";
+import FileUploadBox from "./FileUploadBox";
 
 export default function BasicInfoForm() {
   const { data, updateData } = useRegister();

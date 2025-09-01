@@ -323,7 +323,7 @@ const ManualMenu = () => {
                   onDragOver={preventDefault}
                 >
                   {item.image ? (
-                    <p>"{item.image.name}</p>
+                    <p>&quot;{item.image.name}</p>
                   ) : (
                     <>
                       <div className="text-gray-500 mb-2">📷</div>

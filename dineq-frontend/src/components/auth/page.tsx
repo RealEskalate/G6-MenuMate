@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-function LoginImage() {
+function AuthImage() {
   return (
     <div className="hidden md:flex w-1/2 h-screen relative">
       <Image
@@ -8,10 +8,9 @@ function LoginImage() {
         alt="Delicious Ethiopian Food"
         width={700}
         height={1200}
-       
       />
     </div>
   );
 }
 
-export default LoginImage;
+export default AuthImage;

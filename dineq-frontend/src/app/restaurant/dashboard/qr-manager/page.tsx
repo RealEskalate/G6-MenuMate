@@ -1,6 +1,7 @@
+import Image from "next/image";
 import React from "react";
-import NavBar from "@/components/common/NavBar";
-import SideBar from "@/components/restaurant/SideBar";
+// import NavBar from "@/components/common/NavBar";
+// import SideBar from "@/components/restaurant/SideBar";
 
 function QrManager() {
   return (
@@ -15,7 +16,7 @@ function QrManager() {
           <div className="flex px-2 space-x-5">
             {/* Card 1 */}
             <div className="rounded-2xl px-12 py-8 border border-orange-200 flex flex-col items-center">
-              <img
+              <Image
                 src="/icons/qrcode.png"
                 alt="QR Code"
                 width={110}
@@ -25,7 +26,7 @@ function QrManager() {
               <span className="font-bold mb-4">Main Menu</span>
               <div className="flex space-x-4">
                 <button className="flex items-center rounded-lg bg-white border border-orange-200 hover:shadow-orange-500 transition text-orange-500 px-3 py-2">
-                  <img
+                  <Image
                     src="/icons/share.png"
                     alt="Share"
                     className="w-4 h-4 mr-2"
@@ -34,7 +35,7 @@ function QrManager() {
                 </button>
 
                 <button className="flex items-center rounded-lg bg-orange-500  hover:shadow-orange-500 transition text-white px-3 py-2">
-                  <img
+                  <Image
                     src="/icons/edit.png"
                     alt="Edit"
                     className="w-4 h-4 mr-2"
@@ -46,7 +47,7 @@ function QrManager() {
 
             {/* Card 2 */}
             <div className="rounded-2xl px-12 py-8 border border-orange-200 flex flex-col items-center">
-              <img
+              <Image
                 src="/icons/qrcode.png"
                 alt="QR Code"
                 width={110}
@@ -56,7 +57,7 @@ function QrManager() {
               <span className="font-bold mb-4">Fasting Menu</span>
               <div className="flex space-x-4">
                 <button className="flex items-center rounded-lg bg-white border border-orange-200 hover:shadow-orange-500 transition text-orange-500 px-3 py-2">
-                  <img
+                  <Image
                     src="/icons/share.png"
                     alt="Share"
                     className="w-4 h-4 mr-2"
@@ -66,7 +67,7 @@ function QrManager() {
                 <a href="dashboard/qr-manager/customize">
 
                 <button className="flex items-center rounded-lg bg-orange-500 hover:shadow-orange-500 transition text-white px-3 py-2">
-                  <img
+                  <Image
                     src="/icons/edit.png"
                     alt="Edit"
                     className="w-4 h-4 mr-2"

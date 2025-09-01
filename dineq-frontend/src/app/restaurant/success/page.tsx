@@ -7,7 +7,7 @@ import Link from "next/link";
 export default function SuccessPage() {
   return (
   <>
-    <NavBar />
+    <NavBar role="OWNER"/>
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white rounded-xl shadow-md p-10 text-center max-w-md w-full">
         {/* Icon */}
