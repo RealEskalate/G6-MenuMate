@@ -3,13 +3,8 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-<<<<<<< HEAD
-import logo from "../../../public/Logo.png";
-import { Roles } from "../../../Types/type";
-=======
 import logo from "../../../public/logo.png";
-import Roles from "@/Types/role";
->>>>>>> origin/frontend-main
+import Roles from "../../Types/role";
 
 function NavBar({ role }: Roles) {
   const pathname = usePathname();
@@ -23,7 +18,7 @@ function NavBar({ role }: Roles) {
   return (
     <div className="border-b shadow-sm border-gray-300 px-6 py-2 flex justify-between w-full items-center">
       <Image src={logo} alt="logo" width={100} height={100} />
-      {role === "CUSTOMER" ? (         
+      {role === "user" ? (         
 
           <div className="flex ml-4">
             <Link href="/" className={linkClasses("/")}>

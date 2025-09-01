@@ -1,3 +1,3 @@
-// export default interface Roles {
-//   role: "user" | "OWNER" | "MANAGER" | "STAFF" | "ADMIN";
-// }
+export default interface Roles {
+  role: "user" | "OWNER" | "MANAGER" | "STAFF" | "ADMIN";
+}

@@ -4,6 +4,7 @@ import WhoAreYou from "@/components/common/WhoAreYou";
 import EmailVerification from "@/components/common/EmailVerification";
 import FoodCard from "./user/restaurant-display/food-display/page";
 import SingleRestaurant from "./user/restaurant-display/[id]/page";
+import NavBar from "@/components/common/NavBar";
 
 
 export default function Home() {
@@ -14,7 +15,7 @@ export default function Home() {
       {/* <WhoAreYou/> */}
       {/* <EmailVerification/> */}
       {/* <FoodCard/> */}
-      <NavBar/>
+      <NavBar role={"user"}/>
       {/* <SingleRestaurant/> */}
     </div>
   );
