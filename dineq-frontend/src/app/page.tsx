@@ -1,11 +1,9 @@
-import NavBar from "@/components/restaurant/NavBar";
-import Image from "next/image";
+import LandingPage from "./landing_page/page";
 
 export default function Home() {
   return (
-   <div>
-     <NavBar role = "OWNER"/>
-     <p>Your one-stop solution for restaurant reservations</p>
-   </div>
+    <div>
+      <LandingPage />
+    </div>
   );
 }
