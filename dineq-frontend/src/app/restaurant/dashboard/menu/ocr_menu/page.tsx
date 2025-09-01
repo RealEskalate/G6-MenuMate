@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React, { useState } from "react";
 const AddMenuWithOCR = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -50,7 +51,7 @@ const AddMenuWithOCR = () => {
         }}
       >
         {file ? (
-          <img src={URL.createObjectURL(file)} alt="Uploaded menu" className="max-w-full max-h-72 mx-auto" />
+          <Image src={URL.createObjectURL(file)} alt="Uploaded menu" className="max-w-full max-h-72 mx-auto" />
         ) : (
           <>
             <p className="mb-2 text-gray-600">Drag & Drop Menu Photo</p>

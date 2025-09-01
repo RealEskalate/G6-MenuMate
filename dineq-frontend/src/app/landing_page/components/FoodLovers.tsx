@@ -15,9 +15,9 @@ export default function FoodLovers() {
             Bring More Food Lovers to Your Doorstep
           </h2>
           <p className="mt-4 text-gray-600">
-            Whether you're running a restaurant, a food festival, or a special
-            event, we help you attract the right crowd, boost visibility, and
-            turn hungry visitors into loyal customers.
+            Whether you&apos;re running a restaurant, a food festival, or a
+            special event, we help you attract the right crowd, boost
+            visibility, and turn hungry visitors into loyal customers.
           </p>
           <a
             href="#"
