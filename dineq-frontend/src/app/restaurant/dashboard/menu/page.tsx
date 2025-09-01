@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-// import Link from "next/link";
+import Link from "next/link";
 import MenuOptionModal from "@/components/restaurant/MenuOptionModal";
 import Image from "next/image";
 
@@ -58,7 +58,7 @@ function Dashboard() {
                   <div>4.3</div>
                 </div>
                 <div>
-                  <Image src="/Vector.png" alt="Menu Image" width={100} />
+                  <Image src="/Vector.png" alt="Menu Image" width={100} height={100} />
                 </div>
               </div>
 
@@ -107,7 +107,7 @@ function Dashboard() {
                   <div>4.3</div>
                 </div>
                 <div>
-                  <Image src="/Vector.png" alt="Menu Image" width={100} />
+                  <Image src="/Vector.png" alt="Menu Image" width={100} height={100} />
                 </div>
               </div>
 
