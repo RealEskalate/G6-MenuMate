@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "menumate-api-v1",
     "name": "MenuMate API v1 - Comprehensive Collection",
-  "description": "Complete API documentation for MenuMate Backend - A restaurant management and discovery platform.\n\n## Overview\nMenuMate is a comprehensive restaurant management system that allows restaurant owners to manage restaurants, menus, staff, and for customers to discover and review places.\n\n## Base URL\n`http://localhost:8080/api/v1`\n\n## Authentication\nMost endpoints require JWT authentication. Send the access token via Authorization header or cookies.\n\n- Header: `Authorization: Bearer <access_token>`\n- Cookies: `access_token` and `refresh_token` are set by the server when you login/register.\n\n## API Versioning\nAll endpoints are prefixed with `/api/v1`.\n\n## Errors\nStandard error format:\n```json\n{\n  \"message\": \"Error description\",\n  \"error\": \"Detailed error information (optional)\"\n}\n```\n\n## Success\nStandard success format may be either:\n```json\n{ \"message\": \"Operation completed successfully\", \"data\": { ... } }\n```\nOR an object payload (e.g., login returns tokens).",
+    "description": "Complete API documentation for MenuMate Backend - A restaurant management and discovery platform.\n\n## Overview\nMenuMate is a comprehensive restaurant management system that allows restaurant owners to manage restaurants, menus, staff, and for customers to discover and review places.\n\n## Base URL\n`http://localhost:8080/api/v1`\n\n## Authentication\nMost endpoints require JWT authentication. Send the access token via Authorization header or cookies.\n\n- Header: `Authorization: Bearer <access_token>`\n- Cookies: `access_token` and `refresh_token` are set by the server when you login/register.\n\n## API Versioning\nAll endpoints are prefixed with `/api/v1`.\n\n## Errors\nStandard error format:\n```json\n{\n  \"message\": \"Error description\",\n  \"error\": \"Detailed error information (optional)\"\n}\n```\n\n## Success\nStandard success format may be either:\n```json\n{ \"message\": \"Operation completed successfully\", \"data\": { ... } }\n```\nOR an object payload (e.g., login returns tokens).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "menumate-team"
   },
@@ -75,7 +75,9 @@
                   "status": "Unauthorized",
                   "code": 401,
                   "_postman_previewlanguage": "json",
-                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "header": [
+                    { "key": "Content-Type", "value": "application/json" }
+                  ],
                   "body": "{\n  \"message\": \"invalid credentials\",\n  \"error\": \"username/email or password is incorrect\"\n}"
                 }
               ],
@@ -130,7 +132,9 @@
                   "status": "OK",
                   "code": 200,
                   "_postman_previewlanguage": "json",
-                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "header": [
+                    { "key": "Content-Type", "value": "application/json" }
+                  ],
                   "body": "{\n  \"access_token\": \"new_access_token...\",\n  \"refresh_token\": \"new_or_same_refresh_token...\"\n}"
                 },
                 {
@@ -138,7 +142,9 @@
                   "status": "Unauthorized",
                   "code": 401,
                   "_postman_previewlanguage": "json",
-                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "header": [
+                    { "key": "Content-Type", "value": "application/json" }
+                  ],
                   "body": "{\n  \"message\": \"invalid or expired token\",\n  \"error\": \"token revoked or expired\"\n}"
                 }
               ],
@@ -191,7 +197,9 @@
                   "status": "OK",
                   "code": 200,
                   "_postman_previewlanguage": "json",
-                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "header": [
+                    { "key": "Content-Type", "value": "application/json" }
+                  ],
                   "body": "{\n  \"message\": \"Password reset email sent successfully\"\n}"
                 }
               ]
@@ -223,7 +231,9 @@
                   "status": "OK",
                   "code": 200,
                   "_postman_previewlanguage": "json",
-                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "header": [
+                    { "key": "Content-Type", "value": "application/json" }
+                  ],
                   "body": "{\n  \"message\": \"Password reset successfully\"\n}"
                 }
               ]
@@ -255,7 +265,9 @@
                   "status": "OK",
                   "code": 200,
                   "_postman_previewlanguage": "json",
-                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "header": [
+                    { "key": "Content-Type", "value": "application/json" }
+                  ],
                   "body": "{\n  \"message\": \"success\"\n}"
                 }
               ]
@@ -405,7 +417,11 @@
           "name": "Health Check",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] },
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
             "description": "Returns overall system health and component statuses (currently database)."
           },
           "response": []
@@ -417,13 +433,29 @@
       "description": "OCR job submission and status endpoints for extracting menu data.",
       "item": [
         {
-          "name": "Create OCR Job",
+          "name": "Upload Menu Image (OCR Job)",
           "request": {
             "method": "POST",
-            "header": [ { "key": "Content-Type", "value": "application/json" } ],
-            "url": { "raw": "{{base_url}}/ocr-jobs", "host": ["{{base_url}}"], "path": ["ocr-jobs"] },
-            "body": { "mode": "raw", "raw": "{\n  \"image_url\": \"https://example.com/menu.jpg\"\n}" },
-            "description": "Submit a new OCR job by providing an image URL of a menu."
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "multipart/form-data" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ocr/upload",
+              "host": ["{{base_url}}"],
+              "path": ["ocr", "upload"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "menuImage",
+                  "description": "Menu image file to process (jpg/png, max 5MB)",
+                  "type": "file"
+                }
+              ]
+            },
+            "description": "Upload a menu image to start an OCR job.\n\nAuthorization: Requires bearer access token.\n\nForm Data:\n- menuImage (file, required): Image of the menu.\n\nResponse (200): Returns extracted structured menu data if immediate processing succeeds; otherwise job status pending."
           },
           "response": []
         },
@@ -431,8 +463,14 @@
           "name": "Get OCR Job",
           "request": {
             "method": "GET",
-            "url": { "raw": "{{base_url}}/ocr-jobs/:jobId", "host": ["{{base_url}}"], "path": ["ocr-jobs", ":jobId"], "variable": [{"key":"jobId","value":"job_id"}] },
-            "description": "Fetch OCR job status and extracted data if completed."
+            "url": {
+              "raw": "{{base_url}}/ocr/:jobId",
+              "host": ["{{base_url}}"],
+              "path": ["ocr", ":jobId"],
+              "variable": [{ "key": "jobId", "value": "job_id" }]
+            },
+            "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
+            "description": "Fetch OCR job status and extracted data if completed.\n\nPath Params:\n- jobId: OCR job identifier.\n\nAuthorization: Requires bearer access token."
           },
           "response": []
         }
@@ -554,7 +592,9 @@
               "status": "Created",
               "code": 201,
               "_postman_previewlanguage": "json",
-              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
               "body": "{\n  \"id\": \"65f1c4e7a2b3c4d5e6f7a8b9\",\n  \"slug\": \"the-italian-corner\",\n  \"name\": \"The Italian Corner\",\n  \"manager_id\": \"65f1c4e7a2b3c4d5e6f7a111\",\n  \"phone\": \"+1234567890\",\n  \"about\": \"Authentic Italian cuisine\",\n  \"tags\": [\"Italian\", \"Pizza\"],\n  \"verification_status\": \"pending\",\n  \"average_rating\": 0,\n  \"view_count\": 0,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-15T10:30:00Z\"\n}"
             },
             {
@@ -562,7 +602,9 @@
               "status": "Bad Request",
               "code": 400,
               "_postman_previewlanguage": "json",
-              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
               "body": "{\n  \"message\": \"invalid input\",\n  \"error\": \"name is required\"\n}"
             },
             {
@@ -570,7 +612,9 @@
               "status": "Unauthorized",
               "code": 401,
               "_postman_previewlanguage": "json",
-              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
               "body": "{\n  \"message\": \"unauthorized\"\n}"
             }
           ],
@@ -619,7 +663,9 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
               "body": "{\n  \"id\": \"65f1c4e7a2b3c4d5e6f7a8b9\",\n  \"slug\": \"the-italian-corner\",\n  \"name\": \"The Italian Corner\",\n  \"manager_id\": \"65f1c4e7a2b3c4d5e6f7a111\",\n  \"phone\": \"+1234567890\",\n  \"menu_id\": null,\n  \"about\": \"Authentic Italian cuisine\",\n  \"logo_image\": \"https://example.com/logo.jpg\",\n  \"tags\": [\"Italian\", \"Pizza\"],\n  \"verification_status\": \"verified\",\n  \"average_rating\": 4.5,\n  \"view_count\": 1251,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-20T14:20:00Z\"\n}"
             },
             {
@@ -627,7 +673,9 @@
               "status": "Not Found",
               "code": 404,
               "_postman_previewlanguage": "json",
-              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
               "body": "{\n  \"message\": \"restaurant not found\"\n}"
             }
           ],
@@ -769,7 +817,9 @@
               "status": "OK",
               "code": 200,
               "_postman_previewlanguage": "json",
-              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
               "body": "{\n  \"data\": [ { \n    \"id\": \"65f1c4e7a2b3c4d5e6f7a8b9\", \n    \"slug\": \"the-italian-corner\", \n    \"name\": \"The Italian Corner\", \n    \"branch_count\": 3 \n  } ],\n  \"pagination\": { \n    \"page\": 1, \n    \"pageSize\": 20, \n    \"total\": 1, \n    \"totalPages\": 1, \n    \"hasNext\": false, \n    \"hasPrev\": false \n  }\n}"
             }
           ],

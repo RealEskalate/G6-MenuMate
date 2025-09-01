@@ -67,11 +67,17 @@ func (h *OCRJobHandler) DeleteOCRJob(c *gin.Context) {
 }
 
 func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
-	userId := c.GetString("userId")
+	// Auth middleware sets user_id key; support both just in case
+	userId := c.GetString("user_id")
+	if userId == "" {
+		userId = c.GetString("userId")
+	}
 
-	if err := h.NotificationUseCase.SendNotificationFromRoute(c.Request.Context(), userId, "We're processing your menu. we'll let you know when it's done", domain.MenuUpload); err != nil {
+	if userId != "" { // only attempt notification if we have a user id
+		if err := h.NotificationUseCase.SendNotificationFromRoute(c.Request.Context(), userId, "We're processing your menu. we'll let you know when it's done", domain.MenuUpload); err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
 		return
+		}
 	}
 
 	var data []byte
@@ -133,9 +139,11 @@ func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 	}
 
 	// send notification
-	if err := h.NotificationUseCase.SendNotificationFromRoute(c.Request.Context(), userId, "Texts are extracted from the menu successfully", domain.MenuUpload); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
-		return
+	if userId != "" {
+		if err := h.NotificationUseCase.SendNotificationFromRoute(c.Request.Context(), userId, "Texts are extracted from the menu successfully", domain.MenuUpload); err != nil {
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+			return
+		}
 	}
 
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.MenuToDTO(menu)})
