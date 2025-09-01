@@ -9,10 +9,10 @@ import (
 	_ "image/jpeg" // Register JPEG decoder (optional, for future)
 	_ "image/png"  // Register PNG decoder
 
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/logger"
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
-	"github.com/dinq/menumate/internal/domain"
-	"github.com/dinq/menumate/internal/infrastructure/logger"
 )
 
 type StorageService interface {

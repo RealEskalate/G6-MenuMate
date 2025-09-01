@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dinq/menumate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/gorilla/websocket"
 )
 

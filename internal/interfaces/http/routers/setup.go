@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dinq/menumate/internal/bootstrap"
-	mongo "github.com/dinq/menumate/internal/infrastructure/database"
-	services "github.com/dinq/menumate/internal/infrastructure/service"
+	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
+	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
 	"github.com/gin-gonic/gin"
 )
 

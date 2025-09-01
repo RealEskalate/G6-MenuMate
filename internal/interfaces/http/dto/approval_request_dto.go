@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dinq/menumate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 )
 
 // ApprovalRequestDTO represents the data transfer object for an ApprovalRequest

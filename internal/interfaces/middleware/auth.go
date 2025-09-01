@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	utils "github.com/dinq/menumate/Utils"
-	"github.com/dinq/menumate/internal/bootstrap"
-	"github.com/dinq/menumate/internal/domain"
+	utils "github.com/RealEskalate/G6-MenuMate/Utils"
+	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )

@@ -2,11 +2,11 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/dinq/menumate/internal/domain"
-	services "github.com/dinq/menumate/internal/infrastructure/service"
-	"github.com/veryfi/veryfi-go/veryfi/scheme"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
 )
 
 type OCRJobUseCase struct {
@@ -29,41 +29,43 @@ func (uc *OCRJobUseCase) CreateOCRJob(job *domain.OCRJob) error {
 	job.UpdatedAt = time.Now()
 
 	// Step 1: OCR
-	// text, err := w.OCRService.ProcessDocumentURL(w.ctx, job.ImageURL)
-	// if err != nil {
-	// 	job.Status = "failed"
-	// 	job.Error = err.Error()
-	// 	return
-	// }
-	// fmt.Println("OCR OK:", job.ID)
-	sampleLineItem := scheme.LineItems{
-		[]scheme.LineItem{
-			{
-				ID:          1,
-				Type:        "cat-1",
-				Section:     "kitfo",
-				Description: "Delicious kitfo",
-				Price:       100,
-			},
-			{
-				ID:          2,
-				Type:        "cat-1",
-				Section:     "Burger",
-				Description: "Juicy beef burger",
-				Price:       150,
-			},
-			{
-				ID:          3,
-				Type:        "cat-3",
-				Section:     "Soda",
-				Description: "Refreshing soda",
-				Price:       15,
-			},
-		},
+	text, err := uc.ocrService.ProcessDocumentURL(ctx, job.ImageURL)
+	if err != nil {
+		job.Status = "failed"
+		job.Error = err.Error()
+		return err
 	}
 
+	fmt.Println("OCR Text:", text.OCRText)
+	// fmt.Println("OCR OK:", job.ID)
+	// sampleLineItem := scheme.LineItems{
+	// 	[]scheme.LineItem{
+	// 		{
+	// 			ID:          1,
+	// 			Type:        "cat-1",
+	// 			Section:     "kitfo",
+	// 			Description: "Delicious kitfo",
+	// 			Price:       100,
+	// 		},
+	// 		{
+	// 			ID:          2,
+	// 			Type:        "cat-1",
+	// 			Section:     "Burger",
+	// 			Description: "Juicy beef burger",
+	// 			Price:       150,
+	// 		},
+	// 		{
+	// 			ID:          3,
+	// 			Type:        "cat-3",
+	// 			Section:     "Soda",
+	// 			Description: "Refreshing soda",
+	// 			Price:       15,
+	// 		},
+	// 	},
+	// }
+
 	// Step 2: AI Structuring
-	menu, err := uc.aiService.StructureWithGemini(ctx, sampleLineItem.LineItems)
+	menu, err := uc.aiService.StructureWithGemini(ctx, text.OCRText)
 
 	if err != nil {
 		job.Status = domain.OCRFailed

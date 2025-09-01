@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	utils "github.com/dinq/menumate/Utils"
-	"github.com/dinq/menumate/internal/domain"
-	services "github.com/dinq/menumate/internal/infrastructure/service"
-	"github.com/dinq/menumate/internal/interfaces/http/dto"
+	utils "github.com/RealEskalate/G6-MenuMate/Utils"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
+	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
 	"github.com/gin-gonic/gin"
 )
 

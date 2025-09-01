@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/dinq/menumate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 )
 
 type NotificationDTO struct {

@@ -60,8 +60,7 @@ All responses follow a consistent format:
   "firstName": "John",
   "lastName": "Doe",
   "phoneNumber": "+1234567890",
-  "authProvider": "EMAIL",
-  "role": "USER"
+  "role": "CUTOMER"
 }
 ```
 
@@ -109,7 +108,7 @@ All responses follow a consistent format:
 }
 ```
 
-- **Errors:** 400 (Invalid credentials), 401 (Unauthorized)
+- **Errors:** 400 (Invalid credentials)
 
 #### Logout
 
@@ -166,7 +165,7 @@ All responses follow a consistent format:
 
 ```json
 {
-  "message": "Password reset email sent"
+  "message": "Password reset link sent to your email"
 }
 ```
 
@@ -225,7 +224,7 @@ All responses follow a consistent format:
 
 ```json
 {
-  "message": "Verification email sent"
+  "message": "Verification link sent to your email"
 }
 ```
 

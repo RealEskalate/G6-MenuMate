@@ -4,8 +4,8 @@ package usecase
 // 	"context"
 // 	"time"
 
-// 	"github.com/dinq/menumate/internal/domain"
-// 	services "github.com/dinq/menumate/internal/infrastructure/service"
+// 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+// 	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
 // 	"github.com/veryfi/veryfi-go/veryfi/scheme"
 // )
 

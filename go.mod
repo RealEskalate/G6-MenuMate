@@ -1,4 +1,4 @@
-module github.com/dinq/menumate
+module github.com/RealEskalate/G6-MenuMate
 
 go 1.23.0
 

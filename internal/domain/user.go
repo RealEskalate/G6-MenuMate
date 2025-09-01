@@ -8,6 +8,7 @@ import (
 type User struct {
     ID           string
     Email        string
+	Username	 string
     PhoneNumber  string
     Password     string
     AuthProvider AuthProvider
@@ -36,7 +37,7 @@ const (
 	RoleAdmin           UserRole = "ADMIN"
 	RoleStaff           UserRole = "STAFF"
 	RoleManager         UserRole = "MANAGER"
-	RoleUser            UserRole = "CUSTOMER"
+	RoleUser            UserRole = "USER"
 )
 
 type UserStatus string
@@ -49,9 +50,9 @@ const (
 
 type AuthProvider string
 const(
-	EmailProvider AuthProvider = "EMAIL"
-	GoogleProvider AuthProvider = "GOOGLE"
-	PhoneProvider AuthProvider = "PHONE"
+	AuthEmail AuthProvider = "EMAIL"
+	AuthGoogle AuthProvider = "GOOGLE"
+	AuthPhone  AuthProvider = "PHONE"
 )
 
 type UserProfileUpdate struct {
@@ -78,7 +79,4 @@ type IUserRepository interface {
 	UpdateUser(context.Context, string, *User) error
 	GetAllUsers(context.Context) ([]*User, error)
     AssignRole(context.Context, string, string, UserRole) error
-
-	SaveFCMToken(userID string, token string) error
-	GetFCMToken(userID string) (string, error)
 }

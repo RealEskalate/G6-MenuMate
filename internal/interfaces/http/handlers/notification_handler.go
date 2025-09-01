@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dinq/menumate/internal/domain"
-	services "github.com/dinq/menumate/internal/infrastructure/service"
-	"github.com/dinq/menumate/internal/interfaces/http/dto"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
+	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )

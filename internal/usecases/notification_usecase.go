@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dinq/menumate/internal/domain"
-	services "github.com/dinq/menumate/internal/infrastructure/service"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
 )
 
 type NotificationUseCase struct {

@@ -11,15 +11,13 @@ import (
 	"sync"
 	"time"
 
-	utils "github.com/dinq/menumate/Utils"
-	"github.com/dinq/menumate/internal/domain"
-	"github.com/veryfi/veryfi-go/veryfi/scheme"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"google.golang.org/genai"
 )
 
 type IAIService interface {
-	StructureWithGemini(ctx context.Context, lineItems []scheme.LineItem) (*domain.Menu, error)
+	StructureWithGemini(ctx context.Context, ocrText string) (*domain.Menu, error)
 	// EnhanceWithGemini(ctx context.Context, text string) (string, error)
 	TranslateAIBit(text, target string) (string, error)
 }
@@ -45,8 +43,8 @@ func NewAIService(ctx context.Context, apiKey string, model string, imageSearchS
 		ImageSearchService: imageSearchService,
 	}, nil
 }
-func (s *AiService) StructureWithGemini(ctx context.Context, lineItems []scheme.LineItem) (*domain.Menu, error) {
-	itemsJSON, _ := json.MarshalIndent(lineItems, "", "  ")
+func (s *AiService) StructureWithGemini(ctx context.Context, ocrText string) (*domain.Menu, error) {
+	itemsJSON, _ := json.MarshalIndent(ocrText, "", "  ")
 
 	data, err := os.ReadFile("prompt.txt")
 	if err != nil {
@@ -112,12 +110,12 @@ func (s *AiService) StructureWithGemini(ctx context.Context, lineItems []scheme.
 		fmt.Printf("Failed to parse AI response as JSON: %v\n", err)
 		fmt.Printf("Raw response: %s\n", responseText)
 		fmt.Printf("Cleaned response: %s\n", cleanedText)
-		return fallbackStructure(lineItems), err
+		// return fallbackStructure(ocrText), err
 	}
 
 	if len(menuItem.Tabs) == 0 {
 		fmt.Printf("AI returned an empty menu, using fallback\n")
-		menuItem = *fallbackStructure(lineItems)
+		// menuItem = *fallbackStructure(ocrText)
 	}
 
 	// Update the IDs for menu items
@@ -232,83 +230,104 @@ func (s *AiService) TranslateAIBit(text, target string) (string, error) {
 
 	return result.Translated, nil
 }
-func fallbackStructure(lineItems []scheme.LineItem) *domain.Menu {
-	menuID := "menu-fallback"
-	tabID := utils.GenerateUUID()
-	categoryID := utils.GenerateUUID()
 
-	// Create a default tab
-	tab := domain.Tab{
-		ID:        tabID,
-		MenuID:    menuID,
-		Name:      "Food",
-		IsDeleted: false,
-		Categories: []domain.Category{
-			{
-				ID:    categoryID,
-				TabID: tabID,
-				Name:  "MENU ITEM (ምግብ ዝርዝር)",
-				Items: []domain.Item{},
-			},
-		},
-	}
+// func fallbackStructure(ocrText string) *domain.Menu {
+// 		lines := strings.Split(ocrText, "\n")
+// 		var items []domain.Item
 
-	for _, item := range lineItems {
-		if item.Description == "" {
-			continue
-		}
+// 		menuID := bson.NewObjectID().Hex()
+// 		tabID := bson.NewObjectID().Hex()
+// 		categoryID := bson.NewObjectID().Hex()
 
-		// Detect Amharic vs English
-		isAmharic := strings.ContainsAny(item.Description, "አኡኢኤእኦኧበቡቢ")
-		var name, description string
-		if isAmharic {
-			name = item.Description
-			description = "Traditional Ethiopian dish"
-		} else {
-			name = item.Description
-			description = "Ethiopian dish"
-		}
+// 		// Create a default tab
+// 		tab := domain.Tab{
+// 			ID:        tabID,
+// 			MenuID:    menuID,
+// 			Name:      "Food",
+// 			IsDeleted: false,
+// 			Categories: []domain.Category{
+// 				{
+// 					ID:    categoryID,
+// 					TabID: tabID,
+// 					Name:  "MENU ITEM (ምግብ ዝርዝር)",
+// 					Items: []domain.Item{},
+// 				},
+// 			},
+// 		}
 
-		price := 0.0
-		if item.Price > 0 {
-			price = item.Price
-		} else if item.Total > 0 {
-			price = item.Total
-		}
+// 		for _, line := range lines {
+// 			line = strings.TrimSpace(line)
+// 			if line == "" || !strings.Contains(line, "$") {
+// 				continue
+// 			}
 
-		menuItem := domain.Item{
-			ID:              utils.GenerateUUID(),
-			CategoryID:      categoryID,
-			Name:            name,
-			Description:     description,
-			Price:           price,
-			Allergies:       []string{},
-			HowToEat:        "Serve as usual",
-			PreparationTime: 0,
-			Calories:        0,
-			Image:           []string{"https://placeholder.com/image.jpg"},
-		}
+// 			// Split by $ to get name and price
+// 			parts := strings.Split(line, "$")
+// 			if len(parts) != 2 {
+// 				continue
+// 			}
+// 			name := strings.TrimSpace(parts[0])
+// 			priceStr := strings.TrimSpace(parts[1])
 
-		// Append to default category
-		tab.Categories[0].Items = append(tab.Categories[0].Items, menuItem)
-	}
+// 			// Remove number prefix if present (e.g., "2 ", "3 ")
+// 			if strings.HasPrefix(name, "1 ") || strings.HasPrefix(name, "2 ") || strings.HasPrefix(name, "3 ") ||
+// 				strings.HasPrefix(name, "4 ") || strings.HasPrefix(name, "5 ") || strings.HasPrefix(name, "6 ") ||
+// 				strings.HasPrefix(name, "7 ") || strings.HasPrefix(name, "8 ") || strings.HasPrefix(name, "9 ") ||
+// 				strings.HasPrefix(name, "10 ") || strings.HasPrefix(name, "11 ") || strings.HasPrefix(name, "12 ") ||
+// 				strings.HasPrefix(name, "13 ") || strings.HasPrefix(name, "14 ") || strings.HasPrefix(name, "15 ") ||
+// 				strings.HasPrefix(name, "16 ") || strings.HasPrefix(name, "17 ") {
+// 				name = strings.TrimSpace(name[2:])
+// 			}
 
-	menu := &domain.Menu{
-		ID:           menuID,
-		RestaurantID: "restaurant-fallback",
-		Version:      1,
-		IsPublished:  false,
-		PublishedAt:  time.Now(),
-		Tabs:         []domain.Tab{tab},
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-		UpdatedBy:    "system",
-		IsDeleted:    false,
-		ViewCount:    0,
-	}
+// 			// Parse price
+// 			priceStr = strings.ReplaceAll(priceStr, ",", "") // Remove commas if any
+// 			var price float64
+// 			if p, err := strconv.ParseFloat(priceStr, 64); err == nil {
+// 				price = p
+// 			} else {
+// 				price = 0.0
+// 			}
 
-	return menu
-}
+// 			// Detect if Amharic (contains Ethiopic script)
+// 			isAmharic := strings.ContainsAny(name, "አኡኢኤእኦኧበቡቢባቤብቦቧቨቩቪቫቬቭቮቯኀኁኂኃኄኅኆኈኊኋኌኍነኑኒናኔንኖኗኘኙኚኛኜኝኞኟአኡኢኤእኦኧበቡቢባቤብቦቧቨቩቪቫቬቭቮቯኀኁኂኃኄኅኆኈኊኋኌኍነኑኒናኔንኖኗኘኙኚኛኜኝኞኟወዉዊዋዌውዎዏዐዑዒዓዔዕዖዘዙዚዛዜዝዞዟዠዡዢዣዤዥዦዧየዩዪያዬይዮዯደዱዲዳዴድዶዷጀጁጂጃጄጅጆጇገጉጊጋጌግጎጏጐ጑ጒጓጔጕ጖ጘጙጚጛጜጝጞጟጠጡጢጣጤጥጦጧጨጩጪጫጬጭጮጯጰጱጲጳጴጵጶጷጸጹጺጻጼጽጾጿፀፁፂፃፄፅፆፈፉፊፋፌፍፎፏፐፑፒፓፔፕፖፗፘፙፚ")
+// 			description := "Traditional Ethiopian dish"
+// 			if !isAmharic {
+// 				description = "Ethiopian dish"
+// 			}
+
+// 			menuItem := domain.Item{
+// 				ID:              bson.NewObjectID().Hex(),
+// 				CategoryID:      categoryID,
+// 				Name:            name,
+// 				Description:     description,
+// 				Price:           price,
+// 				Allergies:       []string{},
+// 				HowToEat:        "Serve as usual",
+// 				PreparationTime: 0,
+// 				Calories:        0,
+// 				Image:           []string{"https://placeholder.com/image.jpg"},
+// 			}
+
+// 			// Append to default category
+// 			tab.Categories[0].Items = append(tab.Categories[0].Items, menuItem)
+// 		}
+
+// 		menu := &domain.Menu{
+// 			ID:           menuID,
+// 			RestaurantID: bson.NewObjectID().Hex(),
+// 			Version:      1,
+// 			IsPublished:  false,
+// 			PublishedAt:  time.Now(),
+// 			Tabs:         []domain.Tab{tab},
+// 			CreatedAt:    time.Now(),
+// 			UpdatedAt:    time.Now(),
+// 			UpdatedBy:    "system",
+// 			IsDeleted:    false,
+// 			ViewCount:    0,
+// 		}
+
+// 		return menu
+// 	}
 
 func AssignImagesToMenu(ctx context.Context, s IImageSearchService, menu *domain.Menu) error {
 	// 1. Flatten all items into a slice of pointers

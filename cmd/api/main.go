@@ -8,10 +8,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/dinq/menumate/internal/infrastructure/logger"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/logger"
 
-	"github.com/dinq/menumate/internal/bootstrap"
-	"github.com/dinq/menumate/internal/interfaces/http/routers"
+	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
+	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/routers"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,33 +1,32 @@
 package dto
 
 import (
-	"fmt"
 	"regexp"
 	"time"
 
-	"github.com/dinq/menumate/internal/domain"
-	"github.com/dinq/menumate/internal/infrastructure/security"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
 )
 
 // UserDTO represents the data transfer object for a User
 type UserDTO struct {
     ID           string         `json:"id"`
-    Email        string         `json:"email,omitempty"`
-    PhoneNumber  string         `json:"phoneNumber,omitempty"`
+    Email        string         `json:"email" validate:"required_without=PhoneNumber,omitempty,email"`
+    PhoneNumber  string         `json:"phone_number,omitempty" validate:"required_without=Email,omitempty,e164"`
     Password     string         `json:"password,omitempty"` // Raw password for sign-up
-    PasswordHash string         `json:"passwordHash,omitempty"` // Hashed password (read-only in responses)
-    AuthProvider string         `json:"authProvider"`
-    IsVerified   bool           `json:"isVerified"`
-    FirstName         string         `json:"firstName,omitempty"`
-    LastName          string         `json:"lastName,omitempty"`
-    ProfileImage string         `json:"profileImage,omitempty"`
-    Role         string         `json:"role"`
-    Status       string         `json:"status"`
+    AuthProvider string         `json:"auth_provider"`
+    IsVerified   bool           `json:"is_verified"`
+    FirstName    string         `json:"first_name,omitempty"`
+    LastName     string         `json:"last_name,omitempty"`
+    Username     string         `json:"username,omitempty"`
+    ProfileImage string         `json:"profile_image,omitempty"`
+    Role         string         `json:"role" validate:"required,oneof=ADMIN STAFF MANAGER USER OWNER"`
+    Status       string         `json:"status" validate:"required,oneof=ACTIVE INACTIVE SUSPENDED"`
     Preferences  PreferencesDTO `json:"preferences,omitempty"`
-    LastLoginAt  time.Time      `json:"lastLoginAt"`
-    CreatedAt    time.Time      `json:"createdAt"`
-    UpdatedAt    time.Time      `json:"updatedAt"`
-    IsDeleted    bool           `json:"isDeleted"`
+    LastLoginAt  time.Time      `json:"last_login_at"`
+    CreatedAt    time.Time      `json:"created_at"`
+    UpdatedAt    time.Time      `json:"updated_at"`
+    IsDeleted    bool           `json:"is_deleted"`
 }
 
 type PreferencesDTO struct {
@@ -38,9 +37,6 @@ type PreferencesDTO struct {
 
 // Validate checks the UserDTO for required fields and password strength
 func (u *UserDTO) Validate() error {
-    if (u.Email == "" && u.PhoneNumber == "") || u.AuthProvider == "" || u.Role == "" {
-        return fmt.Errorf("email or phoneNumber, authProvider, and role are required")
-    }
     // Validate password only if provided (e.g., during sign-up)
     if u.Password != "" {
         if err := ValidatePasswordStrength(u.Password); err != nil {
@@ -60,23 +56,24 @@ func (u *UserDTO) ToDomain() (*domain.User, error) {
         ID:           u.ID,
         Email:        u.Email,
         PhoneNumber:  u.PhoneNumber,
-        Password: passwordHash,
+        Password:     passwordHash,
         AuthProvider: domain.AuthProvider(u.AuthProvider),
         IsVerified:   u.IsVerified,
-        FirstName:         u.FirstName,
-        LastName: u.LastName,
+        FirstName:    u.FirstName,
+        LastName:     u.LastName,
+        Username:     u.Username,
         ProfileImage: u.ProfileImage,
         Role:         domain.UserRole(u.Role),
         Status:       domain.UserStatus(u.Status),
-        Preferences:  domain.Preferences{
+        Preferences: domain.Preferences{
             Language:     u.Preferences.Language,
             Theme:        u.Preferences.Theme,
             Notifications: u.Preferences.Notifications,
         },
-        LastLoginAt:  u.LastLoginAt,
-        CreatedAt:    u.CreatedAt,
-        UpdatedAt:    u.UpdatedAt,
-        IsDeleted:    u.IsDeleted,
+        LastLoginAt: u.LastLoginAt,
+        CreatedAt:   u.CreatedAt,
+        UpdatedAt:   u.UpdatedAt,
+        IsDeleted:   u.IsDeleted,
     }, nil
 }
 
@@ -89,20 +86,21 @@ func (u *UserDTO) FromDomain(user *domain.User) *UserDTO {
         // Password and PasswordHash omitted in response for security
         AuthProvider: string(user.AuthProvider),
         IsVerified:   user.IsVerified,
-        FirstName:         user.FirstName,
-        LastName:  user.LastName,
+        FirstName:    user.FirstName,
+        LastName:     user.LastName,
+        Username:     user.Username,
         ProfileImage: user.ProfileImage,
         Role:         string(user.Role),
         Status:       string(user.Status),
-        Preferences:  PreferencesDTO{
+        Preferences: PreferencesDTO{
             Language:     user.Preferences.Language,
             Theme:        user.Preferences.Theme,
             Notifications: user.Preferences.Notifications,
         },
-        LastLoginAt:  user.LastLoginAt,
-        CreatedAt:    user.CreatedAt,
-        UpdatedAt:    user.UpdatedAt,
-        IsDeleted:    user.IsDeleted,
+        LastLoginAt: user.LastLoginAt,
+        CreatedAt:   user.CreatedAt,
+        UpdatedAt:   user.UpdatedAt,
+        IsDeleted:   user.IsDeleted,
     }
 }
 
@@ -127,7 +125,7 @@ func ValidatePasswordStrength(password string) error {
 }
 
 // userprofile update req
-type UserUpdateProfileRequest struct{
-    FirstName string `json:"firstName"`
-    LastName string `json:"lastName"`
+type UserUpdateProfileRequest struct {
+    FirstName string `json:"first_name,omitempty"`
+    LastName  string `json:"last_name,omitempty"`
 }

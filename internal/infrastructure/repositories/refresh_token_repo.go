@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/dinq/menumate/internal/domain"
-	mongo "github.com/dinq/menumate/internal/infrastructure/database"
-	"github.com/dinq/menumate/internal/infrastructure/database/mapper"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database/mapper"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 

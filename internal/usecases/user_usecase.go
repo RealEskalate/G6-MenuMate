@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dinq/menumate/internal/domain"
-	"github.com/dinq/menumate/internal/infrastructure/security"
-	services "github.com/dinq/menumate/internal/infrastructure/service"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
 )
 
 type UserUsecase struct {
@@ -29,6 +29,7 @@ func NewUserUsecase(userRepo domain.IUserRepository, storageService services.Sto
 func (uc *UserUsecase) Register(request *domain.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxtimeout)
 	defer cancel()
+
     if request.Role == "" {
 	request.Role = domain.RoleUser // Default role is User
 	}

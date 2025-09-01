@@ -3,7 +3,7 @@ package mapper
 import (
 	"time"
 
-	"github.com/dinq/menumate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 

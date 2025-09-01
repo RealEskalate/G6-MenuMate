@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"time"
 
-	utils "github.com/dinq/menumate/Utils"
-	"github.com/dinq/menumate/internal/domain"
-	"github.com/dinq/menumate/internal/infrastructure/oauth"
-	"github.com/dinq/menumate/internal/infrastructure/security"
-	"github.com/dinq/menumate/internal/interfaces/http/dto"
+	utils "github.com/RealEskalate/G6-MenuMate/Utils"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/oauth"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
+	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	oauth2v2 "google.golang.org/api/oauth2/v2"
@@ -540,7 +540,7 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		Email:        userInfo.Email,
 		PhoneNumber:  "",
 		Password:     "",
-		AuthProvider: domain.GoogleProvider,
+		AuthProvider: domain.AuthGoogle,
 		IsVerified:   false,
 		FirstName:    userInfo.GivenName,
 		LastName:     userInfo.FamilyName,
