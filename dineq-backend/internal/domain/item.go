@@ -1,13 +1,9 @@
 package domain
 
-<<<<<<< HEAD
-type Item struct {
-	ID      string  `json:"id"`
-	MenuID  string  `json:"menu_id"`
-	Name    string  `json:"name"`
-	Price   float64 `json:"price"`
-	PhotoID *string `json:"photo_id,omitempty"`
-}
+import (
+	"context"
+	"time"
+)
 
 type ItemRepository interface {
 	GetByID(id string) (*Item, error)
@@ -15,11 +11,8 @@ type ItemRepository interface {
 	Update(i *Item) error
 	Delete(id string) error
 	ListByMenu(menuID string) ([]Item, error)
-=======
-import (
-	"context"
-	"time"
-)
+
+}
 
 type Item struct {
 	ID              string
@@ -61,5 +54,4 @@ type IItemUseCase interface {
 	UpdateItem(id string, item *Item) error
 	GetItemByID(id string) (*Item, error)
 	AddReview(itemID, reviewID string) error
->>>>>>> Backend_develop
 }
