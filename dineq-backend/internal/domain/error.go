@@ -8,23 +8,6 @@ type DomainError struct {
 }
 
 var (
-<<<<<<< HEAD
-	ErrNotFound           = errors.New("not found")
-	ErrUserNotFound       = errors.New("user not found")
-	ErrTokenExpired       = errors.New("token expired")
-	ErrInvalidInput       = errors.New("invalid input")
-	ErrUnauthorized       = errors.New("User not authenticated or authorized")
-	ErrInvalidFile        = errors.New("invalid file format")
-	ErrOTPNotFound        = errors.New("OTP not found")
-	ErrOTPExpired         = errors.New("OTP expired")
-	ErrOTPMaxAttempts     = errors.New("maximum OTP attempts exceeded")
-	ErrOTPStillValid      = errors.New("OTP is still valid")
-	ErrOTPInvalidCode     = errors.New("invalid OTP code")
-	ErrOTPInvalid         = errors.New("invalid OTP")
-	ErrOTPFailedToDelete  = errors.New("failed to delete OTP")
-	ErrRestaurantNotFound = errors.New("restaurant not found")
-	ErrRestaurantDeleted  = errors.New("restaurant deleted")
-=======
 	ErrNotFound                       = errors.New("not found")
 	ErrUserNotFound                   = errors.New("user not found")
 	ErrTokenExpired                   = errors.New("token expired")
@@ -39,6 +22,7 @@ var (
 	ErrOTPInvalid                     = errors.New("invalid OTP")
 	ErrOTPFailedToDelete              = errors.New("failed to delete OTP")
 	ErrRestaurantNotFound             = errors.New("restaurant not found")
+	ErrRestaurantDeleted              = errors.New("restaurant deleted")
 	ErrInvalidRequest                 = errors.New("invalid request")
 	ErrServerIssue                    = errors.New("internal server error")
 	ErrPasswordAndEmailRequired       = errors.New("email and password are required")
@@ -84,5 +68,4 @@ var (
 	MsgDeleted          = "Resource deleted successfully"
 	MsgValidationFailed = "Validation failed, please check your input"
 	MsgProcessing       = "Processing your request"
->>>>>>> Backend_develop
 )
