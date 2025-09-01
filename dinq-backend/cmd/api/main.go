@@ -8,11 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/logger"
-
 	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/logger"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/routers"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -29,6 +27,7 @@ func main() {
 	}
 	env := app.Env
 	db := app.Mongo.Database(env.DB_Name)
+	bootstrap.EnsureIndexes(app.Mongo, env)
 	defer app.CloseDBConnection()
 
 	logger.Log.Info().Str("db", env.DB_Name).Msg("Database acquired")
