@@ -25,7 +25,9 @@ func NewRefreshTokenRepository(db mongo.Database, collection string) domain.IRef
 }
 
 func (repo *RefreshTokenRepository) Save(ctx context.Context, token *domain.RefreshToken) error {
-	if token.TokenHash == "" && token.Token != "" { token.TokenHash = hashToken(token.Token) }
+	if token.TokenHash == "" && token.Token != "" {
+		token.TokenHash = hashToken(token.Token)
+	}
 	tokenDb := mapper.FromRefreshTokenEntityToDB(token)
 	res, err := repo.DB.Collection(repo.Collection).InsertOne(ctx, tokenDb)
 	if err != nil {
@@ -62,7 +64,9 @@ func (repo *RefreshTokenRepository) DeleteByUserID(ctx context.Context, userID s
 }
 
 func (repo *RefreshTokenRepository) ReplaceTokenByUserID(ctx context.Context, token *domain.RefreshToken) error {
-	if token.TokenHash == "" && token.Token != "" { token.TokenHash = hashToken(token.Token) }
+	if token.TokenHash == "" && token.Token != "" {
+		token.TokenHash = hashToken(token.Token)
+	}
 	tokenDB := mapper.FromRefreshTokenEntityToDB(token)
 	fmt.Println("Replacing token for user ID:", token.UserID, tokenDB)
 	_, err := repo.DB.Collection(repo.Collection).UpdateOne(

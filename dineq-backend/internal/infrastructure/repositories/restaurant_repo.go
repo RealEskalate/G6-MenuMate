@@ -175,7 +175,7 @@ func (repo *RestaurantRepo) ListUniqueRestaurants(ctx context.Context, page, pag
 		{{Key: "$match", Value: bson.M{"is_deleted": false}}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		{{Key: "$group", Value: bson.M{"_id": "$slug", "doc": bson.M{"$first": "$$ROOT"}}}},
-		{{Key: "$replaceRoot", Value: bson.M{"new_root": "$doc"}}},
+		{{Key: "$replaceRoot", Value: bson.M{"newRoot": "$doc"}}},
 		{{Key: "$skip", Value: (page - 1) * pageSize}},
 		{{Key: "$limit", Value: pageSize}},
 	}
