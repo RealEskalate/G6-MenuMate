@@ -1,9 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import Link from "next/link";
 import MenuOptionModal from "@/components/restaurant/MenuOptionModal";
 import Image from "next/image";
+import Link from "next/link";
 
 function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
