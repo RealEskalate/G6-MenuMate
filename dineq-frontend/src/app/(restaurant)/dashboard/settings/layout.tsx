@@ -8,21 +8,20 @@ const tabs = [
   { name: "Legal info", href: "/dashboard/settings/legal-info" },
   { name: "Branding", href: "/dashboard/settings/branding" },
   { name: "Billings", href: "/dashboard/settings/billings" },
-
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col gap-6 px-6">
+    <div className="flex flex-col gap-6 px-4 sm:px-6">
       {/* Settings Title */}
       <div className="bg-white p-4 rounded-2xl shadow-[0_4px_12px_#ffead4]">
         <h1 className="text-2xl font-bold">Settings</h1>
       </div>
 
-      {/* Tabs */}
-      <div className="flex justify-around border border-orange-200 rounded-xl bg-white p-2">
+      {/* Tabs (scrollable on mobile) */}
+      <div className="flex overflow-x-auto flex-nowrap border border-orange-200 rounded-xl bg-white p-2 sm:justify-around">
         {tabs.map((tab) => {
           const active =
             (tab.href === "/dashboard/settings" && pathname === "/dashboard/settings") ||
@@ -32,10 +31,10 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             <Link
               key={tab.name}
               href={tab.href}
-              className={`px-4 py-2 text-l font-medium transition-all ${
+              className={`whitespace-nowrap px-4 py-2 text-sm sm:text-base font-medium transition-all ${
                 active
                   ? "text-orange-500 border-b-2 border-orange-500"
-                  : "text-black-500 hover:text-black-700"
+                  : "text-gray-600 hover:text-gray-800"
               }`}
             >
               {tab.name}
@@ -45,7 +44,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       </div>
 
       {/* Tab Content */}
-      <div className="border border-orange-200 rounded-xl p-6 shadow-sm bg-white">
+      <div className="border border-orange-200 rounded-xl p-4 sm:p-6 shadow-sm bg-white">
         {children}
       </div>
     </div>

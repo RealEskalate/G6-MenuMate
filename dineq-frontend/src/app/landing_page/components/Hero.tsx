@@ -1,5 +1,6 @@
-import { Link } from "lucide-react";
+
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -14,17 +15,17 @@ export default function Hero() {
       </p>
       <div className="mt-8 flex justify-center space-x-4">
         <Link
-          href="/"
+          href="/auth/user-signup"
           className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600"
         >
           I'm a Customer
         </Link>
-        <a
-          href="#"
+        <Link
+          href="/auth/manager-signup"
           className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-100"
         >
           I'm a Restaurant
-        </a>
+        </Link>
       </div>
       <div
         className="absolute bottom-30 left-1/2 transform -translate-x-1/2 translate-y-1/2 

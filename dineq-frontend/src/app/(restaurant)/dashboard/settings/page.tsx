@@ -6,7 +6,7 @@ export default function ProfileSettings() {
       {/* Branding */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Branding</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm mb-1">Primary color</label>
             <input
@@ -29,7 +29,7 @@ export default function ProfileSettings() {
       {/* Menu Preferences */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Menu Preferences</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm mb-1">Default currency</label>
             <select className="w-full border rounded-lg px-3 py-2">
@@ -46,7 +46,7 @@ export default function ProfileSettings() {
               <option>French</option>
             </select>
           </div>
-          <div>
+          <div className="sm:col-span-2">
             <label className="block text-sm mb-1">Default VAT/Service Charge (%)</label>
             <input
               type="text"

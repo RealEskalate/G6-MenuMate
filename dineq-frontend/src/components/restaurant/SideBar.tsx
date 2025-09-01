@@ -16,7 +16,7 @@ function SideBar() {
   ];
 
   return (
-    <aside className="w-64 h-[82.5vh] bg-white border border-gray-200 p-4 flex flex-col gap-6 rounded-2xl shadow-[0_4px_12px_#ffd2a9] ml-6 mt-8">
+    <aside className="hidden md:block w-64 h-[82.5vh] bg-white border border-gray-200 p-4 flex flex-col gap-6 rounded-2xl shadow-[0_4px_12px_#ffd2a9] ml-6 mt-8">
       <div className="space-y-6 pt-6 pb-32 pl-4 pr-5">
         {links.map((link) => {
           const active = pathname.startsWith(link.href);
