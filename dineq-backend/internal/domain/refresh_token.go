@@ -51,6 +51,8 @@ type IRefreshTokenUsecase interface {
 	DeleteByUserID(userID string) error
 	ReplaceToken(token *RefreshToken) error
 	RevokedToken(token *RefreshToken) error
+	// RevokeByUserID marks the user's current refresh token as revoked without requiring the raw token string
+	RevokeByUserID(userID string) error
 	FindByUserID(id string) (*RefreshToken, error)
 }
 
@@ -60,5 +62,7 @@ type IRefreshTokenRepository interface {
 	DeleteByUserID(ctx context.Context, userID string) error
 	ReplaceTokenByUserID(ctx context.Context, token *RefreshToken) error
 	RevokeToken(ctx context.Context, token string) error
+	// RevokeTokenByUserID revokes the refresh token associated with the given user id
+	RevokeTokenByUserID(ctx context.Context, userID string) error
 	FindTokenByUserID(ctx context.Context, token string) (*RefreshToken, error)
 }
