@@ -59,7 +59,49 @@
                 },
                 "description": "Authenticate user and get access tokens.\n\n**Request Body Fields:**\n- `identifier` (string, required): May be a username, email address, or phone number\n- `password` (string, required): 6-100 characters\n\n**Response:**\n```json\n{\n  \"access_token\": \"jwt_access_token\",\n  \"refresh_token\": \"jwt_refresh_token\"\n}\n```\n\n**Notes:**\n- Access tokens expire in ~15 minutes (configurable)\n- Refresh tokens expire in ~7 days (configurable)\n- Use any unique identifier you registered with (username/email/phone)\n- 401 returned for invalid credentials"
               },
-              "response": []
+              "response": [
+                {
+                  "name": "200 OK",
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    { "key": "Content-Type", "value": "application/json" }
+                  ],
+                  "body": "{\n  \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
+                },
+                {
+                  "name": "401 Unauthorized",
+                  "status": "Unauthorized",
+                  "code": 401,
+                  "_postman_previewlanguage": "json",
+                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "body": "{\n  \"message\": \"invalid credentials\",\n  \"error\": \"username/email or password is incorrect\"\n}"
+                }
+              ],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('returns tokens', function () {",
+                      "  const json = pm.response.json();",
+                      "  pm.expect(json).to.have.property('access_token');",
+                      "  pm.expect(json).to.have.property('refresh_token');",
+                      "});",
+                      "// store for subsequent requests",
+                      "if (pm.response.code === 200) {",
+                      "  const json = pm.response.json();",
+                      "  pm.environment.set('access_token', json.access_token);",
+                      "  pm.environment.set('refresh_token', json.refresh_token);",
+                      "  const expiryTime = new Date().getTime() + (15 * 60 * 1000);",
+                      "  pm.environment.set('token_expiry', expiryTime.toString());",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Refresh Token",
@@ -82,7 +124,45 @@
                 },
                 "description": "Get new access and refresh tokens using a valid refresh token.\n\n**Request Body Fields:**\n- `refresh_token` (string, required): Valid refresh token\n\n**Response:**\n```json\n{\n  \"access_token\": \"new_jwt_access_token\",\n  \"refresh_token\": \"new_jwt_refresh_token\"\n}\n```\n\n**Error Responses:**\n- `401`: Invalid or expired refresh token\n- `400`: Missing refresh token"
               },
-              "response": []
+              "response": [
+                {
+                  "name": "200 OK",
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "body": "{\n  \"access_token\": \"new_access_token...\",\n  \"refresh_token\": \"new_or_same_refresh_token...\"\n}"
+                },
+                {
+                  "name": "401 Unauthorized",
+                  "status": "Unauthorized",
+                  "code": 401,
+                  "_postman_previewlanguage": "json",
+                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "body": "{\n  \"message\": \"invalid or expired token\",\n  \"error\": \"token revoked or expired\"\n}"
+                }
+              ],
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('returns access token', function () {",
+                      "  const json = pm.response.json();",
+                      "  pm.expect(json).to.have.property('access_token');",
+                      "});",
+                      "if (pm.response.code === 200) {",
+                      "  const json = pm.response.json();",
+                      "  pm.environment.set('access_token', json.access_token);",
+                      "  if (json.refresh_token) pm.environment.set('refresh_token', json.refresh_token);",
+                      "  const expiryTime = new Date().getTime() + (15 * 60 * 1000);",
+                      "  pm.environment.set('token_expiry', expiryTime.toString());",
+                      "}"
+                    ]
+                  }
+                }
+              ]
             },
             {
               "name": "Forgot Password",
@@ -105,7 +185,16 @@
                 },
                 "description": "Send password reset email to user.\n\n**Request Body Fields:**\n- `email` (string, required): Valid email address\n\n**Response:**\n```json\n{\n  \"message\": \"Password reset email sent successfully\"\n}\n```\n\n**Notes:**\n- Reset tokens expire in 10 minutes (configurable)\n- Email will contain a reset link with token\n- No error returned if email doesn't exist (security measure)"
               },
-              "response": []
+              "response": [
+                {
+                  "name": "200 OK",
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "body": "{\n  \"message\": \"Password reset email sent successfully\"\n}"
+                }
+              ]
             },
             {
               "name": "Reset Password",
@@ -128,7 +217,16 @@
                 },
                 "description": "Reset user password using reset token.\n\n**Request Body Fields:**\n- `email` (string, required): User's email address\n- `token` (string, required): Reset token from email\n- `new_password` (string, required): New password (minimum 6 characters)\n\n**Response:**\n```json\n{\n  \"message\": \"Password reset successfully\"\n}\n```\n\n**Error Responses:**\n- `400`: Invalid or expired token\n- `404`: User not found"
               },
-              "response": []
+              "response": [
+                {
+                  "name": "200 OK",
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "body": "{\n  \"message\": \"Password reset successfully\"\n}"
+                }
+              ]
             },
             {
               "name": "Logout",
@@ -151,7 +249,16 @@
                 },
                 "description": "Logout user and invalidate refresh tokens.\n\n**Response:**\n```json\n{\n  \"message\": \"Logged out successfully\"\n}\n```\n\n**Notes:**\n- Invalidates all refresh tokens for the user\n- Access tokens will still be valid until expiry (stateless)"
               },
-              "response": []
+              "response": [
+                {
+                  "name": "200 OK",
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [ { "key": "Content-Type", "value": "application/json" } ],
+                  "body": "{\n  \"message\": \"success\"\n}"
+                }
+              ]
             }
           ]
         },
@@ -400,7 +507,51 @@
             },
             "description": "Create a new restaurant.\n\n**Request Body Fields:**\n- `name` (string, required): Restaurant name\n- `phone` (string, required): Restaurant phone number\n- `about` (string, optional): Restaurant description\n- `tags` (array, optional): Array of restaurant tags/categories\n- `logo_image` (string, optional): URL to restaurant logo image\n\n**Automatic Fields:**\n- `manager_id`: Set from authenticated user\n- `slug`: Generated from restaurant name\n- `verification_status`: Set to \"pending\"\n- `average_rating`: Initialized to 0\n- `view_count`: Initialized to 0\n\n**Response:**\n```json\n{\n  \"id\": \"restaurant_id\",\n  \"slug\": \"the-italian-corner\",\n  \"name\": \"The Italian Corner\",\n  \"manager_id\": \"user_id\",\n  \"phone\": \"+1234567890\",\n  \"about\": \"Restaurant description\",\n  \"tags\": [\"Italian\", \"Pizza\"],\n  \"verification_status\": \"pending\",\n  \"average_rating\": 0,\n  \"view_count\": 0,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-15T10:30:00Z\"\n}\n```"
           },
-          "response": []
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "body": "{\n  \"id\": \"65f1c4e7a2b3c4d5e6f7a8b9\",\n  \"slug\": \"the-italian-corner\",\n  \"name\": \"The Italian Corner\",\n  \"manager_id\": \"65f1c4e7a2b3c4d5e6f7a111\",\n  \"phone\": \"+1234567890\",\n  \"about\": \"Authentic Italian cuisine\",\n  \"tags\": [\"Italian\", \"Pizza\"],\n  \"verification_status\": \"pending\",\n  \"average_rating\": 0,\n  \"view_count\": 0,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-15T10:30:00Z\"\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "body": "{\n  \"message\": \"invalid input\",\n  \"error\": \"name is required\"\n}"
+            },
+            {
+              "name": "401 Unauthorized",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "body": "{\n  \"message\": \"unauthorized\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('has id and slug', function () {",
+                  "    pm.expect(json).to.have.property('id');",
+                  "    pm.expect(json).to.have.property('slug');",
+                  "  });",
+                  "  pm.environment.set('restaurant_id', json.id);",
+                  "  pm.environment.set('restaurant_slug', json.slug);",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Get Restaurant by Slug",
@@ -421,7 +572,38 @@
             },
             "description": "Get restaurant details by slug.\n\n**Path Parameters:**\n- `slug` (string, required): Restaurant slug (URL-friendly identifier)\n\n**Response:**\n```json\n{\n  \"id\": \"restaurant_id\",\n  \"slug\": \"the-italian-corner\",\n  \"name\": \"The Italian Corner\",\n  \"manager_id\": \"user_id\",\n  \"phone\": \"+1234567890\",\n  \"menu_id\": \"menu_id\",\n  \"about\": \"Restaurant description\",\n  \"logo_image\": \"https://example.com/logo.jpg\",\n  \"tags\": [\"Italian\", \"Pizza\", \"Pasta\"],\n  \"verification_status\": \"verified\",\n  \"average_rating\": 4.5,\n  \"view_count\": 1250,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-20T14:20:00Z\"\n}\n```\n\n**Error Responses:**\n- `404`: Restaurant not found\n\n**Notes:**\n- This endpoint is public (no authentication required)\n- Increments view count on each request\n- Returns full restaurant details"
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "body": "{\n  \"id\": \"65f1c4e7a2b3c4d5e6f7a8b9\",\n  \"slug\": \"the-italian-corner\",\n  \"name\": \"The Italian Corner\",\n  \"manager_id\": \"65f1c4e7a2b3c4d5e6f7a111\",\n  \"phone\": \"+1234567890\",\n  \"menu_id\": null,\n  \"about\": \"Authentic Italian cuisine\",\n  \"logo_image\": \"https://example.com/logo.jpg\",\n  \"tags\": [\"Italian\", \"Pizza\"],\n  \"verification_status\": \"verified\",\n  \"average_rating\": 4.5,\n  \"view_count\": 1251,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-20T14:20:00Z\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "body": "{\n  \"message\": \"restaurant not found\"\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('returns requested slug', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.slug).to.eql(pm.request.url.variables.get('slug'));",
+                  "});"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Update Restaurant",
@@ -540,7 +722,31 @@
             },
             "description": "Get list of unique restaurants (one per restaurant brand/name) with pagination.\n\n**Query Parameters:**\n- `page` (integer, optional): Page number (default: 1)\n- `pageSize` (integer, optional): Items per page (default: 10, max: 100)\n\n**Response:**\n```json\n{\n  \"data\": [\n    {\n      \"id\": \"restaurant_id\",\n      \"slug\": \"the-italian-corner\",\n      \"name\": \"The Italian Corner\",\n      \"manager_id\": \"user_id\",\n      \"phone\": \"+1234567890\",\n      \"about\": \"Authentic Italian cuisine\",\n      \"logo_image\": \"https://example.com/logo.jpg\",\n      \"tags\": [\"Italian\", \"Pizza\", \"Pasta\"],\n      \"verification_status\": \"verified\",\n      \"average_rating\": 4.5,\n      \"view_count\": 1250,\n      \"branch_count\": 3\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"pageSize\": 20,\n    \"total\": 150,\n    \"totalPages\": 8,\n    \"hasNext\": true,\n    \"hasPrev\": false\n  }\n}\n```\n\n**Notes:**\n- Returns one representative restaurant per unique slug/brand\n- Includes branch count for restaurants with multiple locations\n- Sorted by popularity (view count + rating)\n- Perfect for restaurant discovery and browsing"
           },
-          "response": []
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [ { "key": "Content-Type", "value": "application/json" } ],
+              "body": "{\n  \"data\": [ { \n    \"id\": \"65f1c4e7a2b3c4d5e6f7a8b9\", \n    \"slug\": \"the-italian-corner\", \n    \"name\": \"The Italian Corner\", \n    \"branch_count\": 3 \n  } ],\n  \"pagination\": { \n    \"page\": 1, \n    \"pageSize\": 20, \n    \"total\": 1, \n    \"totalPages\": 1, \n    \"hasNext\": false, \n    \"hasPrev\": false \n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('has data array', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('data');",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
