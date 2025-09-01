@@ -6,7 +6,7 @@ export default function NoMoreGuessing() {
     <section className="bg-orange-100 h-[48rem] py-16 md:py-24">
       <div className="container mx-auto px-6 text-center">
         <h2 className="text-3xl font-bold text-gray-800">
-          No More Guessing What's on the Menu
+          No More Guessing What&lsquo;s on the Menu
         </h2>
         <p className="mt-6 text-gray-600 max-w-3xl mx-auto">
           Just scan a menu with your phone and instantly see clear dishes with
