@@ -13,7 +13,6 @@ import (
 
 // AuthMiddleware checks if the user is authenticated by verifying the JWT token
 func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
-<<<<<<< HEAD
        return func(c *gin.Context) {
 	       var tokenStr string
 	       var err error
@@ -63,47 +62,6 @@ func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 	       }
 	       c.Next()
        }
-=======
-	return func(c *gin.Context) {
-		tokenStr, err := utils.GetCookie(c, "accessToken")
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found in cookies, please login again"})
-			c.Abort()
-			return
-		}
-
-		// Parse and validate the JWT
-		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
-			return []byte(env.ATS), nil
-		})
-
-		if err != nil || !token.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
-			return
-		}
-		claims := token.Claims.(jwt.MapClaims)
-		// check if the token has not expired
-		if exp, ok := claims["exp"].(float64); !ok || exp < float64(time.Now().Unix()) {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "token expired"})
-			return
-		}
-
-		// Set user ID and role in the context for further use
-		c.Set("userId", claims["sub"].(string))
-		if role, ok := claims["role"]; ok {
-			c.Set("role", role.(string))
-		}
-
-		// set isVerified in context
-		isVerified := claims["isVerified"].(bool)
-		if isVerified {
-			c.Set("isVerified", true)
-		} else {
-			c.Set("isVerified", false)
-		}
-		c.Next()
-	}
->>>>>>> Backend_develop
 }
 
 func AdminOnly() gin.HandlerFunc {
@@ -118,11 +76,7 @@ func AdminOnly() gin.HandlerFunc {
 
 func VerifiedUserOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
-<<<<<<< HEAD
 		IsVerified := c.GetBool("is_verified")
-=======
-		IsVerified := c.GetBool("isVerified")
->>>>>>> Backend_develop
 		if !IsVerified {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "user not verified"})
 			return
