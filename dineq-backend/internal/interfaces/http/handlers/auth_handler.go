@@ -79,7 +79,7 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 		MaxAge:   int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-	Secure:   ac.CookieSecure,
+		Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -89,13 +89,13 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 		MaxAge:   int(time.Until(tokens.AccessTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-	Secure:   ac.CookieSecure,
+		Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Registration successful",
-		"user": dto.ToUserResponse(user),
+		"user":    dto.ToUserResponse(user),
 		"tokens": dto.LoginResponse{
 			AccessToken:  tokens.AccessToken,
 			RefreshToken: tokens.RefreshToken,
