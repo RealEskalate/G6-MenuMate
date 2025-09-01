@@ -15,6 +15,9 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 	notifySvc := services.NewNotificationService()
 
 	router.GET("/", func(ctx *gin.Context) { ctx.Redirect(http.StatusPermanentRedirect, "/api") })
+	// Fallback routes for Google OAuth if redirect URI is configured without /api/v1 prefix
+	router.GET("/auth/google/login", func(c *gin.Context) { c.Redirect(http.StatusTemporaryRedirect, "/api/v1/auth/google/login") })
+	router.GET("/auth/google/callback", func(c *gin.Context) { c.Redirect(http.StatusTemporaryRedirect, "/api/v1/auth/google/callback") })
 	api := router.Group("/api/v1")
 	{
 		NewAuthRoutes(env, api, db)
