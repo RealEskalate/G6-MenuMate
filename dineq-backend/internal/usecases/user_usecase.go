@@ -36,6 +36,10 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 	if request.Role == "" {
 		request.Role = domain.RoleCustomer
 	}
+	// Default status if not supplied
+	if request.Status == "" {
+		request.Status = domain.StatusActive
+	}
 	// Default auth provider if empty
 	if request.AuthProvider == "" {
 		request.AuthProvider = domain.AuthEmail
