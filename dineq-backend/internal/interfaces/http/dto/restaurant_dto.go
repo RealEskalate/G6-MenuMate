@@ -15,8 +15,9 @@ type RestaurantResponse struct {
 	MenuID             string    `json:"menu_id"`
 	About              *string   `json:"about,omitempty"`
 	LogoImage          *string   `json:"logo_image,omitempty"`
-	Tags               []string  `json:"tags,omitempty"`
 	VerificationStatus string    `json:"verification_status"`
+	VerificationDocs   *string   `json:"verification_docs,omitempty"`
+	CoverImage         *string   `json:"cover_image,omitempty"`
 	AverageRating      float64   `json:"average_rating"`
 	ViewCount          int64     `json:"view_count"`
 	CreatedAt          time.Time `json:"created_at"`
@@ -30,11 +31,11 @@ func ToRestaurantResponse(r *domain.Restaurant) *RestaurantResponse {
 		Name:               r.RestaurantName,
 		ManagerID:          r.ManagerID,
 		Phone:              r.RestaurantPhone,
-		MenuID:             r.MenuID,
 		About:              r.About,
 		LogoImage:          r.LogoImage,
-		Tags:               r.Tags,
 		VerificationStatus: string(r.VerificationStatus),
+		VerificationDocs:   r.VerificationDocs,
+		CoverImage:         r.CoverImage,
 		AverageRating:      r.AverageRating,
 		ViewCount:          r.ViewCount,
 		CreatedAt:          r.CreatedAt,
@@ -53,11 +54,11 @@ func ToDomainRestaurant(r *RestaurantResponse) *domain.Restaurant {
 		RestaurantName:     r.Name,
 		ManagerID:          r.ManagerID,
 		RestaurantPhone:    r.Phone,
-		MenuID:             r.MenuID,
 		About:              r.About,
 		LogoImage:          r.LogoImage,
-		Tags:               r.Tags,
 		VerificationStatus: domain.VerificationStatus(r.VerificationStatus),
+		VerificationDocs:   r.VerificationDocs,
+		CoverImage:         r.CoverImage,
 		AverageRating:      r.AverageRating,
 		ViewCount:          r.ViewCount,
 		CreatedAt:          r.CreatedAt,

@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -27,19 +29,59 @@ func IsValidObjectID(id string) bool {
 }
 
 func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
-	var input dto.RestaurantResponse
-	manager := c.GetString("userid")
+	manager := c.GetString("user_id")
 
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	restaurantName := c.PostForm("restaurant_name")
+	if restaurantName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "restaurant_name is required"})
 		return
 	}
-	input.ManagerID = manager
-	r := dto.ToDomainRestaurant(&input)
-	if err := h.RestaurantUsecase.CreateRestaurant(c.Request.Context(), r); err != nil {
+	restaurantPhone := c.PostForm("restaurant_phone")
+	tags := c.PostFormArray("tags")
+	about := c.PostForm("about")
+
+	r := &domain.Restaurant{
+		RestaurantName:  restaurantName,
+		ManagerID:       manager,
+		RestaurantPhone: restaurantPhone,
+		Tags:            tags,
+		About:           &about,
+	}
+
+	// Read files into []byte
+	files := make(map[string][]byte)
+	for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
+		f, err := c.FormFile(field)
+		if err != nil {
+			if err != http.ErrMissingFile {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s: %v", field, err)})
+				return
+			}
+			// Skip if optional field not provided
+			continue
+
+		} else {
+
+			file, err := f.Open()
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s", field)})
+				return
+			}
+			data, err := io.ReadAll(file)
+			file.Close()
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s", field)})
+				return
+			}
+			files[field] = data
+		}
+	}
+
+	if err := h.RestaurantUsecase.CreateRestaurant(c.Request.Context(), r, files); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusCreated, dto.ToRestaurantResponse(r))
 }
 
