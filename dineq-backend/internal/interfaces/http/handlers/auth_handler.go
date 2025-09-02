@@ -104,102 +104,100 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 }
 
 func (ac *AuthController) LoginRequest(c *gin.Context) {
-	var loginRequest dto.LoginRequest
-	if err := c.ShouldBindJSON(&loginRequest); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
-		return
-	}
-	if loginRequest.Identifier == "" || loginRequest.Password == "" {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: domain.ErrPasswordAndEmailRequired.Error()})
-		return
-	}
+    var loginRequest dto.LoginRequest
+    if err := c.ShouldBindJSON(&loginRequest); err != nil {
+        c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+        return
+    }
+    if loginRequest.Identifier == "" || loginRequest.Password == "" {
+        c.JSON(http.StatusBadRequest, dto.ErrorResponse{
+            Message: domain.ErrInvalidInput.Error(),
+            Error:   domain.ErrPasswordAndEmailRequired.Error(),
+        })
+        return
+    }
 
-	// Look up by email / username / phone (repository handles all via $or)
-	user, err := ac.UserUsecase.FindByUsernameOrEmail(c.Request.Context(), loginRequest.Identifier)
-	if err != nil {
-		// Use generic error message for both user not found and password mismatch
-		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error(), Error: err.Error()})
-		return
-	}
+    // Find user by identifier (email | username | phone)
+    user, err := ac.UserUsecase.FindByUsernameOrEmail(c.Request.Context(), loginRequest.Identifier)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error(), Error: err.Error()})
+        return
+    }
 
-	// Validate the password
-	if err := security.ValidatePassword(user.Password, loginRequest.Password); err != nil {
-		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrInvalidCredentials.Error(), Error: err.Error()})
-		return
-	}
+    // Check password
+    if err := security.ValidatePassword(user.Password, loginRequest.Password); err != nil {
+        c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrInvalidCredentials.Error(), Error: err.Error()})
+        return
+    }
 
-	// Generate access and refresh tokens
-	response, err := ac.AuthService.GenerateTokens(*user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrTokenGenerationIssue.Error(), Error: err.Error()})
-		return
-	}
+    // Generate tokens
+    tokens, err := ac.AuthService.GenerateTokens(*user)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrTokenGenerationIssue.Error(), Error: err.Error()})
+        return
+    }
 
-	// Prepare refresh token for DB
-	refreshToken := &domain.RefreshToken{
-		Token:     response.RefreshToken,
-		UserID:    user.ID,
-		Revoked:   false,
-		ExpiresAt: response.RefreshTokenExpiresAt,
-		CreatedAt: time.Now(),
-	}
+    // Build refresh token model
+    rt := &domain.RefreshToken{
+        Token:     tokens.RefreshToken,
+        UserID:    user.ID,
+        Revoked:   false,
+        ExpiresAt: tokens.RefreshTokenExpiresAt,
+        CreatedAt: time.Now(),
+    }
 
-	// Check if the user already has a refresh token in DB
-	existingToken, findErr := ac.RefreshTokenUsecase.FindByUserID(user.ID)
-	if findErr != nil && findErr.Error() != domain.ErrRefreshTokenNotFound.Error() {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: findErr.Error()})
-		return
-	}
-	if findErr != nil && findErr.Error() == domain.ErrRefreshTokenNotFound.Error() {
-		existingToken = nil // Explicitly set to nil if no token is found
-	}
+    // Upsert refresh token (revoke old if exists)
+    if existing, findErr := ac.RefreshTokenUsecase.FindByUserID(user.ID); findErr == nil && existing != nil {
+        _ = ac.RefreshTokenUsecase.RevokeByUserID(existing.UserID)
+        if err := ac.RefreshTokenUsecase.ReplaceToken(rt); err != nil {
+            c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToUpdateToken.Error(), Error: err.Error()})
+            return
+        }
+    } else {
+        if findErr != nil && findErr.Error() != domain.ErrRefreshTokenNotFound.Error() {
+            c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: findErr.Error()})
+            return
+        }
+        if err := ac.RefreshTokenUsecase.Save(rt); err != nil {
+            c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToSaveToken.Error(), Error: err.Error()})
+            return
+        }
+    }
 
-	if existingToken != nil {
-		if err := ac.RefreshTokenUsecase.RevokeByUserID(existingToken.UserID); err != nil {
-			fmt.Printf("warn: failed to revoke old refresh token for user %s: %v\n", existingToken.UserID, err)
-		}
-		// Replace with the new token
-		if err := ac.RefreshTokenUsecase.ReplaceToken(refreshToken); err != nil {
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToUpdateToken.Error(), Error: err.Error()})
-			return
-		}
-	} else {
-		// Save the new refresh token
-		if err := ac.RefreshTokenUsecase.Save(refreshToken); err != nil {
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToSaveToken.Error(), Error: err.Error()})
-			return
-		}
-	}
+    // Set cookies
+    utils.SetCookie(c, utils.CookieOptions{
+        Name:     string(domain.RefreshTokenType),
+        Value:    tokens.RefreshToken,
+        MaxAge:   int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()),
+        Path:     "/",
+        Domain:   ac.CookieDomain,
+        Secure:   ac.CookieSecure,
+        HttpOnly: true,
+        SameSite: http.SameSiteStrictMode,
+    })
+    utils.SetCookie(c, utils.CookieOptions{
+        Name:     string(domain.AccessTokenType),
+        Value:    tokens.AccessToken,
+        MaxAge:   int(time.Until(tokens.AccessTokenExpiresAt).Seconds()),
+        Path:     "/",
+        Domain:   ac.CookieDomain,
+        Secure:   ac.CookieSecure,
+        HttpOnly: true,
+        SameSite: http.SameSiteStrictMode,
+    })
 
-	// Set the refresh token in the cookies
-	utils.SetCookie(c, utils.CookieOptions{
-		Name:     string(domain.RefreshTokenType),
-		Value:    response.RefreshToken,
-		MaxAge:   int(time.Until(response.RefreshTokenExpiresAt).Seconds()),
-		Path:     "/",
-		Domain:   "",
-		Secure:   ac.CookieSecure,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	})
-	// Set the access token in the cookies
-	utils.SetCookie(c, utils.CookieOptions{
-		Name:     string(domain.AccessTokenType),
-		Value:    response.AccessToken,
-		MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
-		Path:     "/",
-		Domain:   "",
-		Secure:   ac.CookieSecure,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	})
-
-	c.JSON(http.StatusOK,
-		dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.LoginResponse{
-			AccessToken:  response.AccessToken,
-			RefreshToken: response.RefreshToken,
-		}})
+    // Unified response shape (matches registration style)
+    c.JSON(http.StatusOK, gin.H{
+        "message": "Login successful",
+        "user":    dto.ToUserResponse(*user),
+        "tokens": dto.LoginResponse{
+            AccessToken:  tokens.AccessToken,
+            RefreshToken: tokens.RefreshToken,
+        },
+    })
 }
+
+// ...existing code below...
 
 func (ac *AuthController) RefreshToken(c *gin.Context) {
 	var req dto.RefreshTokenRequest
