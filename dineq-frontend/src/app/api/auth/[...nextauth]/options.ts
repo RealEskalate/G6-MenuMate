@@ -27,7 +27,7 @@ export const options: NextAuthOptions = {
         }
 
         try {
-          const res = await fetch(`${API_URL}/api/v1/auth/login`, {
+          const res = await fetch(`${API_URL}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -174,4 +174,3 @@ export const options: NextAuthOptions = {
   debug: true,
   // debug: process.env.NODE_ENV !== "production",
 };
-

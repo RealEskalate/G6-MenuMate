@@ -10,7 +10,7 @@ const RestaurnatSetting = () => {
 
   return (
     <div>
-      <NavBar />
+      <NavBar role="OWNER" />
 
       {/*The grid Container for side bar and the main body*/}
       <div className="grid grid-cols-6">

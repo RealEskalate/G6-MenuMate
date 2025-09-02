@@ -5,7 +5,7 @@ import Image from "next/image";
 const AnalyticsPage = () => {
   return (
     <div>
-      <NavBar />
+      <NavBar role="OWNER" />
       {/*The grid Container*/}
       <div className="grid grid-cols-5">
         {/*The first column*/}
