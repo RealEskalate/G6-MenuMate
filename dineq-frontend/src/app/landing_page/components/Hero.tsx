@@ -31,7 +31,7 @@ export default function Hero() {
       <div className="mt-5 w-full px-4 sm:px-0">
         <div className="relative w-full aspect-[4/3] max-w-3xl mx-auto rounded-xl overflow-visible shadow-3xl">
           {/* Main background image made bigger than the container */}
-          <img
+          <Image
             className="absolute inset-0 w-[170%] h-[170%] object-cover -translate-x-1/2 left-1/2 -translate-y-1/2 top-1/2 "
             src="/heropic.png"
             alt="Image of QR code and food"
@@ -39,7 +39,7 @@ export default function Hero() {
 
           {/* Simplified image layout for mobile */}
           <div className="md:hidden absolute bottom-0 w-full px-4 z-20">
-            <img
+            <Image
               className="mx-auto w-[250px] h-[250px] object-contain"
               src="/heropic.png"
               alt="Phone with the app"

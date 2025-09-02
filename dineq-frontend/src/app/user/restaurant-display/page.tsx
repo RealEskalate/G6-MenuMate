@@ -7,10 +7,7 @@ import Link from 'next/link';
 
 
 
-interface RestaurantCardProps extends Restaurant {}
-
-
-const RestaurantCard: React.FC<RestaurantCardProps> =(props) => {
+const RestaurantCard: React.FC<Restaurant> =(props) => {
     const fullStars = Math.floor(props.averageRating);
     const hasHalfStar = props.averageRating % 1 >= 0.5;
     const totalStars = 5;

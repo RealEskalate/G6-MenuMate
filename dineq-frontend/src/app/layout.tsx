@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Playfair_Display, Lobster, Poppins, Nunito } from "next/font/google";
+import { Playfair_Display,  Poppins,  } from "next/font/google";
 
 // Headings font (choose Playfair Display or Lobster)
 const playfair = Playfair_Display({
@@ -9,11 +9,6 @@ const playfair = Playfair_Display({
   variable: "--font-headings",
 });
 
-const lobster = Lobster({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-headings",
-});
 
 // Body font (choose Poppins or Nunito)
 const poppins = Poppins({
@@ -22,11 +17,7 @@ const poppins = Poppins({
   variable: "--font-body",
 });
 
-const nunito = Nunito({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-body",
-});
+
 
 export const metadata: Metadata = {
   title: "MenuMate",

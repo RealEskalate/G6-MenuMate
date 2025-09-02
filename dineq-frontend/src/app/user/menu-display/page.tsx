@@ -3,9 +3,9 @@ import Image from 'next/image'
 import foods from '@/data/food'
 import { FoodType } from '../../../Types/foods'
 
-interface FoodCardProps extends FoodType {}
 
-const FoodItem :React.FC<FoodCardProps> =(props) => {
+
+const FoodItem :React.FC<FoodType> =(props) => {
   return (
     <>
 

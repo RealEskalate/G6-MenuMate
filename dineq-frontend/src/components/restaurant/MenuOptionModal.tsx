@@ -16,17 +16,17 @@ export default function MenuOptionModal({ isOpen, onClose }: MenuOptionModalProp
 
         <div className="flex justify-center gap-10">
           {/* OCR Option */}
-          <Link href="/dashboard/menu/ocr_menu" className="group">
+          <Link href="/restaurant/dashboard/menu/ocr_menu" className="group">
             <div className="w-40 h-40 border border-orange-300 rounded-xl flex flex-col items-center justify-center gap-3 hover:shadow-lg hover:border-orange-500 transition">
-              <Image src="/icons/scan_ocr.jpg" alt="Scan OCR" className="w-12 h-12 text-orange-500" />
+              <Image src="/icons/scan_ocr.jpg" alt="Scan OCR" width={24} height={24} className="w-12 h-12 text-orange-500" />
               <p className="text-sm font-medium">Scan with OCR</p>
             </div>
           </Link>
 
           {/* Manual Option */}
-          <Link href="/dashboard/menu/manual_menu" className="group">
+          <Link href="/restaurant/dashboard/menu/manual_menu" className="group">
             <div className="w-40 h-40 border border-orange-300 rounded-xl flex flex-col items-center justify-center gap-3 hover:shadow-lg hover:shadow-[0_4px_12px_#ffead4] hover:border-orange-500 transition">
-              <Image src="/icons/create_manually.png" alt="Create manually" className="w-12 h-12 text-orange-500" />
+              <Image src="/icons/create_manually.png" alt="Create manually" width={24} height={24} className="w-12 h-12 text-orange-500" />
               <p className="text-sm font-medium">Create manually</p>
             </div>
           </Link>

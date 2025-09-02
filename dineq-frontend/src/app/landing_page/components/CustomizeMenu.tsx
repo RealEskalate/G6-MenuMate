@@ -38,7 +38,7 @@ export default function CustomizeMenu() {
           animate={inView ? { x: 0, opacity: 1 } : { x: 50, opacity: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <img
+          <Image
             src="/orignalMenuVsDigitalMenu.png"
             alt="Old menu Vs Digital Menu"
             className="w-full h-full object-contain"

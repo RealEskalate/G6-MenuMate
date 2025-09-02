@@ -1,4 +1,4 @@
-// src\app\user\single-restaurant-display\page.tsx
+// src/app/user/single-restaurant-display/page.tsx
 
 import { notFound } from "next/navigation";
 import Image from "next/image";
@@ -13,8 +13,6 @@ interface Props {
 }
 
 export default function SingleRestaurant({ params }: Props) {
-  // Correctly compare the string id from the URL with the string id in your data.
-  // The 'r && r.id' check remains a good practice to prevent runtime errors.
   const restaurant = RestaurantData.find((r) => r && r.id === params.id);
 
   if (!restaurant) return notFound();

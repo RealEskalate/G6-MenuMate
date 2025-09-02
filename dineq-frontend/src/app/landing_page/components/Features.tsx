@@ -11,7 +11,7 @@ export default function Features() {
         "Update your menu in seconds - no more reprinting or wasting money. Keep everything fresh and up to date with just a click.",
       content: (
         <div className="mt-6 bg-white p-4 rounded-xl shadow-md flex items-center space-x-4 border border-gray-100">
-          <img
+          <Image
             src="/sambusa.png"
             alt="Sambusa dish"
             className="rounded-lg object-cover w-16 h-16 sm:w-20 sm:h-20"
@@ -35,7 +35,7 @@ export default function Features() {
       content: (
         <div className="mt-6 flex justify-center">
           <div className="flex items-center space-x-4 p-4 border border-gray-300 rounded-2xl shadow-sm">
-            <img
+            <Image
               src="/Google Translate.png"
               alt="Translate icon"
               className="w-8 h-8 sm:w-10 sm:h-10"
@@ -55,7 +55,7 @@ export default function Features() {
         "All your menus, reviews, and insights in one place. Manage with ease, whether you have one branch or many.",
       content: (
         <div className="mt-2">
-          <img
+          <Image
             src="/analyticsOnPc.png"
             alt="Analytics dashboard on a computer screen"
             className="w-full object-cover rounded-xl"
@@ -71,7 +71,7 @@ export default function Features() {
         "Highlight today&apos;s specials or limited-time offers. Make sure customers never miss out on what's new and exciting.",
       content: (
         <div className="mt-2 flex justify-center">
-          <img
+          <Image
             src="/fiftyPercentOff.png"
             alt="50% Off promotion graphic"
             className="w-32 sm:w-48 lg:w-56"

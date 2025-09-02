@@ -14,23 +14,23 @@ export default function NoMoreGuessing() {
           FREE.
         </p>
         <div className="mt-8 flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4">
-          <a
+          <Link
             href="#"
             className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600 transition-colors duration-200"
           >
             Download on the App Store
-          </a>
-          <a
+          </Link>
+          <Link
             href="#"
             className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600 transition-colors duration-200"
           >
             Get it on Google Play
-          </a>
+          </Link>
         </div>
 
         {/* Mobile-only view with a single phone */}
         <div className="relative z-10 mt-4 flex justify-center items-end md:hidden">
-          <img
+          <Image
             className="relative z-10 w-48 sm:w-60"
             src="/nearByRestaurant.png"
             alt="Phone Middle"
@@ -40,7 +40,7 @@ export default function NoMoreGuessing() {
 
       {/* Desktop-only view with three phones, aligned to bottom */}
       <div className="hidden md:flex justify-center items-end">
-        <img
+        <Image
           className="w-[2500px] max-w-[95%] h-auto"
           src="/Threephones.png"
           alt="Phones"

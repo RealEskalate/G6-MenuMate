@@ -6,7 +6,7 @@ export default function ProfileSettings() {
       {/* Branding */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Branding</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm mb-1">Primary color</label>
             <input
@@ -20,7 +20,7 @@ export default function ProfileSettings() {
             <input
               type="text"
               defaultValue="#YY3424"
-              className="w-full border border-gray-300  rounded-lg px-3 py-2"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2"
             />
           </div>
         </div>
@@ -29,10 +29,10 @@ export default function ProfileSettings() {
       {/* Menu Preferences */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Menu Preferences</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm mb-1">Default currency</label>
-            <select className="w-full border border-gray-300  rounded-lg px-3 py-2">
+            <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
               <option>ETB</option>
               <option>USD</option>
               <option>EUR</option>
@@ -40,14 +40,16 @@ export default function ProfileSettings() {
           </div>
           <div>
             <label className="block text-sm mb-1">Default language</label>
-            <select className="w-full border border-gray-300  rounded-lg px-3 py-2">
+            <select className="w-full border border-gray-300 rounded-lg px-3 py-2">
               <option>English</option>
               <option>Amharic</option>
               <option>French</option>
             </select>
           </div>
-          <div>
-            <label className="block text-sm mb-1">Default VAT/Service Charge (%)</label>
+          <div className="sm:col-span-2">
+            <label className="block text-sm mb-1">
+              Default VAT/Service Charge (%)
+            </label>
             <input
               type="text"
               defaultValue="15%"

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Utensils } from "lucide-react"; // icon
+// import { Utensils } from "lucide-react"; // icon
 import Image from "next/image";
 
 const Footer = () => {

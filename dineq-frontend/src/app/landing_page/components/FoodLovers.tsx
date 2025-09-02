@@ -17,7 +17,7 @@ export default function FoodLovers() {
           animate={inView ? { x: 0, opacity: 1 } : { x: 50, opacity: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <img
+          <Image
             src="/foodFestival.png"
             alt="Food Festival image"
             className="w-full h-full object-contain"
