@@ -9,6 +9,7 @@ import { Mail, Lock, Unlock } from "lucide-react";
 import LoginImage from "@/components/auth/page";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const schema = z.object({
   email: z.string().email("Invalid email address"),
@@ -35,7 +36,7 @@ export default function LoginPage() {
 
     const res = await signIn("credentials", {
       redirect: false,
-      callbackUrl: "/dashboard/menu",
+      callbackUrl: "/auth/signin",
       identifier: data.email,
       password: data.password,
     });
@@ -44,12 +45,10 @@ export default function LoginPage() {
       console.log("Login successful, redirecting...");
       const session = await getSession();
 
-      if (session?.user.role === "user") {
-        router.push("/user/restaurant/food-display");
-      } else if (session?.user.role === "OWNER") {
+      if (session?.user.role === "CUSTOMER") {
+        router.push("/user");
+      }  else {
         router.push("/restaurant/dashboard");
-      } else {
-        router.push("/user/dashboard");
       }
     } else {
       console.log("Sign-in error:", res.error);
@@ -117,9 +116,9 @@ export default function LoginPage() {
           )}
 
           <div className="text-right mb-4">
-            <a href="#" className="text-sm text-orange-500 hover:underline">
+            <Link href="" className="text-sm text-orange-500 hover:underline">
               Forgot password?
-            </a>
+            </Link>
           </div>
 
           {/* Login Button */}
@@ -133,12 +132,12 @@ export default function LoginPage() {
 
           <p className="text-sm mt-4 text-center">
             Don’t have an account?{" "}
-            <a
-              href="/signup"
+            <Link
+              href="/user-routes/whoareyou"
               className="text-orange-500 font-medium hover:underline"
             >
               Register
-            </a>
+            </Link>
           </p>
 
           <div className="my-6 flex items-center">
@@ -151,7 +150,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => {
-              window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/google/login`;
+              window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google/login`;
             }}
             className="flex items-center justify-center w-full border rounded-lg py-2 
             hover:bg-gray-50 transition"
