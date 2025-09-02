@@ -31,20 +31,25 @@ export default function NoMoreGuessing() {
         {/* Mobile-only view with a single phone */}
         <div className="relative z-10 mt-4 flex justify-center items-end md:hidden">
           <Image
-            className="relative z-10 w-48 sm:w-60"
             src="/nearByRestaurant.png"
             alt="Phone Middle"
+            width={192}
+            height={384}
+            className="relative z-10 w-48 sm:w-60"
           />
         </div>
       </div>
 
       {/* Desktop-only view with three phones, aligned to bottom */}
       <div className="hidden md:flex justify-center items-end">
-        <Image
-          className="w-[2500px] max-w-[95%] h-auto"
-          src="/Threephones.png"
-          alt="Phones"
-        />
+        <div className="relative w-[1200px] h-[500px] max-w-[95%]"> {/* Give a fixed height */}
+          <Image
+            src="/Threephones.png"
+            alt="Phones"
+            fill
+            style={{ objectFit: "contain" }}
+          />
+        </div>
       </div>
     </section>
   );
