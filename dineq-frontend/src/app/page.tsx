@@ -7,15 +7,16 @@ import SingleRestaurant from "./user/restaurant-display/[id]/page";
 import NavBar from "@/components/common/NavBar";
 
 
+
 export default function Home() {
   return (
     <div>
+      {/* <NavBar role={"user"}/> */}
       <LandingPage />
       {/* <Restaurants/> */}
       {/* <WhoAreYou/> */}
       {/* <EmailVerification/> */}
       {/* <FoodCard/> */}
-      <NavBar role={"user"}/>
       {/* <SingleRestaurant/> */}
     </div>
   );
