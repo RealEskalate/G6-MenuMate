@@ -126,7 +126,7 @@ func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 	}
 
 	// if menu creation successful let give it back the menu
-	menu, err := h.MenuUseCase.GetMenuByID(job.StructuredMenuID)
+	menu, err := h.MenuUseCase.GetByRestaurantID(job.RestaurantID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToGetMenu.Error(), Error: err.Error()})
 		return
@@ -138,5 +138,5 @@ func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.MenuToDTO(menu)})
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.MenuToResponse(menu)})
 }

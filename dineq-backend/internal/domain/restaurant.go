@@ -11,7 +11,6 @@ type Restaurant struct {
 	RestaurantName     string
 	ManagerID          string
 	RestaurantPhone    string
-	MenuID             string
 	Location           Address
 	About              *string
 	LogoImage          *string

@@ -4,38 +4,39 @@ import (
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type ItemDB struct {
-	ID              string    `bson:"_id"`
-	Name            string    `bson:"name"`
-	NameAm          string    `bson:"nameAm"`
-	Slug            string    `bson:"slug"`
-	CategoryID      string    `bson:"categoryId"`
-	Description     string    `bson:"description"`
-	DescriptionAm   string    `bson:"descriptionAm"`
-	Image           []string  `bson:"image"`
-	Price           float64   `bson:"price"`
-	Currency        string    `bson:"currency"`
-	Allergies       []string  `bson:"allergies"`
-	UserImages      []string  `bson:"userImages"`
-	Calories        int       `bson:"calories"`
-	Ingredients     []string  `bson:"ingredients"`
-	IngredientsAm   []string  `bson:"ingredientsAm"`
-	PreparationTime int       `bson:"preparationTime"`
-	HowToEat        any       `bson:"howToEat"`
-	HowToEatAm      any       `bson:"howToEatAm"`
-	CreatedAt       time.Time `bson:"createdAt"`
-	UpdatedAt       time.Time `bson:"updatedAt"`
-	IsDeleted       bool      `bson:"isDeleted"`
-	ViewCount       int       `bson:"viewCount"`
-	AverageRating   float64   `bson:"averageRating"`
-	ReviewIDs       []string  `bson:"reviewIds"`
+	ID              bson.ObjectID `bson:"_id"`
+	Name            string        `bson:"name"`
+	NameAm          string        `bson:"nameAm"`
+	Slug            string        `bson:"slug"`
+	CategoryID      string        `bson:"categoryId"`
+	Description     string        `bson:"description"`
+	DescriptionAm   string        `bson:"descriptionAm"`
+	Image           []string      `bson:"image"`
+	Price           float64       `bson:"price"`
+	Currency        string        `bson:"currency"`
+	Allergies       []string      `bson:"allergies"`
+	UserImages      []string      `bson:"userImages"`
+	Calories        int           `bson:"calories"`
+	Ingredients     []string      `bson:"ingredients"`
+	IngredientsAm   []string      `bson:"ingredientsAm"`
+	PreparationTime int           `bson:"preparationTime"`
+	HowToEat        any           `bson:"howToEat"`
+	HowToEatAm      any           `bson:"howToEatAm"`
+	CreatedAt       time.Time     `bson:"createdAt"`
+	UpdatedAt       time.Time     `bson:"updatedAt"`
+	IsDeleted       bool          `bson:"isDeleted"`
+	ViewCount       int           `bson:"viewCount"`
+	AverageRating   float64       `bson:"averageRating"`
+	ReviewIDs       []string      `bson:"reviewIds"`
 }
 
 func FromDomainItem(item *domain.Item) *ItemDB {
 	return &ItemDB{
-		ID:              item.ID,
+		ID:              idempotentID(item.ID),
 		Name:            item.Name,
 		NameAm:          item.NameAm,
 		Slug:            item.Slug,
@@ -64,7 +65,7 @@ func FromDomainItem(item *domain.Item) *ItemDB {
 
 func ToDomainItem(item *ItemDB) *domain.Item {
 	return &domain.Item{
-		ID:              item.ID,
+		ID:              item.ID.Hex(),
 		Name:            item.Name,
 		NameAm:          item.NameAm,
 		Slug:            item.Slug,
