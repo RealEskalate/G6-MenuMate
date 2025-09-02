@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Playfair_Display,  Poppins,  } from "next/font/google";
+import { Playfair_Display, Poppins } from "next/font/google";
 
 // Headings font (choose Playfair Display or Lobster)
 const playfair = Playfair_Display({
@@ -9,15 +9,12 @@ const playfair = Playfair_Display({
   variable: "--font-headings",
 });
 
-
 // Body font (choose Poppins or Nunito)
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   variable: "--font-body",
 });
-
-
 
 export const metadata: Metadata = {
   title: "MenuMate",
@@ -30,10 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${playfair.variable} ${poppins.variable}`}
-    >
+    <html lang="en" className={`${playfair.variable} ${poppins.variable}`}>
       <body className="font-body">{children}</body>
     </html>
   );
