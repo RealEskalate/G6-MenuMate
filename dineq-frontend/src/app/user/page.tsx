@@ -1,7 +1,7 @@
 import React from 'react'
 import Image from 'next/image'
 import RestaurantData from "@/data/RestaurantData"
-import { Restaurant } from '../../../Types/restaurants';
+import { Restaurant } from '../../Types/restaurants';
 import { FaStar, FaRegStar } from "react-icons/fa";
 import Link from 'next/link';
 
