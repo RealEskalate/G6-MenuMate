@@ -27,7 +27,7 @@ export const options: NextAuthOptions = {
         }
 
         try {
-          const res = await fetch(`${API_URL}/api/v1/auth/login`, {
+          const res = await fetch(`${API_URL}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -117,7 +117,7 @@ export const options: NextAuthOptions = {
           if (!token.refreshToken) {
             throw new Error("No refresh token available");
           }
-          const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+          const res = await fetch(`${API_URL}/auth/refresh`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ refresh_token: token.refreshToken }),
@@ -165,7 +165,7 @@ export const options: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       // If it’s an internal callback, just go to the dashboard
       if (url.startsWith(baseUrl)) {
-        return `${baseUrl}/dashboard/menu`;
+        return `${baseUrl}git `;
       }
       return baseUrl;
     },

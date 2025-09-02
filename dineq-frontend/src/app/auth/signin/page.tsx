@@ -46,10 +46,8 @@ export default function LoginPage() {
 
       if (session?.user.role === "CUSTOMER") {
         router.push("/user");
-      } else if (session?.user.role === "OWNER") {
-        router.push("/restaurant/dashboard");
-      } else {
-        router.push("/user/dashboard");
+      }  else {
+        router.push("/restaurant");
       }
     } else {
       console.log("Sign-in error:", res.error);
