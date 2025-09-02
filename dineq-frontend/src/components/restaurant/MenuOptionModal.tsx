@@ -25,7 +25,7 @@ export default function MenuOptionModal({ isOpen, onClose }: MenuOptionModalProp
 
           {/* Manual Option */}
           <Link href="/restaurant/dashboard/menu/manual_menu" className="group">
-            <div className="w-40 h-40 border border-orange-300 rounded-xl flex flex-col items-center justify-center gap-3 hover:shadow-lg hover:shadow-[0_4px_12px_#ffead4] hover:border-orange-500 transition">
+            <div className="w-40 h-40 border border-orange-300 rounded-xl flex flex-col items-center justify-center gap-3  hover:shadow-[0_4px_12px_#ffead4] hover:border-orange-500 transition">
               <Image src="/icons/create_manually.png" alt="Create manually" width={24} height={24} className="w-12 h-12 text-orange-500" />
               <p className="text-sm font-medium">Create manually</p>
             </div>
