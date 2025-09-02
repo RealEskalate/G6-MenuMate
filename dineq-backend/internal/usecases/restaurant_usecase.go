@@ -2,28 +2,53 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
 )
 
 type RestaurantUsecase struct {
-	Repo       domain.IRestaurantRepo
-	ctxtimeout time.Duration
+	Repo           domain.IRestaurantRepo
+	StorageService services.StorageService
+	ctxtimeout     time.Duration
 }
 
-func NewRestaurantUsecase(r domain.IRestaurantRepo, timeout time.Duration) domain.IRestaurantUsecase {
+func NewRestaurantUsecase(r domain.IRestaurantRepo, timeout time.Duration, storage services.StorageService) domain.IRestaurantUsecase {
 	return &RestaurantUsecase{
-		Repo:       r,
-		ctxtimeout: timeout,
+		Repo:           r,
+		StorageService: storage,
+		ctxtimeout:     timeout,
 	}
 }
 
-func (s *RestaurantUsecase) CreateRestaurant(ctx context.Context, r *domain.Restaurant) error {
+func (s *RestaurantUsecase) CreateRestaurant(ctx context.Context, r *domain.Restaurant, files map[string][]byte) error {
 	r.Slug = utils.GenerateSlug(r.RestaurantName)
-	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
+	c, cancel := context.WithTimeout(ctx, s.ctxtimeout*5)
 	defer cancel()
+
+	for fieldName, fileData := range files {
+		if len(fileData) == 0 {
+			continue // skip empty files
+		}
+
+		url, _, err := s.StorageService.UploadFile(context.Background(), fmt.Sprintf("%s_%d", fieldName, time.Now().UnixNano()), fileData, "restaurant_images")
+		if err != nil {
+			return fmt.Errorf("failed to upload %s: %w", fieldName, err)
+		}
+		fmt.Print("field:" + fieldName)
+		switch fieldName {
+		case "logo_image":
+			r.LogoImage = &url
+		case "verification_docs":
+			r.VerificationDocs = &url
+		case "cover_image":
+			r.CoverImage = &url
+		}
+	}
+
 	return s.Repo.Create(c, r)
 }
 

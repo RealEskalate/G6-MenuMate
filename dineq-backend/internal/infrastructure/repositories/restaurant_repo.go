@@ -80,9 +80,7 @@ func (repo *RestaurantRepo) Update(ctx context.Context, r *domain.Restaurant) er
 			"phone":               model.Phone,
 			"about":               model.About,
 			"logo_image":          model.LogoImage,
-			"tags":                model.Tags,
 			"verification_status": model.VerificationStatus,
-			"menu_id":             model.MenuID,
 			"updated_at":          model.UpdatedAt,
 		},
 	}

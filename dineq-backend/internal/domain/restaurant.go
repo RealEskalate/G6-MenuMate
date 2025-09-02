@@ -11,13 +11,13 @@ type Restaurant struct {
 	RestaurantName     string
 	ManagerID          string
 	RestaurantPhone    string
-	MenuID             string
 	Location           Address
 	About              *string
 	LogoImage          *string
 	Tags               []string
 	VerificationStatus VerificationStatus
-	VerificationDocs   []Document
+	VerificationDocs   *string
+	CoverImage         *string
 	AverageRating      float64
 	ViewCount          int64
 	CreatedAt          time.Time
@@ -60,7 +60,7 @@ type IRestaurantRepo interface {
 }
 
 type IRestaurantUsecase interface {
-	CreateRestaurant(ctx context.Context, r *Restaurant) error
+	CreateRestaurant(ctx context.Context, r *Restaurant, files map[string][]byte) error
 	UpdateRestaurant(ctx context.Context, r *Restaurant) error
 	DeleteRestaurant(ctx context.Context, id string, manager string) error
 	GetRestaurantBySlug(ctx context.Context, slug string) (*Restaurant, error)

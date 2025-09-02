@@ -38,7 +38,7 @@ func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 		}
 
 		// Set user ID and role in the context for further use
-		c.Set("userId", claims["sub"].(string))
+		c.Set("user_id", claims["sub"].(string))
 		if role, ok := claims["role"]; ok {
 			c.Set("role", role.(string))
 		}

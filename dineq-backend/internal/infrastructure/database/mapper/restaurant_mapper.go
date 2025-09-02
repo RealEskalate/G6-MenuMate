@@ -1,34 +1,36 @@
 package mapper
 
 import (
+	"fmt"
+
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // RestaurantModel represents the MongoDB model for a restaurant
 type RestaurantModel struct {
-	ID                 bson.ObjectID   `bson:"_id,omitempty"`
-	Slug               string          `bson:"slug"`
-	Name               string          `bson:"name"`
-	ManagerID          bson.ObjectID   `bson:"manager_id"`
-	Phone              string          `bson:"phone"`
-	MenuID             bson.ObjectID   `bson:"menu_id,omitempty"`
-	Location           domain.Address  `bson:"location"`
-	About              string          `bson:"about"`
-	LogoImage          string          `bson:"logo_image"`
-	Tags               []bson.ObjectID `bson:"tags"`
-	VerificationStatus string          `bson:"verification_status"`
-	VerificationDocs   []bson.ObjectID `bson:"verification_docs"`
-	AverageRating      float64         `bson:"average_rating"`
-	ViewCount          int64           `bson:"view_count"`
-	CreatedAt          bson.DateTime   `bson:"created_at"`
-	UpdatedAt          bson.DateTime   `bson:"updated_at"`
-	IsDeleted          bool            `bson:"is_deleted"`
+	ID                 bson.ObjectID  `bson:"_id,omitempty"`
+	Slug               string         `bson:"slug"`
+	Name               string         `bson:"name"`
+	ManagerID          bson.ObjectID  `bson:"manager_id"`
+	Phone              string         `bson:"phone"`
+	Location           domain.Address `bson:"location"`
+	About              string         `bson:"about"`
+	LogoImage          string         `bson:"logo_image"`
+	VerificationStatus string         `bson:"verification_status"`
+	VerificationDocs   string         `bson:"verification_docs"`
+	CoverImage         string         `bson:"cover_image"`
+	AverageRating      float64        `bson:"average_rating"`
+	ViewCount          int64          `bson:"view_count"`
+	CreatedAt          bson.DateTime  `bson:"created_at"`
+	UpdatedAt          bson.DateTime  `bson:"updated_at"`
+	IsDeleted          bool           `bson:"is_deleted"`
 }
 
 // Parse converts domain.Restaurant → RestaurantModel
 func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 	managerOID, err := bson.ObjectIDFromHex(r.ManagerID)
+	fmt.Println("manager", r.ManagerID)
 	if err != nil {
 		return err
 	}
@@ -38,16 +40,6 @@ func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 	m.Name = r.RestaurantName
 	m.ManagerID = managerOID
 	m.Phone = r.RestaurantPhone
-
-	if r.MenuID != "" {
-		menuOID, err := bson.ObjectIDFromHex(r.MenuID)
-		if err != nil {
-			return err
-		}
-		m.MenuID = menuOID
-	} else {
-		m.MenuID = bson.ObjectID{} // zero value
-	}
 
 	m.Location = r.Location
 	m.About = ""
@@ -59,24 +51,13 @@ func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 		m.LogoImage = *r.LogoImage
 	}
 
-	// Convert Tags
-	m.Tags = make([]bson.ObjectID, len(r.Tags))
-	for i, hexID := range r.Tags {
-		oid, err := bson.ObjectIDFromHex(hexID)
-		if err != nil {
-			return err
-		}
-		m.Tags[i] = oid
+	m.VerificationDocs = ""
+	if r.VerificationDocs != nil {
+		m.VerificationDocs = *r.VerificationDocs
 	}
-
-	// Convert VerificationDocs
-	m.VerificationDocs = make([]bson.ObjectID, len(r.VerificationDocs))
-	for i, doc := range r.VerificationDocs {
-		oid, err := bson.ObjectIDFromHex(doc.ID)
-		if err != nil {
-			return err
-		}
-		m.VerificationDocs[i] = oid
+	m.CoverImage = ""
+	if r.CoverImage != nil {
+		m.CoverImage = *r.CoverImage
 	}
 
 	m.VerificationStatus = string(r.VerificationStatus)
@@ -99,10 +80,10 @@ func (m *RestaurantModel) ToDomain() *domain.Restaurant {
 		RestaurantPhone:    m.Phone,
 		Location:           m.Location,
 		About:              nil,
-		LogoImage:          nil,
-		Tags:               make([]string, len(m.Tags)),
+		LogoImage:          &m.LogoImage,
 		VerificationStatus: domain.VerificationStatus(m.VerificationStatus),
-		VerificationDocs:   make([]domain.Document, len(m.VerificationDocs)),
+		VerificationDocs:   &m.VerificationDocs,
+		CoverImage:         &m.CoverImage,
 		AverageRating:      m.AverageRating,
 		ViewCount:          m.ViewCount,
 		CreatedAt:          m.CreatedAt.Time(),
@@ -115,18 +96,6 @@ func (m *RestaurantModel) ToDomain() *domain.Restaurant {
 	}
 	if m.LogoImage != "" {
 		r.LogoImage = &m.LogoImage
-	}
-
-	for i, oid := range m.Tags {
-		r.Tags[i] = oid.Hex()
-	}
-	for i, oid := range m.VerificationDocs {
-		r.VerificationDocs[i] = domain.Document{ID: oid.Hex()}
-	}
-	if !m.MenuID.IsZero() {
-		r.MenuID = m.MenuID.Hex()
-	} else {
-		r.MenuID = ""
 	}
 
 	return r
