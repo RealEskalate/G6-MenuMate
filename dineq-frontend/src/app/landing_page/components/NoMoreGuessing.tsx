@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function NoMoreGuessing() {
   return (
-    <section className="bg-orange-100 h-[48rem] py-16 md:py-24">
+    <section className="bg-orange-100 pt-16 md:pt-24 flex flex-col justify-between">
       <div className="container mx-auto px-6 text-center">
         <h2 className="text-3xl font-bold text-gray-800">
           No More Guessing What&lsquo;s on the Menu
@@ -13,46 +13,41 @@ export default function NoMoreGuessing() {
           real photos, translations, prices, and reviews — all in one place for
           FREE.
         </p>
-        <div className="mt-12 flex justify-center space-x-4">
+        <div className="mt-8 flex flex-col md:flex-row justify-center space-y-4 md:space-y-0 md:space-x-4">
           <Link
             href="#"
-            className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600"
+            className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600 transition-colors duration-200"
           >
             Download on the App Store
           </Link>
           <Link
             href="#"
-            className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600"
+            className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600 transition-colors duration-200"
           >
             Get it on Google Play
           </Link>
         </div>
-        <div className="relative z-10 mt-8 flex justify-center items-end overflow-hidden">
-          {/* Left phone */}
-          <Image
-            className="relative z-0 translate-x-11 scale-100"
-            src="/nearByRestaurant.png"
-            alt="Phone Left"
-            width={220}
-            height={440}
-          />
 
-          {/* Middle phone */}
+        {/* Mobile-only view with a single phone */}
+        <div className="relative z-10 mt-4 flex justify-center items-end md:hidden">
           <Image
-            className="relative z-10"
             src="/nearByRestaurant.png"
             alt="Phone Middle"
-            width={250}
-            height={500}
+            width={192}
+            height={384}
+            className="relative z-10 w-48 sm:w-60"
           />
+        </div>
+      </div>
 
-          {/* Right phone */}
+      {/* Desktop-only view with three phones, aligned to bottom */}
+      <div className="hidden md:flex justify-center items-end">
+        <div className="relative w-[1200px] h-[500px] max-w-[95%]"> {/* Give a fixed height */}
           <Image
-            className="relative z-0 -translate-x-11 scale-100"
-            src="/nearByRestaurant.png"
-            alt="Phone Right"
-            width={220}
-            height={440}
+            src="/Threephones.png"
+            alt="Phones"
+            fill
+            style={{ objectFit: "contain" }}
           />
         </div>
       </div>

@@ -26,32 +26,29 @@ export default function Hero() {
           I&lsquo;m a Restaurant
         </Link>
       </div>
-      <div
-        className="absolute bottom-30 left-1/2 transform -translate-x-1/2 translate-y-1/2 
-                  w-full max-w-3xl z-10"
-      >
-        <div className="relative overflow-hidden bg-gray-300 h-127 rounded-lg flex items-center justify-center shadow-lg">
-          <Image
-            className="object-cover"
-            src="/qrCodeAndFood.png"
-            alt="Image of Qrcode and Food"
-            fill
-          />
-          <div className="absolute -bottom-40 z-5 ">
+
+      {/* Responsive image section */}
+      <div className="mt-5 w-full px-4 sm:px-0">
+        <div className="relative w-full aspect-[4/3] max-w-3xl mx-auto rounded-xl overflow-visible shadow-3xl">
+          {/* Main background image */}
+          <div className="relative w-[170%] h-[170%] -translate-x-1/2 left-1/2 -translate-y-1/2 top-1/2">
             <Image
-              src="/hpEnvy.png"
-              alt="Laptop with the Dinq application open"
-              width={450}
-              height={450}
-            ></Image>
+              src="/heropic.png"
+              alt="Image of QR code and food"
+              fill
+              style={{ objectFit: "cover" }}
+            />
           </div>
-          <div className="absolute -bottom-7 z-5">
+
+          {/* Simplified image layout for mobile */}
+          <div className="md:hidden absolute bottom-0 w-full px-4 z-20">
             <Image
-              src="/tecnoSpark4.png"
-              alt="Tecno spark 4 phone with the app"
-              width={200}
-              height={200}
-            ></Image>
+              src="/heropic.png"
+              alt="Phone with the app"
+              width={250}
+              height={250}
+              className="mx-auto object-contain"
+            />
           </div>
         </div>
       </div>
