@@ -5,7 +5,8 @@
 
 // export const redirectUser = async () => {
 //   const router = useRouter();
-//   const session = await getSession();
+//   const session = await getSession()
+// ;
 
 //   if (session?.user.role === "user") {
 //     router.push("/user/restaurant/food-display");
