@@ -7,7 +7,7 @@ import FoodLovers from "./components/FoodLovers";
 import NoMoreGuessing from "./components/NoMoreGuessing";
 import Features from "./components/Features";
 import Pricing from "./components/Pricing";
-import Footer from "./components/Footer";
+import Footer from "@/components/common/Footer";
 
 export default function LandingPage() {
   return (
