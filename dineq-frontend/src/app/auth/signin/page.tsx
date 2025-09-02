@@ -47,7 +47,7 @@ export default function LoginPage() {
       if (session?.user.role === "CUSTOMER") {
         router.push("/user");
       }  else {
-        router.push("/restaurant");
+        router.push("/restaurant/dashboard");
       }
     } else {
       console.log("Sign-in error:", res.error);
@@ -149,7 +149,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => {
-              window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/auth/google/login`;
+              window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google/login`;
             }}
             className="flex items-center justify-center w-full border rounded-lg py-2 
             hover:bg-gray-50 transition"
