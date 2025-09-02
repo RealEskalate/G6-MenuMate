@@ -41,7 +41,8 @@ export default function CustomizeMenu() {
           <Image
             src="/orignalMenuVsDigitalMenu.png"
             alt="Old menu Vs Digital Menu"
-            className="w-full h-full object-contain"
+            fill
+            style={{ objectFit: "contain" }} // preserves the original object-contain behavior
           />
         </motion.div>
       </div>
