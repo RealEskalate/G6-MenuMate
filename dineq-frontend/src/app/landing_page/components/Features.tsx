@@ -111,7 +111,7 @@ export default function Features() {
               </h3>
               <p className="mt-2 text-gray-600">
                 Highlight today&apos;s specials or limited-time offers. Make
-                sure customers never miss out on what's new and exciting.
+                sure customers never miss out on what&apos;s new and exciting.
               </p>
             </div>
             <div className="mt-6 flex justify-center">

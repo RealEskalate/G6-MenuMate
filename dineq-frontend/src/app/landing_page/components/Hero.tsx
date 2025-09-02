@@ -1,3 +1,4 @@
+import Link from "next/link";
 import Image from "next/image";
 
 export default function Hero() {
@@ -12,18 +13,18 @@ export default function Hero() {
         before you order.
       </p>
       <div className="mt-8 flex justify-center space-x-4">
-        <a
-          href="#"
+        <Link
+          href="/"
           className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600"
         >
-          I'm a Customer
-        </a>
-        <a
+          I&lsquo;m a Customer
+        </Link>
+        <Link
           href="#"
           className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-100"
         >
-          I'm a Restaurant
-        </a>
+          I&lsquo;m a Restaurant
+        </Link>
       </div>
       <div
         className="absolute bottom-30 left-1/2 transform -translate-x-1/2 translate-y-1/2 

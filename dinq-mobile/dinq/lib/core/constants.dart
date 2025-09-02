@@ -1,0 +1,1 @@
+const String baseUrl = 'https://dineq-backend.onrender.com/api/v1';
