@@ -1,9 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import { Pencil } from "lucide-react";
 import SectionDetailsForm from "../../../app/restaurant/dashboard/menu/edit-menu/SectionDetailsForm";
 import MenuCategory from "../../../app/restaurant/dashboard/menu/edit-menu/MenuCategory";
 
 interface MenuItem {
-  id: string,
+  id: string;
   title: string;
   description: string;
   price: number;
@@ -24,17 +27,22 @@ export default function SectionEditor({
   language?: string;
   categories: Category[];
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+
   return (
     <div className="mb-10 border rounded-lg p-4">
       {/* Section Header */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">{sectionName}</h2>
-        <Pencil className="w-5 h-5 text-gray-500 cursor-pointer" />
+        <Pencil
+          className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700"
+          onClick={() => setIsEditing((prev) => !prev)}
+        />
       </div>
 
-      {/* Optional details form for Main Dishes */}
-      {language && (
-        <div className="mb-6">
+      {/* Toggleable Details Form */}
+      {language && isEditing && (
+        <div className="mb-6 transition-all duration-300 ease-in-out">
           <SectionDetailsForm sectionName={sectionName} language={language} />
         </div>
       )}
