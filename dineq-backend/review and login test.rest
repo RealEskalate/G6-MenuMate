@@ -1,0 +1,31 @@
+POST http://localhost:8080/api/v1/auth/login 
+Content-Type: application/json
+
+{
+"identifier": "john.doe@example.com", 
+"password": "securepassword123"
+}
+
+### Create Review
+POST  http://localhost:8080/api/v1/reviews
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTY4NTQ0MzAsImlzX3ZlcmlmaWVkIjpmYWxzZSwicm9sZSI6IkNVU1RPTUVSIiwic3RhdHVzIjoiQUNUSVZFIiwic3ViIjoiNjhiNmU2M2YwNzY0NzIyZWQ2YmFjMTgzIiwidXNlcm5hbWUiOiJqb2huZG9lIn0.bnoiNG4hmkBlgjgXwTqoxLs195lfCGqmeTgWxV-x6gE
+Content-Type: application/json
+
+{
+  "item_id": "ITEM_ID2",
+  "picture": "http://example4.com/image.jpg",
+  "description": "Great food!",
+  "rating": 4.5
+}
+
+### Update Review
+PATCH http://localhost:8080/api/v1/reviews/68b7560572c995c625456310
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTY4NTQ0MzAsImlzX3ZlcmlmaWVkIjpmYWxzZSwicm9sZSI6IkNVU1RPTUVSIiwic3RhdHVzIjoiQUNUSVZFIiwic3ViIjoiNjhiNmU2M2YwNzY0NzIyZWQ2YmFjMTgzIiwidXNlcm5hbWUiOiJqb2huZG9lIn0.bnoiNG4hmkBlgjgXwTqoxLs195lfCGqmeTgWxV-x6gE
+Content-Type: application/json
+
+{
+  "item_id": "68b7560572c995c625456310",
+  "picture": "http://example.com/image.jpg",
+  "description": "Updated review!",
+  "rating": 5
+}
