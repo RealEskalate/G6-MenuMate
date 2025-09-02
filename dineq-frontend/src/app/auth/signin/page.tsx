@@ -35,7 +35,7 @@ export default function LoginPage() {
 
     const res = await signIn("credentials", {
       redirect: false,
-      callbackUrl: "/dashboard/menu",
+      callbackUrl: "/auth/signin",
       identifier: data.email,
       password: data.password,
     });
@@ -44,8 +44,8 @@ export default function LoginPage() {
       console.log("Login successful, redirecting...");
       const session = await getSession();
 
-      if (session?.user.role === "user") {
-        router.push("/user/restaurant/food-display");
+      if (session?.user.role === "CUSTOMER") {
+        router.push("/user");
       } else if (session?.user.role === "OWNER") {
         router.push("/restaurant/dashboard");
       } else {
