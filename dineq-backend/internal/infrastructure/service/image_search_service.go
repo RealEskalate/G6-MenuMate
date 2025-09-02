@@ -23,12 +23,20 @@ type ImageSearchService struct {
 }
 
 func NewImageSearchService(searchEngineID string, apiKey string) (IImageSearchService, error) {
+	// If config missing, return a no-op placeholder service (prevents default credentials lookup crash)
+	if apiKey == "" || searchEngineID == "" {
+		log.Println("image search disabled: missing SEARCH_ENGINE_API_KEY or SEARCH_ENGINE_ID (returning placeholder service)")
+		return &ImageSearchService{searchEnginID: searchEngineID, cse: nil}, nil
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	searchService, err := customsearch.NewService(ctx, option.WithAPIKey(apiKey))
 	if err != nil {
-		log.Fatal(err)
+		// Do not crash the whole app; fall back to placeholder
+		log.Printf("image search init failed (%v); falling back to placeholder service", err)
+		return &ImageSearchService{searchEnginID: searchEngineID, cse: nil}, nil
 	}
 	return &ImageSearchService{
 		searchEnginID: searchEngineID,
@@ -42,6 +50,9 @@ type ImageScore struct {
 }
 
 func (s *ImageSearchService) SearchImage(ctx context.Context, query string) (string, error) {
+	if s.cse == nil { // placeholder mode
+		return "https://placeholder.com/image.jpg", nil
+	}
 	search, err := s.cse.Cse.List().
 		Q(query).
 		Cx(s.searchEnginID).

@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
 	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type UserUsecase struct {
@@ -30,17 +32,64 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxtimeout)
 	defer cancel()
 
+	// Default role if not supplied
 	if request.Role == "" {
-		request.Role = domain.RoleUser // Default role is User
+		request.Role = domain.RoleCustomer
 	}
-	user, err := uc.userRepo.GetUserByEmail(ctx, request.Email)
-	if err == nil && user != nil {
-		return domain.ErrEmailAlreadyInUse
+	// Default status if not supplied
+	if request.Status == "" {
+		request.Status = domain.StatusActive
+	}
+	// Default auth provider if empty
+	if request.AuthProvider == "" {
+		request.AuthProvider = domain.AuthEmail
+	}
+
+	// Normalize inputs (lowercase email & username, trim spaces)
+	request.Email = strings.TrimSpace(strings.ToLower(request.Email))
+	request.Username = strings.TrimSpace(strings.ToLower(request.Username))
+	request.PhoneNumber = strings.TrimSpace(request.PhoneNumber)
+
+	if request.Password != "" { // hash raw password provided (DTO mapped plaintext into Password)
+		h, _ := security.HashPassword(request.Password)
+		request.Password = h
 	}
 	request.IsVerified = false
-	request.CreatedAt = time.Now()
-	request.UpdatedAt = time.Now()
-	return uc.userRepo.CreateUser(ctx, request)
+	now := time.Now()
+	request.CreatedAt = now
+	request.UpdatedAt = now
+	err := uc.userRepo.CreateUser(ctx, request)
+	if err != nil {
+		// Handle duplicate key errors from Mongo instead of racing with manual existence queries
+		var writeExc *mongo.WriteException
+		if errors.As(err, &writeExc) {
+			for _, we := range writeExc.WriteErrors {
+				// Inspect message for index names we set: ux_email, ux_username, ux_phone_number
+				if strings.Contains(we.Message, "ux_email") {
+					return domain.ErrEmailAlreadyInUse
+				}
+				if strings.Contains(we.Message, "ux_username") {
+					return domain.ErrUsernameAlreadyInUse
+				}
+				if strings.Contains(we.Message, "ux_phone_number") {
+					return domain.ErrPhoneAlreadyInUse
+				}
+			}
+			return domain.ErrDuplicateUser
+		}
+		return err
+	}
+	return nil
+}
+
+// find user by username or id
+func (uc *UserUsecase) FindByUsernameOrEmail(ctx context.Context, identifier string) (*domain.User, error) {
+	// Delegate to repository which already supports username, email, or phone via $or filter.
+	u, err := uc.userRepo.FindByUsernameOrEmail(ctx, identifier)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
 }
 
 func (uc *UserUsecase) FindUserByID(uid string) (*domain.User, error) {
@@ -100,7 +149,6 @@ func (uc *UserUsecase) UpdateProfile(userID string, update domain.UserProfileUpd
 	}
 
 	// Apply updates
-
 	if update.FirstName != "" {
 		user.FirstName = update.FirstName
 	}
@@ -128,7 +176,8 @@ func (uc *UserUsecase) ChangePassword(userID, oldPassword, newPassword string) e
 	}
 
 	// Check old password
-	if err := security.ValidatePassword(user.Password, oldPassword); err != nil {
+	storedHash := user.Password
+	if err := security.ValidatePassword(storedHash, oldPassword); err != nil {
 		return errors.New("invalid old password")
 	}
 
