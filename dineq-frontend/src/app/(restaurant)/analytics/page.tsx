@@ -36,7 +36,7 @@ const AnalyticsPage = () => {
           </div>
 
           <div className="flex justify-evenly">
-            <div className="flex gap-2  w-[12rem] h-[12rem] border border-orange-200 rounded-2xl items-start">
+            <div className="flex gap-2  w-[12rem] h-[12rem] border border-orange-200 rounded-2xl items-start p-2">
               <Image
                 src="/groupOfPeople.png"
                 alt="Group of People"
@@ -48,7 +48,7 @@ const AnalyticsPage = () => {
               <p>Total Menu Views</p>
             </div>
 
-            <div className="flex gap-2 w-[12rem] h-[12rem] border border-orange-200 rounded-2xl items-start">
+            <div className="flex gap-2 w-[12rem] h-[12rem] border border-orange-200 rounded-2xl items-start p-2">
               <Image
                 src="/groupOfPeople.png"
                 alt="Group of People"
@@ -60,7 +60,7 @@ const AnalyticsPage = () => {
               <p>Total QR Scan</p>
             </div>
 
-            <div className="flex gap-2 w-[12rem] h-[12rem] border border-orange-200 rounded-2xl items-start">
+            <div className="flex gap-2 w-[12rem] h-[12rem] border border-orange-200 rounded-2xl items-start p-2">
               <Image
                 src="/star.png"
                 alt="Group of People"
