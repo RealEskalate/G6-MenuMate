@@ -34,6 +34,9 @@ type Env struct {
 	// user collection
 	UserCollection string `mapstructure:"USER_COLLECTION"`
 
+	// review collection
+	ReviewCollection string 	`mapstructure:"REVIEW_COLLECTION"`
+
 	// Cookie / Security settings
 	CookieSecure bool `mapstructure:"COOKIE_SECURE"`
 	CookieDomain string `mapstructure:"COOKIE_DOMAIN"`
@@ -123,6 +126,7 @@ func NewEnv() (*Env, error) {
 	env.UserCollection = os.Getenv("USER_COLLECTION")
 	env.RefreshTokenCollection = os.Getenv("REFRESH_TOKEN_COLLECTION")
 	env.RestaurantCollection = os.Getenv("RESTAURANT_COLLECTION")
+	env.ReviewCollection = os.Getenv("REVIEW_COLLECTION")
 	env.PasswordResetCollection = os.Getenv("PASSWORD_RESET_TOKEN_COLLECTION")
 	env.PasswordResetExpiry, _ = strconv.Atoi(os.Getenv("PASSWORD_RESET_TOKEN_EXPIRE_MINUTES"))
 	env.RefTEHours, _ = strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXPIRE_HOURS"))
