@@ -10,7 +10,8 @@ import Image from "next/image";
 import { Input } from "@/components/ui/input";   
 import { Button } from "@/components/ui/button"; 
 import { Checkbox } from "@/components/ui/checkbox"; 
-import { registerUser } from "@/lib/auth-api";   
+import { registerUser } from "@/lib/api";   
+import { a } from "framer-motion/client";
 
 
 const schema = z
@@ -37,7 +38,11 @@ const schema = z
 
 type FormData = z.infer<typeof schema>;
 
-export default function SignupForm() {
+interface SignupFormProps {
+  role: string;
+}
+
+export default function SignupForm({ role }: SignupFormProps) {
   const {
     register,
     handleSubmit,
@@ -54,11 +59,12 @@ export default function SignupForm() {
         password: data.password,
         first_name: data.first_name,
         last_name: data.last_name,
+        auth_provider: "EMAIL",
+        role: role
       };
 
       const response = await registerUser(payload);
       console.log("✅ Registered:", response);
-
     } catch (err) {
       console.error("❌ Signup failed:", err);
     }
@@ -144,7 +150,9 @@ export default function SignupForm() {
           {...register("confirmPassword")}
         />
         {errors.confirmPassword && (
-          <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>
+          <p className="text-red-500 text-sm">
+            {errors.confirmPassword.message}
+          </p>
         )}
       </div>
 
@@ -175,7 +183,7 @@ export default function SignupForm() {
       {/* Sign In */}
       <p className="text-center mt-4 text-sm">
         Already have an account?{" "}
-        <Link href="/signin" className="text-[var(--color-primary)]">
+        <Link href="/auth/signin" className="text-[var(--color-primary)]">
           Sign in
         </Link>
       </p>
@@ -193,7 +201,7 @@ export default function SignupForm() {
         className="w-full flex items-center justify-center gap-2"
       >
         <Image
-          src="/google-icon.svg"
+          src="/icons/google.png"
           width={100}
           height={120}
           alt="Google"
