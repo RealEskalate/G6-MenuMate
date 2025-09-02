@@ -13,7 +13,7 @@ export default function ManagerSignup() {
             Create Your Account
           </h1>
           <p className="text-gray-500 text-center mb-6 text-sm md:text-base">
-            Join Dineq to discover amazing Ethiopian cuisine.
+            Join Dineq to manage your restaurant efficiently.
           </p>
 
           <SignupForm />

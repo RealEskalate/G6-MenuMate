@@ -53,7 +53,7 @@ export default function Pricing() {
               ))}
             </ul>
             <Link
-              href="#"
+              href="/auth/manager-signup"
               className="mt-8 block w-full bg-gray-200 text-gray-700 text-center py-3 rounded-md hover:bg-gray-300"
             >
               Get Started
@@ -89,7 +89,7 @@ export default function Pricing() {
               ))}
             </ul>
             <Link
-              href="#"
+              href="/auth/manager-signup"
               className="mt-8 block w-full bg-white text-orange-500 text-center py-3 rounded-md hover:bg-orange-100"
             >
               Get Started
@@ -129,7 +129,7 @@ export default function Pricing() {
               ))}
             </ul>
             <Link
-              href="#"
+              href="/auth/manager-signup"
               className="mt-8 block w-full bg-gray-200 text-gray-700 text-center py-3 rounded-md hover:bg-gray-300"
             >
               Get Started
@@ -165,7 +165,7 @@ export default function Pricing() {
               ))}
             </ul>
             <Link
-              href="#"
+              href="/auth/manager-signup"
               className="mt-8 block w-full bg-white text-orange-500 text-center py-3 rounded-md hover:bg-orange-100"
             >
               Get Started

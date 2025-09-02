@@ -1,5 +1,6 @@
 import React from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 
 const WhoAreYou = () => {
   return (
@@ -11,6 +12,7 @@ const WhoAreYou = () => {
           <div className="w-full max-w-md p-6 bg-white rounded-xl shadow-lg  h-auto">
                 <h1 className="text-2xl font-bold mb-6 text-left">Who Are You ?</h1>
                 <p>Choose your role to get the most out of Dineq</p>
+                <Link href="/auth/user-signup">
                 <div className="w-full h-[100px] rounded-lg border border-[var(--color-primary)] flex items-center gap-4 my-5 p-3">
                 {/* Image Circle */}
                 <div className="relative w-[85px] h-[85px] rounded-full overflow-hidden flex-shrink-0">
@@ -30,7 +32,9 @@ const WhoAreYou = () => {
                     </p>
                 </div>
             </div>
+                </Link>
 
+            <Link href="/auth/manager-signup">
             <div className="w-full h-[100px] rounded-lg border border-[var(--color-primary)] flex items-center gap-4 my-5 p-3">
                 {/* Image Circle */}
                 <div className="relative w-[85px] h-[85px] rounded-full overflow-hidden flex-shrink-0">
@@ -50,10 +54,7 @@ const WhoAreYou = () => {
                     </p>
                 </div>
             </div>
-
-
-
-    
+            </Link>   
                 
       </div>
     </div>

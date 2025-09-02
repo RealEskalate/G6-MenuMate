@@ -9,6 +9,7 @@ import { Mail, Lock, Unlock } from "lucide-react";
 import LoginImage from "@/components/auth/page";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const schema = z.object({
   email: z.string().email("Invalid email address"),
@@ -117,9 +118,9 @@ export default function LoginPage() {
           )}
 
           <div className="text-right mb-4">
-            <a href="#" className="text-sm text-orange-500 hover:underline">
+            <Link href="" className="text-sm text-orange-500 hover:underline">
               Forgot password?
-            </a>
+            </Link>
           </div>
 
           {/* Login Button */}
@@ -133,12 +134,12 @@ export default function LoginPage() {
 
           <p className="text-sm mt-4 text-center">
             Don’t have an account?{" "}
-            <a
-              href="/signup"
+            <Link
+              href="/user-routes/whoareyou"
               className="text-orange-500 font-medium hover:underline"
             >
               Register
-            </a>
+            </Link>
           </p>
 
           <div className="my-6 flex items-center">
