@@ -31,8 +31,8 @@ function NavBar({ role }: Roles) {
 
   const restaurantLinks = [
     { name: "Home", href: "/restaurant/dashboard" },
-    { name: "About", href: "/restaurant/about" },
-    { name: "Contact", href: "/restaurant/contact" },
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ];
 
   const links = role === "CUSTOMER" ? customerLinks : restaurantLinks;
