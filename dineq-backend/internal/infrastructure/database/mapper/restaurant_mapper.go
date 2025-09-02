@@ -9,6 +9,7 @@ import (
 type RestaurantModel struct {
 	ID                 bson.ObjectID   `bson:"_id,omitempty"`
 	Slug               string          `bson:"slug"`
+	PreviousSlugs      []string        `bson:"previous_slugs,omitempty"`
 	Name               string          `bson:"name"`
 	ManagerID          bson.ObjectID   `bson:"manager_id"`
 	Phone              string          `bson:"phone"`
@@ -35,6 +36,7 @@ func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 
 	m.ID = bson.NewObjectID()
 	m.Slug = r.Slug
+	m.PreviousSlugs = r.PreviousSlugs
 	m.Name = r.RestaurantName
 	m.ManagerID = managerOID
 	m.Phone = r.RestaurantPhone
@@ -59,25 +61,31 @@ func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 		m.LogoImage = *r.LogoImage
 	}
 
-	// Convert Tags
-	m.Tags = make([]bson.ObjectID, len(r.Tags))
-	for i, hexID := range r.Tags {
-		oid, err := bson.ObjectIDFromHex(hexID)
-		if err != nil {
-			return err
-		}
-		m.Tags[i] = oid
-	}
+       // Convert Tags (skip empty/invalid)
+       m.Tags = make([]bson.ObjectID, 0)
+       for _, hexID := range r.Tags {
+	       if hexID == "" {
+		       continue
+	       }
+	       oid, err := bson.ObjectIDFromHex(hexID)
+	       if err != nil {
+		       continue // skip invalid
+	       }
+	       m.Tags = append(m.Tags, oid)
+       }
 
-	// Convert VerificationDocs
-	m.VerificationDocs = make([]bson.ObjectID, len(r.VerificationDocs))
-	for i, doc := range r.VerificationDocs {
-		oid, err := bson.ObjectIDFromHex(doc.ID)
-		if err != nil {
-			return err
-		}
-		m.VerificationDocs[i] = oid
-	}
+       // Convert VerificationDocs (skip empty/invalid)
+       m.VerificationDocs = make([]bson.ObjectID, 0)
+       for _, doc := range r.VerificationDocs {
+	       if doc.ID == "" {
+		       continue
+	       }
+	       oid, err := bson.ObjectIDFromHex(doc.ID)
+	       if err != nil {
+		       continue // skip invalid
+	       }
+	       m.VerificationDocs = append(m.VerificationDocs, oid)
+       }
 
 	m.VerificationStatus = string(r.VerificationStatus)
 	m.AverageRating = r.AverageRating
@@ -94,6 +102,7 @@ func (m *RestaurantModel) ToDomain() *domain.Restaurant {
 	r := &domain.Restaurant{
 		ID:                 m.ID.Hex(),
 		Slug:               m.Slug,
+		PreviousSlugs:      m.PreviousSlugs,
 		RestaurantName:     m.Name,
 		ManagerID:          m.ManagerID.Hex(),
 		RestaurantPhone:    m.Phone,

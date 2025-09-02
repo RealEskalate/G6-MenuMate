@@ -5,6 +5,15 @@ import (
 	"time"
 )
 
+type ItemRepository interface {
+	GetByID(id string) (*Item, error)
+	Create(i *Item) error
+	Update(i *Item) error
+	Delete(id string) error
+	ListByMenu(menuID string) ([]Item, error)
+
+}
+
 type Item struct {
 	ID              string
 	Name            string

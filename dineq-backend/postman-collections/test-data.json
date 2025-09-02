@@ -1,0 +1,294 @@
+{
+  "test_users": [
+    {
+      "username": "john_doe",
+      "email": "john.doe@menumate.com",
+      "password": "securepassword123",
+      "first_name": "John",
+      "last_name": "Doe",
+      "role": "CUSTOMER",
+      "auth_provider": "EMAIL"
+    },
+    {
+      "username": "restaurant_owner",
+      "email": "owner@italiankorner.com",
+      "password": "ownerpassword123",
+      "first_name": "Mario",
+      "last_name": "Rossi",
+      "role": "OWNER",
+      "auth_provider": "EMAIL"
+    },
+    {
+      "username": "admin_user",
+      "email": "admin@menumate.com",
+      "password": "adminpassword123",
+      "first_name": "Admin",
+      "last_name": "User",
+      "role": "ADMIN",
+      "auth_provider": "EMAIL"
+    },
+    {
+      "username": "manager_sam",
+      "phone_number": "+15559876543",
+      "password": "managerpass123",
+      "first_name": "Sam",
+      "last_name": "Wilson",
+      "role": "MANAGER",
+      "auth_provider": "PHONE"
+    }
+  ],
+  "test_restaurants": [
+    {
+      "name": "The Italian Corner",
+      "phone": "+1234567890",
+      "about": "Authentic Italian cuisine with fresh ingredients and traditional recipes passed down through generations. Experience the taste of Italy in every bite.",
+      "tags": [
+        "Italian",
+        "Pizza",
+        "Pasta",
+        "Fine Dining",
+        "Family Friendly",
+        "Romantic"
+      ],
+      "logo_image": "https://example.com/italian-corner-logo.jpg"
+    },
+    {
+      "name": "Spice Garden",
+      "phone": "+1987654321",
+      "about": "Exotic Indian flavors with traditional spices and modern cooking techniques. From mild curries to fiery vindaloos, we have something for every palate.",
+      "tags": [
+        "Indian",
+        "Curry",
+        "Vegetarian",
+        "Vegan Options",
+        "Spicy",
+        "Authentic"
+      ],
+      "logo_image": "https://example.com/spice-garden-logo.jpg"
+    },
+    {
+      "name": "Ocean Breeze Seafood",
+      "phone": "+1122334455",
+      "about": "Fresh seafood caught daily and prepared with care. Enjoy our oceanfront dining experience with spectacular sunset views.",
+      "tags": [
+        "Seafood",
+        "Fresh Fish",
+        "Ocean View",
+        "Fine Dining",
+        "Romantic",
+        "Coastal"
+      ],
+      "logo_image": "https://example.com/ocean-breeze-logo.jpg"
+    },
+    {
+      "name": "Green Leaf Café",
+      "phone": "+1555666777",
+      "about": "Healthy, organic, and sustainable dining. Farm-to-table ingredients with extensive vegan and vegetarian options. Perfect for health-conscious diners.",
+      "tags": [
+        "Healthy",
+        "Organic",
+        "Vegan",
+        "Vegetarian",
+        "Farm-to-Table",
+        "Sustainable",
+        "Café"
+      ],
+      "logo_image": "https://example.com/green-leaf-logo.jpg"
+    },
+    {
+      "name": "BBQ Masters",
+      "phone": "+1777888999",
+      "about": "Slow-smoked BBQ with secret family recipes. Our pitmasters have been perfecting their craft for over 30 years. Come hungry!",
+      "tags": [
+        "BBQ",
+        "Smoked Meats",
+        "American",
+        "Casual Dining",
+        "Family Style",
+        "Hearty"
+      ],
+      "logo_image": "https://example.com/bbq-masters-logo.jpg"
+    }
+  ],
+  "test_menu_items": [
+    {
+      "name": "Margherita Pizza",
+      "description": "Classic pizza with fresh mozzarella, San Marzano tomatoes, fresh basil, and extra virgin olive oil",
+      "price": 18.99,
+      "category": "Pizza",
+      "preparation_time": 12,
+      "ingredients": [
+        "Pizza dough",
+        "San Marzano tomatoes",
+        "Fresh mozzarella",
+        "Fresh basil",
+        "Extra virgin olive oil"
+      ],
+      "allergens": ["gluten", "dairy"],
+      "dietary_info": ["vegetarian"],
+      "is_spicy": false,
+      "is_available": true
+    },
+    {
+      "name": "Chicken Tikka Masala",
+      "description": "Tender chicken pieces in a rich, creamy tomato-based curry sauce with aromatic spices",
+      "price": 16.99,
+      "category": "Main Course",
+      "preparation_time": 18,
+      "ingredients": [
+        "Chicken breast",
+        "Tomato sauce",
+        "Heavy cream",
+        "Onions",
+        "Garam masala",
+        "Ginger",
+        "Garlic"
+      ],
+      "allergens": ["dairy"],
+      "dietary_info": [],
+      "is_spicy": true,
+      "spice_level": 2,
+      "is_available": true
+    },
+    {
+      "name": "Grilled Salmon",
+      "description": "Fresh Atlantic salmon grilled to perfection, served with lemon butter sauce and seasonal vegetables",
+      "price": 24.99,
+      "category": "Seafood",
+      "preparation_time": 15,
+      "ingredients": [
+        "Atlantic salmon",
+        "Lemon",
+        "Butter",
+        "Seasonal vegetables",
+        "Herbs"
+      ],
+      "allergens": ["fish"],
+      "dietary_info": ["gluten-free", "keto-friendly"],
+      "is_spicy": false,
+      "is_available": true
+    },
+    {
+      "name": "Quinoa Buddha Bowl",
+      "description": "Nutritious bowl with quinoa, roasted vegetables, avocado, chickpeas, and tahini dressing",
+      "price": 14.99,
+      "category": "Healthy",
+      "preparation_time": 10,
+      "ingredients": [
+        "Quinoa",
+        "Mixed vegetables",
+        "Avocado",
+        "Chickpeas",
+        "Tahini",
+        "Lemon juice"
+      ],
+      "allergens": ["sesame"],
+      "dietary_info": ["vegan", "gluten-free", "high-protein"],
+      "is_spicy": false,
+      "is_available": true
+    }
+  ],
+  "test_reviews": [
+    {
+      "rating": 5,
+      "title": "Outstanding Italian Experience!",
+      "comment": "The pasta was absolutely divine and the service was impeccable. The ambiance transported us straight to Italy. Will definitely return!",
+      "categories": {
+        "food_quality": 5,
+        "service": 5,
+        "ambiance": 5,
+        "value_for_money": 4
+      }
+    },
+    {
+      "rating": 4,
+      "title": "Great food, average service",
+      "comment": "The food quality was excellent, especially the pizza. However, the service was a bit slow during peak hours. Overall, a good experience.",
+      "categories": {
+        "food_quality": 5,
+        "service": 3,
+        "ambiance": 4,
+        "value_for_money": 4
+      }
+    },
+    {
+      "rating": 3,
+      "title": "Decent but room for improvement",
+      "comment": "The food was okay but nothing exceptional. The restaurant was quite noisy and it was hard to have a conversation. Prices are reasonable though.",
+      "categories": {
+        "food_quality": 3,
+        "service": 3,
+        "ambiance": 2,
+        "value_for_money": 4
+      }
+    }
+  ],
+  "common_test_scenarios": {
+    "authentication": {
+      "valid_login": {
+        "identifier": "john.doe@menumate.com",
+        "password": "securepassword123"
+      },
+      "invalid_password": {
+        "identifier": "john.doe@menumate.com",
+        "password": "wrongpassword"
+      },
+      "non_existent_user": {
+        "identifier": "nonexistent@example.com",
+        "password": "anypassword"
+      },
+      "password_reset": {
+        "email": "john.doe@menumate.com"
+      }
+    },
+    "validation_errors": {
+      "invalid_email": {
+        "email": "not-an-email"
+      },
+      "short_password": {
+        "password": "123"
+      },
+      "empty_required_field": {
+        "first_name": ""
+      }
+    }
+  },
+  "response_examples": {
+    "success_login": {
+      "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    },
+    "user_profile": {
+      "id": "507f1f77bcf86cd799439011",
+      "username": "john_doe",
+      "email": "john.doe@menumate.com",
+      "first_name": "John",
+      "last_name": "Doe",
+  "role": "CUSTOMER",
+  "profile_image": "https://storage.menumate.com/profiles/user123.jpg",
+      "is_verified": true,
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-20T14:20:00Z"
+    },
+    "restaurant_details": {
+      "id": "507f1f77bcf86cd799439012",
+      "slug": "the-italian-corner",
+      "name": "The Italian Corner",
+      "manager_id": "507f1f77bcf86cd799439011",
+      "phone": "+1234567890",
+      "menu_id": "507f1f77bcf86cd799439013",
+      "about": "Authentic Italian cuisine with fresh ingredients...",
+      "logo_image": "https://storage.menumate.com/logos/italian-corner.jpg",
+      "tags": ["Italian", "Pizza", "Pasta", "Fine Dining"],
+      "verification_status": "verified",
+      "average_rating": 4.5,
+      "view_count": 1250,
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-20T14:20:00Z"
+    },
+    "error_response": {
+      "message": "Invalid credentials",
+      "error": "Username or password is incorrect"
+    }
+  }
+}
