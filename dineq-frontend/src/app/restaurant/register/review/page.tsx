@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Pencil, FileText } from "lucide-react";
+import { Pencil, FileText, Image as ImageIcon, Tag } from "lucide-react";
 import { useRegister } from "@/context/RegisterContext";
+import Image from "next/image";
 
 export default function ReviewPage() {
   const router = useRouter();
@@ -12,12 +13,15 @@ export default function ReviewPage() {
     "Restaurant Name": data.restaurant,
     "Phone Number": data.phone,
     Location: data.address,
+    About: data.about || "-",
+    Tags: data.tags && data.tags.length > 0 ? data.tags.join(", ") : "-",
   };
 
   const documents = data.businessLicense ? [data.businessLicense] : [];
+  const logoImage = data.logo_image;
 
   const handleSubmit = async () => {
-    // submission logic here
+    // submission logic here (API call)
   };
 
   return (
@@ -33,7 +37,7 @@ export default function ReviewPage() {
 
         {/* Restaurant Info */}
         <section className="mb-10">
-          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-left">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-left">
             Restaurant Information
           </h2>
           <div className="space-y-4 max-w-xl w-full">
@@ -42,8 +46,8 @@ export default function ReviewPage() {
                 key={key}
                 className="flex items-center justify-between border border-gray-300 rounded-lg px-3 sm:px-4 py-2 bg-white"
               >
-                <span className="text-gray-700 text-sm sm:text-base">
-                  {value || "-"}
+                <span className="text-gray-700 text-sm sm:text-base ">
+                  {key}:{value}
                 </span>
                 <button
                   type="button"
@@ -54,6 +58,31 @@ export default function ReviewPage() {
                 </button>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Logo Image */}
+        <section className="mb-10">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-left">
+            Logo Image
+          </h2>
+          <div className="max-w-xl w-full">
+            {!logoImage ? (
+              <p className="text-gray-500 italic text-sm sm:text-base">
+                No logo uploaded.
+              </p>
+            ) : (
+              <div className="flex items-center space-x-3 border border-gray-300 rounded-lg px-3 sm:px-4 py-2 bg-white">
+                <ImageIcon className="w-5 h-5 text-gray-500" />
+                <Image
+                  src={logoImage.url || "/placeholder.png"}
+                  alt="Restaurant Logo"
+                  width={60}
+                  height={60}
+                  className="rounded-md object-cover"
+                />
+              </div>
+            )}
           </div>
         </section>
 
@@ -89,7 +118,7 @@ export default function ReviewPage() {
         <div className="flex flex-col sm:flex-row justify-between mt-10 space-y-3 sm:space-y-0 sm:space-x-4">
           <button
             type="button"
-            onClick={() => router.push("/register/basic-info")}
+            onClick={() => router.push("/restaurant/register/basic-info")}
             className="w-full sm:w-auto px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm sm:text-base"
           >
             ← Back
