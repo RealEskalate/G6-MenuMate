@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { registerUser } from "@/lib/auth-api";   
 
-// ✅ Schema for validation
+
 const schema = z
   .object({
     username: z.string().min(3, "Username is required"),
