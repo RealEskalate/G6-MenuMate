@@ -63,7 +63,7 @@ type IReviewUsecase interface {
     ListReviewsByItem(ctx context.Context, itemID string, page, limit int) ([]*Review, int64, error)
 
     // Update a review (by ID and user)
-    UpdateReview(ctx context.Context, id string, userID string, update *Review) error
+    UpdateReview(ctx context.Context, id string, userID string, update *Review) (*Review, error)
 
     // Delete a review (by ID and user)
     DeleteReview(ctx context.Context, id string, userID string) error
