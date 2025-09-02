@@ -1,17 +1,18 @@
 // tailwind.config.js
 module.exports = {
   content: [
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,ts,jsx,tsx}", // adjust if needed
   ],
   theme: {
     extend: {
-      colors: {
-        primary: "var(--color-primary)",
-        alert: "var(--color-alert)",
+      keyframes: {
+        fadeInUp: {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
-      fontFamily: {
-        inter: ["Inter", "sans-serif"], // or roboto if you switch back
+      animation: {
+        fadeInUp: "fadeInUp 0.6s ease forwards",
       },
     },
   },

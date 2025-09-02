@@ -42,7 +42,7 @@
 
 //     if (pathname.startsWith("/restaurant") && role !== "OWNER") {
 //       console.log(
-//         `Middleware: Unauthorized restaurant access by ${role}, redirecting to ${redirectUrl}`
+//         `Middleware: Unauthorized restaurant access by ${rol, redirecting to ${redirectUrl}`
 //       );
 //       return NextResponse.redirect(new URL(redirectUrl, request.url));
 //     }

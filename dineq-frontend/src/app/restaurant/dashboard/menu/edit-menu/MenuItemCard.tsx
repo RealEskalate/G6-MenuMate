@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Pencil } from "lucide-react";
+import Image from "next/image";
 
 export default function MenuItemCard({ id, title, description, price, image }: {
   id: string;
@@ -10,7 +11,7 @@ export default function MenuItemCard({ id, title, description, price, image }: {
 }) {
   return (
     <div className="flex items-start border rounded-lg p-3 relative bg-white">
-      <img src={image} alt={title} className="w-20 h-20 rounded-md object-cover" />
+      <Image src={image} alt={title} className="w-20 h-20 rounded-md object-cover" />
       <div className="ml-3 flex-1">
         <h5 className="font-medium">{title}</h5>
         <p className="text-sm text-gray-600">{description}</p>

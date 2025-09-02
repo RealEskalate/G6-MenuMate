@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { Eye, EyeOff } from "lucide-react"
 
 interface InputProps extends React.ComponentProps<"input"> {
-  label?: string
+  label?: string 
   required?: boolean
 }
 
@@ -30,7 +30,7 @@ function Input({ className, type = "text", label, required, ...props }: InputPro
       {label && (
         <label
           htmlFor={id}
-          className="text-md pb-1 text-gray-900 dark:text-gray-300"
+          className="text-lg pb-1 text-gray-900 dark:text-gray-300"
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
