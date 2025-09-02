@@ -1,34 +1,27 @@
 package repositories
 
 import (
-	"context"
-	"fmt"
-	// "errors"
+    "context"
+    "fmt"
+    "time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
-	// "fmt"
-	"time"
-
-	"github.com/RealEskalate/G6-MenuMate/internal/domain"
-
-	// "github.com/RealEskalate/G6-MenuMate/internal/domain"
-	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
-	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database/mapper"
-	"go.mongodb.org/mongo-driver/v2/bson"
-	mongo_options "go.mongodb.org/mongo-driver/v2/mongo/options"
+    "github.com/RealEskalate/G6-MenuMate/internal/domain"
+    mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
+    "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database/mapper"
+    "go.mongodb.org/mongo-driver/v2/bson"
+    mongo_options "go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type ReviewRepository struct {
-	DB         mongo.Database
-	Collection string
+    DB         mongo.Database
+    Collection string
 }
 
 func NewReviewRepository(db mongo.Database, collection string) *ReviewRepository {
-	return &ReviewRepository{
-		DB:         db,
-		Collection: collection,
-	}
+    return &ReviewRepository{
+        DB:         db,
+        Collection: collection,
+    }
 }
 
 func (r *ReviewRepository) Create(ctx context.Context, review *domain.Review) error {
@@ -38,75 +31,71 @@ func (r *ReviewRepository) Create(ctx context.Context, review *domain.Review) er
         return err
     }
 
-    // Handle both bson.ObjectID and primitive.ObjectID
-    switch oid := result.InsertedID.(type) {
-    case primitive.ObjectID:
+    if oid, ok := result.InsertedID.(bson.ObjectID); ok {
         review.ID = oid.Hex()
-    case bson.ObjectID:
-        review.ID = oid.Hex()
-    default:
+    } else {
         return fmt.Errorf("failed to convert inserted ID to ObjectID, got type: %T", result.InsertedID)
     }
 
     return nil
 }
+
 // Find a review by its ID
 func (r *ReviewRepository) FindByID(ctx context.Context, id string) (*domain.Review, error) {
-	uid, err := bson.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, domain.ErrInvalidUserId
-	}
-	var reviewModel *mapper.ReviewModel
-	err = r.DB.Collection(r.Collection).FindOne(ctx, bson.M{"_id": uid}).Decode(&reviewModel)
-	if err != nil {
-		if err == mongo.ErrNoDocuments() {
-			return nil, domain.ErrUserNotFound
-		}
-		return nil, err
-	}
-	return mapper.ReviewToDomain(reviewModel), nil
+    uid, err := bson.ObjectIDFromHex(id)
+    if err != nil {
+        return nil, domain.ErrInvalidUserId
+    }
+    var reviewModel *mapper.ReviewModel
+    err = r.DB.Collection(r.Collection).FindOne(ctx, bson.M{"_id": uid, "isDeleted": false}).Decode(&reviewModel)
+    if err != nil {
+        if err == mongo.ErrNoDocuments() {
+            return nil, domain.ErrUserNotFound
+        }
+        return nil, err
+    }
+    return mapper.ReviewToDomain(reviewModel), nil
 }
 
 // List reviews for a specific item (with pagination)
 func (r *ReviewRepository) ListByItem(ctx context.Context, itemID string, page, limit int) ([]*domain.Review, int64, error) {
-	filter := bson.M{"item_id": itemID, "is_deleted": false}
-	skip := (page - 1) * limit
+    filter := bson.M{"itemId": itemID, "isDeleted": false}
+    skip := (page - 1) * limit
 
-	skip64 := int64(skip)
-	limit64 := int64(limit)
+    skip64 := int64(skip)
+    limit64 := int64(limit)
 
-	cursor, err := r.DB.Collection(r.Collection).Find(
-		ctx,
-		filter,
-		mongo_options.Find().SetSkip(skip64).SetLimit(limit64),
-	)
+    cursor, err := r.DB.Collection(r.Collection).Find(
+        ctx,
+        filter,
+        mongo_options.Find().SetSkip(skip64).SetLimit(limit64),
+    )
 
-	if err != nil {
-		return nil, 0, err
-	}
-	defer cursor.Close(ctx)
+    if err != nil {
+        return nil, 0, err
+    }
+    defer cursor.Close(ctx)
 
-	var reviewModels []*mapper.ReviewModel
-	if err := cursor.All(ctx, &reviewModels); err != nil {
-		return nil, 0, err
-	}
+    var reviewModels []*mapper.ReviewModel
+    if err := cursor.All(ctx, &reviewModels); err != nil {
+        return nil, 0, err
+    }
 
-	var reviews []*domain.Review
-	for _, reviewModel := range reviewModels {
-		reviews = append(reviews, mapper.ReviewToDomain(reviewModel))
-	}
+    var reviews []*domain.Review
+    for _, reviewModel := range reviewModels {
+        reviews = append(reviews, mapper.ReviewToDomain(reviewModel))
+    }
 
-	count, err := r.DB.Collection(r.Collection).CountDocuments(ctx, filter)
-	if err != nil {
-		return nil, 0, err
-	}
+    count, err := r.DB.Collection(r.Collection).CountDocuments(ctx, filter)
+    if err != nil {
+        return nil, 0, err
+    }
 
-	return reviews, count, nil
+    return reviews, count, nil
 }
 
 func (r *ReviewRepository) Update(ctx context.Context, id string, userID string, update *domain.Review) error {
-    // Convert the `id` to a primitive.ObjectID
-    uid, err := primitive.ObjectIDFromHex(id)
+    uid, err := bson.ObjectIDFromHex(id)
     if err != nil {
         fmt.Printf("[DEBUG] Invalid ObjectID: %s\n", id)
         return domain.ErrInvalidUserId
@@ -126,11 +115,11 @@ func (r *ReviewRepository) Update(ctx context.Context, id string, userID string,
     }
     updateFields["updatedAt"] = time.Now()
 
-    // Prepare the filter using the correct field names
+    // Prepare the filter to find the correct document using camelCase
     filter := bson.M{
-        "_id":    uid,       // Match by review ID
-        // "userId": userID,    // Correct field name from the database
-        // "isDeleted": false,  // Correct field name from the database
+        "_id":       uid,
+        "userId":    userID,
+        "isDeleted": false,
     }
 
     // Debug logs to print the inputs and filter
@@ -140,10 +129,8 @@ func (r *ReviewRepository) Update(ctx context.Context, id string, userID string,
     fmt.Printf("  updateFields: %+v\n", updateFields)
     fmt.Printf("[DEBUG] Update Filter: %+v\n", filter)
 
-    // Prepare the update document
     updateDoc := bson.M{"$set": updateFields}
 
-    // Perform the update operation
     result, err := r.DB.Collection(r.Collection).UpdateOne(ctx, filter, updateDoc)
     if err != nil {
         fmt.Printf("[DEBUG] UpdateOne error: %v\n", err)
@@ -151,166 +138,146 @@ func (r *ReviewRepository) Update(ctx context.Context, id string, userID string,
     }
     if result.MatchedCount == 0 {
         fmt.Printf("[DEBUG] No document matched the filter: %+v\n", filter)
-        return domain.ErrUserNotFound
+        return domain.ErrUserNotFound // This error now correctly implies the review wasn't found for this user or is deleted
     }
 
-    // Debug logs for the result
     fmt.Printf("[DEBUG] MatchedCount: %d, ModifiedCount: %d\n", result.MatchedCount, result.ModifiedCount)
     return nil
 }
 
 func (r *ReviewRepository) Delete(ctx context.Context, id string, userID string) error {
-    uid, err := primitive.ObjectIDFromHex(id)
+    uid, err := bson.ObjectIDFromHex(id)
     if err != nil {
         return domain.ErrInvalidUserId
     }
 
-    // userObjectID, err := primitive.ObjectIDFromHex(userID)
-    // if err != nil {
-    //     return domain.ErrInvalidUserId
-    // }
+    // First, check if the review exists for the user, regardless of its deletion status.
+    findFilter := bson.M{"_id": uid, "userId": userID}
+    var existingReview mapper.ReviewModel
+    err = r.DB.Collection(r.Collection).FindOne(ctx, findFilter).Decode(&existingReview)
 
-    filter := bson.M{
-        "_id":        uid,
-        // "user_id":    userObjectID,
-        // "is_deleted": false,
+    if err != nil {
+        // If no document is found at all, then it's a true "not found" case.
+        if err == mongo.ErrNoDocuments() {
+            return domain.ErrReviewNotFound
+        }
+        // For any other database error during the find operation.
+        return err
     }
 
-    fmt.Printf("[DEBUG] Delete filter: %+v\n", filter)
+    // If the review is already marked as deleted, the operation is successful (idempotent).
+    if existingReview.IsDeleted {
+        fmt.Printf("[DEBUG] Review %s is already deleted. No action taken.\n", id)
+        return nil
+    }
 
+    // If the review exists and is not deleted, proceed with the soft delete.
+    updateFilter := bson.M{"_id": uid} // We can just use the ID now since we've verified ownership.
     update := bson.M{
         "$set": bson.M{
-            "is_deleted": true,
-            "updated_at": time.Now(),
+            "isDeleted": true,
+            "updatedAt": time.Now(),
         },
     }
 
-    result, err := r.DB.Collection(r.Collection).UpdateOne(ctx, filter, update)
+    result, err := r.DB.Collection(r.Collection).UpdateOne(ctx, updateFilter, update)
     if err != nil {
         return err
     }
     if result.MatchedCount == 0 {
-        return domain.ErrUserNotFound
+        // This case is unlikely now but kept as a safeguard.
+        return domain.ErrReviewNotFound
     }
+
     return nil
 }
 
-// // Soft-delete a review (by ID and user)
-// func (r *ReviewRepository) Delete(ctx context.Context, id string, userID string) error {
-// 	uid, err := bson.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		return domain.ErrInvalidUserId
-// 	}
-
-// 	filter := bson.M{
-// 		"_id":        uid,
-// 		"user_id":    userID,
-// 		"is_deleted": false,
-// 	}
-
-// 	update := bson.M{
-// 		"$set": bson.M{
-// 			"is_deleted": true,
-// 			"updated_at": time.Now(),
-// 		},
-// 	}
-
-// 	result, err := r.DB.Collection(r.Collection).UpdateOne(ctx, filter, update)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if result.MatchedCount == 0 {
-// 		return domain.ErrUserNotFound
-// 	}
-// 	return nil
-// }
-
 // Calculate and update average rating for an item
 func (r *ReviewRepository) AverageRatingByItem(ctx context.Context, itemID string) (float64, error) {
-	pipeline := []bson.M{
-		{"$match": bson.M{
-			"item_id":    itemID,
-			"is_deleted": false,
-		}},
-		{"$group": bson.M{
-			"_id": "$item_id",
-			"avg": bson.M{"$avg": "$rating"},
-		}},
-	}
+    pipeline := []bson.M{
+        {"$match": bson.M{
+            "itemId":    itemID,
+            "isDeleted": false,
+        }},
+        {"$group": bson.M{
+            "_id": "$itemId",
+            "avg": bson.M{"$avg": "$rating"},
+        }},
+    }
 
-	cursor, err := r.DB.Collection(r.Collection).Aggregate(ctx, pipeline)
-	if err != nil {
-		return 0, err
-	}
-	defer cursor.Close(ctx)
+    cursor, err := r.DB.Collection(r.Collection).Aggregate(ctx, pipeline)
+    if err != nil {
+        return 0, err
+    }
+    defer cursor.Close(ctx)
 
-	var result struct {
-		Avg float64 `bson:"avg"`
-	}
-	avg := 0.0
-	if cursor.Next(ctx) {
-		if err := cursor.Decode(&result); err != nil {
-			return 0, err
-		}
-		avg = result.Avg
-	}
+    var result struct {
+        Avg float64 `bson:"avg"`
+    }
+    avg := 0.0
+    if cursor.Next(ctx) {
+        if err := cursor.Decode(&result); err != nil {
+            return 0, err
+        }
+        avg = result.Avg
+    }
 
-	// Update the item's average_rating field
-	_, err = r.DB.Collection("items").UpdateOne(
-		ctx,
-		bson.M{"_id": itemID},
-		bson.M{"$set": bson.M{"average_rating": avg}},
-	)
-	if err != nil {
-		return 0, err
-	}
+    // Update the item's averageRating field
+    _, err = r.DB.Collection("items").UpdateOne(
+        ctx,
+        bson.M{"_id": itemID},
+        bson.M{"$set": bson.M{"averageRating": avg}},
+    )
+    if err != nil {
+        return 0, err
+    }
 
-	return avg, nil
+    return avg, nil
 }
 
 // Calculate and update average rating for a restaurant (from its items' averages)
 func (r *ReviewRepository) AverageRatingByRestaurant(ctx context.Context, restaurantID string) (float64, error) {
-	pipeline := []bson.M{
-		{"$match": bson.M{
-			"restaurant_id": restaurantID,
-			"is_deleted":    false,
-		}},
-		{"$group": bson.M{
-			"_id":      "$item_id",
-			"item_avg": bson.M{"$avg": "$rating"},
-		}},
-		{"$group": bson.M{
-			"_id":            nil,
-			"restaurant_avg": bson.M{"$avg": "$item_avg"},
-		}},
-	}
+    pipeline := []bson.M{
+        {"$match": bson.M{
+            "restaurantId": restaurantID,
+            "isDeleted":    false,
+        }},
+        {"$group": bson.M{
+            "_id":     "$itemId",
+            "itemAvg": bson.M{"$avg": "$rating"},
+        }},
+        {"$group": bson.M{
+            "_id":           nil,
+            "restaurantAvg": bson.M{"$avg": "$itemAvg"},
+        }},
+    }
 
-	cursor, err := r.DB.Collection(r.Collection).Aggregate(ctx, pipeline)
-	if err != nil {
-		return 0, err
-	}
-	defer cursor.Close(ctx)
+    cursor, err := r.DB.Collection(r.Collection).Aggregate(ctx, pipeline)
+    if err != nil {
+        return 0, err
+    }
+    defer cursor.Close(ctx)
 
-	var result struct {
-		RestaurantAvg float64 `bson:"restaurant_avg"`
-	}
-	restaurantAvg := 0.0
-	if cursor.Next(ctx) {
-		if err := cursor.Decode(&result); err != nil {
-			return 0, err
-		}
-		restaurantAvg = result.RestaurantAvg
-	}
+    var result struct {
+        RestaurantAvg float64 `bson:"restaurantAvg"`
+    }
+    restaurantAvg := 0.0
+    if cursor.Next(ctx) {
+        if err := cursor.Decode(&result); err != nil {
+            return 0, err
+        }
+        restaurantAvg = result.RestaurantAvg
+    }
 
-	// Update the restaurant's average_rating field
-	_, err = r.DB.Collection("restaurants").UpdateOne(
-		ctx,
-		bson.M{"_id": restaurantID},
-		bson.M{"$set": bson.M{"average_rating": restaurantAvg}},
-	)
-	if err != nil {
-		return 0, err
-	}
+    // Update the restaurant's averageRating field
+    _, err = r.DB.Collection("restaurants").UpdateOne(
+        ctx,
+        bson.M{"_id": restaurantID},
+        bson.M{"$set": bson.M{"averageRating": restaurantAvg}},
+    )
+    if err != nil {
+        return 0, err
+    }
 
-	return restaurantAvg, nil
+    return restaurantAvg, nil
 }
