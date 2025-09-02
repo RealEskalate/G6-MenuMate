@@ -12,18 +12,18 @@ type RestaurantModel struct {
 	Name               string          `bson:"name"`
 	ManagerID          bson.ObjectID   `bson:"manager_id"`
 	Phone              string          `bson:"phone"`
-	MenuID             bson.ObjectID   `bson:"menu_id,omitempty"`
 	Location           domain.Address  `bson:"location"`
 	About              string          `bson:"about"`
-	LogoImage          string          `bson:"logo_image"`
+	LogoImage          string          `bson:"logoImage"`
 	Tags               []bson.ObjectID `bson:"tags"`
-	VerificationStatus string          `bson:"verification_status"`
-	VerificationDocs   []bson.ObjectID `bson:"verification_docs"`
-	AverageRating      float64         `bson:"average_rating"`
-	ViewCount          int64           `bson:"view_count"`
-	CreatedAt          bson.DateTime   `bson:"created_at"`
-	UpdatedAt          bson.DateTime   `bson:"updated_at"`
-	IsDeleted          bool            `bson:"is_deleted"`
+	VerificationStatus string          `bson:"verificationStatus"`
+	VerificationDocs   []bson.ObjectID `bson:"verificationDocs"`
+	AverageRating      float64         `bson:"averageRating"`
+	ViewCount          int64           `bson:"viewCount"`
+	CreatedAt          bson.DateTime   `bson:"createdAt"`
+	UpdatedAt          bson.DateTime   `bson:"updatedAt"`
+	IsDeleted          bool            `bson:"isDeleted"`
+	DeletedAt          *bson.DateTime  `bson:"deletedAt,omitempty"`
 }
 
 // Parse converts domain.Restaurant → RestaurantModel
@@ -38,16 +38,6 @@ func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 	m.Name = r.RestaurantName
 	m.ManagerID = managerOID
 	m.Phone = r.RestaurantPhone
-
-	if r.MenuID != "" {
-		menuOID, err := bson.ObjectIDFromHex(r.MenuID)
-		if err != nil {
-			return err
-		}
-		m.MenuID = menuOID
-	} else {
-		m.MenuID = bson.ObjectID{} // zero value
-	}
 
 	m.Location = r.Location
 	m.About = ""
@@ -122,11 +112,6 @@ func (m *RestaurantModel) ToDomain() *domain.Restaurant {
 	}
 	for i, oid := range m.VerificationDocs {
 		r.VerificationDocs[i] = domain.Document{ID: oid.Hex()}
-	}
-	if !m.MenuID.IsZero() {
-		r.MenuID = m.MenuID.Hex()
-	} else {
-		r.MenuID = ""
 	}
 
 	return r

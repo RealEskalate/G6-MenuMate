@@ -29,6 +29,7 @@ type UserModel struct {
 	CreatedAt    time.Time     `bson:"createdAt"`
 	UpdatedAt    time.Time     `bson:"updatedAt"`
 	IsDeleted    bool          `bson:"isDeleted"`
+	DeletedAt    *time.Time    `bson:"deletedAt,omitempty"`
 }
 
 func UserToDomain(user *UserModel) *domain.User {

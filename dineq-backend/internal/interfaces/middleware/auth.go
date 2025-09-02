@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 // AuthMiddleware checks if the user is authenticated by verifying the JWT token
 func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := utils.GetCookie(c, "accessToken")
+		tokenStr, err := utils.GetCookie(c, string(domain.AccessTokenType))
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found in cookies, please login again"})
 			c.Abort()
@@ -22,7 +23,7 @@ func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 		}
 
 		// Parse and validate the JWT
-		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
 			return []byte(env.ATS), nil
 		})
 
@@ -38,17 +39,21 @@ func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 		}
 
 		// Set user ID and role in the context for further use
-		c.Set("userId", claims["sub"].(string))
+		fmt.Println("Claims:", claims) // Debugging line to print claims
+		if userId, ok := claims["sub"]; ok {
+			c.Set("user_id", userId.(string))
+		}
+
 		if role, ok := claims["role"]; ok {
 			c.Set("role", role.(string))
 		}
 
-		// set isVerified in context
-		isVerified := claims["isVerified"].(bool)
+		// set is_verified in context
+		isVerified := claims["is_verified"].(bool)
 		if isVerified {
-			c.Set("isVerified", true)
+			c.Set("is_verified", true)
 		} else {
-			c.Set("isVerified", false)
+			c.Set("is_verified", false)
 		}
 		c.Next()
 	}
@@ -64,9 +69,20 @@ func AdminOnly() gin.HandlerFunc {
 	}
 }
 
+// manager only
+func ManagerOnly() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.GetString("role") != string(domain.RoleManager) {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "This Operation is allowed for MANAGER only"})
+			return
+		}
+		c.Next()
+	}
+}
+
 func VerifiedUserOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		IsVerified := c.GetBool("isVerified")
+		IsVerified := c.GetBool("is_verified")
 		if !IsVerified {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "user not verified"})
 			return

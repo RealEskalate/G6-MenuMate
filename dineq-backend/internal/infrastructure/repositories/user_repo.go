@@ -2,12 +2,14 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database/mapper"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type UserRepository struct {
@@ -16,9 +18,21 @@ type UserRepository struct {
 }
 
 func NewUserRepository(db mongo.Database, collection string) domain.IUserRepository {
-	return &UserRepository{
+	repo := &UserRepository{
 		DB:         db,
 		Collection: collection,
+	}
+	repo.createTTLIndex(context.Background())
+	return repo
+}
+func (repo *UserRepository) createTTLIndex(ctx context.Context) {
+	indexModel := mongo.IndexModel{
+		Keys:    bson.M{"deletedAt": 1},
+		Options: options.Index().SetExpireAfterSeconds(0),
+	}
+	_, err := repo.DB.Collection(repo.Collection).Indexes().CreateOne(ctx, indexModel)
+	if err != nil {
+		fmt.Printf("Failed to create TTL index: %v\n", err)
 	}
 }
 
@@ -71,7 +85,7 @@ func (repo *UserRepository) FindUserByID(ctx context.Context, id string) (*domai
 		return nil, err
 	}
 	var userModel *mapper.UserModel
-	err = repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"_id": uid}).Decode(&userModel)
+	err = repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"_id": uid, "isDeleted": false}).Decode(&userModel)
 	if err != nil {
 		if err == mongo.ErrNoDocuments() {
 			return nil, err
@@ -83,7 +97,7 @@ func (repo *UserRepository) FindUserByID(ctx context.Context, id string) (*domai
 
 func (repo *UserRepository) GetUserByUsername(ctx context.Context, username string) (*domain.User, error) {
 	var userModel *mapper.UserModel
-	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"username": bson.M{"$regex": username, "$options": "i"}}).Decode(&userModel)
+	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"username": bson.M{"$regex": username, "$options": "i"}, "isDeleted": false}).Decode(&userModel)
 	if err != nil {
 		if err == mongo.ErrNoDocuments() {
 			return nil, err
@@ -95,7 +109,7 @@ func (repo *UserRepository) GetUserByUsername(ctx context.Context, username stri
 
 func (repo *UserRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
 	var userModel *mapper.UserModel
-	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"email": bson.M{"$regex": email, "$options": "i"}}).Decode(&userModel)
+	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"email": bson.M{"$regex": email, "$options": "i"}, "isDeleted": false}).Decode(&userModel)
 	if err != nil {
 		if err == mongo.ErrNoDocuments() {
 			return nil, err

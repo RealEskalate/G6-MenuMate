@@ -1,52 +1,63 @@
 package dto
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 )
 
-// ItemDTO represents the data transfer object for an Item
-type ItemDTO struct {
-	ID              string    `json:"id"`
-	Name            string    `json:"name"`
-	NameAm          string    `json:"nameAm,omitempty"`
-	Slug            string    `json:"slug"`
-	CategoryID      string    `json:"categoryId"`
+// ItemRequest represents the data transfer object for creating or updating an Item
+type ItemRequest struct {
+	Name            string   `json:"name" validate:"required_without=name_am,omitempty"`
+	NameAm          string   `json:"name_am" validate:"required_without=name,omitempty"`
+	Slug            string   `json:"slug,omitempty"`
+	CategoryID      string   `json:"category_id"`
+	Description     string   `json:"description,omitempty"`
+	DescriptionAm   string   `json:"description_am,omitempty"`
+	Image           []string `json:"image,omitempty"`
+	Price           float64  `json:"price" validate:"required,gt=0"`
+	Currency        string   `json:"currency" validate:"required"`
+	Allergies       []string `json:"allergies,omitempty"`
+	UserImages      []string `json:"user_images,omitempty"`
+	Calories        int      `json:"calories,omitempty" validate:"gte=0"`
+	Ingredients     []string `json:"ingredients,omitempty"`
+	IngredientsAm   []string `json:"ingredients_am,omitempty"`
+	PreparationTime int      `json:"preparation_time,omitempty" validate:"gte=0"`
+	HowToEat        any      `json:"how_to_eat,omitempty"`
+	HowToEatAm      any      `json:"how_to_eat_am,omitempty"`
+}
+
+// ItemResponse represents the data transfer object for returning an Item
+type ItemResponse struct {
+	ID              string    `json:"id,omitempty"`
+	Name            string    `json:"name" validate:"required_without=name_am,omitempty"`
+	NameAm          string    `json:"name_am" validate:"required_without=name,omitempty"`
+	Slug            string    `json:"slug,omitempty"`
+	CategoryID      string    `json:"category_id,omitempty"`
 	Description     string    `json:"description,omitempty"`
-	DescriptionAm   string    `json:"descriptionAm,omitempty"`
+	DescriptionAm   string    `json:"description_am,omitempty"`
 	Image           []string  `json:"image,omitempty"`
-	Price           float64   `json:"price"`
-	Currency        string    `json:"currency"`
+	Price           float64   `json:"price" validate:"required,gt=0"`
+	Currency        string    `json:"currency" validate:"required"`
 	Allergies       []string  `json:"allergies,omitempty"`
-	UserImages      []string  `json:"userImages,omitempty"`
-	Calories        int       `json:"calories,omitempty"`
+	UserImages      []string  `json:"user_images,omitempty"`
+	Calories        int       `json:"calories,omitempty" validate:"gte=0"`
 	Ingredients     []string  `json:"ingredients,omitempty"`
-	IngredientsAm   []string  `json:"ingredientsAm,omitempty"`
-	PreparationTime int       `json:"preparationTime,omitempty"`
-	HowToEat        any       `json:"howToEat,omitempty"`
-	HowToEatAm      any       `json:"howToEatAm,omitempty"`
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	IsDeleted       bool      `json:"isDeleted"`
-	ViewCount       int       `json:"viewCount"`
-	AverageRating   float64   `json:"averageRating"`
-	ReviewIDs       []string  `json:"reviewIds"`
+	IngredientsAm   []string  `json:"ingredients_am,omitempty"`
+	PreparationTime int       `json:"preparation_time,omitempty" validate:"gte=0"`
+	HowToEat        any       `json:"how_to_eat,omitempty"`
+	HowToEatAm      any       `json:"how_to_eat_am,omitempty"`
+	CreatedAt       time.Time `json:"created_at,omitempty"`
+	UpdatedAt       time.Time `json:"updated_at,omitempty"`
+	IsDeleted       bool      `json:"is_deleted,omitempty"`
+	ViewCount       int       `json:"view_count,omitempty" validate:"gte=0"`
+	AverageRating   float64   `json:"average_rating,omitempty" validate:"gte=0,lte=5"`
+	ReviewIDs       []string  `json:"review_ids,omitempty"`
 }
 
-// Validate checks the ItemDTO for required fields
-func (i *ItemDTO) Validate() error {
-	if i.Name == "" || i.CategoryID == "" || i.Price <= 0 {
-		return fmt.Errorf("item name, categoryID, and positive price are required")
-	}
-	return nil
-}
-
-// ToDomain converts the ItemDTO to a domain.Item entity
-func (i *ItemDTO) ToDomain() *domain.Item {
+// ToDomain converts the ItemRequest to a domain.Item entity
+func RequestToItem(i *ItemRequest) *domain.Item {
 	return &domain.Item{
-		ID:              i.ID,
 		Name:            i.Name,
 		NameAm:          i.NameAm,
 		Slug:            i.Slug,
@@ -64,18 +75,12 @@ func (i *ItemDTO) ToDomain() *domain.Item {
 		PreparationTime: i.PreparationTime,
 		HowToEat:        i.HowToEat,
 		HowToEatAm:      i.HowToEatAm,
-		CreatedAt:       i.CreatedAt,
-		UpdatedAt:       i.UpdatedAt,
-		IsDeleted:       i.IsDeleted,
-		ViewCount:       i.ViewCount,
-		AverageRating:   i.AverageRating,
-		ReviewIds:       i.ReviewIDs,
 	}
 }
 
-// FromDomain converts a domain.Item entity to an ItemDTO
-func (i *ItemDTO) FromDomain(item *domain.Item) *ItemDTO {
-	return &ItemDTO{
+// FromDomain converts a domain.Item entity to an ItemResponse
+func ItemToResponse(item *domain.Item) *ItemResponse {
+	return &ItemResponse{
 		ID:              item.ID,
 		Name:            item.Name,
 		NameAm:          item.NameAm,

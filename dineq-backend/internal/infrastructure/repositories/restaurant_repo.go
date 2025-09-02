@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -27,6 +28,7 @@ func (repo *RestaurantRepo) Create(ctx context.Context, r *domain.Restaurant) er
 	model := &mapper.RestaurantModel{}
 
 	if err := model.Parse(r); err != nil {
+		fmt.Println("Error parsing restaurant:", err)
 		return err
 	}
 
@@ -82,7 +84,6 @@ func (repo *RestaurantRepo) Update(ctx context.Context, r *domain.Restaurant) er
 			"logo_image":          model.LogoImage,
 			"tags":                model.Tags,
 			"verification_status": model.VerificationStatus,
-			"menu_id":             model.MenuID,
 			"updated_at":          model.UpdatedAt,
 		},
 	}

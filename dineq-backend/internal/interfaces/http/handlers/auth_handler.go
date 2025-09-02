@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -268,7 +267,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
-	fmt.Println("user id", user.ID)
+
 	c.JSON(http.StatusOK, dto.LoginResponse{
 		AccessToken:  response.AccessToken,
 		RefreshToken: refreshTokenValue,

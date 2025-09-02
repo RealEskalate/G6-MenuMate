@@ -100,6 +100,8 @@ type Env struct {
 
 	// menu collection
 	MenuCollection string `mapstructure:"MENU_COLLECTION"`
+	// qr code collection
+	QRCodeCollection string `mapstructure:"QR_CODE_COLLECTION"`
 }
 
 // Viper can be made injectable

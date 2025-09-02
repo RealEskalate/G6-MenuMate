@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -28,12 +29,13 @@ func IsValidObjectID(id string) bool {
 
 func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 	var input dto.RestaurantResponse
-	manager := c.GetString("userid")
+	manager := c.GetString("user_id")
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	fmt.Println("ManagerID:", manager)
 	input.ManagerID = manager
 	r := dto.ToDomainRestaurant(&input)
 	if err := h.RestaurantUsecase.CreateRestaurant(c.Request.Context(), r); err != nil {
@@ -56,7 +58,7 @@ func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
 
 func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 	var input dto.RestaurantResponse
-	manager := c.GetString("userid")
+	manager := c.GetString("user_id")
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -72,7 +74,7 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 }
 
 func (h *RestaurantHandler) DeleteRestaurant(c *gin.Context) {
-	manager := c.GetString("userid")
+	manager := c.GetString("user_id")
 	id := c.Param("id")
 	if err := h.RestaurantUsecase.DeleteRestaurant(c.Request.Context(), id, manager); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

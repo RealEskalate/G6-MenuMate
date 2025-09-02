@@ -18,23 +18,24 @@ func NewItemHandler(uc domain.IItemUseCase) *ItemHandler {
 
 // CreateItem handles the creation of a new item
 func (h *ItemHandler) CreateItem(c *gin.Context) {
-	var dto dto.ItemDTO
-	if err := c.ShouldBindJSON(&dto); err != nil {
+	var itemDto dto.ItemRequest
+	if err := c.ShouldBindJSON(&itemDto); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := dto.Validate(); err != nil {
+	if err := validate.Struct(&itemDto); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	item := dto.ToDomain()
+
+	item := dto.RequestToItem(&itemDto)
 	if err := h.UseCase.CreateItem(item); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, dto.FromDomain(item))
+	c.JSON(http.StatusCreated, dto.ItemToResponse(item))
 }
 
 // GetItemByID retrieves an item by ID
@@ -45,28 +46,28 @@ func (h *ItemHandler) GetItemByID(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Item not found"})
 		return
 	}
-	ItemDTO := dto.ItemDTO{}
-	c.JSON(http.StatusOK, ItemDTO.FromDomain(item))
+	c.JSON(http.StatusOK, dto.ItemToResponse(item))
 }
 
 // UpdateItem updates an existing item's details
 func (h *ItemHandler) UpdateItem(c *gin.Context) {
 	id := c.Param("id")
-	var dto dto.ItemDTO
-	if err := c.Bind(&dto); err != nil {
+	var itemDto dto.ItemRequest
+	if err := c.Bind(&itemDto); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := dto.Validate(); err != nil {
+
+	if err := validate.Struct(&itemDto); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	item := dto.ToDomain()
+	item := dto.RequestToItem(&itemDto)
 	if err := h.UseCase.UpdateItem(id, item); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, dto.FromDomain(item))
+	c.JSON(http.StatusOK, dto.ItemToResponse(item))
 }
 
 // AddReview adds a review to an item

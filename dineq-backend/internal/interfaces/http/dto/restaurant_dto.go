@@ -12,7 +12,6 @@ type RestaurantResponse struct {
 	Name               string    `json:"name"`
 	ManagerID          string    `json:"manager_id"`
 	Phone              string    `json:"phone"`
-	MenuID             string    `json:"menu_id"`
 	About              *string   `json:"about,omitempty"`
 	LogoImage          *string   `json:"logo_image,omitempty"`
 	Tags               []string  `json:"tags,omitempty"`
@@ -30,7 +29,6 @@ func ToRestaurantResponse(r *domain.Restaurant) *RestaurantResponse {
 		Name:               r.RestaurantName,
 		ManagerID:          r.ManagerID,
 		Phone:              r.RestaurantPhone,
-		MenuID:             r.MenuID,
 		About:              r.About,
 		LogoImage:          r.LogoImage,
 		Tags:               r.Tags,
@@ -53,7 +51,6 @@ func ToDomainRestaurant(r *RestaurantResponse) *domain.Restaurant {
 		RestaurantName:     r.Name,
 		ManagerID:          r.ManagerID,
 		RestaurantPhone:    r.Phone,
-		MenuID:             r.MenuID,
 		About:              r.About,
 		LogoImage:          r.LogoImage,
 		Tags:               r.Tags,
