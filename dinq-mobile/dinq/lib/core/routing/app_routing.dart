@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/dinq/qr_scanner/pages/qr_scanner_page.dart';
 import '../../features/dinq/search/presentation/pages/favourites_page.dart';
 import '../../features/dinq/search/presentation/pages/home_page.dart';
 import '../../features/dinq/search/presentation/pages/item_details_page.dart';
@@ -56,7 +57,8 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(builder: (_) => const BrandingPreferencesPage());
     case '/billing':
       return MaterialPageRoute(builder: (_) => const BillingPage());
-
+    case '/qrcode':
+      return MaterialPageRoute(builder: (_) => const QrScannerPage());
     default:
       return MaterialPageRoute(
         builder: (_) =>

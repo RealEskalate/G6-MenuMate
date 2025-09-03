@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
           foregroundColor: Colors.white,
         ),
       ),
-      initialRoute: '/explore',
+      initialRoute: '/qrcode',
       onGenerateRoute: generateRoute,
     );
   }
