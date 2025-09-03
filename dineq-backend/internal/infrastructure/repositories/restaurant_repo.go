@@ -223,3 +223,59 @@ func (repo *RestaurantRepo) ListUniqueRestaurants(ctx context.Context, page, pag
 	}
 	return result, total, nil
 }
+
+func (repo *RestaurantRepo) FindNearby(ctx context.Context, lat, lng float64, maxDistance int, page, pageSize int) ([]*domain.Restaurant, int64, error) {
+	restCol := repo.db.Collection(repo.restaurantCol)
+
+	// Stage 1: $geoNear
+	geoNearStage := bson.D{{
+		Key: "$geoNear", Value: bson.M{
+			"near": bson.M{
+				"type":        "Point",
+				"coordinates": []float64{lng, lat},
+			},
+			"distanceField": "distance",
+			"maxDistance":   maxDistance,
+			"spherical":     true,
+		},
+	}}
+
+	// Stage 2: $facet (pagination + count)
+	facetStage := bson.D{{
+		Key: "$facet", Value: bson.M{
+			"totalData": bson.A{
+				bson.D{{Key: "$skip", Value: (page - 1) * pageSize}},
+				bson.D{{Key: "$limit", Value: pageSize}},
+			},
+			"totalCount": bson.A{
+				bson.D{{Key: "$count", Value: "count"}},
+			},
+		},
+	}}
+
+	pipeline := []bson.D{geoNearStage, facetStage}
+
+	cursor, err := restCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	// var raw []bson.M
+
+	// cursor.All(ctx, &raw)
+	// fmt.Printf("%+v\n", raw)
+
+	var facetResults []mapper.FacetResultModel
+	if err := cursor.All(ctx, &facetResults); err != nil {
+		return nil, 0, err
+	}
+
+	if len(facetResults) == 0 {
+		return []*domain.Restaurant{}, 0, nil
+	}
+
+	restaurants, total := facetResults[0].Parse()
+	return restaurants, total, nil
+
+}
