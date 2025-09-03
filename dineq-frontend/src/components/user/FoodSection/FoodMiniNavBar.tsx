@@ -3,6 +3,7 @@ import { useState } from "react";
 import Description from "./Description";
 import FoodTip from "./HowToEat";
 import ReviewForm from "./WriteReview";
+import Review from "./Review";
 
 export default function FoodDetails() {
   const [activeTab, setActiveTab] = useState<
@@ -32,7 +33,7 @@ export default function FoodDetails() {
     chefName: "Chef Abebe",
     message:
       "The key to perfect Doro Wat is in the berbere spice blend. We make our own berbere using dried red chilies, garlic, ginger, and 15 other spices. The chicken should be cooked slowly until it’s tender and the sauce has thickened. Always serve with fresh injera and don’t forget the hard-boiled egg – it’s not just decoration, it’s part of the traditional presentation.",
-    audioUrl: "", // can add an mp3 path later e.g. "/audio/chef-tip.mp3"
+    audioUrl: "", 
   };
 
   return (
@@ -65,20 +66,7 @@ export default function FoodDetails() {
         )}
 
         {activeTab === "reviews" && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <p className="font-semibold">Selamawit ⭐⭐⭐⭐</p>
-              <p className="text-gray-600">
-                The spice was just right! Reminded me of home.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <p className="font-semibold">Mikias ⭐⭐⭐⭐⭐</p>
-              <p className="text-gray-600">
-                Best doro wat I’ve had in a long time!
-              </p>
-            </div>
-          </div>
+          <Review/>
         )}
 
         {activeTab === "writeReview" && (

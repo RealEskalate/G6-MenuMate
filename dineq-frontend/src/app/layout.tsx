@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Playfair_Display,  Poppins,  } from "next/font/google";
 import { AuthProvider } from "@/provider/AuthProvider";
+import { ProfileProvider } from "@/context/ProfileContext";
 
 // Headings font (choose Playfair Display or Lobster)
 const playfair = Playfair_Display({
@@ -37,7 +38,9 @@ export default function RootLayout({
       className={`${playfair.variable} ${poppins.variable}`}
     >
       <AuthProvider>
-      <body className="font-body">{children}</body>
+        <ProfileProvider>
+          <body className="font-body">{children}</body>
+        </ProfileProvider>
       </AuthProvider>
     </html>
   );

@@ -23,10 +23,10 @@ function NavBar({ role }: Roles) {
 
   const customerLinks = [
     { name: "Home", href: "/" },
-    { name: "Restaurants", href: "/customer/restaurants" },
-    { name: "Scan", href: "/customer/scan" },
-    { name: "Favorites", href: "/customer/favorites" },
-    { name: "Profile", href: "/customer/profile" },
+    { name: "Restaurants", href: "/user/restaurants" },
+    { name: "Scan", href: "/user/scan" },
+    { name: "Favorites", href: "/user/favorites" },
+    { name: "Profile", href: "/user/profile" },
   ];
 
   const restaurantLinks = [
@@ -35,7 +35,7 @@ function NavBar({ role }: Roles) {
     { name: "Contact", href: "/contact" },
   ];
 
-  const links = role === "CUSTOMER" ? customerLinks : restaurantLinks;
+  const links = role === "USER" ? customerLinks : restaurantLinks;
 
   return (
     <nav className="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-md border-b border-gray-300 z-50">

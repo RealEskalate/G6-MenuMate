@@ -16,9 +16,9 @@ interface FoodTipProps {
 
 export default function FoodTip({ howToEat, chefTip }: FoodTipProps) {
   return (
-    <div className="space-y-8 mt-6">
+    <div className=" border rounded-xl shadow-sm">
       {/* How to Eat Section */}
-      <div className="p-4 border rounded-xl shadow-sm">
+      <div className="p-4 ">
         <h2 className="text-2xl font-semibold mb-3">How to Eat Doro Wat</h2>
         <ol className="list-decimal list-inside space-y-1 text-gray-700">
           {howToEat.steps.map((step, index) => (
@@ -29,7 +29,7 @@ export default function FoodTip({ howToEat, chefTip }: FoodTipProps) {
       </div>
 
       {/* Chef's Voice Tip Section */}
-      <div className="p-4 border rounded-xl shadow-sm">
+      <div className="p-4 ">
         <h2 className="text-2xl font-semibold mb-3">Chef&apos;s Voice Tip</h2>
 
         {/* Audio player placeholder */}

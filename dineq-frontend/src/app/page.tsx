@@ -1,5 +1,5 @@
 import LandingPage from "./landing_page/page";
-import ProfilePage from "./user/profile/page";
+
 
 
 
@@ -9,6 +9,7 @@ export default function Home() {
     <div>
       <LandingPage />
       {/* <ProfilePage/> */}
+      {/* <FoodCard/> */}
 
     </div>
   );
