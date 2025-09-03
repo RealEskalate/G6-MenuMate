@@ -82,35 +82,35 @@ type ItemResponse struct {
 type ItemDTO struct {
 	ID              string             `json:"id"`
 	Name            string             `json:"name"`
-	NameAm          string             `json:"nameAm,omitempty"`
+	NameAm          string             `json:"name_am,omitempty"`
 	Slug            string             `json:"slug"`
-	CategoryID      string             `json:"categoryId"`
+	CategoryID      string             `json:"category_id"`
 	Description     string             `json:"description,omitempty"`
-	DescriptionAm   string             `json:"descriptionAm,omitempty"`
+	DescriptionAm   string             `json:"description_am,omitempty"`
 	Image           []string           `json:"image,omitempty"`
 	Price           float64            `json:"price"`
 	Currency        string             `json:"currency"`
 	Allergies       []string           `json:"allergies,omitempty"`
-	AllergiesAm     string             `json:"allergiesAm,omitempty"`
-	TabTags         []string           `json:"tabTags,omitempty"`
-	TabTagsAm       []string           `json:"tabTagsAm,omitempty"`
-	UserImages      []string           `json:"userImages,omitempty"`
+	AllergiesAm     string             `json:"allergies_am,omitempty"`
+	TabTags         []string           `json:"tab_tags,omitempty"`
+	TabTagsAm       []string           `json:"tab_tags_am,omitempty"`
+	UserImages      []string           `json:"user_images,omitempty"`
 	Calories        int                `json:"calories,omitempty"`
 	Protein         int                `json:"protein,omitempty"`
 	Carbs           int                `json:"carbs,omitempty"`
 	Fat             int                `json:"fat,omitempty"`
-	NutritionalInfo *NutritionalInfoDTO `json:"nutritionalInfo,omitempty"`
+	NutritionalInfo *NutritionalInfoDTO `json:"nutritional_info,omitempty"`
 	Ingredients     []string           `json:"ingredients,omitempty"`
-	IngredientsAm   []string           `json:"ingredientsAm,omitempty"`
-	PreparationTime int                `json:"preparationTime,omitempty"`
-	HowToEat        string             `json:"howToEat,omitempty"`
-	HowToEatAm      string             `json:"howToEatAm,omitempty"`
-	CreatedAt       time.Time          `json:"createdAt"`
-	UpdatedAt       time.Time          `json:"updatedAt"`
-	IsDeleted       bool               `json:"isDeleted"`
-	ViewCount       int                `json:"viewCount"`
-	AverageRating   float64            `json:"averageRating"`
-	ReviewIDs       []string           `json:"reviewIds"`
+	IngredientsAm   []string           `json:"ingredients_am,omitempty"`
+	PreparationTime int                `json:"preparation_time,omitempty"`
+	HowToEat        string             `json:"how_to_eat,omitempty"`
+	HowToEatAm      string             `json:"how_to_eat_am,omitempty"`
+	CreatedAt       time.Time          `json:"created_at"`
+	UpdatedAt       time.Time          `json:"updated_at"`
+	IsDeleted       bool               `json:"is_deleted"`
+	ViewCount       int                `json:"view_count"`
+	AverageRating   float64            `json:"average_rating"`
+	ReviewIDs       []string           `json:"review_ids"`
 }
 
 // Validate basic required fields for ItemDTO
