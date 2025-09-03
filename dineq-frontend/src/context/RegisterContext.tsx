@@ -1,21 +1,24 @@
-// context/RegisterContext.tsx
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface UploadedFile {
   name: string;
-  size: number; // in MB
+  size: number; 
+  file: File;   
 }
 
-interface RegisterData {
+export interface RegisterData {
   name: string;
   email: string;
   restaurant: string;
   address: string;
   phone: string;
+  about?: string;
+  tags?: string[];
+  logo_image?: UploadedFile | null;
   businessLicense?: UploadedFile | null;
-  // add other fields here as needed
 }
 
 interface RegisterContextType {
@@ -33,6 +36,9 @@ export const RegisterProvider = ({ children }: { children: ReactNode }) => {
     restaurant: "",
     address: "",
     phone: "",
+    about: "",
+    tags: [],
+    logo_image: null,
     businessLicense: null,
   });
 
@@ -47,6 +53,9 @@ export const RegisterProvider = ({ children }: { children: ReactNode }) => {
       restaurant: "",
       address: "",
       phone: "",
+      about: "",
+      tags: [],
+      logo_image: null,
       businessLicense: null,
     });
   };

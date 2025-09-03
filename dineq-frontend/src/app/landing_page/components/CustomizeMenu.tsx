@@ -25,7 +25,7 @@ export default function CustomizeMenu() {
             dish names to photos—tailor every detail effortlessly.
           </p>
           <Link
-            href="#"
+            href="/auth/manager-signup"
             className="mt-6 inline-block bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600 transition-colors duration-200 shadow-md"
           >
             Create menu now

@@ -1,23 +1,94 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Pencil, FileText } from "lucide-react";
+import { Pencil, FileText, Image as ImageIcon } from "lucide-react";
 import { useRegister } from "@/context/RegisterContext";
+import Image from "next/image";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 export default function ReviewPage() {
   const router = useRouter();
-  const { data } = useRegister();
+  const { data, resetData } = useRegister();
+  const { data: session } = useSession(); 
 
   const basicInfo = {
-    "Restaurant Name": data.restaurant,
-    "Phone Number": data.phone,
-    Location: data.address,
+    Name: data.name,
+    Email: data.email,
+    Restaurant: data.restaurant,
+    Address: data.address,
+    Phone: data.phone,
+    About: data.about || "N/A",
+    Tags: data.tags?.join(", ") || "None",
   };
 
+  const logoImage = data.logo_image;
   const documents = data.businessLicense ? [data.businessLicense] : [];
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const handleSubmit = async () => {
-    // submission logic here
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (!session?.accessToken) {
+        throw new Error("Unauthorized: No access token found");
+      }
+
+      const formData = new FormData();
+
+      // match API field names
+      formData.append("restaurant_name", data.restaurant);
+      formData.append("restaurant_phone", data.phone);
+      formData.append("about", data.about || "");
+
+      if (data.tags && data.tags.length > 0) {
+        data.tags.forEach((tag: string) => {
+          formData.append("tags", tag);
+        });
+      }
+
+      // files
+      if (data.logo_image?.file) {
+        formData.append("logo_image", data.logo_image.file);
+      }
+
+      if (data.businessLicense?.file) {
+        formData.append("verification_docs", data.businessLicense.file);
+      }
+
+      if ((data as any).coverImage?.file) {
+        formData.append("cover_image", (data as any).coverImage.file);
+      }
+
+      const res = await fetch(
+        "https://g6-menumate.onrender.com/v1/restaurants",
+        {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`, // ✅ include token
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to create restaurant");
+      }
+
+      const result = await res.json();
+      console.log("✅ Created restaurant:", result);
+
+      resetData();
+      router.push("/restaurant/success");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,7 +104,7 @@ export default function ReviewPage() {
 
         {/* Restaurant Info */}
         <section className="mb-10">
-          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-left">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-left">
             Restaurant Information
           </h2>
           <div className="space-y-4 max-w-xl w-full">
@@ -42,18 +113,43 @@ export default function ReviewPage() {
                 key={key}
                 className="flex items-center justify-between border border-gray-300 rounded-lg px-3 sm:px-4 py-2 bg-white"
               >
-                <span className="text-gray-700 text-sm sm:text-base">
-                  {value || "-"}
+                <span className="text-gray-700 text-sm sm:text-base text-right ml-4 ">
+                  {key}:{value}
                 </span>
                 <button
                   type="button"
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 ml-2"
                   onClick={() => router.push("/register/basic-info")}
                 >
                   <Pencil className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Logo Image */}
+        <section className="mb-10">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-left">
+            Logo Image
+          </h2>
+          <div className="max-w-xl w-full">
+            {!logoImage ? (
+              <p className="text-gray-500 italic text-sm sm:text-base">
+                No logo uploaded.
+              </p>
+            ) : (
+              <div className="flex items-center space-x-3 border border-gray-300 rounded-lg px-3 sm:px-4 py-2 bg-white">
+                <ImageIcon className="w-5 h-5 text-gray-500" />
+                <Image
+                  src={URL.createObjectURL(logoImage.file)}
+                  alt="Restaurant Logo"
+                  width={60}
+                  height={60}
+                  className="rounded-md object-cover"
+                />
+              </div>
+            )}
           </div>
         </section>
 
@@ -89,7 +185,7 @@ export default function ReviewPage() {
         <div className="flex flex-col sm:flex-row justify-between mt-10 space-y-3 sm:space-y-0 sm:space-x-4">
           <button
             type="button"
-            onClick={() => router.push("/register/basic-info")}
+            onClick={() => router.push("/restaurant/register/basic-info")}
             className="w-full sm:w-auto px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm sm:text-base"
           >
             ← Back
@@ -97,11 +193,13 @@ export default function ReviewPage() {
           <button
             type="button"
             onClick={handleSubmit}
+            disabled={loading}
             className="w-full sm:w-auto px-5 sm:px-6 py-2 rounded-md bg-orange-500 text-white hover:bg-orange-600 text-sm sm:text-base"
           >
-            Submit →
+            {loading ? "Submitting..." : "Submit →"}
           </button>
         </div>
+        {error && <p className="text-red-500 mt-4">{error}</p>}
       </div>
     </div>
   );

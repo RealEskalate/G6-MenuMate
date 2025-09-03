@@ -1,65 +1,89 @@
-// src/app/user/single-restaurant-display/page.tsx
+"use client";
 
-import { notFound } from "next/navigation";
-import Image from "next/image";
 import { FaHeart } from "react-icons/fa";
-import { MapPin, Phone } from "lucide-react";
-import RestaurantData from "@/data/RestaurantData";
+import { Phone } from "lucide-react";
+import SafeImage from "@/components/common/SafeImage";
+import NavBar from "@/components/common/NavBar";
+import { useParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store/store";
+import { useEffect, useMemo } from "react";
+import { fetchRestaurantById, ApiRestaurant } from "@/store/restaurantsSlice";
+import { RestaurantDetailSkeleton } from "@/components/common/LoadingSkeletons";
 
-interface Props {
-  params: {
-    id: string;
-  };
-}
+export default function SingleRestaurant() {
+  const params = useParams<{ id: string }>();
+  const id = useMemo(() => String(params?.id || ""), [params]);
+  const dispatch = useDispatch<AppDispatch>();
 
-export default function SingleRestaurant({ params }: Props) {
-  const restaurant = RestaurantData.find((r) => r && r.id === params.id);
+  const { currentRestaurant, currentLoading, currentError } = useSelector(
+    (state: RootState) => state.restaurants
+  );
 
-  if (!restaurant) return notFound();
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchRestaurantById(id));
+    }
+  }, [dispatch, id]);
+
+  const restaurant: ApiRestaurant | null = currentRestaurant;
 
   return (
-    <div className="flex flex-col items-center">
-      {/* Header Image */}
-      <div className="w-[1128px] h-[156px] relative m-5 mb-0">
-        <Image
-          src={restaurant.logoImage}
-          alt={restaurant.name}
-          fill
-          className="object-cover rounded-lg"
-        />
-      </div>
+    <>
+      <NavBar role="CUSTOMER" />
 
-      {/* Restaurant Info */}
-      <div className="w-[1128px] h-auto bg-gray-200 p-5 rounded-lg">
-        <div className="flex justify-between items-start">
-          <div className="flex flex-col">
-            <p className="text-2xl font-bold">{restaurant.name}</p>
-            <p className="text-yellow-500">⭐ {restaurant.averageRating}</p>
-            <p className="mt-2">{restaurant.about}</p>
+      {!id ? (
+        <div className="flex justify-center p-8">Invalid restaurant id.</div>
+      ) : currentLoading ? (
+        <RestaurantDetailSkeleton />
+      ) : currentError ? (
+        <div className="flex justify-center p-8 text-red-600">{currentError}</div>
+      ) : !restaurant ? (
+        <div className="flex justify-center p-8">Restaurant not found.</div>
+      ) : (
+        <div className="flex flex-col items-center px-4 sm:px-6 md:px-8 pb-8">
+          {/* Header Image */}
+          <div className="w-full max-w-5xl h-40 sm:h-52 md:h-64 relative rounded-lg overflow-hidden shadow-lg mt-4">
+            <SafeImage
+              src={restaurant.logo_image ?? "/Background.png"}
+              alt={restaurant.name}
+              fill
+              className="object-cover"
+            />
           </div>
 
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 px-4 py-2 mx-auto text-white rounded-lg"
-            style={{ backgroundColor: "var(--color-primary)" }}
-          >
-            <FaHeart className="w-5 h-5" />
-            Save
-          </button>
-        </div>
+          {/* Restaurant Info */}
+          <div className="w-full max-w-5xl bg-gray-100 p-5 rounded-lg mt-5 shadow-md">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+              <div className="flex flex-col mb-4 md:mb-0">
+                <h1 className="text-3xl font-bold">{restaurant.name}</h1>
+                <p className="text-yellow-500 text-lg">
+                  ⭐ {restaurant.average_rating ?? 0}
+                </p>
+                <p className="mt-2 text-gray-700">{restaurant.about}</p>
+              </div>
 
-        {/* Extra Details */}
-        <div className="mt-4 space-y-2">
-          <p className="flex items-center gap-2">
-            <MapPin className="w-6 h-6 text-red-500" />
-            {restaurant.location}
-          </p>
-          <p className="flex items-center gap-2">
-            <Phone className="w-6 h-6 text-green-500" />
-            {restaurant.contact.phone}
-          </p>
+              <button
+                type="button"
+                className="flex items-center justify-center gap-2 px-6 py-3 text-white rounded-full transition-colors duration-200"
+                style={{ backgroundColor: "var(--color-primary)" }}
+              >
+                <FaHeart className="w-5 h-5" />
+                Save
+              </button>
+            </div>
+
+            {/* Extra Details */}
+            <div className="mt-6 space-y-3">
+              
+              <p className="flex items-center gap-3 text-lg text-gray-600">
+                <Phone className="w-6 h-6 text-green-500" />
+                {restaurant.phone ?? "Phone not available"}
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }

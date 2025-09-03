@@ -1,70 +1,135 @@
-import React from "react";
-import Image from "next/image";
-import RestaurantData from "@/data/RestaurantData";
-import { Restaurant } from "../../Types/restaurants";
-import { FaStar, FaRegStar } from "react-icons/fa";
-import Link from "next/link";
-
-const RestaurantCard: React.FC<Restaurant> = (props) => {
-  const fullStars = Math.floor(props.averageRating);
-  const hasHalfStar = props.averageRating % 1 >= 0.5;
-  const totalStars = 5;
-
-  return (
-    <>
-      <Link href={`/user/restaurant-display/${props.id}`} passHref>
-        <div className="border border-[var(--color-primary)] w-[361px] h-[335px] rounded-lg m-5">
-          <div className="relative flex flex-col p-2 h-full">
-            <div className="h-[160px] w-[341px] relative rounded-lg">
-              <Image
-                src={props.logoImage}
-                alt="Background"
-                layout="fill"
-                objectFit="cover"
-                className="rounded-lg"
-              />
-            </div>
-
-            <div className="h-[160px] w-[341px] relative rounded-lg">
-              <h1 className="w-[309px] h-[28px] text-[22px] font-semibold px-[16px] pt-[15.4px] pb-[20px] leading-[28px]">
-                {props.name}
-              </h1>
-              <p className="font-normal leading-[21px] px-[16px] pb-[8px] text-[13.125px] pt-[10px]">
-                {props.about}
-              </p>
-              <div className="flex justify-between px-[16px] w-1/2 pt-[10px]">
-                {Array.from({ length: totalStars }, (_, i) => {
-                  if (i < fullStars) {
-                    return <FaStar key={i} className="text-yellow-500" />;
-                  } else if (i === fullStars && hasHalfStar) {
-                    return (
-                      <FaStar key={i} className="text-yellow-300 opacity-70" />
-                    ); // half-star substitute
-                  } else {
-                    return <FaRegStar key={i} className="text-yellow-500" />;
-                  }
-                })}
-                <span className="ml-2 text-sm text-gray-600">
-                  {props.averageRating.toFixed(1)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Link>
-    </>
-  );
-};
+"use client";
+import React, { useEffect, useMemo, useState } from 'react';
+import RestaurantCard from '@/app/user/RestaurantCard'
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchRestaurants } from '@/store/restaurantsSlice';
+import { RootState, AppDispatch } from '@/store/store';
+import { Restaurant } from '../../Types/restaurants';
+import { Search } from 'lucide-react';
+import { RestaurantCardSkeleton } from '@/components/common/LoadingSkeletons';
+import NavBar from '@/components/common/NavBar';
+import { ApiRestaurant } from '@/store/restaurantsSlice';
 
 const Restaurants = () => {
-  const restaurants = RestaurantData.map((restaurant) => {
-    return <RestaurantCard key={restaurant.id} {...restaurant} />;
+  const dispatch = useDispatch<AppDispatch>();
+  const { restaurants, loading, error } = useSelector((state: RootState) => state.restaurants);
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    dispatch(fetchRestaurants({ page: 1, pageSize: 20 }));
+  }, [dispatch]);
+
+  const normalizedRestaurants = useMemo<Restaurant[]>(() => {
+  return (restaurants || []).map((apiRestaurant: ApiRestaurant) => {
+    return {
+      id: String(apiRestaurant.id),
+      name: apiRestaurant.name ?? 'Unnamed Restaurant',
+      about: apiRestaurant.about ?? '',
+      contact: {
+        phone: apiRestaurant.phone ?? '',
+        email: ''
+      },
+      averageRating: Number(apiRestaurant.average_rating ?? 0),
+      logoImage: apiRestaurant.logo_image ?? '/Background.png',
+      location: ''
+    };
   });
+}, [restaurants]);
+
+  const filteredRestaurants = useMemo(() => {
+    if (!query.trim()) return normalizedRestaurants;
+    const q = query.toLowerCase();
+    return normalizedRestaurants.filter(r =>
+      r.name.toLowerCase().includes(q) || r.about.toLowerCase().includes(q)
+    );
+  }, [normalizedRestaurants, query]);
+
+  const nearbyRestaurants = useMemo(() => {
+    return [...filteredRestaurants]
+      .sort((a, b) => b.averageRating - a.averageRating)
+      .slice(0, Math.min(6, filteredRestaurants.length));
+  }, [filteredRestaurants]);
+
+  const allButNearby = useMemo(() => {
+    const nearbyIds = new Set(nearbyRestaurants.map(r => r.id));
+    return filteredRestaurants.filter(r => !nearbyIds.has(r.id));
+  }, [filteredRestaurants, nearbyRestaurants]);
+
+  if (loading) return (
+    <div className='w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+      <div className='w-full mt-4 mb-6 flex justify-center'>
+        <div className='w-full max-w-xl relative'>
+          <div className='h-10 bg-gray-200 rounded-md animate-pulse' />
+        </div>
+      </div>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <RestaurantCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
+  if (error) return <div className='flex justify-center p-8 text-red-600'>Failed to load restaurants: {error}</div>;
+  if (!normalizedRestaurants?.length) return (
+    <div className='w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+      <div className='w-full mt-4 mb-6 flex justify-center'>
+        <div className='w-full max-w-xl relative'>
+          <div className='h-10 bg-gray-200 rounded-md animate-pulse' />
+        </div>
+      </div>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <RestaurantCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
 
   return (
-    <>
-      <div className="flex flex-wrap justify-center gap-6">{restaurants}</div>
-    </>
+    <div className='w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+      <NavBar role={'CUSTOMER'}/>
+      {/* Search Bar */}
+      <div className='w-full mt-4 mb-6 flex justify-center'>
+        <div className='w-full max-w-xl relative'>
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-primary)]' size={18} />
+          <input
+            type='text'
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder='Search restaurants...'
+            className='w-full rounded-md border border-gray-300 pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent'
+          />
+        </div>
+      </div>
+
+      {/* Nearby Restaurants */}
+      <section className='mb-10'>
+        <h2 className='text-xl font-semibold mb-4'>Nearby restaurants</h2>
+        {nearbyRestaurants.length === 0 ? (
+          <div className='text-gray-500'>No nearby restaurants match your search.</div>
+        ) : (
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+            {nearbyRestaurants.map((r) => (
+              <RestaurantCard key={`nearby-${r.id}`} {...r} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* All Restaurants */}
+      <section className='mb-8'>
+        <h2 className='text-xl font-semibold mb-4'>All restaurants</h2>
+        {filteredRestaurants.length === 0 ? (
+          <div className='text-gray-500'>No restaurants match your search.</div>
+        ) : (
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+            {(allButNearby.length ? allButNearby : filteredRestaurants).map((r) => (
+              <RestaurantCard key={r.id} {...r} />
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
   );
 };
 

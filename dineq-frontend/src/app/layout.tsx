@@ -1,25 +1,24 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Playfair_Display,  Poppins,  } from "next/font/google";
+import { Playfair_Display, Poppins } from "next/font/google";
+import ReduxProvider from "@/store/ReduxProvider";
+
 import { AuthProvider } from "@/provider/AuthProvider";
 import { ProfileProvider } from "@/context/ProfileContext";
 
-// Headings font (choose Playfair Display or Lobster)
+// Headings font
 const playfair = Playfair_Display({
   subsets: ["latin"],
   weight: ["400", "600", "700"],
   variable: "--font-headings",
 });
 
-
-// Body font (choose Poppins or Nunito)
+// Body font
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   variable: "--font-body",
 });
-
-
 
 export const metadata: Metadata = {
   title: "MenuMate",
@@ -32,16 +31,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    
-    <html
-      lang="en"
-      className={`${playfair.variable} ${poppins.variable}`}
-    >
-      <AuthProvider>
+    <html lang="en" className={`${playfair.variable} ${poppins.variable}`}>
+      <body className="font-body">
+        <AuthProvider>
         <ProfileProvider>
-          <body className="font-body">{children}</body>
+
+        <ReduxProvider>
+          {children}
+        </ReduxProvider>
         </ProfileProvider>
       </AuthProvider>
+      </body>
+ 
     </html>
   );
 }

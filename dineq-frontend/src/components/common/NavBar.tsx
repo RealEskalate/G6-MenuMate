@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import logo from "../../../public/logo.png";
+
 import Roles from "../../Types/role";
 
 function NavBar({ role }: Roles) {
@@ -13,7 +13,7 @@ function NavBar({ role }: Roles) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    setOpen(false); // close mobile menu on route change
+    setOpen(false); 
   }, [pathname]);
 
   const linkClasses = (path: string) =>
@@ -30,7 +30,6 @@ function NavBar({ role }: Roles) {
   ];
 
   const restaurantLinks = [
-    { name: "Home", href: "/restaurant/dashboard" },
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ];
@@ -38,11 +37,11 @@ function NavBar({ role }: Roles) {
   const links = role === "USER" ? customerLinks : restaurantLinks;
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-md border-b border-gray-300 z-50">
+    <nav className="w-full bg-white/95 backdrop-blur-md border-b border-gray-100 z-50">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link href="/">
-          <Image src={logo} alt="Logo" width={100} height={100} />
+          <Image src="/logo.png" alt="Logo" width={100} height={100} />
         </Link>
 
         {/* Desktop Menu */}

@@ -42,7 +42,7 @@ export default function FoodLovers() {
             visibility, and turn hungry visitors into loyal customers.
           </p>
           <Link
-            href="#"
+            href="/user-routes/whoareyou"
             className="mt-6 inline-block bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600 transition-colors duration-200 shadow-md"
           >
             Join us

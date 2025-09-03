@@ -13,6 +13,7 @@ export interface Restaurant {
   contact: Contact;
   averageRating: number;
   logoImage: string;
+  location : string;
 }
 
 export interface RestaurantListProps {
