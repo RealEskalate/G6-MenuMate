@@ -8,6 +8,7 @@ import { Restaurant } from '../../Types/restaurants';
 import { Search } from 'lucide-react';
 import { RestaurantCardSkeleton } from '@/components/common/LoadingSkeletons';
 import NavBar from '@/components/common/NavBar';
+import { ApiRestaurant } from '@/store/restaurantsSlice';
 
 const Restaurants = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -19,19 +20,21 @@ const Restaurants = () => {
   }, [dispatch]);
 
   const normalizedRestaurants = useMemo<Restaurant[]>(() => {
-    return (restaurants || []).map((apiRestaurant) => ({
+  return (restaurants || []).map((apiRestaurant: ApiRestaurant) => {
+    return {
       id: String(apiRestaurant.id),
       name: apiRestaurant.name ?? 'Unnamed Restaurant',
       about: apiRestaurant.about ?? '',
       contact: {
-        phone: (apiRestaurant as any).phone ?? '',
+        phone: apiRestaurant.phone ?? '',
         email: ''
       },
-      averageRating: Number((apiRestaurant as any).average_rating ?? 0),
-      logoImage: (apiRestaurant as any).logo_image ?? '/Background.png',
+      averageRating: Number(apiRestaurant.average_rating ?? 0),
+      logoImage: apiRestaurant.logo_image ?? '/Background.png',
       location: ''
-    }));
-  }, [restaurants]);
+    };
+  });
+}, [restaurants]);
 
   const filteredRestaurants = useMemo(() => {
     if (!query.trim()) return normalizedRestaurants;

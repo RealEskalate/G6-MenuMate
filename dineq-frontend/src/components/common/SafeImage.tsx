@@ -17,6 +17,7 @@ export default function SafeImage({ src, fallbackSrc = "/Background.png", ...res
     <Image
       {...rest}
       src={resolvedSrc}
+      alt="Image"
       onError={() => setUseFallback(true)}
     />
   );

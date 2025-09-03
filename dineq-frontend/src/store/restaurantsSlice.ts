@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 // API Response types based on the actual API structure
-interface ApiRestaurant {
+export interface ApiRestaurant {
   id: string;
   slug: string;
   name: string;
@@ -56,10 +56,23 @@ export const fetchRestaurantById = createAsyncThunk(
       `https://g6-menumate-1.onrender.com/api/v1/restaurants/${encodeURIComponent(id)}`,
       { cache: "no-store" }
     );
+
     if (direct.ok) {
-      const data = await direct.json();
-      const entity = (data && (data.restaurant || data.data || data)) as any;
-      if (entity && entity.id) return entity as ApiRestaurant;
+      const data = (await direct.json()) as
+        | { restaurant?: ApiRestaurant; data?: ApiRestaurant }
+        | ApiRestaurant;
+
+      // Type narrowing
+      let entity: ApiRestaurant | undefined;
+      if ("restaurant" in data && data.restaurant) {
+        entity = data.restaurant;
+      } else if ("data" in data && data.data) {
+        entity = data.data;
+      } else if ("id" in data) {
+        entity = data as ApiRestaurant;
+      }
+
+      if (entity && entity.id) return entity;
     }
 
     // Fallback to list and find
@@ -68,8 +81,18 @@ export const fetchRestaurantById = createAsyncThunk(
       { cache: "no-store" }
     );
     if (!listRes.ok) throw new Error("Failed to fetch restaurant");
-    const listData = await listRes.json();
-    const list = (listData && (listData.restaurants || listData.data || [])) as ApiRestaurant[];
+
+    const listData = (await listRes.json()) as { restaurants?: ApiRestaurant[]; data?: ApiRestaurant[] } | ApiRestaurant[];
+    let list: ApiRestaurant[] = [];
+
+    if (Array.isArray(listData)) {
+      list = listData;
+    } else if ("restaurants" in listData && listData.restaurants) {
+      list = listData.restaurants;
+    } else if ("data" in listData && listData.data) {
+      list = listData.data;
+    }
+
     const found = list.find((r) => String(r.id) === id);
     if (!found) throw new Error("Restaurant not found");
     return found;
