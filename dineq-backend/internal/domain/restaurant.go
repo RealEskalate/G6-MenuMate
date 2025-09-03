@@ -17,7 +17,8 @@ type Restaurant struct {
 	LogoImage          *string
 	Tags               []string
 	VerificationStatus VerificationStatus
-	VerificationDocs   string
+	VerificationDocs   *string
+	CoverImage         *string
 	AverageRating      float64
 	ViewCount          int64
 	CreatedAt          time.Time
@@ -34,7 +35,6 @@ type Address struct {
 	Latitude   *float64
 	Longitude  *float64
 }
-
 
 type VerificationStatus string
 
@@ -55,8 +55,8 @@ type IRestaurantRepo interface {
 }
 
 type IRestaurantUsecase interface {
-	CreateRestaurant(ctx context.Context, r *Restaurant) error
-	UpdateRestaurant(ctx context.Context, r *Restaurant) error
+	CreateRestaurant(ctx context.Context, r *Restaurant, files map[string][]byte) error
+	UpdateRestaurant(ctx context.Context, r *Restaurant, files map[string][]byte) error
 	DeleteRestaurant(ctx context.Context, id string, manager string) error
 	GetRestaurantBySlug(ctx context.Context, slug string) (*Restaurant, error)
 	GetRestaurantByOldSlug(ctx context.Context, slug string) (*Restaurant, error)
