@@ -20,7 +20,7 @@ export default function Hero() {
           I&lsquo;m a Customer
         </Link>
         <Link
-          href="#"
+          href="/auth/manager-signup"
           className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-md hover:bg-gray-100"
         >
           I&lsquo;m a Restaurant
