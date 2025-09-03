@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
@@ -11,8 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button"; 
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { registerUser } from "@/lib/api";   
-import { a } from "framer-motion/client";
-
+// import { a } from "framer-motion/client";
 
 const schema = z
   .object({
@@ -30,6 +29,7 @@ const schema = z
     agree: z.boolean().refine((v) => v, {
       message: "You must agree to the Terms and Privacy Policy",
     }),
+    role: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -47,11 +47,32 @@ export default function SignupForm({ role }: SignupFormProps) {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    watch, // Added for debugging
+    control,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      role, // ✅ coming from props (e.g., "CUSTOMER" or "CHEF")
+    },
   });
 
+  // Debug: Log form values in real-time
+  const formValues = watch();
+  React.useEffect(() => {
+    console.log("Current form values:", formValues);
+    console.log("Agree checkbox value:", formValues.agree);
+  }, [formValues]);
+
+  // Debug: Log form errors
+  React.useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      console.log("Form errors:", errors);
+    }
+  }, [errors]);
+
   const onSubmit = async (data: FormData) => {
+    console.log("Form submitted with data:", data);
+    console.log("Form errors on submit:", errors); // Added for debugging
     try {
       const payload = {
         username: data.username,
@@ -60,9 +81,8 @@ export default function SignupForm({ role }: SignupFormProps) {
         first_name: data.first_name,
         last_name: data.last_name,
         auth_provider: "EMAIL",
-        role: role
+        role: role,
       };
-
       const response = await registerUser(payload);
       console.log("✅ Registered:", response);
     } catch (err) {
@@ -71,7 +91,7 @@ export default function SignupForm({ role }: SignupFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
       {/* Username */}
       <div>
         <Input
@@ -158,7 +178,17 @@ export default function SignupForm({ role }: SignupFormProps) {
 
       {/* Terms */}
       <div className="flex items-start space-x-2">
-        <Checkbox id="agree" {...register("agree")} />
+       <Controller
+          name="agree"
+          control={control}
+          render={({ field }) => (
+            <Checkbox
+              id="agree"
+              checked={field.value}
+              onCheckedChange={field.onChange}
+            />
+          )}
+        />
         <label htmlFor="agree" className="text-sm text-gray-600">
           I agree to the{" "}
           <Link href="/terms" className="text-blue-600">

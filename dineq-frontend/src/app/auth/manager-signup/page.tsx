@@ -16,7 +16,7 @@ export default function ManagerSignup() {
             Join Dineq to manage your restaurant efficiently.
           </p>
 
-          <SignupForm />
+          <SignupForm role="MANAGER" />
         </div>
       </div>
 
