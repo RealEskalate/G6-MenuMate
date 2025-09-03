@@ -14,7 +14,7 @@ export default function Hero() {
       </p>
       <div className="mt-8 flex justify-center space-x-4">
         <Link
-          href="/"
+          href="/auth/user-signup"
           className="bg-orange-500 text-white px-6 py-3 rounded-md hover:bg-orange-600"
         >
           I&lsquo;m a Customer

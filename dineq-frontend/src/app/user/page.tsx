@@ -1,92 +1,44 @@
-import React from 'react'
-import Image from 'next/image'
-import RestaurantData from "@/data/RestaurantData"
+"use client";
+import React, { useEffect } from 'react';
+import RestaurantCard from '@/app/user/RestaurantCard'
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchRestaurants } from '@/store/restaurantsSlice';
+import { RootState, AppDispatch } from '@/store/store';
 import { Restaurant } from '../../Types/restaurants';
-import { FaStar, FaRegStar } from "react-icons/fa";
-import Link from 'next/link';
 
+const Restaurants = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { restaurants, loading, error } = useSelector((state: RootState) => state.restaurants);
 
+  useEffect(() => {
+    dispatch(fetchRestaurants({ page: 1, pageSize: 20 }));
+  }, [dispatch]);
 
-const RestaurantCard: React.FC<Restaurant> =(props) => {
-    const fullStars = Math.floor(props.averageRating);
-    const hasHalfStar = props.averageRating % 1 >= 0.5;
-    const totalStars = 5;
+  if (loading) return <div className='flex justify-center p-8'>Loading restaurants...</div>;
+  if (error) return <div className='flex justify-center p-8 text-red-600'>Failed to load restaurants: {error}</div>;
+  if (!restaurants?.length) return <div className='text-center p-8'>No restaurants found.</div>;
 
-
-
+  const cards = restaurants.map((apiRestaurant) => {
+    const normalized: Restaurant = {
+      id: String(apiRestaurant.id),
+      name: apiRestaurant.name ?? 'Unnamed Restaurant',
+      about: apiRestaurant.about ?? '',
+      contact: {
+        phone: apiRestaurant.phone ?? '',
+        email: ''
+      },
+      averageRating: Number(apiRestaurant.average_rating ?? 0),
+      logoImage: apiRestaurant.logo_image ?? '/Background.png',
+      location: ''
+    };
+    return <RestaurantCard key={normalized.id} {...normalized} />;
+  });
 
   return (
-    <>
-    <Link href={`/user/restaurant-display/${props.id}`} passHref>
-    <div className="border border-[var(--color-primary)] w-[361px] h-[335px] rounded-lg m-5">
-        <div className="relative flex flex-col p-2 h-full">
-            <div className="h-[160px] w-[341px] relative rounded-lg">
-                <Image
-                    src={props.logoImage}
-                    alt="Background"
-                    layout="fill"          
-                    objectFit="cover"
-                    className='rounded-lg'      
-                />
-                </div>
+    <div className='flex flex-wrap justify-center gap-6'>
+      {cards}
+    </div>
+  );
+};
 
-                <div className="h-[160px] w-[341px] relative rounded-lg">
-                    <h1 className='w-[309px] h-[28px] text-[22px] font-semibold px-[16px] pt-[15.4px] pb-[20px] leading-[28px]'>
-                        {props.name}
-                    </h1>
-                    <p className='font-normal leading-[21px] px-[16px] pb-[8px] text-[13.125px] pt-[10px]'>{props.about}</p>
-                    <div className='flex justify-between px-[16px] w-1/2 pt-[10px]'>
-                        {Array.from({ length: totalStars }, (_, i) => {
-                        if (i < fullStars) {
-                            return <FaStar key={i} className="text-yellow-500" />;
-                        } else if (i === fullStars && hasHalfStar) {
-                            return <FaStar key={i} className="text-yellow-300 opacity-70" />; // half-star substitute
-                        } else {
-                            return <FaRegStar key={i} className="text-yellow-500" />;
-                        }
-                        })}
-                        <span className="ml-2 text-sm text-gray-600">{props.averageRating.toFixed(1)}</span>
-                        
-
-
-                    </div>
-                
-                </div>
-
-                
-   
-  </div>
-</div>
-</Link>
-
-    </>
-  )
-}
-
-
-
-
-const Restaurants = () =>{
-
-    const restaurants = RestaurantData.map((restaurant) =>{
-        return <RestaurantCard
-        key = {restaurant.id}
-        {...restaurant}/>
-    });
-
-    return (
-        <>
-        <div className='flex flex-wrap justify-center gap-6'>
-             {restaurants}
-
-        </div>
-       
-        </>
-    )
-
-
-}
-
-export default Restaurants
-
-
+export default Restaurants;

@@ -1,5 +1,5 @@
 import LandingPage from "./landing_page/page";
-// import Restaurants from "./user/restaurant-display/page";
+import Restaurants from "./user/page";
 // import WhoAreYou from "@/components/common/WhoAreYou";
 // import EmailVerification from "@/components/common/EmailVerification";
 // import FoodCard from "./user/restaurant-display/food-display/page";
