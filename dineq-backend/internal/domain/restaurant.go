@@ -36,13 +36,6 @@ type Address struct {
 	Longitude  *float64
 }
 
-type Document struct {
-	ID         string
-	Type       string
-	URL        string
-	UploadedAt time.Time
-}
-
 type VerificationStatus string
 
 const (

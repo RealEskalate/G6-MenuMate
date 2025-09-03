@@ -123,6 +123,7 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 	}
 
 	// Validate the password
+	fmt.Println("Stored hash:", user.Password, loginRequest.Password)
 	if err := security.ValidatePassword(user.Password, loginRequest.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrInvalidCredentials.Error(), Error: err.Error()})
 		return
@@ -304,7 +305,6 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
-	fmt.Println("user id", user.ID)
 	c.JSON(http.StatusOK, dto.LoginResponse{
 		AccessToken:  response.AccessToken,
 		RefreshToken: refreshTokenValue,
@@ -490,12 +490,17 @@ func (ac *AuthController) ResendOTPRequest(c *gin.Context) {
 //Oauth Google handlers
 
 func (ac *AuthController) GoogleLogin(c *gin.Context) {
+		client := c.Query("client") // "web" or "mobile"
+	if client == "" {
+		client = "web"
+	}
 	conf := oauth.GetGoogleOAuthConfig(ac.GoogleClientID, ac.GoogleClientSecret, ac.GoogleRedirectURL)
-	url := conf.AuthCodeURL("random-state")
+	url := conf.AuthCodeURL(client)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 
 func (ac *AuthController) GoogleCallback(c *gin.Context) {
+	state := c.Query("state")
 	code := c.Query("code")
 	if code == "" {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: domain.ErrCodeNotFound.Error()})
@@ -629,5 +634,18 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		Secure:   false,
 		SameSite: http.SameSiteStrictMode,
 	})
-	c.JSON(http.StatusCreated, dto.SuccessResponse{Message: domain.MsgCreated, Data: dto.ToUserResponse(*newUser)})
+
+		// Decide where to redirect
+	var redirectURL string
+	// this will be modified for later
+	if state == "mobile" {
+		redirectURL = fmt.Sprintf("yourapp://auth/callback?token=%s", response.AccessToken)
+	} else {
+		redirectURL = fmt.Sprintf("https://your-frontend.com/login-success?token=%s", response.AccessToken)
+	}
+
+	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+
+	// c.Redirect(http.StatusPermanentRedirect, "http://localhost:8080?access_token="+response.AccessToken+"&refresh_token="+response.RefreshToken)
+	// c.JSON(http.StatusCreated, dto.SuccessResponse{Message: domain.MsgCreated, Data: dto.ToUserResponse(*newUser)})
 }
