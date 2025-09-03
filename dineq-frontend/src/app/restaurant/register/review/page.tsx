@@ -4,24 +4,68 @@ import { useRouter } from "next/navigation";
 import { Pencil, FileText, Image as ImageIcon, Tag } from "lucide-react";
 import { useRegister } from "@/context/RegisterContext";
 import Image from "next/image";
+import { useState } from "react";
 
 export default function ReviewPage() {
   const router = useRouter();
-  const { data } = useRegister();
+  const { data, resetData } = useRegister();
 
-  const basicInfo = {
-    "Restaurant Name": data.restaurant,
-    "Phone Number": data.phone,
-    Location: data.address,
-    About: data.about || "-",
-    Tags: data.tags && data.tags.length > 0 ? data.tags.join(", ") : "-",
+    const basicInfo = {
+    Name: data.name,
+    Email: data.email,
+    Restaurant: data.restaurant,
+    Address: data.address,
+    Phone: data.phone,
+    About: data.about || "N/A",
+    Tags: data.tags?.join(", ") || "None",
   };
 
-  const documents = data.businessLicense ? [data.businessLicense] : [];
   const logoImage = data.logo_image;
 
+  const documents = data.businessLicense ? [data.businessLicense] : [];
+
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+
+
   const handleSubmit = async () => {
-    // submission logic here (API call)
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("https://g6-menumate.onrender.com/v1/restaurants", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: data.restaurant,
+          phone: data.phone,
+          about: data.about,
+          tags: data.tags,
+          logo_image: data.logo_image?.url, // assuming you already uploaded and got back a URL
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to create restaurant");
+      }
+
+      const result = await res.json();
+      console.log("✅ Created restaurant:", result);
+
+      resetData();
+
+      router.push("/restaurant/success");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,12 +90,12 @@ export default function ReviewPage() {
                 key={key}
                 className="flex items-center justify-between border border-gray-300 rounded-lg px-3 sm:px-4 py-2 bg-white"
               >
-                <span className="text-gray-700 text-sm sm:text-base ">
+                <span className="text-gray-700 text-sm sm:text-base text-right ml-4 ">
                   {key}:{value}
                 </span>
                 <button
                   type="button"
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 ml-2"
                   onClick={() => router.push("/register/basic-info")}
                 >
                   <Pencil className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -126,11 +170,13 @@ export default function ReviewPage() {
           <button
             type="button"
             onClick={handleSubmit}
+            disabled={loading}
             className="w-full sm:w-auto px-5 sm:px-6 py-2 rounded-md bg-orange-500 text-white hover:bg-orange-600 text-sm sm:text-base"
           >
-            Submit →
+            {loading ? "Submitting..." : "Submit →"}
           </button>
         </div>
+        {error && <p className="text-red-500 mt-4">{error}</p>}
       </div>
     </div>
   );

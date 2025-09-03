@@ -27,6 +27,8 @@ function QrManager() {
               <div className="flex space-x-4">
                 <button className="flex items-center rounded-lg bg-white border border-orange-200 hover:shadow-orange-500 transition text-orange-500 px-3 py-2">
                   <Image
+                    width={110}
+                height={105}
                     src="/icons/share.png"
                     alt="Share"
                     className="w-4 h-4 mr-2"
@@ -36,6 +38,8 @@ function QrManager() {
 
                 <button className="flex items-center rounded-lg bg-orange-500  hover:shadow-orange-500 transition text-white px-3 py-2">
                   <Image
+                  width={110}
+                height={105}
                     src="/icons/edit.png"
                     alt="Edit"
                     className="w-4 h-4 mr-2"
@@ -58,6 +62,8 @@ function QrManager() {
               <div className="flex space-x-4">
                 <button className="flex items-center rounded-lg bg-white border border-orange-200 hover:shadow-orange-500 transition text-orange-500 px-3 py-2">
                   <Image
+                  width={110}
+                height={105}
                     src="/icons/share.png"
                     alt="Share"
                     className="w-4 h-4 mr-2"
@@ -68,6 +74,8 @@ function QrManager() {
 
                 <button className="flex items-center rounded-lg bg-orange-500 hover:shadow-orange-500 transition text-white px-3 py-2">
                   <Image
+                  width={110}
+                height={105}
                     src="/icons/edit.png"
                     alt="Edit"
                     className="w-4 h-4 mr-2"
