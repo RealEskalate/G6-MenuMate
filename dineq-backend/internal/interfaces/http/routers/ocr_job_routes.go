@@ -24,6 +24,20 @@ func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 	defer cancel()
 	// TODO: Consider a separate, larger timeout specifically for long OCR+AI pipeline stages if env.CtxTSeconds is small.
 
+	// Basic credential presence checks (log warnings, continue in degraded mode)
+	if env.VeryfiClientID == "" || env.VeryfiClientSecret == "" || env.VeryfiAPIKey == "" || env.VeryfiUsername == "" {
+		logger.Log.Warn().Msg("veryfi credentials incomplete; OCR extraction may fail")
+	}
+	if env.CloudinaryName == "" || env.CloudinaryAPIKey == "" || env.CloudinarySecret == "" {
+		logger.Log.Warn().Msg("cloudinary credentials incomplete; uploads may fail")
+	}
+	if env.GeminiAPIKey == "" {
+		logger.Log.Warn().Msg("gemini api key missing; AI enhancements disabled")
+	}
+	if env.SearchAPIKey == "" || env.SearchEngineID == "" {
+		logger.Log.Warn().Msg("image search credentials missing; photo enrichment disabled")
+	}
+
 	ocrOption := veryfi.Options{
 		ClientID:     env.VeryfiClientID,
 		ClientSecret: env.VeryfiClientSecret,
