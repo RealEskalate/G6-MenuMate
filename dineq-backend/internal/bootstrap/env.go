@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -117,8 +118,10 @@ type Env struct {
 // Viper can be made injectable
 func NewEnv() (*Env, error) {
 	// Load .env file if present
-	_ = godotenv.Load()
-
+	if err := godotenv.Load(); err != nil {
+		log.Println("Error loading .env file:", err)
+	}
+	fmt.Println("DB_URI:", os.Getenv("DB_URI"))
 	env := &Env{}
 	env.Port = os.Getenv("PORT")
 	env.AppEnv = os.Getenv("APP_ENV")
