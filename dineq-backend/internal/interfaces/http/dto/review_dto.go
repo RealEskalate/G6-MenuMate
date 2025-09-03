@@ -25,15 +25,15 @@ type ReviewDTO struct {
 	FlagCount    int       `json:"flagCount"`
 }
 
-// ReactionDTO represents the data transfer object for a Reaction
-type ReactionDTO struct {
-	ID        string    `json:"id"`
-	ReviewID  string    `json:"reviewId"`
-	UserID    string    `json:"userId"`
-	Type      string    `json:"type"` // e.g., "LIKE", "DISLIKE"
-	CreatedAt time.Time `json:"createdAt"`
-	IsDeleted bool      `json:"isDeleted"`
-}
+// // ReactionDTO represents the data transfer object for a Reaction
+// type ReactionDTO struct {
+// 	ID        string    `json:"id"`
+// 	ReviewID  string    `json:"reviewId"`
+// 	UserID    string    `json:"userId"`
+// 	Type      string    `json:"type"` // e.g., "LIKE", "DISLIKE"
+// 	CreatedAt time.Time `json:"createdAt"`
+// 	IsDeleted bool      `json:"isDeleted"`
+// }
 
 // Validate checks the ReviewDTO for required fields
 func (r *ReviewDTO) Validate() error {
