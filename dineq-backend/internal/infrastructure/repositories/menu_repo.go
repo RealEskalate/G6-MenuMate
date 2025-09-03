@@ -2,11 +2,14 @@ package repositories
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database/mapper"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type MenuRepository struct {
@@ -15,17 +18,37 @@ type MenuRepository struct {
 }
 
 func NewMenuRepository(db mongo.Database, collection string) domain.IMenuRepository {
-	return &MenuRepository{
+	repo := &MenuRepository{
 		database: db,
 		coll:     collection,
+	}
+	// Create TTL index on startup (idempotent)
+	repo.createTTLIndex(context.Background())
+	return repo
+}
+
+func (r *MenuRepository) createTTLIndex(ctx context.Context) {
+	indexModel := mongo.IndexModel{
+		Keys:    bson.M{"deletedAt": 1},
+		Options: options.Index().SetExpireAfterSeconds(0),
+	}
+	_, err := r.database.Collection(r.coll).Indexes().CreateOne(ctx, indexModel)
+	if err != nil {
+		fmt.Printf("Failed to create TTL index: %v\n", err)
+	}
+
+	// Create index on restaurantId
+	restaurantIndexModel := mongo.IndexModel{
+		Keys: bson.M{"restaurantId": 1},
+	}
+	_, err = r.database.Collection(r.coll).Indexes().CreateOne(ctx, restaurantIndexModel)
+	if err != nil {
+		fmt.Printf("Failed to create restaurantId index: %v\n", err)
 	}
 }
 
 func (r *MenuRepository) Create(ctx context.Context, menu *domain.Menu) error {
-	if menu.ID == "" {
-		menu.ID = bson.NewObjectID().Hex()
-	}
-	dbMenu := mapper.FromDomainMenu(menu)
+	dbMenu := mapper.NewMenuDBFromDomain(menu)
 	res, err := r.database.Collection(r.coll).InsertOne(ctx, dbMenu)
 	if err != nil {
 		return err
@@ -33,13 +56,22 @@ func (r *MenuRepository) Create(ctx context.Context, menu *domain.Menu) error {
 	if res.InsertedID == nil {
 		return err
 	}
-	menu.ID = res.InsertedID.(string)
+	menu.ID = res.InsertedID.(bson.ObjectID).Hex()
 	return nil
 }
 
 func (r *MenuRepository) GetByID(ctx context.Context, id string) (*domain.Menu, error) {
+   oid, err := bson.ObjectIDFromHex(id)
+   if err != nil {
+       return nil, err
+   }
+
 	var dbMenu mapper.MenuDB
-	err := r.database.Collection(r.coll).FindOne(ctx, bson.M{"_id": id}).Decode(&dbMenu)
+	filter := bson.M{
+		"_id":       oid,
+        "isDeleted": false,
+    }
+	err = r.database.Collection(r.coll).FindOne(ctx, filter).Decode(&dbMenu)
 	if err != nil {
 		return nil, err
 	}
@@ -47,12 +79,114 @@ func (r *MenuRepository) GetByID(ctx context.Context, id string) (*domain.Menu, 
 }
 
 func (r *MenuRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.database.Collection(r.coll).DeleteOne(ctx, bson.M{"_id": id})
+	fmt.Println("---------------- Debug --------------")
+oid, err := bson.ObjectIDFromHex(id)
+    if err != nil {
+        return err
+    }
+
+    // Define the deletedAt timestamp (2 months from now)
+    deletedAt := time.Now().AddDate(0, 2, 0)
+
+    // Define the filter to match the Menu document
+    filter := bson.M{"_id": oid}
+
+    // Define the update to set fields for the Menu and all items
+    update := bson.M{
+        "$set": bson.M{
+            "isDeleted":   true,
+            "deletedAt":   deletedAt,
+            "updatedAt":   time.Now(),
+            "items": bson.A{ // Explicitly update the items array
+                bson.M{
+                    "$set": bson.M{
+                        "isDeleted": true,
+                        "deletedAt": deletedAt,
+                        "updatedAt": time.Now(),
+                    },
+                },
+            },
+        },
+    }
+
+    // Perform the update
+    result, err := r.database.Collection(r.coll).UpdateOne(ctx, filter, update)
+    if err != nil {
+        return err
+    }
+
+    // Check if the document was found
+    if result.MatchedCount == 0 {
+        return mongo.ErrNoDocuments()
+    }
+
+    return nil
+}
+
+
+func (r *MenuRepository) Update(ctx context.Context, id string, menu *domain.Menu) error {
+    oid, err := bson.ObjectIDFromHex(id)
+    if err != nil {
+        return err
+    }
+
+    dbMenu := mapper.MergeMenuUpdate(menu)
+
+     // Define the filter to match the Menu document
+    filter := bson.M{"_id": oid}
+
+    result, err := r.database.Collection(r.coll).UpdateOne(ctx, filter, bson.M{"$set": dbMenu})
+    if err != nil {
+        return err
+    }
+
+    // Check if the document was found
+    if result.MatchedCount == 0 {
+        return mongo.ErrNoDocuments()
+    }
+
+    return nil
+}
+
+func (r *MenuRepository) IncrementViewCount(ctx context.Context, id string) error {
+	   oid, err := bson.ObjectIDFromHex(id)
+   if err != nil {
+       return err
+   }
+	_, err = r.database.Collection(r.coll).UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$inc": bson.M{"viewCount": 1}})
 	return err
 }
 
-func (r *MenuRepository) Update(ctx context.Context, id string, menu *domain.Menu) error {
-	dbMenu := mapper.FromDomainMenu(menu)
-	_, err := r.database.Collection(r.coll).UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": dbMenu})
-	return err
+func (r *MenuRepository) GetByRestaurantID(ctx context.Context, restaurantID string) ([]*domain.Menu, error) {
+	var dbMenus []mapper.MenuDB
+
+		filter := bson.M{
+		"restaurantId":       restaurantID,
+        "isDeleted": false,
+        "items": bson.M{
+            "$elemMatch": bson.M{
+                "isDeleted": false,
+            },
+        },
+    }
+	cursor, err := r.database.Collection(r.coll).Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		var dbMenu mapper.MenuDB
+		if err := cursor.Decode(&dbMenu); err != nil {
+			return nil, err
+		}
+		dbMenus = append(dbMenus, dbMenu)
+	}
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+	menus := make([]*domain.Menu, len(dbMenus))
+	for i, dbMenu := range dbMenus {
+		menus[i] = mapper.ToDomainMenu(&dbMenu)
+	}
+	return menus, nil
 }
