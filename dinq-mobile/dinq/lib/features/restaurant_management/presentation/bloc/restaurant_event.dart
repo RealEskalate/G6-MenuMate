@@ -1,8 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-import '../../domain/entities/item.dart';
-import '../../domain/entities/menu.dart';
-import '../../domain/entities/restaurant.dart';
 
 abstract class RestaurantEvent extends Equatable {
   const RestaurantEvent();

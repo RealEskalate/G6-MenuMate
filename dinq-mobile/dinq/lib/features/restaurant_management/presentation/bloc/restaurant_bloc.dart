@@ -102,7 +102,7 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     Emitter<RestaurantState> emit,
   ) async {
     emit(const RestaurantLoading());
-    final result = await getRestaurants(event.page, event.pageSize);
+    final result = await getRestaurants(page:event.page, pageSize:event.pageSize);
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
       (restaurants) => emit(RestaurantsLoaded(restaurants)),

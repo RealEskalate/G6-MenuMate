@@ -4,14 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/injection.dart' as di;
 import 'core/temp/app_config.dart';
 import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
-
-import 'features/restaurant_management/presentation/pages/settings_page.dart';
-import 'features/restaurant_management/presentation/pages/restaurant_profile_page.dart';
-import 'features/restaurant_management/presentation/pages/restaurant_details_page.dart';
-import 'features/restaurant_management/presentation/pages/opening_hours_page.dart';
-import 'features/restaurant_management/presentation/pages/legal_info_page.dart';
-import 'features/restaurant_management/presentation/pages/branding_preferences_page.dart';
 import 'features/restaurant_management/presentation/pages/billing_page.dart';
+import 'features/restaurant_management/presentation/pages/branding_preferences_page.dart';
+import 'features/restaurant_management/presentation/pages/legal_info_page.dart';
+import 'features/restaurant_management/presentation/pages/opening_hours_page.dart';
+import 'features/restaurant_management/presentation/pages/restaurant_details_page.dart';
+import 'features/restaurant_management/presentation/pages/restaurant_profile_page.dart';
+import 'features/restaurant_management/presentation/pages/settings_page.dart';
 import 'features/restaurant_management/presentation/widgets/time_picker_widget.dart';
 
 
