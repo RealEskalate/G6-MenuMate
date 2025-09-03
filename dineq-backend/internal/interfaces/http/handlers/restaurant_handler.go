@@ -73,7 +73,7 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 		r.Tags = c.PostFormArray("tags")
 		about := c.PostForm("about")
 		if about != "" {
-			r.About = &about
+			r.About = about
 		}
 
 		// Read files into []byte
@@ -176,7 +176,7 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 		if input.Phone != "" {
 			existing.RestaurantPhone = input.Phone
 		}
-		if input.About != nil {
+		if input.About != "" {
 			existing.About = input.About
 		}
 
@@ -196,7 +196,7 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 			existing.RestaurantPhone = phone
 		}
 		if about := c.PostForm("about"); about != "" {
-			existing.About = &about
+			existing.About = about
 		}
 		if status := c.PostForm("verification_status"); status != "" {
 			existing.VerificationStatus = domain.VerificationStatus(status)

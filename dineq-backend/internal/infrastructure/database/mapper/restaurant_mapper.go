@@ -45,21 +45,21 @@ func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 
 	m.Location = r.Location
 	m.About = ""
-	if r.About != nil {
-		m.About = *r.About
+	if r.About != "" {
+		m.About = r.About
 	}
 	m.LogoImage = ""
-	if r.LogoImage != nil {
-		m.LogoImage = *r.LogoImage
+	if r.LogoImage != "" {
+		m.LogoImage = r.LogoImage
 	}
 	m.CoverImage = ""
-	if r.CoverImage != nil {
-		m.CoverImage = *r.CoverImage
+	if r.CoverImage != "" {
+		m.CoverImage = r.CoverImage
 	}
 	// Convert VerificationDocs (skip empty/invalid)
 	m.VerificationDocs = ""
-	if r.VerificationDocs != nil {
-		m.VerificationDocs = *r.VerificationDocs
+	if r.VerificationDocs != "" {
+		m.VerificationDocs = r.VerificationDocs
 	}
 
 	m.VerificationStatus = string(r.VerificationStatus)
@@ -82,11 +82,11 @@ func (m *RestaurantModel) ToDomain() *domain.Restaurant {
 		ManagerID:          m.ManagerID.Hex(),
 		RestaurantPhone:    m.Phone,
 		Location:           m.Location,
-		About:              nil,
-		LogoImage:          nil,
+		About:              m.About,
+		LogoImage:          m.LogoImage,
 		VerificationStatus: domain.VerificationStatus(m.VerificationStatus),
-		VerificationDocs:   &m.VerificationDocs,
-		CoverImage:         &m.CoverImage,
+		VerificationDocs:   m.VerificationDocs,
+		CoverImage:         m.CoverImage,
 		AverageRating:      m.AverageRating,
 		ViewCount:          m.ViewCount,
 		CreatedAt:          m.CreatedAt.Time(),
@@ -95,19 +95,19 @@ func (m *RestaurantModel) ToDomain() *domain.Restaurant {
 	}
 
 	if m.About != "" {
-		r.About = &m.About
+		r.About = m.About
 	}
 	if m.LogoImage != "" {
-		r.LogoImage = &m.LogoImage
+		r.LogoImage = m.LogoImage
 	}
 
 	if m.CoverImage != "" {
-		r.CoverImage = &m.CoverImage
+		r.CoverImage = m.CoverImage
 	}
 
 	// Convert VerificationDocs (skip empty/invalid)
 	if m.VerificationDocs != "" {
-		r.VerificationDocs = &m.VerificationDocs
+		r.VerificationDocs = m.VerificationDocs
 	}
 	return r
 }
