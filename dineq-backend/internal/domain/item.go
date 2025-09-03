@@ -13,7 +13,6 @@ type Item struct {
 	MenuSlug        string    `json:"category_id"`
 	Description     string    `json:"description"`
 	DescriptionAm   string    `json:"description_am"`
-	TabTags        []string   // e.g. Drinks, Pizza, Pasta
 	CategoryTags   []string   // e.g. Appetizers, Main Course, Desserts
 	Image           []string  `json:"image"`              
 	ThumbnailImages []string  `json:"thumbnail_images"`    
