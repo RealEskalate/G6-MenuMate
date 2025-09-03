@@ -75,8 +75,8 @@ func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 
 	if userId != "" { // only attempt notification if we have a user id
 		if err := h.NotificationUseCase.SendNotificationFromRoute(c.Request.Context(), userId, "We're processing your menu. we'll let you know when it's done", domain.MenuUpload); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
-		return
+			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+			return
 		}
 	}
 
@@ -132,19 +132,17 @@ func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 	}
 
 	// if menu creation successful let give it back the menu
-	menu, err := h.MenuUseCase.GetMenuByID(job.StructuredMenuID)
+	menu, err := h.MenuUseCase.GetByID(job.RestaurantID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToGetMenu.Error(), Error: err.Error()})
 		return
 	}
 
 	// send notification
-	if userId != "" {
-		if err := h.NotificationUseCase.SendNotificationFromRoute(c.Request.Context(), userId, "Texts are extracted from the menu successfully", domain.MenuUpload); err != nil {
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
-			return
-		}
+	if err := h.NotificationUseCase.SendNotificationFromRoute(c.Request.Context(), userId, "Texts are extracted from the menu successfully", domain.MenuUpload); err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		return
 	}
 
-	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.MenuToDTO(menu)})
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.MenuToResponse(menu)})
 }

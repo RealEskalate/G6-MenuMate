@@ -8,27 +8,25 @@ import (
 )
 
 type UserModel struct {
-	ID           bson.ObjectID      `bson:"_id,omitempty"`
-	Email        string             `bson:"email,omitempty"`
-	PhoneNumber  string             `bson:"phone_number,omitempty"`
-	Username     string             `bson:"username,omitempty"`
-	Password string             `bson:"password_hash,omitempty"`
-	AuthProvider string             `bson:"auth_provider,omitempty"`
-	IsVerified   bool               `bson:"is_verified"`
-	FullName     string             `bson:"full_name,omitempty"`
-	FirstName    string             `bson:"first_name,omitempty"`
-	LastName     string             `bson:"last_name,omitempty"`
-	ProfileImage string             `bson:"profile_image,omitempty"`
-	Role         string             `bson:"role"`
-	Status       string             `bson:"status"`
+	ID           bson.ObjectID       `bson:"_id,omitempty"`
+	Email        string              `bson:"email,omitempty"`
+	PhoneNumber  string              `bson:"phoneNumber,omitempty"`
+	Username     string              `bson:"username,omitempty"`
+	Password     string              `bson:"passwordHash,omitempty"`
+	AuthProvider string              `bson:"authProvider,omitempty"`
+	IsVerified   bool                `bson:"isVerified"`
+	FullName     string              `bson:"fullName,omitempty"`
+	FirstName    string              `bson:"firstName,omitempty"`
+	LastName     string              `bson:"lastName,omitempty"`
+	ProfileImage string              `bson:"profileImage,omitempty"`
+	Role         string              `bson:"role"`
+	Status       string              `bson:"status"`
 	Preferences  *domain.Preferences `bson:"preferences,omitempty"`
-	LastLoginAt  *time.Time         `bson:"last_login_at,omitempty"`
-	CreatedAt    time.Time          `bson:"created_at"`
-	UpdatedAt    time.Time          `bson:"updated_at"`
-	IsDeleted    bool               `bson:"is_deleted"`
+	LastLoginAt  *time.Time          `bson:"lastLoginAt,omitempty"`
+	CreatedAt    time.Time           `bson:"createdAt"`
+	UpdatedAt    time.Time           `bson:"updatedAt"`
+	IsDeleted    bool                `bson:"isDeleted"`
 }
-
-
 
 func UserToDomain(user *UserModel) *domain.User {
 	return &domain.User{
@@ -36,7 +34,7 @@ func UserToDomain(user *UserModel) *domain.User {
 		Email:        user.Email,
 		PhoneNumber:  user.PhoneNumber,
 		Username:     user.Username,
-		Password: user.Password,
+		Password:     user.Password,
 		AuthProvider: domain.AuthProvider(user.AuthProvider),
 		IsVerified:   user.IsVerified,
 		FullName:     user.FullName,
@@ -54,12 +52,14 @@ func UserToDomain(user *UserModel) *domain.User {
 }
 
 func UserFromDomain(user *domain.User) *UserModel {
-	if user == nil { return nil }
+	if user == nil {
+		return nil
+	}
 	return &UserModel{
 		Email:        user.Email,
 		PhoneNumber:  user.PhoneNumber,
 		Username:     user.Username,
-		Password: user.Password,
+		Password:     user.Password,
 		AuthProvider: string(user.AuthProvider),
 		IsVerified:   user.IsVerified,
 		FullName:     user.FullName,

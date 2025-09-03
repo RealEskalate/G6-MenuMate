@@ -113,21 +113,10 @@ func (s *AiService) StructureWithGemini(ctx context.Context, ocrText string) (*d
 		// return fallbackStructure(ocrText), err
 	}
 
-	if len(menuItem.Tabs) == 0 {
-		fmt.Printf("AI returned an empty menu, using fallback\n")
-		// menuItem = *fallbackStructure(ocrText)
-	}
-
 	// Update the IDs for menu items
 	menuItem.RestaurantID = bson.NewObjectID().Hex()
-	for i := range menuItem.Tabs {
-		menuItem.Tabs[i].ID = bson.NewObjectID().Hex()
-		for j := range menuItem.Tabs[i].Categories {
-			menuItem.Tabs[i].Categories[j].ID = bson.NewObjectID().Hex()
-			for k := range menuItem.Tabs[i].Categories[j].Items {
-				menuItem.Tabs[i].Categories[j].Items[k].ID = bson.NewObjectID().Hex()
-			}
-		}
+	for i := range menuItem.Items {
+		menuItem.Items[i].ID = bson.NewObjectID().Hex()
 	}
 
 	// Assign images to menu items
@@ -330,21 +319,10 @@ func (s *AiService) TranslateAIBit(text, target string) (string, error) {
 // 	}
 
 func AssignImagesToMenu(ctx context.Context, s IImageSearchService, menu *domain.Menu) error {
-	// 1. Flatten all items into a slice of pointers
-	type ItemPointer struct {
-		Item *domain.Item
-	}
-	var itemsList []ItemPointer
-	for ti := range menu.Tabs {
-		tab := &menu.Tabs[ti]
-		for ci := range tab.Categories {
-			cat := &tab.Categories[ci]
-			for ii := range cat.Items {
-				itemsList = append(itemsList, ItemPointer{
-					Item: &cat.Items[ii],
-				})
-			}
-		}
+	var itemsList []domain.Item
+	for ti := range menu.Items {
+		item := &menu.Items[ti]
+		itemsList = append(itemsList, *item)
 	}
 
 	// 2. Concurrency setup
@@ -352,7 +330,7 @@ func AssignImagesToMenu(ctx context.Context, s IImageSearchService, menu *domain
 	sem := make(chan struct{}, 5) // max 5 concurrent API calls
 	cache := sync.Map{}           // cache for repeated item names
 
-	for _, ptr := range itemsList {
+	for _, item := range itemsList {
 		wg.Add(1)
 		go func(item *domain.Item) {
 			defer wg.Done()
@@ -385,7 +363,7 @@ func AssignImagesToMenu(ctx context.Context, s IImageSearchService, menu *domain
 
 			item.Image = []string{url}
 			cache.Store(item.Name, url)
-		}(ptr.Item)
+		}(&item)
 	}
 
 	wg.Wait() // wait for all goroutines

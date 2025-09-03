@@ -7,42 +7,42 @@ import (
 
 // User represents an application user.
 type User struct {
-	ID            string
-	Email         string
-	PhoneNumber   string
-	Username      string
-	Password  string
-	AuthProvider  AuthProvider
-	IsVerified    bool
-	FullName      string
-	FirstName     string
-	LastName      string
-	ProfileImage  string
-	Role          UserRole
-	Status        UserStatus
-	Preferences   *Preferences
-	LastLoginAt   *time.Time
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	IsDeleted     bool
+	ID           string
+	Email        string
+	PhoneNumber  string
+	Username     string
+	Password     string
+	AuthProvider AuthProvider
+	IsVerified   bool
+	FullName     string
+	FirstName    string
+	LastName     string
+	ProfileImage string
+	Role         UserRole
+	Status       UserStatus
+	Preferences  *Preferences
+	LastLoginAt  *time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	DeletedAt    *time.Time
+	IsDeleted    bool
 }
 
 type Preferences struct {
 	Language      string // e.g., "am-ET", "en-US"
 	Theme         string // e.g., "dark", "light"
 	Notifications bool   // true/false
-	Favorites []string
+	Favorites     []string
 }
 type UserRole string
 
 const (
-	RoleAdmin   UserRole = "ADMIN"
-	RoleOwner   UserRole = "OWNER"
-	RoleManager UserRole = "MANAGER"
-	RoleStaff   UserRole = "STAFF"
+	RoleAdmin    UserRole = "ADMIN"
+	RoleOwner    UserRole = "OWNER"
+	RoleManager  UserRole = "MANAGER"
+	RoleStaff    UserRole = "STAFF"
 	RoleCustomer UserRole = "CUSTOMER"
 )
-
 
 const (
 	Active    UserStatus = "ACTIVE"
@@ -60,6 +60,7 @@ const (
 
 // UserStatus captures account lifecycle state.
 type UserStatus string
+
 const (
 	StatusActive    UserStatus = "ACTIVE"
 	StatusInactive  UserStatus = "INACTIVE"
