@@ -8,10 +8,10 @@ require (
 	github.com/cloudinary/cloudinary-go/v2 v2.13.0
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/joho/godotenv v1.5.1
+	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver/v2 v2.3.0
 	golang.org/x/crypto v0.41.0
 	golang.org/x/oauth2 v0.30.0
@@ -36,6 +36,7 @@ require (
 	github.com/gorilla/schema v1.4.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0 // indirect
 	go.opentelemetry.io/otel v1.36.0 // indirect
