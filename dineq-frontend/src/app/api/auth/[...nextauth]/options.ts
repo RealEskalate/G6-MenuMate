@@ -48,7 +48,7 @@ export const options: NextAuthOptions = {
               lastName: result.user.last_name,
               role: result.user.role,
               accessToken: result.tokens.access_token,
-              refreshToken: result.tokens.refresh_token ,
+              refreshToken: result.tokens.refresh_token,
             };
           }
 
@@ -153,11 +153,19 @@ export const options: NextAuthOptions = {
 
       return session;
     },
-  
+    // async redirect({ url, baseUrl }) {
+    //   console.log("Redirect callback:", { url, baseUrl });
+    //   if (url.includes("/api/auth/callback")) {
+    //     const targetUrl = `http://localhost:3000/dashboard/menu`;
+    //     console.log("Constructed redirect URL:", targetUrl);
+    //     return targetUrl;
+    //   }
+    //   return url;
+    // },
     async redirect({ url, baseUrl }) {
       // If it’s an internal callback, just go to the dashboard
       if (url.startsWith(baseUrl)) {
-        return `${baseUrl} `;
+        return `${baseUrl}/dashboard/menu`;
       }
       return baseUrl;
     },
