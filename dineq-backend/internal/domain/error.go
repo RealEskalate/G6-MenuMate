@@ -59,11 +59,16 @@ var (
 	ErrFailedToRevokeToken            = errors.New("failed to revoke token")
 	ErrFailedToUpdateToken            = errors.New("failed to update token")
 	ErrFailedToSaveToken              = errors.New("failed to save token")
+	ErrMenuNotPublished               = errors.New("menu not published")
+	ErrFailedToUpdateQRStatus         = errors.New("failed to update qr status")
+	ErrQRCodeNotFound                 = errors.New("qr code not found")
+	ErrFailedToGetQRCode              = errors.New("failed to get qr code")
 	ErrPasswordShortLen               = errors.New("password must be at least 8 characters long")
 	ErrPasswordMustContainUpperLetter = errors.New("password must contain at least one uppercase letter")
 	ErrPasswordMustContainLowerLetter = errors.New("password must contain at least one lowercase letter")
 	ErrPasswordMustContainNumber      = errors.New("password must contain at least one number")
 	ErrPasswordMustContainSpecialChar = errors.New("password must contain at least one special character")
+	ErrFailedToDeleteQRCode           = errors.New("failed to delete qr code")
 )
 
 var (
@@ -73,4 +78,5 @@ var (
 	MsgDeleted          = "Resource deleted successfully"
 	MsgValidationFailed = "Validation failed, please check your input"
 	MsgProcessing       = "Processing your request"
+	MsgRetrieved        = "Resource retrieved successfully"
 )

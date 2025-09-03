@@ -13,38 +13,38 @@ type Preference struct {
 }
 
 type UserRequest struct {
-	ID           string             `json:"id" validate:"omitempty"`
-	Username     string             `json:"username" validate:"required,alphanum,min=3,max=50"`
-	Email        string             `json:"email" validate:"required_without=PhoneNumber,omitempty,email"`
-	PhoneNumber  string             `json:"phone_number" validate:"required_without=Email,omitempty,e164"`
-	Password     string             `json:"password" validate:"required_without=AuthProvider,min=6,max=100"`
-	FirstName    string             `json:"first_name" validate:"required_without=FullName,omitempty,alpha,min=2,max=50"`
-	LastName     string             `json:"last_name" validate:"required_without=FullName,omitempty,alpha,min=2,max=50"`
-	FullName     string             `json:"full_name" validate:"omitempty,min=2,max=100"`
-	Role         string             `json:"role" validate:"omitempty,oneof=OWNER MANAGER STAFF CUSTOMER ADMIN"`
-	AuthProvider string             `json:"auth_provider" validate:"required,oneof=EMAIL GOOGLE PHONE"`
-	Status       string             `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE SUSPENDED"`
-	ProfileImage string             `json:"profile_image" validate:"omitempty,url"`
-	IsVerified   bool               `json:"is_verified" validate:"omitempty"`
+	ID           string      `json:"id" validate:"omitempty"`
+	Username     string      `json:"username" validate:"required,alphanum,min=3,max=50"`
+	Email        string      `json:"email" validate:"required_without=PhoneNumber,omitempty,email"`
+	PhoneNumber  string      `json:"phone_number" validate:"required_without=Email,omitempty,e164"`
+	Password     string      `json:"password" validate:"required_without=AuthProvider,min=6,max=100"`
+	FirstName    string      `json:"first_name" validate:"required_without=FullName,omitempty,alpha,min=2,max=50"`
+	LastName     string      `json:"last_name" validate:"required_without=FullName,omitempty,alpha,min=2,max=50"`
+	FullName     string      `json:"full_name" validate:"omitempty,min=2,max=100"`
+	Role         string      `json:"role" validate:"omitempty,oneof=OWNER MANAGER STAFF CUSTOMER ADMIN"`
+	AuthProvider string      `json:"auth_provider" validate:"required,oneof=EMAIL GOOGLE PHONE"`
+	Status       string      `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE SUSPENDED"`
+	ProfileImage string      `json:"profile_image" validate:"omitempty,url"`
+	IsVerified   bool        `json:"is_verified" validate:"omitempty"`
 	Preferences  *Preference `json:"preferences" validate:"omitempty,dive"`
 }
 
 type UserResponse struct {
-	ID           string            `json:"id"`
-	Username     string            `json:"username,omitempty"`
-	Email        string            `json:"email,omitempty"`
-	PhoneNumber  string            `json:"phone_number,omitempty"`
-	FullName     string            `json:"full_name,omitempty"`
-	FirstName    string            `json:"first_name,omitempty"`
-	LastName     string            `json:"last_name,omitempty"`
-	Role         string            `json:"role"`
-	Status       string            `json:"status"`
-	AuthProvider string            `json:"auth_provider"`
-	ProfileImage string            `json:"profile_image,omitempty"`
-	IsVerified   bool              `json:"is_verified"`
+	ID           string      `json:"id"`
+	Username     string      `json:"username,omitempty"`
+	Email        string      `json:"email,omitempty"`
+	PhoneNumber  string      `json:"phone_number,omitempty"`
+	FullName     string      `json:"full_name,omitempty"`
+	FirstName    string      `json:"first_name,omitempty"`
+	LastName     string      `json:"last_name,omitempty"`
+	Role         string      `json:"role"`
+	Status       string      `json:"status"`
+	AuthProvider string      `json:"auth_provider"`
+	ProfileImage string      `json:"profile_image,omitempty"`
+	IsVerified   bool        `json:"is_verified"`
 	Preferences  *Preference `json:"preferences,omitempty"`
-	CreatedAt    time.Time         `json:"created_at"`
-	UpdatedAt    time.Time         `json:"updated_at"`
+	CreatedAt    time.Time   `json:"created_at"`
+	UpdatedAt    time.Time   `json:"updated_at"`
 }
 
 // user registration request mapper
@@ -52,14 +52,16 @@ func ToDomainUser(req UserRequest) domain.User {
 	var pref *domain.Preferences
 	if req.Preferences != nil {
 		p := &domain.Preferences{Language: req.Preferences.Language, Theme: req.Preferences.Theme}
-		if req.Preferences.Notifications != nil { p.Notifications = *req.Preferences.Notifications }
+		if req.Preferences.Notifications != nil {
+			p.Notifications = *req.Preferences.Notifications
+		}
 		pref = p
 	}
 	return domain.User{
 		Email:        req.Email,
 		Username:     req.Username,
 		PhoneNumber:  req.PhoneNumber,
-		Password: req.Password, // caller should hash before persistence
+		Password:     req.Password, // caller should hash before persistence
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		FullName:     req.FullName,
@@ -122,20 +124,33 @@ type ChangePasswordRequest struct {
 // ValidatePasswordStrength performs basic password strength checks and returns a domain error.
 func ValidatePasswordStrength(pw string) error {
 	// Length check (already enforced by validator but keep for clarity)
-	if len(pw) < 8 { return domain.ErrPasswordShortLen }
+	if len(pw) < 8 {
+		return domain.ErrPasswordShortLen
+	}
 	var hasUpper, hasLower, hasNum, hasSpecial bool
 	for _, r := range pw {
 		switch {
-		case r >= 'A' && r <= 'Z': hasUpper = true
-		case r >= 'a' && r <= 'z': hasLower = true
-		case r >= '0' && r <= '9': hasNum = true
+		case r >= 'A' && r <= 'Z':
+			hasUpper = true
+		case r >= 'a' && r <= 'z':
+			hasLower = true
+		case r >= '0' && r <= '9':
+			hasNum = true
 		default:
 			hasSpecial = true
 		}
 	}
-	if !hasUpper { return domain.ErrPasswordMustContainUpperLetter }
-	if !hasLower { return domain.ErrPasswordMustContainLowerLetter }
-	if !hasNum { return domain.ErrPasswordMustContainNumber }
-	if !hasSpecial { return domain.ErrPasswordMustContainSpecialChar }
+	if !hasUpper {
+		return domain.ErrPasswordMustContainUpperLetter
+	}
+	if !hasLower {
+		return domain.ErrPasswordMustContainLowerLetter
+	}
+	if !hasNum {
+		return domain.ErrPasswordMustContainNumber
+	}
+	if !hasSpecial {
+		return domain.ErrPasswordMustContainSpecialChar
+	}
 	return nil
 }
