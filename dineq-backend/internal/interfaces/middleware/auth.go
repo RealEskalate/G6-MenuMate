@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
@@ -15,21 +16,23 @@ import (
 func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var tokenStr string
-		var err error
+        var tokenStr string
+        var err error
 
-		// Try to get token from Authorization header first
-		// authHeader := c.GetHeader("Authorization")
-		// if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
-		// 	tokenStr = authHeader[7:]
-		// } else {
-		// 	// Fallback to cookie
-		tokenStr, err = utils.GetCookie(c, "access_token")
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found, please login again"})
-			c.Abort()
-			return
-		}
+        // Try Authorization header first, fallback to cookie
+        authHeader := c.GetHeader("Authorization")
+        if len(authHeader) > 7 && strings.HasPrefix(authHeader, "Bearer ") {
+            tokenStr = strings.TrimSpace(authHeader[7:])
+    	} else {
+            // Fallback to cookie
+            tokenStr, err = utils.GetCookie(c, "access_token")
+            if err != nil {
+                c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found, please login again"})
+                c.Abort()
+                return
+            }
+        }
+
 
 		// Parse and validate the JWT
 		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
