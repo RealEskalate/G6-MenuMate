@@ -13,12 +13,12 @@ type Restaurant struct {
 	ManagerID          string
 	RestaurantPhone    string
 	Location           Address
-	About              *string
-	LogoImage          *string
+	About              string
+	LogoImage          string
 	Tags               []string
 	VerificationStatus VerificationStatus
-	VerificationDocs   *string
-	CoverImage         *string
+	VerificationDocs   string
+	CoverImage         string
 	AverageRating      float64
 	ViewCount          int64
 	CreatedAt          time.Time
@@ -34,13 +34,6 @@ type Address struct {
 	Country    string
 	Latitude   *float64
 	Longitude  *float64
-}
-
-type Document struct {
-	ID         string
-	Type       string
-	URL        string
-	UploadedAt time.Time
 }
 
 type VerificationStatus string

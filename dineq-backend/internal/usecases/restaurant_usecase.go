@@ -41,11 +41,11 @@ func (s *RestaurantUsecase) CreateRestaurant(ctx context.Context, r *domain.Rest
 		fmt.Print("field:" + fieldName)
 		switch fieldName {
 		case "logo_image":
-			r.LogoImage = &url
+			r.LogoImage = url
 		case "verification_docs":
-			r.VerificationDocs = &url
+			r.VerificationDocs = url
 		case "cover_image":
-			r.CoverImage = &url
+			r.CoverImage = url
 		}
 	}
 	fmt.Println(r)
@@ -58,6 +58,9 @@ func (s *RestaurantUsecase) UpdateRestaurant(ctx context.Context, r *domain.Rest
 	defer cancel()
 
 	for field, data := range files {
+		if len(data) == 0 {
+			continue // skip empty files
+		}
 		url, _, err := s.StorageService.UploadFile(c, fmt.Sprintf("%s_%d", field, time.Now().UnixNano()), data, "restaurant_images")
 		if err != nil {
 			return fmt.Errorf("failed to upload %s: %w", field, err)
@@ -65,11 +68,11 @@ func (s *RestaurantUsecase) UpdateRestaurant(ctx context.Context, r *domain.Rest
 
 		switch field {
 		case "logo_image":
-			r.LogoImage = &url
+			r.LogoImage = url
 		case "verification_docs":
-			r.VerificationDocs = &url
+			r.VerificationDocs = url
 		case "cover_image":
-			r.CoverImage = &url
+			r.CoverImage = url
 		}
 	}
 	return s.Repo.Update(c, r)

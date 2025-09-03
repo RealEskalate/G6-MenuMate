@@ -19,6 +19,7 @@ type Database interface {
 }
 
 type Collection interface {
+	Indexes() IndexView
 	FindOne(ctx context.Context, filter any) SingleResult
 	InsertOne(ctx context.Context, document any) (*mongo.InsertOneResult, error)
 	InsertMany(ctx context.Context, documents []any) (*mongo.InsertManyResult, error)
@@ -50,6 +51,12 @@ type Cursor interface {
 	All(ctx context.Context, results any) error
 	Err() error
 }
+type IndexView interface {
+	CreateOne(ctx context.Context, model IndexModel, opts ...options.Lister[options.CreateIndexesOptions]) (string, error)
+	List(ctx context.Context, opts ...options.Lister[options.ListIndexesOptions]) (Cursor, error)
+}
+
+type IndexModel = mongo.IndexModel // Type alias for mongo.IndexModel
 
 // --- Struct Wrappers ---
 
@@ -71,6 +78,20 @@ type mongoSingleResult struct {
 
 type mongoCursor struct {
 	mc *mongo.Cursor
+}
+
+type mongoIndexView struct {
+	coll *mongo.Collection
+}
+
+func (miv *mongoIndexView) CreateOne(ctx context.Context, model IndexModel, opts ...options.Lister[options.CreateIndexesOptions]) (string, error) {
+	result, err := miv.coll.Indexes().CreateOne(ctx, model, opts...)
+	return result, err
+}
+
+func (miv *mongoIndexView) List(ctx context.Context, opts ...options.Lister[options.ListIndexesOptions]) (Cursor, error) {
+	cursor, err := miv.coll.Indexes().List(ctx, opts...)
+	return &mongoCursor{mc: cursor}, err
 }
 
 // --- Utility Function ---
@@ -177,6 +198,10 @@ func (mc *mongoCollection) UpdateOne(ctx context.Context, filter, update any, op
 
 func (mc *mongoCollection) UpdateMany(ctx context.Context, filter, update any, opts ...options.Lister[options.UpdateManyOptions]) (*mongo.UpdateResult, error) {
 	return mc.coll.UpdateMany(ctx, filter, update, opts...)
+}
+
+func (mc *mongoCollection) Indexes() IndexView {
+	return &mongoIndexView{coll: mc.coll}
 }
 
 // --- SingleResult Methods ---
