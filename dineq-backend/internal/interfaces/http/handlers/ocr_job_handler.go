@@ -1,12 +1,12 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"time"
 
-	utils "github.com/RealEskalate/G6-MenuMate/Utils"
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/logger"
 	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
@@ -136,27 +136,27 @@ func (h *OCRJobHandler) GetOCRJobByID(c *gin.Context) {
 	job, err := h.UseCase.GetOCRJobByID(id)
 	if err != nil {
 		logger.Log.Warn().Str("job_id", id).Err(err).Msg("OCR job lookup failed")
-		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "OCR job not found"})
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "error": "ocr job not found"})
 		return
 	}
 	response := gin.H{
-		"jobId":                 job.ID,
-		"status":                job.Status,
-		"createdAt":             job.CreatedAt,
-		"estimatedCompletionTime": job.EstimatedCompletion,
-		"phase":                job.Phase,
-		"progress":             job.Progress,
-		"phases":               job.PhaseHistory,
+		"job_id":                   job.ID,
+		"status":                   job.Status,
+		"created_at":               job.CreatedAt,
+		"estimated_completion_time": job.EstimatedCompletion,
+		"phase":                    job.Phase,
+		"progress":                 job.Progress,
+		"phases":                   job.PhaseHistory,
 	}
-	if job.CompletedAt != nil { response["completedAt"] = job.CompletedAt }
+	if job.CompletedAt != nil { response["completed_at"] = job.CompletedAt }
 	if job.Status == domain.OCRFailed && job.Error != "" { response["error"] = job.Error }
 	if job.Status == domain.OCRCompleted && job.Results != nil {
 		res := *job.Results
 		if res.Menu != nil {
 			sanitized := gin.H{}
-			if res.ExtractedText != "" { sanitized["extractedText"] = res.ExtractedText }
-			if len(res.PhotoMatches) > 0 { sanitized["photoMatches"] = res.PhotoMatches }
-			if res.ConfidenceScore != 0 { sanitized["confidenceScore"] = res.ConfidenceScore }
+			if res.ExtractedText != "" { sanitized["extracted_text"] = res.ExtractedText }
+			if len(res.PhotoMatches) > 0 { sanitized["photo_matches"] = res.PhotoMatches }
+			if res.ConfidenceScore != 0 { sanitized["confidence_score"] = res.ConfidenceScore }
 			// Provide structured categories/items if available
 			var menuItems []menuItemOut
 			for _, tab := range res.Menu.Tabs { // flatten tabs -> categories
@@ -188,8 +188,8 @@ func (h *OCRJobHandler) GetOCRJobByID(c *gin.Context) {
 					}
 				}
 			}
-			if len(menuItems) > 0 { sanitized["menuItems"] = menuItems }
-			if res.StructuredMenuID != "" { sanitized["structuredMenuId"] = res.StructuredMenuID }
+			if len(menuItems) > 0 { sanitized["menu_items"] = menuItems }
+			if res.StructuredMenuID != "" { sanitized["structured_menu_id"] = res.StructuredMenuID }
 			response["results"] = sanitized
 		} else {
 			response["results"] = res
@@ -219,13 +219,26 @@ func (h *OCRJobHandler) RetryOCRJob(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{"success": true, "data": gin.H{ "jobId": job.ID, "status": job.Status, "estimatedCompletionTime": job.EstimatedCompletion }})
 }
 
+// UploadMenu handles OCR job creation from an uploaded menu image
 func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 	userId := c.GetString("user_id")
 	if userId == "" { userId = c.GetString("userId") }
 
+	// Attempt to derive restaurant ID from context or query; fallback to userId (TODO: fetch from user profile/role association)
+	restaurantID := c.GetString("restaurant_id")
+	if restaurantID == "" { restaurantID = c.Query("restaurant_id") }
+	if restaurantID == "" { restaurantID = userId }
+
 	file, err := c.FormFile("menuImage")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: "menuImage file required"})
+		return
+	}
+
+	// Basic size validation (max 6MB to accommodate high-res, adjustable)
+	const maxSize = 6 * 1024 * 1024
+	if file.Size > maxSize {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: "file too large (max 6MB)"})
 		return
 	}
 	f, err := file.Open()
@@ -241,6 +254,15 @@ func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 		return
 	}
 
+	// MIME sniffing
+	if len(data) < 10 { c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: "empty file"}); return }
+	contentType := http.DetectContentType(data[:min(512, len(data))])
+	allowed := map[string]bool{"image/jpeg": true, "image/png": true, "image/webp": true}
+	if !allowed[contentType] {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: "unsupported image type"})
+		return
+	}
+
 	url, _, err := h.StorageService.UploadFile(c.Request.Context(), file.Filename, data, "menus")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFileToUpload.Error(), Error: err.Error()})
@@ -249,7 +271,7 @@ func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 
 	job := &domain.OCRJob{
 		ID:           bson.NewObjectID().Hex(),
-		RestaurantID: utils.GenerateUUID(),
+		RestaurantID: restaurantID,
 		UserID:       userId,
 		ImageURL:     url,
 		Status:       domain.OCRProcessing,
@@ -262,22 +284,31 @@ func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 	}
 	logger.Log.Info().Str("job_id", job.ID).Str("user_id", userId).Msg("OCR job created and persisted")
 
-// Notifications disabled per request
+	// Notifications disabled per request (TODO: integrate notification system behind feature flag)
 
-	go h.processJobAsync(job.ID, userId)
+	// Launch async processing with cancellation context (TODO: configurable timeout via env)
+	jobCtx, cancel := context.WithCancel(context.Background())
+	go func() { defer cancel(); h.processJobAsync(jobCtx, job.ID, userId) }()
 
 	c.JSON(http.StatusAccepted, gin.H{
 		"success": true,
 		"data": gin.H{
-			"jobId": job.ID,
+			"job_id": job.ID,
 			"status": job.Status,
-			"estimatedCompletionTime": job.EstimatedCompletion,
+			"estimated_completion_time": job.EstimatedCompletion,
 		},
 	})
 }
-
-func (h *OCRJobHandler) processJobAsync(jobID, userId string) {
-	// Launch heavy OCR + AI processing
+func (h *OCRJobHandler) processJobAsync(ctx context.Context, jobID, userId string) {
+	select {
+	case <-ctx.Done():
+		logger.Log.Warn().Str("job_id", jobID).Msg("job context canceled before processing started")
+		return
+	default:
+	}
 	h.UseCase.ProcessJob(jobID)
-// Notifications disabled per request
+	// Notifications disabled per request
 }
+
+// helper: min int
+func min(a, b int) int { if a < b { return a }; return b }
