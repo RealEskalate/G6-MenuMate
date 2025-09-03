@@ -38,7 +38,7 @@ type Env struct {
 	ReviewCollection string 	`mapstructure:"REVIEW_COLLECTION"`
 
 	// Cookie / Security settings
-	CookieSecure bool `mapstructure:"COOKIE_SECURE"`
+	CookieSecure bool   `mapstructure:"COOKIE_SECURE"`
 	CookieDomain string `mapstructure:"COOKIE_DOMAIN"`
 
 	// user refresh token collection
@@ -109,6 +109,9 @@ type Env struct {
 
 	// menu collection
 	MenuCollection string `mapstructure:"MENU_COLLECTION"`
+	// qr code collection
+	QRCodeCollection string `mapstructure:"QR_CODE_COLLECTION"`
+	ItemCollection    string `mapstructure:"ITEM_COLLECTION"`
 }
 
 // Viper can be made injectable
@@ -175,6 +178,9 @@ func NewEnv() (*Env, error) {
 	env.MenuCollection = os.Getenv("MENU_COLLECTION")
 	env.CookieSecure = strings.ToLower(os.Getenv("COOKIE_SECURE")) == "true"
 	env.CookieDomain = os.Getenv("COOKIE_DOMAIN")
+	env.MenuCollection = os.Getenv("MENU_COLLECTION")
+	env.QRCodeCollection = os.Getenv("QR_CODE_COLLECTION")
+	env.ItemCollection = os.Getenv("ITEM_COLLECTION")
 
 	if env.AppEnv == "development" {
 		log.Println("The App is running in development env")
