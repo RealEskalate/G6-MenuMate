@@ -48,6 +48,7 @@ func (s *RestaurantUsecase) CreateRestaurant(ctx context.Context, r *domain.Rest
 			r.CoverImage = &url
 		}
 	}
+	fmt.Println(r)
 
 	return s.Repo.Create(c, r)
 }

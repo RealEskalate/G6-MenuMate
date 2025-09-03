@@ -18,6 +18,7 @@ type RestaurantModel struct {
 	LogoImage          string         `bson:"logoImage"`
 	VerificationStatus string         `bson:"verificationStatus"`
 	VerificationDocs   string         `bson:"verificationDocs"`
+	CoverImage         string         `bson:"coverImage"`
 	AverageRating      float64        `bson:"averageRating"`
 	ViewCount          int64          `bson:"viewCount"`
 	CreatedAt          bson.DateTime  `bson:"createdAt"`
@@ -55,6 +56,11 @@ func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 		m.VerificationDocs = *r.VerificationDocs
 	}
 
+	m.CoverImage = ""
+	if r.CoverImage != nil {
+		m.CoverImage = *r.CoverImage
+	}
+
 	m.VerificationStatus = string(r.VerificationStatus)
 	m.AverageRating = r.AverageRating
 	m.ViewCount = r.ViewCount
@@ -78,7 +84,8 @@ func (m *RestaurantModel) ToDomain() *domain.Restaurant {
 		About:              nil,
 		LogoImage:          nil,
 		VerificationStatus: domain.VerificationStatus(m.VerificationStatus),
-		VerificationDocs:   &m.VerificationDocs,
+		VerificationDocs:   nil,
+		CoverImage:         nil,
 		AverageRating:      m.AverageRating,
 		ViewCount:          m.ViewCount,
 		CreatedAt:          m.CreatedAt.Time(),
@@ -91,6 +98,12 @@ func (m *RestaurantModel) ToDomain() *domain.Restaurant {
 	}
 	if m.LogoImage != "" {
 		r.LogoImage = &m.LogoImage
+	}
+	if m.VerificationDocs != "" {
+		r.VerificationDocs = &m.VerificationDocs
+	}
+	if m.CoverImage != "" {
+		r.CoverImage = &m.CoverImage
 	}
 
 	return r
