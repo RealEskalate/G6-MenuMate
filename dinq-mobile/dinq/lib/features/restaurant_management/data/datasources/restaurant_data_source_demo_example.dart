@@ -33,7 +33,7 @@ class RestaurantDataSourceUsageExample {
     try {
       // 4. Use the data source - it will automatically use demo data
       print('\n🏪 Fetching restaurants...');
-      final restaurants = await dataSource.getRestaurants(1, 20);
+      final restaurants = await dataSource.getRestaurants();
       print('✅ Found ${restaurants.length} restaurants:');
       for (final restaurant in restaurants) {
         print('   - ${restaurant.name} (${restaurant.address})');

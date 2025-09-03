@@ -8,7 +8,10 @@ class GetRestaurants {
 
   GetRestaurants(this.repository);
 
-  Future<Either<Failure, List<Restaurant>>> call(int page, int pageSize) async {
-    return await repository.getRestaurants(page, pageSize);
+  Future<Either<Failure, List<Restaurant>>> call({
+    int page = 1,
+    int pageSize = 1,
+  }) async {
+    return await repository.getRestaurants();
   }
 }

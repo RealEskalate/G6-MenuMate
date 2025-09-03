@@ -21,16 +21,13 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   });
 
   @override
-  Future<Either<Failure, List<Restaurant>>> getRestaurants(
-    int page,
-    int pageSize,
-  ) async {
+  Future<Either<Failure, List<Restaurant>>> getRestaurants({
+    int page = 1,
+    int pageSize = 20,
+  }) async {
     if (await network.isConnected) {
       try {
-        final restaurants = await remoteDataSource.getRestaurants(
-          page,
-          pageSize,
-        );
+        final restaurants = await remoteDataSource.getRestaurants();
         return Right(restaurants.map((model) => model).toList());
       } catch (e) {
         return Left(ExceptionMapper.toFailure(e as Exception));
