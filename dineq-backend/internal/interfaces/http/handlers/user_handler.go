@@ -14,8 +14,8 @@ import (
 
 // UserController aggregates all user related handlers.
 type UserController struct {
-	userUC            domain.IUserUsecase
-	notificationUC    domain.INotificationUseCase
+	userUC         domain.IUserUsecase
+	notificationUC domain.INotificationUseCase
 }
 
 func NewUserController(userUC domain.IUserUsecase, notificationUC domain.INotificationUseCase) *UserController {

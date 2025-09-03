@@ -5,23 +5,16 @@ import (
 	"time"
 )
 
-type ItemRepository interface {
-	GetByID(id string) (*Item, error)
-	Create(i *Item) error
-	Update(i *Item) error
-	Delete(id string) error
-	ListByMenu(menuID string) ([]Item, error)
-
-}
-
 type Item struct {
 	ID              string    `json:"id"`
 	Name            string    `json:"name"`
 	NameAm          string    `json:"name_am"`
 	Slug            string    `json:"slug"`
-	CategoryID      string    `json:"category_id"`
+	MenuSlug        string    `json:"category_id"`
 	Description     string    `json:"description"`
 	DescriptionAm   string    `json:"description_am"`
+	TabTags        []string   // e.g. Drinks, Pizza, Pasta
+	CategoryTags   []string   // e.g. Appetizers, Main Course, Desserts
 	Image           []string  `json:"image"`              
 	ThumbnailImages []string  `json:"thumbnail_images"`    
 	Price           float64   `json:"price"`
@@ -54,6 +47,7 @@ type NutritionalInfo struct {
     Protein  int `json:"protein"`
     Carbs    int `json:"carbs"`
     Fat      int `json:"fat"`
+	DeletedAt       *time.Time
 }
 
 type IItemRepository interface {
@@ -62,11 +56,14 @@ type IItemRepository interface {
 	UpdateItem(ctx context.Context, id string, item *Item) error
 	DeleteItem(ctx context.Context, id string) error
 	AddReview(ctx context.Context, itemID, reviewID string) error
+	GetItems(ctx context.Context, menuSlug string) ([]Item, error)
 }
 
 type IItemUseCase interface {
 	CreateItem(item *Item) error
 	UpdateItem(id string, item *Item) error
+	GetItems(menuSlug string) ([]Item, error)
 	GetItemByID(id string) (*Item, error)
 	AddReview(itemID, reviewID string) error
+	DeleteItem(id string) error
 }

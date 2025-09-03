@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -210,7 +209,6 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
-	fmt.Println("user id", user.ID)
 	c.JSON(http.StatusOK, dto.LoginResponse{
 		AccessToken:  response.AccessToken,
 		RefreshToken: refreshTokenValue,
@@ -396,8 +394,12 @@ func (ac *AuthController) ResendOTPRequest(c *gin.Context) {
 //Oauth Google handlers
 
 func (ac *AuthController) GoogleLogin(c *gin.Context) {
+		client := c.Query("client") // "web" or "mobile"
+	if client == "" {
+		client = "web"
+	}
 	conf := oauth.GetGoogleOAuthConfig(ac.GoogleClientID, ac.GoogleClientSecret, ac.GoogleRedirectURL)
-	url := conf.AuthCodeURL("random-state")
+	url := conf.AuthCodeURL(client)
 	c.Redirect(http.StatusTemporaryRedirect, url)
 }
 

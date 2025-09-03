@@ -5,9 +5,6 @@ import (
 	"time"
 )
 
-
-
-
 type Menu struct {
 	ID           string    `json:"id"`
 	RestaurantID string    `json:"restaurant_id"`
@@ -15,6 +12,7 @@ type Menu struct {
 	IsPublished  bool      `json:"is_published"`
 	PublishedAt  time.Time `json:"published_at"`
 	Tabs         []Tab     `json:"tabs"`
+	Items          []Item
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 	UpdatedBy    string    `json:"updated_by"`
@@ -41,10 +39,11 @@ type Category struct {
 
 type IMenuUseCase interface {
 	CreateMenu(menu *Menu) error
-	UpdateMenu(id string, menu *Menu) error
+	UpdateMenu(id string, userId string, menu *Menu) error
 	PublishMenu(id string, userID string) error
-	GetMenuByID(id string) (*Menu, error)
-	GenerateQRCode(menuID string) (*QRCode, error)
+	GetByID(id string) (*Menu, error)
+	GetByRestaurantID(id string) ([]*Menu, error)
+	GenerateQRCode(restaurantID string, menuId string, req *QRCodeRequest) (*QRCode, error)
 	DeleteMenu(id string) error
 }
 
@@ -53,4 +52,6 @@ type IMenuRepository interface {
 	Update(ctx context.Context, id string, menu *Menu) error
 	GetByID(ctx context.Context, id string) (*Menu, error)
 	Delete(ctx context.Context, id string) error
+	GetByRestaurantID(ctx context.Context, restaurantId string) ([]*Menu, error)
+	IncrementViewCount(ctx context.Context, id string) error
 }

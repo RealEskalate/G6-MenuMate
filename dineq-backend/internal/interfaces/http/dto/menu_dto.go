@@ -6,170 +6,81 @@ import (
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 )
 
-type MenuDTO struct {
-	ID           string    `json:"id"`
-	RestaurantID string    `json:"restaurantId"`
-	Version      int       `json:"version"`
-	IsPublished  bool      `json:"isPublished"`
-	PublishedAt  time.Time `json:"publishedAt"`
-	Tabs         []TabDTO  `json:"tabs"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
-	UpdatedBy    string    `json:"updatedBy"`
-	IsDeleted    bool      `json:"isDeleted"`
-	ViewCount    int       `json:"viewCount"`
+// MenuRequestDTO represents the structure for menu creation/update requests.
+type MenuRequest struct {
+	RestaurantID string       `json:"restaurant_id" validate:"required"`
+	Version      int          `json:"version,omitempty"`
+	IsPublished  bool         `json:"is_published,omitempty"`
+	Items        []ItemRequest `json:"items"`
 }
 
-type TabDTO struct {
-	ID         string        `json:"id"`
-	MenuID     string        `json:"menuId"`
-	Name       string        `json:"name"`
-	NameAm     string        `json:"nameAm"`
-	Categories []CategoryDTO `json:"categories"`
-	IsDeleted  bool          `json:"isDeleted"`
+// MenuResponse represents the structure for menu responses.
+type MenuResponse struct {
+	ID           string        `json:"id"`
+	RestaurantID string        `json:"restaurant_id"`
+	Slug         string        `json:"slug"`
+	Version      int           `json:"version"`
+	IsPublished  bool          `json:"is_published"`
+	PublishedAt  time.Time     `json:"published_at"`
+	Items        []ItemResponse `json:"items"`
+	CreatedAt    time.Time     `json:"created_at"`
+	UpdatedAt    time.Time     `json:"updated_at"`
+	UpdatedBy    string        `json:"updated_by"`
+	IsDeleted    bool          `json:"is_deleted"`
+	ViewCount    int           `json:"view_count"`
+	DeletedAt    *time.Time    `json:"deleted_at"`
 }
 
-type CategoryDTO struct {
-	ID     string    `json:"id"`
-	TabID  string    `json:"tabId"`
-	Name   string    `json:"name"`
-	NameAm string    `json:"nameAm"`
-	Items  []ItemDTO `json:"items"`
-}
-
-// MenuToDTO converts a domain Menu to a MenuDTO.
-func MenuToDTO(menu *domain.Menu) *MenuDTO {
-	if menu == nil {
-		return nil
-	}
-	tabs := make([]TabDTO, len(menu.Tabs))
-	for i, tab := range menu.Tabs {
-		tabs[i] = *TabToDTO(&tab)
-	}
-	return &MenuDTO{
-		ID:           menu.ID,
-		RestaurantID: menu.RestaurantID,
-		Version:      menu.Version,
-		IsPublished:  menu.IsPublished,
-		PublishedAt:  menu.PublishedAt,
-		Tabs:         tabs,
-		CreatedAt:    menu.CreatedAt,
-		UpdatedAt:    menu.UpdatedAt,
-		UpdatedBy:    menu.UpdatedBy,
-		IsDeleted:    menu.IsDeleted,
-		ViewCount:    menu.ViewCount,
-	}
-}
-
-// DTOToMenu converts a MenuDTO to a domain Menu.
-func DTOToMenu(dto *MenuDTO) *domain.Menu {
-	if dto == nil {
-		return nil
-	}
-	tabs := make([]domain.Tab, len(dto.Tabs))
-	for i, tabDTO := range dto.Tabs {
-		tabs[i] = *DTOToTab(&tabDTO)
-	}
-	return &domain.Menu{
-		ID:           dto.ID,
-		RestaurantID: dto.RestaurantID,
-		Version:      dto.Version,
-		IsPublished:  dto.IsPublished,
-		PublishedAt:  dto.PublishedAt,
-		Tabs:         tabs,
-		CreatedAt:    dto.CreatedAt,
-		UpdatedAt:    dto.UpdatedAt,
-		UpdatedBy:    dto.UpdatedBy,
-		IsDeleted:    dto.IsDeleted,
-		ViewCount:    dto.ViewCount,
-	}
-}
-
-// TabToDTO converts a domain Tab to a TabDTO.
-func TabToDTO(tab *domain.Tab) *TabDTO {
-	if tab == nil {
-		return nil
-	}
-	categories := make([]CategoryDTO, len(tab.Categories))
-	for i, cat := range tab.Categories {
-		categories[i] = *CategoryToDTO(&cat)
-	}
-	return &TabDTO{
-		ID:         tab.ID,
-		MenuID:     tab.MenuID,
-		Name:       tab.Name,
-		NameAm:     tab.NameAm,
-		Categories: categories,
-		IsDeleted:  tab.IsDeleted,
-	}
-}
-
-// DTOToTab converts a TabDTO to a domain Tab.
-func DTOToTab(dto *TabDTO) *domain.Tab {
-	if dto == nil {
-		return nil
-	}
-	categories := make([]domain.Category, len(dto.Categories))
-	for i, catDTO := range dto.Categories {
-		categories[i] = *DTOToCategory(&catDTO)
-	}
-	return &domain.Tab{
-		ID:         dto.ID,
-		MenuID:     dto.MenuID,
-		Name:       dto.Name,
-		NameAm:     dto.NameAm,
-		Categories: categories,
-		IsDeleted:  dto.IsDeleted,
-	}
-}
-
-// CategoryToDTO converts a domain Category to a CategoryDTO.
-func CategoryToDTO(cat *domain.Category) *CategoryDTO {
-	if cat == nil {
-		return nil
-	}
-	items := make([]ItemDTO, len(cat.Items))
-	for i, item := range cat.Items {
-		items[i] = *ItemToDTO(&item)
-	}
-	return &CategoryDTO{
-		ID:     cat.ID,
-		TabID:  cat.TabID,
-		Name:   cat.Name,
-		NameAm: cat.NameAm,
-		Items:  items,
-	}
-}
-
-// DTOToCategory converts a CategoryDTO to a domain Category.
-func DTOToCategory(dto *CategoryDTO) *domain.Category {
+// RequestToMenu converts a MenuRequest to a domain Menu.
+func RequestToMenu(dto *MenuRequest) *domain.Menu {
 	if dto == nil {
 		return nil
 	}
 	items := make([]domain.Item, len(dto.Items))
 	for i, itemDTO := range dto.Items {
-		items[i] = *DTOToItem(&itemDTO)
+		items[i] = *RequestToItem(&itemDTO)
 	}
-	return &domain.Category{
-		ID:     dto.ID,
-		TabID:  dto.TabID,
-		Name:   dto.Name,
-		NameAm: dto.NameAm,
-		Items:  items,
+	return &domain.Menu{
+		RestaurantID: dto.RestaurantID,
+		Version:      dto.Version,
+		IsPublished:  dto.IsPublished,
+		Items:        items,
 	}
 }
 
-func ItemToDTO(item *domain.Item) *ItemDTO {
-	if item == nil {
+// MenuToResponse converts a domain Menu to a MenuResponse.
+func MenuToResponse(menu *domain.Menu) *MenuResponse {
+	if menu == nil {
 		return nil
 	}
-	dto := ItemDTO{}
-	return dto.FromDomain(item)
+	items := make([]ItemResponse, len(menu.Items))
+	for i, item := range menu.Items {
+		items[i] = *ItemToResponse(&item)
+	}
+	return &MenuResponse{
+		ID:           menu.ID,
+		RestaurantID: menu.RestaurantID,
+		Slug:         menu.Slug,
+		Version:      menu.Version,
+		IsPublished:  menu.IsPublished,
+		PublishedAt:  menu.PublishedAt,
+		Items:        items,
+		CreatedAt:    menu.CreatedAt,
+		UpdatedAt:    menu.UpdatedAt,
+		UpdatedBy:    menu.UpdatedBy,
+		IsDeleted:    menu.IsDeleted,
+		ViewCount:    menu.ViewCount,
+		DeletedAt:    menu.DeletedAt,
+	}
 }
 
-func DTOToItem(dto *ItemDTO) *domain.Item {
-	if dto == nil {
+func MenuResponseList(menus []*domain.Menu) []*MenuResponse {
+	if menus == nil {
 		return nil
 	}
-	return dto.ToDomain()
+	res := make([]*MenuResponse, len(menus))
+	for i, menu := range menus {
+		res[i] = MenuToResponse(menu)
+	}
+	return res
 }
