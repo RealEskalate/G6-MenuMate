@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -15,15 +14,25 @@ import (
 // AuthMiddleware checks if the user is authenticated by verifying the JWT token
 func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenStr, err := utils.GetCookie(c, string(domain.AccessTokenType))
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found in cookies, please login again"})
-			c.Abort()
-			return
-		}
+		var tokenStr string
+		var err error
+
+		// Try to get token from Authorization header first
+		// authHeader := c.GetHeader("Authorization")
+		// if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+		// 	tokenStr = authHeader[7:]
+		// } else {
+			// Fallback to cookie
+			tokenStr, err = utils.GetCookie(c, string(domain.AccessTokenType))
+			if err != nil {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found, please login again"})
+				c.Abort()
+				return
+			}
+		// }
 
 		// Parse and validate the JWT
-		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
+		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
 			return []byte(env.ATS), nil
 		})
 
@@ -39,11 +48,7 @@ func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 		}
 
 		// Set user ID and role in the context for further use
-		fmt.Println("Claims:", claims) // Debugging line to print claims
-		if userId, ok := claims["sub"]; ok {
-			c.Set("user_id", userId.(string))
-		}
-
+		c.Set("user_id", claims["sub"].(string))
 		if role, ok := claims["role"]; ok {
 			c.Set("role", role.(string))
 		}
@@ -72,7 +77,7 @@ func AdminOnly() gin.HandlerFunc {
 // manager only
 func ManagerOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.GetString("role") != string(domain.RoleManager) {
+		if c.GetString("role") != string(domain.RoleManager) && c.GetString("role") != string(domain.RoleOwner) {
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "This Operation is allowed for MANAGER only"})
 			return
 		}

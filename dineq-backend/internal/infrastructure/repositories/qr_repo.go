@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -53,22 +54,23 @@ func (r *qrRepository) Create(ctx context.Context, qr *domain.QRCode) error {
 
 // getbyid
 func (r *qrRepository) GetByRestaurantId(ctx context.Context, id string) (*domain.QRCode, error) {
-	var qr domain.QRCode
+	log.Printf("Getting QR code for restaurant ID: %s\n", id)
+	var qr mapper.QRCodeModel
 	err := r.db.Collection(r.qrCollection).FindOne(ctx, bson.M{"restaurantId": id, "isDeleted": false}).Decode(&qr)
 	if err != nil {
 		return nil, err
 	}
-	return &qr, nil
+	return mapper.ToDomainQRCode(&qr), nil
 }
 
 // updateactivation
 func (r *qrRepository) UpdateActivation(ctx context.Context, id string, isActive bool) error {
-	_, err := r.db.Collection(r.qrCollection).UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"isActive": isActive}})
+	_, err := r.db.Collection(r.qrCollection).UpdateOne(ctx, bson.M{"restaurantId": id}, bson.M{"$set": bson.M{"isActive": isActive}})
 	return err
 }
 
 // delete
 func (r *qrRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.db.Collection(r.qrCollection).UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"isDeleted": true, "deletedAt": time.Now().AddDate(0, 2, 0)}})
+	_, err := r.db.Collection(r.qrCollection).UpdateOne(ctx, bson.M{"restaurantId": id}, bson.M{"$set": bson.M{"isDeleted": true, "deletedAt": time.Now().AddDate(0, 2, 0)}})
 	return err
 }

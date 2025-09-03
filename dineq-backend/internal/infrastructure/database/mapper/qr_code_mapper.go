@@ -9,16 +9,16 @@ import (
 
 type QRCodeModel struct {
 	ID            bson.ObjectID `bson:"_id,omitempty"`
-	ImageURL      string        `bson:"imageUrl,omitempty"`
-	PublicMenuURL string        `bson:"publicMenuUrl,omitempty"`
-	DownloadURL   string        `bson:"downloadUrl,omitempty"`
-	MenuID        string        `bson:"menuId,omitempty"`
-	RestaurantID  string        `bson:"restaurantId,omitempty"`
-	IsActive      bool          `bson:"isActive,omitempty"`
-	CreatedAt     time.Time     `bson:"createdAt,omitempty"`
-	ExpiresAt     time.Time     `bson:"expiresAt,omitempty"`
-	IsDeleted     bool          `bson:"isDeleted,omitempty"`
-	DeletedAt     *time.Time    `bson:"deletedAt,omitempty"`
+	ImageURL      string        `bson:"imageUrl"`
+	PublicMenuURL string        `bson:"publicMenuUrl"`
+	DownloadURL   string        `bson:"downloadUrl"`
+	MenuID        string        `bson:"menuId"`
+	RestaurantID  string        `bson:"restaurantId"`
+	IsActive      bool          `bson:"isActive"`
+	CreatedAt     time.Time     `bson:"createdAt"`
+	ExpiresAt     time.Time     `bson:"expiresAt"`
+	IsDeleted     bool          `bson:"isDeleted"`
+	DeletedAt     *time.Time    `bson:"deletedAt"`
 }
 
 // mapper

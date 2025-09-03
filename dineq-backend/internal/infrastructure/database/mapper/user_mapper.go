@@ -7,60 +7,43 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// Add any additional types if needed, for example:
-// type Preferences struct {
-//	   // define preference fields
-// }
-
 type UserModel struct {
-	ID           bson.ObjectID `bson:"_id,omitempty"`
-	Email        string        `bson:"email"`
-	PhoneNumber  string        `bson:"phoneNumber"`
-	Password     string        `bson:"password"`
-	AuthProvider string        `bson:"authProvider"`
-	FirstName    string        `bson:"firstName"`
-	LastName     string        `bson:"lastName"`
-	AvatarURL    string        `bson:"avatarUrl"`
-	Role         string        `bson:"role"`
-	Status       string        `bson:"status"`
-	Preferences  any           `bson:"preferences"` // adjust type if needed
-	IsVerified   bool          `bson:"isVerified"`
-	LastLoginAt  time.Time     `bson:"lastLoginAt"`
-	CreatedAt    time.Time     `bson:"createdAt"`
-	UpdatedAt    time.Time     `bson:"updatedAt"`
-	IsDeleted    bool          `bson:"isDeleted"`
-	DeletedAt    *time.Time    `bson:"deletedAt,omitempty"`
+	ID           bson.ObjectID       `bson:"_id,omitempty"`
+	Email        string              `bson:"email,omitempty"`
+	PhoneNumber  string              `bson:"phoneNumber,omitempty"`
+	Username     string              `bson:"username,omitempty"`
+	Password     string              `bson:"passwordHash,omitempty"`
+	AuthProvider string              `bson:"authProvider,omitempty"`
+	IsVerified   bool                `bson:"isVerified"`
+	FullName     string              `bson:"fullName,omitempty"`
+	FirstName    string              `bson:"firstName,omitempty"`
+	LastName     string              `bson:"lastName,omitempty"`
+	ProfileImage string              `bson:"profileImage,omitempty"`
+	Role         string              `bson:"role"`
+	Status       string              `bson:"status"`
+	Preferences  *domain.Preferences `bson:"preferences,omitempty"`
+	LastLoginAt  *time.Time          `bson:"lastLoginAt,omitempty"`
+	CreatedAt    time.Time           `bson:"createdAt"`
+	UpdatedAt    time.Time           `bson:"updatedAt"`
+	IsDeleted    bool                `bson:"isDeleted"`
 }
 
 func UserToDomain(user *UserModel) *domain.User {
-	var pref domain.Preferences
-	if user.Preferences != nil {
-		prefMap, ok := user.Preferences.(map[string]any)
-		if ok {
-			if lang, found := prefMap["language"].(string); found {
-				pref.Language = lang
-			}
-			if theme, found := prefMap["theme"].(string); found {
-				pref.Theme = theme
-			}
-			if notifications, found := prefMap["notifications"].(bool); found {
-				pref.Notifications = notifications
-			}
-		}
-	}
 	return &domain.User{
 		ID:           user.ID.Hex(),
 		Email:        user.Email,
 		PhoneNumber:  user.PhoneNumber,
+		Username:     user.Username,
 		Password:     user.Password,
 		AuthProvider: domain.AuthProvider(user.AuthProvider),
 		IsVerified:   user.IsVerified,
+		FullName:     user.FullName,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
-		ProfileImage: user.AvatarURL,
+		ProfileImage: user.ProfileImage,
 		Role:         domain.UserRole(user.Role),
 		Status:       domain.UserStatus(user.Status),
-		Preferences:  pref, // convert to domain.Preferences
+		Preferences:  user.Preferences,
 		LastLoginAt:  user.LastLoginAt,
 		CreatedAt:    user.CreatedAt,
 		UpdatedAt:    user.UpdatedAt,
@@ -69,32 +52,23 @@ func UserToDomain(user *UserModel) *domain.User {
 }
 
 func UserFromDomain(user *domain.User) *UserModel {
-	id := bson.NewObjectID()
-	if user.ID != "" {
-		var err error
-		id, err = bson.ObjectIDFromHex(user.ID)
-		if err != nil {
-			// Handle error - for now, create new ID
-			id = bson.NewObjectID()
-		}
+	if user == nil {
+		return nil
 	}
 	return &UserModel{
-		ID:           id,
 		Email:        user.Email,
 		PhoneNumber:  user.PhoneNumber,
+		Username:     user.Username,
 		Password:     user.Password,
 		AuthProvider: string(user.AuthProvider),
+		IsVerified:   user.IsVerified,
+		FullName:     user.FullName,
 		FirstName:    user.FirstName,
 		LastName:     user.LastName,
-		AvatarURL:    user.ProfileImage,
+		ProfileImage: user.ProfileImage,
 		Role:         string(user.Role),
 		Status:       string(user.Status),
-		Preferences:  user.Preferences, // adjust conversion if necessary
-		IsVerified:   user.IsVerified,
-		LastLoginAt:  user.LastLoginAt,
-		CreatedAt:    user.CreatedAt,
-		UpdatedAt:    user.UpdatedAt,
-		IsDeleted:    user.IsDeleted,
+		Preferences:  user.Preferences,
 	}
 }
 

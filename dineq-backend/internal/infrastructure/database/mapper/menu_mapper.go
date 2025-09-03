@@ -8,12 +8,13 @@ import (
 )
 
 type MenuDB struct {
-	ID           bson.ObjectID `bson:"_id"`
+	ID           bson.ObjectID `bson:"_id,omitempty"`
 	RestaurantID string        `bson:"restaurantId"`
+	Slug         string        `bson:"slug"`
 	Version      int           `bson:"version"`
 	IsPublished  bool          `bson:"isPublished"`
 	PublishedAt  time.Time     `bson:"publishedAt"`
-	Tabs         []Tab         `bson:"tabs"`
+	Items        []ItemDB      `bson:"items"`
 	CreatedAt    time.Time     `bson:"createdAt"`
 	UpdatedAt    time.Time     `bson:"updatedAt"`
 	UpdatedBy    string        `bson:"updatedBy"`
@@ -22,112 +23,86 @@ type MenuDB struct {
 	ViewCount    int           `bson:"viewCount"`
 }
 
-type Tab struct { // Tab Food, drink, etc.
-	ID         bson.ObjectID `bson:"_id"`
-	MenuID     string        `bson:"menuId"`
-	Name       string        `bson:"name"`
-	NameAm     string        `bson:"nameAm"`
-	Categories []Category    `bson:"categories"`
-	IsDeleted  bool          `bson:"isDeleted"`
-}
+// ---------- Creation ----------
 
-type Category struct { // Category for food breakfast, lunch, dinner, dessert etc.
-	ID     bson.ObjectID `bson:"_id"`
-	TabID  string        `bson:"tabId"`
-	Name   string        `bson:"name"`
-	NameAm string        `bson:"nameAm"`
-	Items  []ItemDB      `bson:"items"`
-}
+// NewMenuDBFromDomain is used when creating a new Menu.
+func NewMenuDBFromDomain(menu *domain.Menu) *MenuDB {
+	now := time.Now().UTC()
 
-func FromDomainMenu(menu *domain.Menu) *MenuDB {
 	menuId := idempotentID(menu.ID)
 	menu.ID = menuId.Hex()
-	var tabs []Tab
-	for _, t := range menu.Tabs {
-		t.MenuID = menuId.Hex()
 
-		// id generate if tab is new
-		tabId := idempotentID(t.ID)
-
-		var categories []Category
-		for _, c := range t.Categories {
-			categoryId := idempotentID(c.ID)
-			var items []ItemDB
-			for _, i := range c.Items {
-				i.CategoryID = categoryId.Hex()
-				items = append(items, *FromDomainItem(&i))
-			}
-			categories = append(categories, Category{
-				ID:     categoryId,
-				TabID:  tabId.Hex(),
-				Name:   c.Name,
-				NameAm: c.NameAm,
-				Items:  items,
-			})
-		}
-		tabs = append(tabs, Tab{
-			ID:         tabId,
-			MenuID:     t.MenuID,
-			Name:       t.Name,
-			NameAm:     t.NameAm,
-			Categories: categories,
-			IsDeleted:  t.IsDeleted,
-		})
+	var items []ItemDB
+	for i := range menu.Items {
+		items = append(items, *NewItemDBFromDomain(&menu.Items[i]))
 	}
 
 	return &MenuDB{
 		ID:           menuId,
 		RestaurantID: menu.RestaurantID,
-		Version:      menu.Version,
+		Slug:         menu.Slug,
+		Version:      1, // start at version 1
 		IsPublished:  menu.IsPublished,
 		PublishedAt:  menu.PublishedAt,
-		Tabs:         tabs,
-		CreatedAt:    menu.CreatedAt,
-		UpdatedAt:    menu.UpdatedAt,
-		IsDeleted:    menu.IsDeleted,
-		ViewCount:    menu.ViewCount,
+		Items:        items,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+		UpdatedBy:    menu.UpdatedBy,
+		IsDeleted:    false,
+		ViewCount:    0,
 	}
 }
 
+// ---------- Update ----------
+
+// MergeMenuUpdate merges new domain data into an existing MenuDB.
+// It reuses the existing _id, increments version, and updates timestamps.
+func MergeMenuUpdate(updated *domain.Menu) *MenuDB {
+	var items []ItemDB
+	for i := range updated.Items {
+		items = append(items, *MergeItemUpdate(&updated.Items[i]))
+	}
+
+	return &MenuDB{
+		RestaurantID: updated.RestaurantID,
+		Slug:         updated.Slug,
+		IsPublished:  updated.IsPublished,
+		PublishedAt:  updated.PublishedAt,
+		Items:       items,
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
+		UpdatedBy:    updated.UpdatedBy,
+		IsDeleted:    updated.IsDeleted,
+		ViewCount:    updated.ViewCount,
+		DeletedAt:    updated.DeletedAt,
+		Version:      updated.Version + 1,
+	}
+}
+
+
+
+// ---------- Conversion ----------
+
 func ToDomainMenu(menu *MenuDB) *domain.Menu {
-	var tabs []domain.Tab
-	for _, t := range menu.Tabs {
-		var categories []domain.Category
-		for _, c := range t.Categories {
-			var items []domain.Item
-			for _, i := range c.Items {
-				items = append(items, *ToDomainItem(&i))
-			}
-			categories = append(categories, domain.Category{
-				ID:     c.ID.Hex(),
-				TabID:  c.TabID,
-				Name:   c.Name,
-				NameAm: c.NameAm,
-				Items:  items,
-			})
-		}
-		tabs = append(tabs, domain.Tab{
-			ID:         t.ID.Hex(),
-			MenuID:     t.MenuID,
-			Name:       t.Name,
-			NameAm:     t.NameAm,
-			Categories: categories,
-			IsDeleted:  t.IsDeleted,
-		})
+	var items []domain.Item
+	for _, item := range menu.Items {
+		items = append(items, *ToDomainItem(&item))
 	}
 
 	return &domain.Menu{
 		ID:           menu.ID.Hex(),
 		RestaurantID: menu.RestaurantID,
+		Slug:         menu.Slug,
 		Version:      menu.Version,
 		IsPublished:  menu.IsPublished,
 		PublishedAt:  menu.PublishedAt,
-		Tabs:         tabs,
+		Items:        items,
 		CreatedAt:    menu.CreatedAt,
 		UpdatedAt:    menu.UpdatedAt,
 		UpdatedBy:    menu.UpdatedBy,
 		IsDeleted:    menu.IsDeleted,
 		ViewCount:    menu.ViewCount,
+		DeletedAt:    menu.DeletedAt,
 	}
 }
 

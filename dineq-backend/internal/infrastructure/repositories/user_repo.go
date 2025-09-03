@@ -37,12 +37,12 @@ func (repo *UserRepository) createTTLIndex(ctx context.Context) {
 }
 
 func (repo *UserRepository) CreateUser(ctx context.Context, user *domain.User) error {
-	usermodel := mapper.UserFromDomain(user)
-	res, err := repo.DB.Collection(repo.Collection).InsertOne(ctx, usermodel)
+	userModel := mapper.UserFromDomain(user)
+	res, err := repo.DB.Collection(repo.Collection).InsertOne(ctx, userModel)
 	if err != nil {
 		return err
 	}
-	// The ID is already set in the mapper, but we can update it with the inserted ID if needed
+
 	if oid, ok := res.InsertedID.(bson.ObjectID); ok {
 		user.ID = oid.Hex()
 	}
@@ -50,81 +50,128 @@ func (repo *UserRepository) CreateUser(ctx context.Context, user *domain.User) e
 }
 
 func (repo *UserRepository) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
-	var users []*mapper.UserModel
-	cursor, err := repo.DB.Collection(repo.Collection).Find(ctx, bson.M{})
+	var models []*mapper.UserModel
+
+	cur, err := repo.DB.Collection(repo.Collection).Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
+	defer cur.Close(ctx)
 
-	for cursor.Next(ctx) {
-		var user *mapper.UserModel
-		if err := cursor.Decode(&user); err != nil {
+	for cur.Next(ctx) {
+		var m mapper.UserModel
+		if err := cur.Decode(&m); err != nil {
 			return nil, err
 		}
-		users = append(users, user)
+		models = append(models, &m)
 	}
-
-	if err := cursor.Err(); err != nil {
+	if err := cur.Err(); err != nil {
 		return nil, err
 	}
 
-	return mapper.UserToDomainList(users), nil
+	return mapper.UserToDomainList(models), nil
 }
 
 func (repo *UserRepository) UpdateUser(ctx context.Context, id string, user *domain.User) error {
-	userModel := mapper.UserFromDomain(user)
-	userModel.ID, _ = bson.ObjectIDFromHex(id)
-	_, err := repo.DB.Collection(repo.Collection).UpdateOne(ctx, bson.M{"_id": userModel.ID}, bson.M{"$set": userModel})
+	oid, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	model := mapper.UserFromDomain(user)
+	model.ID = oid
+	_, err = repo.DB.Collection(repo.Collection).UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": model})
 	return err
 }
 
 func (repo *UserRepository) FindUserByID(ctx context.Context, id string) (*domain.User, error) {
-	uid, err := bson.ObjectIDFromHex(id)
+	oid, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
 	}
-	var userModel *mapper.UserModel
-	err = repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"_id": uid, "isDeleted": false}).Decode(&userModel)
+	var model mapper.UserModel
+	err = repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"_id": oid}).Decode(&model)
 	if err != nil {
-		if err == mongo.ErrNoDocuments() {
-			return nil, err
-		}
 		return nil, err
 	}
-	return mapper.UserToDomain(userModel), nil
+	return mapper.UserToDomain(&model), nil
 }
 
 func (repo *UserRepository) GetUserByUsername(ctx context.Context, username string) (*domain.User, error) {
-	var userModel *mapper.UserModel
-	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"username": bson.M{"$regex": username, "$options": "i"}, "isDeleted": false}).Decode(&userModel)
+	var model mapper.UserModel
+	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{
+		"username": bson.M{"$regex": username, "$options": "i"},
+	}).Decode(&model)
 	if err != nil {
-		if err == mongo.ErrNoDocuments() {
-			return nil, err
-		}
 		return nil, err
 	}
-	return mapper.UserToDomain(userModel), nil
+	return mapper.UserToDomain(&model), nil
 }
 
 func (repo *UserRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
-	var userModel *mapper.UserModel
-	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"email": bson.M{"$regex": email, "$options": "i"}, "isDeleted": false}).Decode(&userModel)
+	var model mapper.UserModel
+	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{
+		"email": bson.M{"$regex": email, "$options": "i"},
+	}).Decode(&model)
 	if err != nil {
-		if err == mongo.ErrNoDocuments() {
-			return nil, err
-		}
 		return nil, err
 	}
-	return mapper.UserToDomain(userModel), nil
+	return mapper.UserToDomain(&model), nil
+}
+
+func (repo *UserRepository) GetUserByPhone(ctx context.Context, phone string) (*domain.User, error) {
+	var model mapper.UserModel
+	err := repo.DB.Collection(repo.Collection).FindOne(ctx, bson.M{"phone_number": phone}).Decode(&model)
+	if err != nil {
+		return nil, err
+	}
+	return mapper.UserToDomain(&model), nil
+}
+
+// ExistsAny checks if any user exists matching provided non-empty username/email/phone (case-insensitive for username/email).
+func (repo *UserRepository) ExistsAny(ctx context.Context, username, email, phone string) (bool, error) {
+	var or []bson.M
+	if username != "" {
+		or = append(or, bson.M{"username": bson.M{"$regex": username, "$options": "i"}})
+	}
+	if email != "" {
+		or = append(or, bson.M{"email": bson.M{"$regex": email, "$options": "i"}})
+	}
+	if phone != "" {
+		or = append(or, bson.M{"phone_number": phone})
+	}
+	if len(or) == 0 {
+		return false, nil
+	}
+	filter := bson.M{"$or": or}
+	// Use CountDocuments with limit via options? Driver v2 lacks Direct limit param; fallback to FindOne
+	var tmp mapper.UserModel
+	err := repo.DB.Collection(repo.Collection).FindOne(ctx, filter).Decode(&tmp)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (repo *UserRepository) FindByUsernameOrEmail(ctx context.Context, key string) (domain.User, error) {
+	var model mapper.UserModel
+	filter := bson.M{"$or": []bson.M{
+		{"username": key},
+		{"email": key},
+		{"phone_number": key},
+	}}
+	err := repo.DB.Collection(repo.Collection).FindOne(ctx, filter).Decode(&model)
+	if err != nil {
+		return domain.User{}, err
+	}
+	return *mapper.UserToDomain(&model), nil
 }
 
 func (repo *UserRepository) AssignRole(ctx context.Context, branchID, targetUserID string, role domain.UserRole) error {
-	objID, err := bson.ObjectIDFromHex(targetUserID)
+	oid, err := bson.ObjectIDFromHex(targetUserID)
 	if err != nil {
 		return err
 	}
-	_, err = repo.DB.Collection(repo.Collection).UpdateOne(ctx, bson.M{"_id": objID}, bson.M{
+	_, err = repo.DB.Collection(repo.Collection).UpdateOne(ctx, bson.M{"_id": oid}, bson.M{
 		"$set": bson.M{
 			"role":      string(role),
 			"updatedAt": time.Now(),
@@ -134,13 +181,12 @@ func (repo *UserRepository) AssignRole(ctx context.Context, branchID, targetUser
 	return err
 }
 
-// save fcm
 func (repo *UserRepository) SaveFCMToken(userID string, token string) error {
-	objID, err := bson.ObjectIDFromHex(userID)
+	oid, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
 		return err
 	}
-	_, err = repo.DB.Collection(repo.Collection).UpdateOne(context.Background(), bson.M{"_id": objID}, bson.M{
+	_, err = repo.DB.Collection(repo.Collection).UpdateOne(context.Background(), bson.M{"_id": oid}, bson.M{
 		"$set": bson.M{
 			"fcmToken":  token,
 			"updatedAt": time.Now(),
@@ -149,18 +195,31 @@ func (repo *UserRepository) SaveFCMToken(userID string, token string) error {
 	return err
 }
 
-// get fcm
 func (repo *UserRepository) GetFCMToken(userID string) (string, error) {
-	objID, err := bson.ObjectIDFromHex(userID)
+	oid, err := bson.ObjectIDFromHex(userID)
 	if err != nil {
 		return "", err
 	}
 	var result struct {
 		FCMToken string `bson:"fcmToken"`
 	}
-	err = repo.DB.Collection(repo.Collection).FindOne(context.Background(), bson.M{"_id": objID}).Decode(&result)
+	err = repo.DB.Collection(repo.Collection).FindOne(context.Background(), bson.M{"_id": oid}).Decode(&result)
 	if err != nil {
 		return "", err
 	}
 	return result.FCMToken, nil
+}
+
+// ChangeRole implements role change with branch context (branch argument names match interface order: userID, branchID, role)
+func (repo *UserRepository) ChangeRole(ctx context.Context, userID, branchID, role string) error {
+	oid, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	_, err = repo.DB.Collection(repo.Collection).UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": bson.M{
+		"role":      role,
+		"branchId":  branchID,
+		"updatedAt": time.Now(),
+	}})
+	return err
 }

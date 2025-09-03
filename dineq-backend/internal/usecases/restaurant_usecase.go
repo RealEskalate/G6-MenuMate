@@ -45,6 +45,12 @@ func (s *RestaurantUsecase) GetRestaurantBySlug(ctx context.Context, slug string
 	return s.Repo.GetBySlug(c, slug)
 }
 
+func (s *RestaurantUsecase) GetRestaurantByOldSlug(ctx context.Context, slug string) (*domain.Restaurant, error) {
+	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
+	defer cancel()
+	return s.Repo.GetByOldSlug(c, slug)
+}
+
 func (s *RestaurantUsecase) ListBranchesBySlug(ctx context.Context, slug string, page, pageSize int) ([]*domain.Restaurant, int64, error) {
 	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
 	defer cancel()

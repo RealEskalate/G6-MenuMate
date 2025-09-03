@@ -69,13 +69,14 @@ func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 	// ocr Handler
 	ocrJobHandler := handler.NewOCRJobHandler(ocrJobUsecase, menuUsecase, cloudinaryStorage, notifUc)
 
-	protected := group.Group("/ocr")
-	protected.Use(middleware.AuthMiddleware(*env))
+	// Backward compatibility / transition routes for previously documented /ocr-jobs paths
+	legacy := group.Group("/ocr-jobs")
+	legacy.Use(middleware.AuthMiddleware(*env))
 	{
-		protected.POST("/upload", ocrJobHandler.UploadMenu)
-		protected.GET("/:id", ocrJobHandler.GetOCRJobByID)
-		protected.DELETE("/:id", ocrJobHandler.DeleteOCRJob)
-		// protected.GET("/:id/result", ocrJobHandler.GetOCRJobResult)
-		// protected.PUT("/:id/status", ocrJobHandler.UpdateOCRJobStatus)
+		// Allow POST to either base or /upload for flexibility
+		legacy.POST("", ocrJobHandler.UploadMenu)
+		legacy.POST("/upload", ocrJobHandler.UploadMenu)
+		legacy.GET("/:id", ocrJobHandler.GetOCRJobByID)
+		legacy.DELETE("/:id", ocrJobHandler.DeleteOCRJob)
 	}
 }

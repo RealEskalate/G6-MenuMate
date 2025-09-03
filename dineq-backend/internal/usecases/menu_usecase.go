@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	utils "github.com/RealEskalate/G6-MenuMate/Utils"
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
 )
@@ -23,14 +24,16 @@ func (uc *MenuUseCase) CreateMenu(menu *domain.Menu) error {
 	defer cancel()
 	menu.CreatedAt = time.Now()
 	menu.UpdatedAt = time.Now()
+	menu.Slug = utils.GenerateSlug(menu.RestaurantID)
 	return uc.menuRepo.Create(ctx, menu)
 }
 
-func (uc *MenuUseCase) UpdateMenu(id string, menu *domain.Menu) error {
+func (uc *MenuUseCase) UpdateMenu(id string, userId string, menu *domain.Menu) error {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	defer cancel()
 
 	menu.UpdatedAt = time.Now()
+	menu.UpdatedBy = userId
 	return uc.menuRepo.Update(ctx, id, menu)
 }
 
@@ -48,19 +51,19 @@ func (uc *MenuUseCase) PublishMenu(id string, userID string) error {
 	return uc.menuRepo.Update(ctx, id, menu)
 }
 
-func (uc *MenuUseCase) GetByRestaurantID(id string) (*domain.Menu, error) {
+func (uc *MenuUseCase) GetByRestaurantID(id string) ([]*domain.Menu, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	defer cancel()
 
-	return uc.menuRepo.GetByID(ctx, id)
+	return uc.menuRepo.GetByRestaurantID(ctx, id)
 }
 
-func (uc *MenuUseCase) GenerateQRCode(restaurantId string, req *domain.QRCodeRequest) (*domain.QRCode, error) {
+func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *domain.QRCodeRequest) (*domain.QRCode, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	defer cancel()
 
 	// find menu with restaurantId
-	menu, err := uc.menuRepo.GetByRestaurantID(ctx, restaurantId)
+	menu, err := uc.menuRepo.GetByID(ctx, menuId)
 	if err != nil {
 		return nil, err
 	}
@@ -93,4 +96,11 @@ func (uc *MenuUseCase) DeleteMenu(id string) error {
 	defer cancel()
 
 	return uc.menuRepo.Delete(ctx, id)
+}
+
+func (uc *MenuUseCase) GetByID(id string) (*domain.Menu, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
+	defer cancel()
+
+	return uc.menuRepo.GetByID(ctx, id)
 }
