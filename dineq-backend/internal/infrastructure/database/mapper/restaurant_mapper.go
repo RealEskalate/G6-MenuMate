@@ -16,13 +16,12 @@ type RestaurantModel struct {
 	ManagerID          bson.ObjectID  `bson:"managerId"`
 	Phone              string         `bson:"phone"`
 	Location           domain.Address `bson:"location"`
-	About              string         `bson:"about"`
-	LogoImage          string         `bson:"logoImage"`
+	About              *string        `bson:"about"`
+	LogoImage          *string        `bson:"logoImage"`
 	VerificationStatus string         `bson:"verificationStatus"`
-	VerificationDocs   string         `bson:"verificationDocs"`
-	CoverImage         string         `bson:"coverImage"`
+	VerificationDocs   *string        `bson:"verificationDocs"`
+	CoverImage         *string        `bson:"coverImage"`
 	AverageRating      float64        `bson:"averageRating"`
-	CoverImage         string         `bson:"coverImage"`
 	ViewCount          int64          `bson:"viewCount"`
 	CreatedAt          bson.DateTime  `bson:"createdAt"`
 	UpdatedAt          bson.DateTime  `bson:"updatedAt"`
@@ -45,27 +44,22 @@ func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 	m.Phone = r.RestaurantPhone
 
 	m.Location = r.Location
-	m.About = ""
-	if r.About != "" {
+	m.About = nil
+	if r.About != nil {
 		m.About = r.About
 	}
-	m.LogoImage = ""
-	if r.LogoImage != "" {
+	m.LogoImage = nil
+	if r.LogoImage != nil {
 		m.LogoImage = r.LogoImage
 	}
-	m.CoverImage = ""
-	if r.CoverImage != "" {
+	m.CoverImage = nil
+	if r.CoverImage != nil {
 		m.CoverImage = r.CoverImage
 	}
 	// Convert VerificationDocs (skip empty/invalid)
-	m.VerificationDocs = ""
+	m.VerificationDocs = nil
 	if r.VerificationDocs != nil {
-		m.VerificationDocs = *r.VerificationDocs
-	}
-
-	m.CoverImage = ""
-	if r.CoverImage != nil {
-		m.CoverImage = *r.CoverImage
+		m.VerificationDocs = r.VerificationDocs
 	}
 
 	m.VerificationStatus = string(r.VerificationStatus)
@@ -100,17 +94,17 @@ func (m *RestaurantModel) ToDomain() *domain.Restaurant {
 		IsDeleted:          m.IsDeleted,
 	}
 
-	if m.About != "" {
+	if m.About != nil {
 		r.About = m.About
 	}
-	if m.LogoImage != "" {
+	if m.LogoImage != nil {
 		r.LogoImage = m.LogoImage
 	}
-	if m.VerificationDocs != "" {
-		r.VerificationDocs = &m.VerificationDocs
+	if m.VerificationDocs != nil {
+		r.VerificationDocs = m.VerificationDocs
 	}
-	if m.CoverImage != "" {
-		r.CoverImage = &m.CoverImage
+	if m.CoverImage != nil {
+		r.CoverImage = m.CoverImage
 	}
 
 	return r
