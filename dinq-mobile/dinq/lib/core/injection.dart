@@ -6,11 +6,15 @@ import '../features/restaurant_management/data/datasources/restaurant_remote_dat
 import '../features/restaurant_management/data/datasources/restaurant_remote_data_source_impl.dart';
 import '../features/restaurant_management/data/repositories/restaurant_repository_impl.dart';
 import '../features/restaurant_management/domain/repositories/restaurant_repository.dart';
+import '../features/restaurant_management/domain/usecases/create_restaurant.dart';
+import '../features/restaurant_management/domain/usecases/delete_restaurant.dart';
 import '../features/restaurant_management/domain/usecases/get_categories.dart';
 import '../features/restaurant_management/domain/usecases/get_menu.dart';
+import '../features/restaurant_management/domain/usecases/get_restaurant_by_slug.dart';
 import '../features/restaurant_management/domain/usecases/get_restaurants.dart';
 import '../features/restaurant_management/domain/usecases/get_reviews.dart';
 import '../features/restaurant_management/domain/usecases/get_user_images.dart';
+import '../features/restaurant_management/domain/usecases/update_restaurant.dart';
 import '../features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import 'network/network_info.dart';
 
@@ -25,6 +29,10 @@ Future<void> init() async {
       getCategories: sl(),
       getReviews: sl(),
       getUserImages: sl(),
+      getRestaurantBySlug: sl(),
+      createRestaurant: sl(),
+      updateRestaurant: sl(),
+      deleteRestaurant: sl(),
     ),
   );
 
@@ -34,13 +42,14 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetCategories(sl()));
   sl.registerLazySingleton(() => GetReviews(sl()));
   sl.registerLazySingleton(() => GetUserimages(sl()));
+  sl.registerLazySingleton(() => GetRestaurantBySlug(sl()));
+  sl.registerLazySingleton(() => CreateRestaurant(sl()));
+  sl.registerLazySingleton(() => UpdateRestaurant(sl()));
+  sl.registerLazySingleton(() => DeleteRestaurant(sl()));
 
   // Repository
   sl.registerLazySingleton<RestaurantRepository>(
-    () => RestaurantRepositoryImpl(
-      remoteDataSource: sl(),
-      network: sl(),
-    ),
+    () => RestaurantRepositoryImpl(remoteDataSource: sl(), network: sl()),
   );
 
   // Data sources
