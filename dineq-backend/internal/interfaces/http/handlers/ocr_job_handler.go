@@ -54,6 +54,10 @@ type menuItemOut struct {
 	HowToEatAm      string              `json:"how_to_eat_am,omitempty"`
 }
 
+const (
+	MaxUploadSizeBytes = 10 * 1024 * 1024 // 10 MB
+)
+
 // joinSlice joins a slice of strings with a comma+space; returns empty string if none
 func joinSlice(s []string) string {
 	if len(s) == 0 { return "" }
@@ -216,7 +220,7 @@ func (h *OCRJobHandler) RetryOCRJob(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusAccepted, gin.H{"success": true, "data": gin.H{ "jobId": job.ID, "status": job.Status, "estimatedCompletionTime": job.EstimatedCompletion }})
+	c.JSON(http.StatusAccepted, gin.H{"success": true, "data": gin.H{ "job_id": job.ID, "status": job.Status, "estimated_completion_time": job.EstimatedCompletion }})
 }
 
 // UploadMenu handles OCR job creation from an uploaded menu image
@@ -236,8 +240,7 @@ func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 	}
 
 	// Basic size validation (max 6MB to accommodate high-res, adjustable)
-	const maxSize = 6 * 1024 * 1024
-	if file.Size > maxSize {
+	if file.Size > MaxUploadSizeBytes {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: "file too large (max 6MB)"})
 		return
 	}
