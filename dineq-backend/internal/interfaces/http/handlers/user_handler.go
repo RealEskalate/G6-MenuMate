@@ -9,7 +9,6 @@ import (
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 )
 
 // UserController aggregates all user related handlers.
@@ -113,19 +112,21 @@ func (ctrl *UserController) GetPublicUser(c *gin.Context) {
 }
 
 func (ctrl *UserController) UpdateProfile(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": domain.ErrUnauthorized.Error()})
+	// Accept either key set by upstream middleware
+	uid := c.GetString("user_id")
+	if uid == "" {
+		uid = c.GetString("userId")
+	}
+	if uid == "" {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error()})
 		return
 	}
 
 	var req dto.UserUpdateProfileRequest
-	if err := c.ShouldBindWith(&req, binding.FormMultipart); err != nil {
+	if err := c.ShouldBind(&req); err != nil { // auto-detect multipart
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
-
-	// validate
 	if err := validate.Struct(&req); err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
 		return
@@ -133,38 +134,31 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 
 	var avatarData []byte
 	var fileName string
-
-	file, err := c.FormFile("profile_image")
-	if err == nil {
-		f, err := file.Open()
+	// Prefer bound file header; fallback to manual lookup (profile_image or avatar)
+	fileHeader := req.ProfileImage
+	if fileHeader == nil {
+		if fh, err := c.FormFile("avatar"); err == nil {
+			fileHeader = fh
+		}
+	}
+	if fileHeader != nil {
+		f, err := fileHeader.Open()
 		if err != nil {
 			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: err.Error()})
 			return
 		}
 		defer f.Close()
-
-		avatarData, err = io.ReadAll(f)
+		data, err := io.ReadAll(f)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: err.Error()})
 			return
 		}
-		fileName = file.Filename
-	} else if err != http.ErrMissingFile {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: err.Error()})
-		return
-	} else {
-		// No file uploaded, use default avatar or leave it empty
-		avatarData = nil
-		fileName = ""
+		avatarData = data
+		fileName = fileHeader.Filename
 	}
 
-	update := domain.UserProfileUpdate{
-		AvatarData: avatarData,
-		FirstName:  req.FirstName,
-		LastName:   req.LastName,
-	}
-
-	updatedUser, err := ctrl.userUC.UpdateProfile(userID.(string), update, fileName)
+	update := domain.UserProfileUpdate{AvatarData: avatarData, FirstName: req.FirstName, LastName: req.LastName}
+	updatedUser, err := ctrl.userUC.UpdateProfile(uid, update, fileName)
 	if err == domain.ErrUserNotFound {
 		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error()})
 		return
@@ -178,12 +172,10 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		return
 	}
 
-	// send notifcation
-	if err := ctrl.notificationUC.SendNotificationFromRoute(c.Request.Context(), userID.(string), "Your profile has been updated successfully!", domain.InfoUpdate); err != nil {
+	if err := ctrl.notificationUC.SendNotificationFromRoute(c.Request.Context(), uid, "Your profile has been updated successfully!", domain.InfoUpdate); err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
 		return
 	}
-	// build response directly
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.ToUserResponse(*updatedUser)})
 }
 
