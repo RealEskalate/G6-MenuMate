@@ -4,7 +4,8 @@ import { Upload, Trash2, CheckCircle } from "lucide-react";
 
 export interface UploadedFile {
   name: string;
-  size: number; // in MB
+  size: number;
+  file?: File;
 }
 
 type FileUploadBoxProps = {
@@ -30,6 +31,7 @@ export default function FileUploadBox({
       onFileChange({
         name: f.name,
         size: +(f.size / (1024 * 1024)).toFixed(1),
+        file: f,
       });
     }
   };
