@@ -9,6 +9,7 @@ import '../../domain/entities/restaurant.dart';
 import '../../domain/entities/review.dart';
 import '../../domain/repositories/restaurant_repository.dart';
 import '../datasources/restaurant_remote_data_source.dart';
+import '../model/restaurant_model.dart';
 
 class RestaurantRepositoryImpl implements RestaurantRepository {
   final RestaurantRemoteDataSource remoteDataSource;
@@ -20,10 +21,16 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   });
 
   @override
-  Future<Either<Failure, List<Restaurant>>> getRestaurants() async {
+  Future<Either<Failure, List<Restaurant>>> getRestaurants(
+    int page,
+    int pageSize,
+  ) async {
     if (await network.isConnected) {
       try {
-        final restaurants = await remoteDataSource.getRestaurants();
+        final restaurants = await remoteDataSource.getRestaurants(
+          page,
+          pageSize,
+        );
         return Right(restaurants.map((model) => model).toList());
       } catch (e) {
         return Left(ExceptionMapper.toFailure(e as Exception));
@@ -107,5 +114,97 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
         ),
       );
     }
+  }
+
+  @override
+  Future<Either<Failure, Restaurant>> createRestaurant(
+    RestaurantModel restaurant,
+  ) async {
+    if (await network.isConnected) {
+      try {
+        final result = await remoteDataSource.createRestaurant(restaurant);
+        return Right(result);
+      } catch (e) {
+        return Left(ExceptionMapper.toFailure(e as Exception));
+      }
+    } else {
+      return const Left(
+        NetworkFailure(
+          'No internet connection available. Please check your network settings and try again.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Restaurant>> getRestaurantBySlug(String slug) async {
+    if (await network.isConnected) {
+      try {
+        final restaurant = await remoteDataSource.getRestaurantBySlug(slug);
+        return Right(restaurant);
+      } catch (e) {
+        return Left(ExceptionMapper.toFailure(e as Exception));
+      }
+    } else {
+      return const Left(
+        NetworkFailure(
+          'No internet connection available. Please check your network settings and try again.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Restaurant>> updateRestaurant(
+    RestaurantModel restaurant,
+    String slug,
+  ) async {
+    if (await network.isConnected) {
+      try {
+        final updatedRestaurant = await remoteDataSource.updateRestaurant(
+          restaurant,
+          slug,
+        );
+        return Right(updatedRestaurant);
+      } catch (e) {
+        return Left(ExceptionMapper.toFailure(e as Exception));
+      }
+    } else {
+      return const Left(
+        NetworkFailure(
+          'No internet connection available. Please check your network settings and try again.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteRestaurant(String restaurantId) async {
+    if (await network.isConnected) {
+      try {
+        await remoteDataSource.deleteRestaurant(restaurantId);
+        return const Right(null);
+      } catch (e) {
+        return Left(ExceptionMapper.toFailure(e as Exception));
+      }
+    } else {
+      return const Left(
+        NetworkFailure(
+          'No internet connection available. Please check your network settings and try again.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateItem() {
+    // TODO: implement updateItem
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, void>> updateMenu(Menu menu) {
+    // TODO: implement updateMenu
+    throw UnimplementedError();
   }
 }

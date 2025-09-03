@@ -12,7 +12,10 @@ abstract class RestaurantEvent extends Equatable {
 }
 
 class LoadRestaurants extends RestaurantEvent {
-  const LoadRestaurants();
+  final int page;
+  final int pageSize;
+
+  const LoadRestaurants({required this.page, required this.pageSize});
 }
 
 class LoadMenu extends RestaurantEvent {
@@ -51,60 +54,41 @@ class LoadUserImages extends RestaurantEvent {
   List<Object?> get props => [slug];
 }
 
-class AddRestaurantEvent extends RestaurantEvent {
-  final Restaurant restaurant;
 
-  const AddRestaurantEvent(this.restaurant);
+class LoadRestaurantBySlug extends RestaurantEvent {
+  final String slug;
+
+  const LoadRestaurantBySlug(this.slug);
 
   @override
-  List<Object?> get props => [restaurant];
+  List<Object?> get props => [slug];
 }
 
-class AddItemEvent extends RestaurantEvent {
-  final String categoryId;
-  final Item item;
+class CreateRestaurantEvent extends RestaurantEvent {
+  final dynamic restaurantModel; // usually RestaurantModel
 
-  const AddItemEvent(this.categoryId, this.item);
+  const CreateRestaurantEvent(this.restaurantModel);
 
   @override
-  List<Object?> get props => [categoryId, item];
+  List<Object?> get props => [restaurantModel];
 }
 
 class UpdateRestaurantEvent extends RestaurantEvent {
+  final dynamic restaurantModel;
+  final String slug;
+
+  const UpdateRestaurantEvent(this.restaurantModel, this.slug);
+
+  @override
+  List<Object?> get props => [restaurantModel, slug];
+}
+
+class DeleteRestaurantEvent extends RestaurantEvent {
   final String restaurantId;
-  final Restaurant restaurant;
 
-  const UpdateRestaurantEvent(this.restaurantId, this.restaurant);
-
-  @override
-  List<Object?> get props => [restaurantId, restaurant];
-}
-
-class UpdateMenuEvent extends RestaurantEvent {
-  final String restaurantId;
-  final Menu menu;
-
-  const UpdateMenuEvent(this.restaurantId, this.menu);
+  const DeleteRestaurantEvent(this.restaurantId);
 
   @override
-  List<Object?> get props => [restaurantId, menu];
-}
+  List<Object?> get props => [restaurantId];
 
-class UpdateItemEvent extends RestaurantEvent {
-  final String itemId;
-  final Item item;
-
-  const UpdateItemEvent(this.itemId, this.item);
-
-  @override
-  List<Object?> get props => [itemId, item];
-}
-
-class DeleteItemEvent extends RestaurantEvent {
-  final String itemId;
-
-  const DeleteItemEvent(this.itemId);
-
-  @override
-  List<Object?> get props => [itemId];
 }

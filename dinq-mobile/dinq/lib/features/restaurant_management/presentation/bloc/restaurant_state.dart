@@ -92,56 +92,23 @@ class RestaurantError extends RestaurantState {
   List<Object?> get props => [message];
 }
 
-class RestaurantAdded extends RestaurantState {
+
+class RestaurantLoaded extends RestaurantState {
   final Restaurant restaurant;
 
-  const RestaurantAdded(this.restaurant);
+  const RestaurantLoaded(this.restaurant);
+
 
   @override
   List<Object?> get props => [restaurant];
 }
 
-class ItemAdded extends RestaurantState {
-  final Item item;
 
-  const ItemAdded(this.item);
+class RestaurantActionSuccess extends RestaurantState {
+  final String message;
 
-  @override
-  List<Object?> get props => [item];
-}
-
-class RestaurantUpdated extends RestaurantState {
-  final Restaurant restaurant;
-
-  const RestaurantUpdated(this.restaurant);
+  const RestaurantActionSuccess(this.message);
 
   @override
-  List<Object?> get props => [restaurant];
-}
-
-class MenuUpdated extends RestaurantState {
-  final Menu menu;
-
-  const MenuUpdated(this.menu);
-
-  @override
-  List<Object?> get props => [menu];
-}
-
-class ItemUpdated extends RestaurantState {
-  final Item item;
-
-  const ItemUpdated(this.item);
-
-  @override
-  List<Object?> get props => [item];
-}
-
-class ItemDeleted extends RestaurantState {
-  final bool success;
-
-  const ItemDeleted(this.success);
-
-  @override
-  List<Object?> get props => [success];
+  List<Object?> get props => [message];
 }

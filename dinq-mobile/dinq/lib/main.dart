@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/injection.dart' as di;
 import 'core/temp/app_config.dart';
 import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+
 import 'features/restaurant_management/presentation/pages/settings_page.dart';
 import 'features/restaurant_management/presentation/pages/restaurant_profile_page.dart';
 import 'features/restaurant_management/presentation/pages/restaurant_details_page.dart';
@@ -13,9 +14,10 @@ import 'features/restaurant_management/presentation/pages/branding_preferences_p
 import 'features/restaurant_management/presentation/pages/billing_page.dart';
 import 'features/restaurant_management/presentation/widgets/time_picker_widget.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  ConfigPresets.developmentDemo();
+  ConfigPresets.production();
   await di.init();
   runApp(const MyApp());
 }
@@ -31,6 +33,7 @@ class MyApp extends StatelessWidget {
           create: (context) => di.sl<RestaurantBloc>(),
         ),
       ],
+
       child: MaterialApp(
         navigatorKey: navigatorKey,
         title: 'DinQ',
@@ -48,8 +51,7 @@ class MyApp extends StatelessWidget {
           '/billing': (context) => const BillingPage(),
         },
       ),
+
     );
   }
 }
-
-
