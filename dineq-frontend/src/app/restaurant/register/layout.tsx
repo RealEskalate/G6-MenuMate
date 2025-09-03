@@ -8,7 +8,7 @@ export default function RegisterLayout({ children }: { children: React.ReactNode
         {/* Navbar */}
         <NavBar role="MANAGER" />
 
-        <main className="flex flex-1 justify-center p-4"> 
+        <main className="flex flex-1 justify-center p-4 "> 
           <section className="bg-white rounded-lg shadow-sm max-w-4xl w-full"> 
             {children}
           </section>

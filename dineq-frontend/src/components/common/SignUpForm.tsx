@@ -2,16 +2,15 @@
 
 import React from "react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 
-import { Input } from "@/components/ui/input";   
-import { Button } from "@/components/ui/button"; 
-import { Checkbox } from "@/components/ui/checkbox"; 
-import { registerUser } from "@/lib/auth-api";   
-
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { registerUser } from "@/lib/api";
 
 const schema = z
   .object({
@@ -29,6 +28,7 @@ const schema = z
     agree: z.boolean().refine((v) => v, {
       message: "You must agree to the Terms and Privacy Policy",
     }),
+    role: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -37,14 +37,34 @@ const schema = z
 
 type FormData = z.infer<typeof schema>;
 
-export default function SignupForm() {
+interface SignupFormProps {
+  role: string;
+}
+
+export default function SignupForm({ role }: SignupFormProps) {
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    watch,
+    control,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      role,
+    },
   });
+
+  const formValues = watch();
+  React.useEffect(() => {
+    console.log("Current form values:", formValues);
+  }, [formValues]);
+
+  React.useEffect(() => {
+    if (Object.keys(errors).length > 0) {
+      console.log("Form errors:", errors);
+    }
+  }, [errors]);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -54,153 +74,170 @@ export default function SignupForm() {
         password: data.password,
         first_name: data.first_name,
         last_name: data.last_name,
+        auth_provider: "EMAIL",
+        role: role,
       };
-
       const response = await registerUser(payload);
       console.log("✅ Registered:", response);
-
     } catch (err) {
       console.error("❌ Signup failed:", err);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {/* Username */}
-      <div>
-        <Input
-          label="Username"
-          required
-          placeholder="Choose a username"
-          {...register("username")}
-        />
-        {errors.username && (
-          <p className="text-red-500 text-sm">{errors.username.message}</p>
-        )}
-      </div>
-
-      {/* First Name */}
-      <div>
-        <Input
-          label="First Name"
-          required
-          placeholder="Enter your first name"
-          {...register("first_name")}
-        />
-        {errors.first_name && (
-          <p className="text-red-500 text-sm">{errors.first_name.message}</p>
-        )}
-      </div>
-
-      {/* Last Name */}
-      <div>
-        <Input
-          label="Last Name"
-          required
-          placeholder="Enter your last name"
-          {...register("last_name")}
-        />
-        {errors.last_name && (
-          <p className="text-red-500 text-sm">{errors.last_name.message}</p>
-        )}
-      </div>
-
-      {/* Email */}
-      <div>
-        <Input
-          label="Email Address"
-          required
-          type="email"
-          placeholder="Enter your email"
-          {...register("email")}
-        />
-        {errors.email && (
-          <p className="text-red-500 text-sm">{errors.email.message}</p>
-        )}
-      </div>
-
-      {/* Password */}
-      <div>
-        <Input
-          label="Password"
-          required
-          type="password"
-          {...register("password")}
-        />
-        {errors.password && (
-          <p className="text-red-500 text-sm">{errors.password.message}</p>
-        )}
-        <p className="text-xs text-gray-500">
-          Must be at least 8 characters with uppercase, lowercase, and number
-        </p>
-      </div>
-
-      {/* Confirm Password */}
-      <div>
-        <Input
-          label="Confirm Password"
-          required
-          type="password"
-          {...register("confirmPassword")}
-        />
-        {errors.confirmPassword && (
-          <p className="text-red-500 text-sm">{errors.confirmPassword.message}</p>
-        )}
-      </div>
-
-      {/* Terms */}
-      <div className="flex items-start space-x-2">
-        <Checkbox id="agree" {...register("agree")} />
-        <label htmlFor="agree" className="text-sm text-gray-600">
-          I agree to the{" "}
-          <Link href="/terms" className="text-blue-600">
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link href="/privacy" className="text-blue-600">
-            Privacy Policy
-          </Link>{" "}
-          <span className="text-red-500">*</span>
-        </label>
-      </div>
-      {errors.agree && (
-        <p className="text-red-500 text-sm">{errors.agree.message}</p>
-      )}
-
-      {/* Submit */}
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Creating Account..." : "Create Account"}
-      </Button>
-
-      {/* Sign In */}
-      <p className="text-center mt-4 text-sm">
-        Already have an account?{" "}
-        <Link href="/signin" className="text-[var(--color-primary)]">
-          Sign in
-        </Link>
-      </p>
-
-      {/* Divider */}
-      <div className="flex items-center my-4">
-        <hr className="flex-grow border-gray-300" />
-        <span className="mx-2 text-gray-500 text-sm">OR</span>
-        <hr className="flex-grow border-gray-300" />
-      </div>
-
-      {/* Google Sign-in */}
-      <Button
-        variant="outline"
-        className="w-full flex items-center justify-center gap-2"
+    <div className="w-full flex justify-center px-4 sm:px-6 lg:px-8">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full max-w-md space-y-4 sm:space-y-6"
       >
-        <Image
-          src="/google-icon.svg"
-          width={100}
-          height={120}
-          alt="Google"
-          className="w-5 h-5"
-        />
-        Sign in with Google
-      </Button>
-    </form>
+        {/* Username */}
+        <div>
+          <Input
+            label="Username"
+            required
+            placeholder="Choose a username"
+            {...register("username")}
+          />
+          {errors.username && (
+            <p className="text-red-500 text-sm">{errors.username.message}</p>
+          )}
+        </div>
+
+        {/* First Name */}
+        <div>
+          <Input
+            label="First Name"
+            required
+            placeholder="Enter your first name"
+            {...register("first_name")}
+          />
+          {errors.first_name && (
+            <p className="text-red-500 text-sm">{errors.first_name.message}</p>
+          )}
+        </div>
+
+        {/* Last Name */}
+        <div>
+          <Input
+            label="Last Name"
+            required
+            placeholder="Enter your last name"
+            {...register("last_name")}
+          />
+          {errors.last_name && (
+            <p className="text-red-500 text-sm">{errors.last_name.message}</p>
+          )}
+        </div>
+
+        {/* Email */}
+        <div>
+          <Input
+            label="Email Address"
+            required
+            type="email"
+            placeholder="Enter your email"
+            {...register("email")}
+          />
+          {errors.email && (
+            <p className="text-red-500 text-sm">{errors.email.message}</p>
+          )}
+        </div>
+
+        {/* Password */}
+        <div>
+          <Input
+            label="Password"
+            required
+            type="password"
+            {...register("password")}
+          />
+          {errors.password && (
+            <p className="text-red-500 text-sm">{errors.password.message}</p>
+          )}
+          <p className="text-xs text-gray-500">
+            Must be at least 8 characters with uppercase, lowercase, and number
+          </p>
+        </div>
+
+        {/* Confirm Password */}
+        <div>
+          <Input
+            label="Confirm Password"
+            required
+            type="password"
+            {...register("confirmPassword")}
+          />
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-sm">
+              {errors.confirmPassword.message}
+            </p>
+          )}
+        </div>
+
+        {/* Terms */}
+        <div className="flex items-start space-x-2">
+          <Controller
+            name="agree"
+            control={control}
+            render={({ field }) => (
+              <Checkbox
+                id="agree"
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
+            )}
+          />
+          <label htmlFor="agree" className="text-sm text-gray-600">
+            I agree to the{" "}
+            <Link href="/terms" className="text-blue-600">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="text-blue-600">
+              Privacy Policy
+            </Link>{" "}
+            <span className="text-red-500">*</span>
+          </label>
+        </div>
+        {errors.agree && (
+          <p className="text-red-500 text-sm">{errors.agree.message}</p>
+        )}
+
+        {/* Submit */}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Creating Account..." : "Create Account"}
+        </Button>
+
+        {/* Sign In */}
+        <p className="text-center mt-2 text-sm sm:mt-4">
+          Already have an account?{" "}
+          <Link href="/auth/signin" className="text-[var(--color-primary)]">
+            Sign in
+          </Link>
+        </p>
+
+        {/* Divider */}
+        <div className="flex items-center my-4">
+          <hr className="flex-grow border-gray-300" />
+          <span className="mx-2 text-gray-500 text-sm">OR</span>
+          <hr className="flex-grow border-gray-300" />
+        </div>
+
+        {/* Google Sign-in */}
+        <Button
+          variant="outline"
+          className="w-full flex items-center justify-center gap-2"
+        >
+          <Image
+            src="/icons/google.png"
+            width={100}
+            height={120}
+            alt="Google"
+            className="w-5 h-5"
+          />
+          Sign in with Google
+        </Button>
+      </form>
+    </div>
   );
 }

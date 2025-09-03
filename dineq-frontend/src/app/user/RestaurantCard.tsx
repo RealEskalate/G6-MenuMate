@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { FaStar, FaRegStar } from "react-icons/fa";
 import { Restaurant } from "@/Types/restaurants";
+import SafeImage from "@/components/common/SafeImage";
 
 
 const RestaurantCard: React.FC<Restaurant> = (props) => {
@@ -13,11 +13,11 @@ const RestaurantCard: React.FC<Restaurant> = (props) => {
 
   return (
     <Link href={`/user/restaurant-display/${props.id}`} passHref>
-      <div className="border border-[var(--color-primary)] w-[361px] h-[335px] rounded-lg m-5 cursor-pointer">
-        <div className="relative flex flex-col p-2 h-full">
+      <div className="border border-[var(--color-primary)] rounded-lg cursor-pointer hover:shadow-sm transition-shadow duration-200">
+        <div className="relative flex flex-col p-2">
           {/* Restaurant Image */}
-          <div className="h-[160px] w-[341px] relative rounded-lg">
-            <Image
+          <div className="relative w-full h-40 md:h-44 rounded-lg overflow-hidden">
+            <SafeImage
               src={props.logoImage}
               alt={props.name}
               fill
@@ -27,26 +27,28 @@ const RestaurantCard: React.FC<Restaurant> = (props) => {
           </div>
 
           {/* Restaurant Info */}
-          <div className="h-[160px] w-[341px] relative rounded-lg">
-            <h1 className="w-[309px] h-[28px] text-[22px] font-semibold px-[16px] pt-[15.4px] pb-[20px] leading-[28px]">
+          <div className="pt-2 pb-3">
+            <h1 className="text-[18px] md:text-[20px] font-semibold px-2 leading-[1.2] truncate">
               {props.name}
             </h1>
-            <p className="font-normal leading-[21px] px-[16px] pb-[8px] text-[13.125px] pt-[10px]">
+            <p className="px-2 text-sm text-gray-700 line-clamp-2">
               {props.about}
             </p>
 
             {/* Star Rating */}
-            <div className="flex justify-between px-[16px] w-1/2 pt-[10px]">
-              {Array.from({ length: totalStars }, (_, i) => {
-                if (i < fullStars) {
-                  return <FaStar key={i} className="text-yellow-500" />;
-                } else if (i === fullStars && hasHalfStar) {
-                  return <FaStar key={i} className="text-yellow-300 opacity-70" />;
-                } else {
-                  return <FaRegStar key={i} className="text-yellow-500" />;
-                }
-              })}
-              <span className="ml-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 px-2 pt-2">
+              <div className="flex">
+                {Array.from({ length: totalStars }, (_, i) => {
+                  if (i < fullStars) {
+                    return <FaStar key={i} className="text-yellow-500" />;
+                  } else if (i === fullStars && hasHalfStar) {
+                    return <FaStar key={i} className="text-yellow-300 opacity-70" />;
+                  } else {
+                    return <FaRegStar key={i} className="text-yellow-500" />;
+                  }
+                })}
+              </div>
+              <span className="text-sm text-gray-600">
                 {props.averageRating.toFixed(1)}
               </span>
             </div>

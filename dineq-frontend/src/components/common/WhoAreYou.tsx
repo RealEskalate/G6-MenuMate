@@ -5,8 +5,7 @@ const WhoAreYou = () => {
   return (
     <>
       <div className='flex flex-col md:flex-row-reverse min-h-screen'>
-        {/* Image Section - This is now the first item in the code, so it will appear on top on mobile. */}
-        {/* On desktop, flex-row-reverse will push it to the right. */}
+        {/* Image Section */}
         <div className='relative w-full md:w-1/3 h-48 md:h-auto'>
           <Image
             src="/Frame.png"
@@ -16,8 +15,7 @@ const WhoAreYou = () => {
           />
         </div>
 
-        {/* Form Section - This is the second item. On mobile, it will be below the image. */}
-        {/* On desktop, flex-row-reverse will place it on the left. */}
+        {/* Form Section */}
         <div className='w-full md:w-2/3 flex items-center justify-center p-4 md:p-0'>
           <div className="w-full max-w-md p-6 bg-white rounded-xl shadow-lg h-auto">
             <h1 className="text-2xl font-bold mb-6 text-left">Who Are You ?</h1>
@@ -25,7 +23,6 @@ const WhoAreYou = () => {
 
             {/* Restaurant Card */}
             <div className="w-full h-[100px] rounded-lg border border-[var(--color-primary)] flex items-center gap-4 my-5 p-3 cursor-pointer hover:shadow-md transition-shadow duration-200">
-              {/* Image Circle */}
               <div className="relative w-[85px] h-[85px] rounded-full overflow-hidden flex-shrink-0">
                 <Image
                   src="/menuMateIcon.png"
@@ -34,8 +31,6 @@ const WhoAreYou = () => {
                   className="object-cover"
                 />
               </div>
-
-              {/* Text Section */}
               <div className="flex flex-col justify-center">
                 <p className="text-lg font-semibold text-gray-800">Restaurant</p>
                 <p className="text-sm text-gray-600">
@@ -46,7 +41,6 @@ const WhoAreYou = () => {
 
             {/* Customer Card */}
             <div className="w-full h-[100px] rounded-lg border border-[var(--color-primary)] flex items-center gap-4 my-5 p-3 cursor-pointer hover:shadow-md transition-shadow duration-200">
-              {/* Image Circle */}
               <div className="relative w-[85px] h-[85px] rounded-full overflow-hidden flex-shrink-0">
                 <Image
                   src="/menuMateIcon.png"
@@ -55,8 +49,6 @@ const WhoAreYou = () => {
                   className="object-cover"
                 />
               </div>
-
-              {/* Text Section */}
               <div className="flex flex-col justify-center">
                 <p className="text-lg font-semibold text-gray-800">Customer</p>
                 <p className="text-sm text-gray-600">

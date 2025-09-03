@@ -5,6 +5,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchRestaurants } from '@/store/restaurantsSlice';
 import { RootState, AppDispatch } from '@/store/store';
 import { Restaurant } from '../../Types/restaurants';
+import { Search } from 'lucide-react';
+import { RestaurantCardSkeleton } from '@/components/common/LoadingSkeletons';
+import NavBar from '@/components/common/NavBar';
 
 const Restaurants = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -49,21 +52,51 @@ const Restaurants = () => {
     return filteredRestaurants.filter(r => !nearbyIds.has(r.id));
   }, [filteredRestaurants, nearbyRestaurants]);
 
-  if (loading) return <div className='flex justify-center p-8'>Loading restaurants...</div>;
+  if (loading) return (
+    <div className='w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+      <div className='w-full mt-4 mb-6 flex justify-center'>
+        <div className='w-full max-w-xl relative'>
+          <div className='h-10 bg-gray-200 rounded-md animate-pulse' />
+        </div>
+      </div>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <RestaurantCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
   if (error) return <div className='flex justify-center p-8 text-red-600'>Failed to load restaurants: {error}</div>;
-  if (!normalizedRestaurants?.length) return <div className='text-center p-8'>No restaurants found.</div>;
+  if (!normalizedRestaurants?.length) return (
+    <div className='w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+      <div className='w-full mt-4 mb-6 flex justify-center'>
+        <div className='w-full max-w-xl relative'>
+          <div className='h-10 bg-gray-200 rounded-md animate-pulse' />
+        </div>
+      </div>
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
+        {Array.from({ length: 6 }).map((_, i) => (
+          <RestaurantCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  );
 
   return (
     <div className='w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+      <NavBar role={'CUSTOMER'}/>
       {/* Search Bar */}
-      <div className='w-full mt-4 mb-6'>
-        <input
-          type='text'
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder='Search restaurants by name or description...'
-          className='w-full rounded-md border border-gray-300 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent'
-        />
+      <div className='w-full mt-4 mb-6 flex justify-center'>
+        <div className='w-full max-w-xl relative'>
+          <Search className='absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-primary)]' size={18} />
+          <input
+            type='text'
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder='Search restaurants...'
+            className='w-full rounded-md border border-gray-300 pl-9 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent'
+          />
+        </div>
       </div>
 
       {/* Nearby Restaurants */}
@@ -72,7 +105,7 @@ const Restaurants = () => {
         {nearbyRestaurants.length === 0 ? (
           <div className='text-gray-500'>No nearby restaurants match your search.</div>
         ) : (
-          <div className='flex flex-wrap justify-center gap-6'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
             {nearbyRestaurants.map((r) => (
               <RestaurantCard key={`nearby-${r.id}`} {...r} />
             ))}
@@ -86,7 +119,7 @@ const Restaurants = () => {
         {filteredRestaurants.length === 0 ? (
           <div className='text-gray-500'>No restaurants match your search.</div>
         ) : (
-          <div className='flex flex-wrap justify-center gap-6'>
+          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'>
             {(allButNearby.length ? allButNearby : filteredRestaurants).map((r) => (
               <RestaurantCard key={r.id} {...r} />
             ))}
