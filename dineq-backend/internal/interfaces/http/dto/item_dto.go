@@ -20,19 +20,33 @@ type ItemDTO struct {
 	Price           float64   `json:"price"`
 	Currency        string    `json:"currency"`
 	Allergies       []string  `json:"allergies,omitempty"`
+	AllergiesAm     string    `json:"allergiesAm,omitempty"`
+	TabTags         []string  `json:"tabTags,omitempty"`
+	TabTagsAm       []string  `json:"tabTagsAm,omitempty"`
 	UserImages      []string  `json:"userImages,omitempty"`
 	Calories        int       `json:"calories,omitempty"`
+	Protein         int       `json:"protein,omitempty"`
+	Carbs           int       `json:"carbs,omitempty"`
+	Fat             int       `json:"fat,omitempty"`
+	NutritionalInfo *NutritionalInfoDTO `json:"nutritionalInfo,omitempty"`
 	Ingredients     []string  `json:"ingredients,omitempty"`
 	IngredientsAm   []string  `json:"ingredientsAm,omitempty"`
 	PreparationTime int       `json:"preparationTime,omitempty"`
-	HowToEat        any       `json:"howToEat,omitempty"`
-	HowToEatAm      any       `json:"howToEatAm,omitempty"`
+	HowToEat        string    `json:"howToEat,omitempty"`
+	HowToEatAm      string    `json:"howToEatAm,omitempty"`
 	CreatedAt       time.Time `json:"createdAt"`
 	UpdatedAt       time.Time `json:"updatedAt"`
 	IsDeleted       bool      `json:"isDeleted"`
 	ViewCount       int       `json:"viewCount"`
 	AverageRating   float64   `json:"averageRating"`
 	ReviewIDs       []string  `json:"reviewIds"`
+}
+
+type NutritionalInfoDTO struct {
+    Calories int `json:"calories"`
+    Protein  int `json:"protein"`
+    Carbs    int `json:"carbs"`
+    Fat      int `json:"fat"`
 }
 
 // Validate checks the ItemDTO for required fields
@@ -57,8 +71,14 @@ func (i *ItemDTO) ToDomain() *domain.Item {
 		Price:           i.Price,
 		Currency:        i.Currency,
 		Allergies:       i.Allergies,
+		AllergiesAm:     i.AllergiesAm,
+		TabTags:         i.TabTags,
+		TabTagsAm:       i.TabTagsAm,
 		UserImages:      i.UserImages,
 		Calories:        i.Calories,
+		Protein:         i.Protein,
+		Carbs:           i.Carbs,
+		Fat:             i.Fat,
 		Ingredients:     i.Ingredients,
 		IngredientsAm:   i.IngredientsAm,
 		PreparationTime: i.PreparationTime,
@@ -87,8 +107,14 @@ func (i *ItemDTO) FromDomain(item *domain.Item) *ItemDTO {
 		Price:           item.Price,
 		Currency:        item.Currency,
 		Allergies:       item.Allergies,
+		AllergiesAm:     item.AllergiesAm,
+		TabTags:         item.TabTags,
+		TabTagsAm:       item.TabTagsAm,
 		UserImages:      item.UserImages,
 		Calories:        item.Calories,
+		Protein:         item.Protein,
+		Carbs:           item.Carbs,
+		Fat:             item.Fat,
 		Ingredients:     item.Ingredients,
 		IngredientsAm:   item.IngredientsAm,
 		PreparationTime: item.PreparationTime,
