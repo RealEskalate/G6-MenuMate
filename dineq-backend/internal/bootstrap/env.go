@@ -35,7 +35,7 @@ type Env struct {
 	UserCollection string `mapstructure:"USER_COLLECTION"`
 
 	// Cookie / Security settings
-	CookieSecure bool `mapstructure:"COOKIE_SECURE"`
+	CookieSecure bool   `mapstructure:"COOKIE_SECURE"`
 	CookieDomain string `mapstructure:"COOKIE_DOMAIN"`
 	FrontendBaseURL string `mapstructure:"FRONTEND_BASE_URL"`
 
@@ -115,6 +115,9 @@ type Env struct {
 
 	// menu collection
 	MenuCollection string `mapstructure:"MENU_COLLECTION"`
+	// qr code collection
+	QRCodeCollection string `mapstructure:"QR_CODE_COLLECTION"`
+	ItemCollection    string `mapstructure:"ITEM_COLLECTION"`
 }
 
 // Viper can be made injectable
@@ -182,16 +185,6 @@ func NewEnv() (*Env, error) {
 	env.MenuCollection = os.Getenv("MENU_COLLECTION")
 	env.CookieSecure = strings.ToLower(os.Getenv("COOKIE_SECURE")) == "true"
 	env.CookieDomain = os.Getenv("COOKIE_DOMAIN")
-	env.FrontendBaseURL = os.Getenv("FRONTEND_BASE_URL")
-	// CORS allowed origins (comma separated, * means all)
-	env.CORSAllowedOriginsRaw = os.Getenv("CORS_ALLOWED_ORIGINS")
-	if raw := env.CORSAllowedOriginsRaw; raw != "" {
-		parts := strings.Split(raw, ",")
-		for _, p := range parts {
-			v := strings.TrimSpace(p)
-			if v != "" { env.CORSAllowedOrigins = append(env.CORSAllowedOrigins, v) }
-		}
-	}
 
 	if env.AppEnv == "development" {
 		log.Println("The App is running in development env")
