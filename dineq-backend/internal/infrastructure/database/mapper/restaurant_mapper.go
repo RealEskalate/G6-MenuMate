@@ -1,118 +1,94 @@
 package mapper
 
 import (
-	"github.com/RealEskalate/G6-MenuMate/internal/domain"
-	"go.mongodb.org/mongo-driver/v2/bson"
+  "fmt"
+
+  "github.com/RealEskalate/G6-MenuMate/internal/domain"
+  "go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // RestaurantModel represents the MongoDB model for a restaurant
 type RestaurantModel struct {
-	ID                 bson.ObjectID   `bson:"_id,omitempty"`
-	Slug               string          `bson:"slug"`
-	Name               string          `bson:"name"`
-	ManagerID          bson.ObjectID   `bson:"manager_id"`
-	Phone              string          `bson:"phone"`
-	Location           domain.Address  `bson:"location"`
-	About              string          `bson:"about"`
-	LogoImage          string          `bson:"logoImage"`
-	Tags               []bson.ObjectID `bson:"tags"`
-	VerificationStatus string          `bson:"verificationStatus"`
-	VerificationDocs   []bson.ObjectID `bson:"verificationDocs"`
-	AverageRating      float64         `bson:"averageRating"`
-	ViewCount          int64           `bson:"viewCount"`
-	CreatedAt          bson.DateTime   `bson:"createdAt"`
-	UpdatedAt          bson.DateTime   `bson:"updatedAt"`
-	IsDeleted          bool            `bson:"isDeleted"`
-	DeletedAt          *bson.DateTime  `bson:"deletedAt,omitempty"`
+  ID                 bson.ObjectID  `bson:"_id,omitempty"`
+  Slug               string         `bson:"slug"`
+  Name               string         `bson:"name"`
+  ManagerID          bson.ObjectID  `bson:"managerId"`
+  Phone              string         `bson:"phone"`
+  Location           domain.Address `bson:"location"`
+  About              string         `bson:"about"`
+  LogoImage          string         `bson:"logoImage"`
+  VerificationStatus string         `bson:"verificationStatus"`
+  VerificationDocs   string         `bson:"verificationDocs"`
+  AverageRating      float64        `bson:"averageRating"`
+  ViewCount          int64          `bson:"viewCount"`
+  CreatedAt          bson.DateTime  `bson:"createdAt"`
+  UpdatedAt          bson.DateTime  `bson:"updatedAt"`
+  IsDeleted          bool           `bson:"isDeleted"`
 }
 
 // Parse converts domain.Restaurant → RestaurantModel
 func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
-	managerOID, err := bson.ObjectIDFromHex(r.ManagerID)
-	if err != nil {
-		return err
-	}
+  managerOID, err := bson.ObjectIDFromHex(r.ManagerID)
+  fmt.Println("manager", r.ManagerID)
+  if err != nil {
+    return err
+  }
 
-	m.ID = bson.NewObjectID()
-	m.Slug = r.Slug
-	m.Name = r.RestaurantName
-	m.ManagerID = managerOID
-	m.Phone = r.RestaurantPhone
+  m.ID = bson.NewObjectID()
+  m.Slug = r.Slug
+  m.Name = r.RestaurantName
+  m.ManagerID = managerOID
+  m.Phone = r.RestaurantPhone
 
-	m.Location = r.Location
-	m.About = ""
-	if r.About != nil {
-		m.About = *r.About
-	}
-	m.LogoImage = ""
-	if r.LogoImage != nil {
-		m.LogoImage = *r.LogoImage
-	}
+  m.Location = r.Location
+  m.About = ""
+  if r.About != nil {
+    m.About = *r.About
+  }
+  m.LogoImage = ""
+  if r.LogoImage != nil {
+    m.LogoImage = *r.LogoImage
+  }
 
-	// Convert Tags
-	m.Tags = make([]bson.ObjectID, len(r.Tags))
-	for i, hexID := range r.Tags {
-		oid, err := bson.ObjectIDFromHex(hexID)
-		if err != nil {
-			return err
-		}
-		m.Tags[i] = oid
-	}
+  // Convert VerificationDocs
+  m.VerificationDocs = r.VerificationDocs
 
-	// Convert VerificationDocs
-	m.VerificationDocs = make([]bson.ObjectID, len(r.VerificationDocs))
-	for i, doc := range r.VerificationDocs {
-		oid, err := bson.ObjectIDFromHex(doc.ID)
-		if err != nil {
-			return err
-		}
-		m.VerificationDocs[i] = oid
-	}
+  m.VerificationStatus = string(r.VerificationStatus)
+  m.AverageRating = r.AverageRating
+  m.ViewCount = r.ViewCount
+  m.CreatedAt = bson.NewDateTimeFromTime(r.CreatedAt)
+  m.UpdatedAt = bson.NewDateTimeFromTime(r.UpdatedAt)
+  m.IsDeleted = r.IsDeleted
 
-	m.VerificationStatus = string(r.VerificationStatus)
-	m.AverageRating = r.AverageRating
-	m.ViewCount = r.ViewCount
-	m.CreatedAt = bson.NewDateTimeFromTime(r.CreatedAt)
-	m.UpdatedAt = bson.NewDateTimeFromTime(r.UpdatedAt)
-	m.IsDeleted = r.IsDeleted
-
-	return nil
+  return nil
 }
 
 // ToDomain converts RestaurantModel → domain.Restaurant
 func (m *RestaurantModel) ToDomain() *domain.Restaurant {
-	r := &domain.Restaurant{
-		ID:                 m.ID.Hex(),
-		Slug:               m.Slug,
-		RestaurantName:     m.Name,
-		ManagerID:          m.ManagerID.Hex(),
-		RestaurantPhone:    m.Phone,
-		Location:           m.Location,
-		About:              nil,
-		LogoImage:          nil,
-		Tags:               make([]string, len(m.Tags)),
-		VerificationStatus: domain.VerificationStatus(m.VerificationStatus),
-		VerificationDocs:   make([]domain.Document, len(m.VerificationDocs)),
-		AverageRating:      m.AverageRating,
-		ViewCount:          m.ViewCount,
-		CreatedAt:          m.CreatedAt.Time(),
-		UpdatedAt:          m.UpdatedAt.Time(),
-		IsDeleted:          m.IsDeleted,
-	}
+  r := &domain.Restaurant{
+    ID:                 m.ID.Hex(),
+    Slug:               m.Slug,
+    RestaurantName:     m.Name,
+    ManagerID:          m.ManagerID.Hex(),
+    RestaurantPhone:    m.Phone,
+    Location:           m.Location,
+    About:              nil,
+    LogoImage:          nil,
+    VerificationStatus: domain.VerificationStatus(m.VerificationStatus),
+    VerificationDocs:   m.VerificationDocs,
+    AverageRating:      m.AverageRating,
+    ViewCount:          m.ViewCount,
+    CreatedAt:          m.CreatedAt.Time(),
+    UpdatedAt:          m.UpdatedAt.Time(),
+    IsDeleted:          m.IsDeleted,
+  }
 
-	if m.About != "" {
-		r.About = &m.About
-	}
-	if m.LogoImage != "" {
-		r.LogoImage = &m.LogoImage
-	}
+  if m.About != "" {
+    r.About = &m.About
+  }
+  if m.LogoImage != "" {
+    r.LogoImage = &m.LogoImage
+  }
 
-	for i, oid := range m.Tags {
-		r.Tags[i] = oid.Hex()
-	}
-	for i, oid := range m.VerificationDocs {
-		r.VerificationDocs[i] = domain.Document{ID: oid.Hex()}
-	}
-
-	return r
+  return r
 }

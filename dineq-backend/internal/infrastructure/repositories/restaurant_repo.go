@@ -55,11 +55,32 @@ func (repo *RestaurantRepo) GetBySlug(ctx context.Context, slug string) (*domain
 	err := repo.db.Collection(repo.restaurantCol).FindOne(ctx, filter).Decode(&model)
 	if err != nil {
 		if err == mongo.ErrNoDocuments() {
+			// Check if it exists but marked deleted to return 410 scenario
+			deletedFilter := bson.M{"slug": slug, "is_deleted": true}
+			var deleted mapper.RestaurantModel
+			derr := repo.db.Collection(repo.restaurantCol).FindOne(ctx, deletedFilter).Decode(&deleted)
+			if derr == nil { // exists but deleted
+				return nil, domain.ErrRestaurantDeleted
+			}
 			return nil, domain.ErrRestaurantNotFound
 		}
 		return nil, err
 	}
 
+	return model.ToDomain(), nil
+}
+
+// GetByOldSlug searches in previous_slugs array
+func (repo *RestaurantRepo) GetByOldSlug(ctx context.Context, oldSlug string) (*domain.Restaurant, error) {
+	filter := bson.M{"previous_slugs": oldSlug, "is_deleted": false}
+	var model mapper.RestaurantModel
+	err := repo.db.Collection(repo.restaurantCol).FindOne(ctx, filter).Decode(&model)
+	if err != nil {
+		if err == mongo.ErrNoDocuments() {
+			return nil, domain.ErrRestaurantNotFound
+		}
+		return nil, err
+	}
 	return model.ToDomain(), nil
 }
 
@@ -76,17 +97,22 @@ func (repo *RestaurantRepo) Update(ctx context.Context, r *domain.Restaurant) er
 		return err
 	}
 
-	update := bson.M{
-		"$set": bson.M{
-			"name":                model.Name,
-			"phone":               model.Phone,
-			"about":               model.About,
-			"logo_image":          model.LogoImage,
-			"tags":                model.Tags,
-			"verification_status": model.VerificationStatus,
-			"updated_at":          model.UpdatedAt,
-		},
+	set := bson.M{
+		"name":                model.Name,
+		"phone":               model.Phone,
+		"about":               model.About,
+		"logo_image":          model.LogoImage,
+		"verification_status": model.VerificationStatus,
+		"updated_at":          model.UpdatedAt,
 	}
+	// If slug changed, push old slug to previous_slugs and set new slug
+	if r.Slug != "" { // domain object carries current slug
+		set["slug"] = model.Slug
+		if len(r.PreviousSlugs) > 0 {
+			set["previous_slugs"] = r.PreviousSlugs
+		}
+	}
+	update := bson.M{"$set": set}
 
 	_, err = repo.db.Collection(repo.restaurantCol).UpdateOne(ctx, bson.M{"_id": oid}, update)
 	return err
@@ -149,7 +175,7 @@ func (repo *RestaurantRepo) ListUniqueRestaurants(ctx context.Context, page, pag
 		{{Key: "$match", Value: bson.M{"is_deleted": false}}},
 		{{Key: "$sort", Value: bson.D{{Key: "created_at", Value: -1}}}},
 		{{Key: "$group", Value: bson.M{"_id": "$slug", "doc": bson.M{"$first": "$$ROOT"}}}},
-		{{Key: "$replaceRoot", Value: bson.M{"new_root": "$doc"}}},
+		{{Key: "$replaceRoot", Value: bson.M{"newRoot": "$doc"}}},
 		{{Key: "$skip", Value: (page - 1) * pageSize}},
 		{{Key: "$limit", Value: pageSize}},
 	}

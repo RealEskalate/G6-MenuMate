@@ -47,4 +47,5 @@ type QRCodeCustomization struct {
 	BackgroundColor string
 	ForegroundColor string
 	Logo            string
+	LogoSizePercent float64
 }

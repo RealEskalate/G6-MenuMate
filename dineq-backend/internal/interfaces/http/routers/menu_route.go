@@ -28,14 +28,17 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 
 	menuHandler := handler.NewMenuHandler(menuUsecase, qrUsecase, notifUc)
 
-	protected := group.Group("/menu")
+	protected := group.Group("/menus")
 	protected.Use(middleware.AuthMiddleware(*env))
 	protected.Use(middleware.ManagerOnly())
 	{
-		protected.GET("/:restaurant_id", menuHandler.GetMenu)
-		protected.POST("/:restaurant_id", menuHandler.CreateMenu)
-		protected.PATCH("/:restaurant_id", menuHandler.UpdateMenu)
-		protected.DELETE("/:restaurant_id", menuHandler.DeleteMenu)
+		protected.GET("/:restaurant_slug", menuHandler.GetMenus)
+		protected.GET("/:restaurant_slug/:id", menuHandler.GetMenuByID)
+		protected.POST("/:restaurant_slug", menuHandler.CreateMenu)
+		protected.PATCH("/:restaurant_slug/:id", menuHandler.UpdateMenu)
+		protected.DELETE("/:restaurant_slug/:id", menuHandler.DeleteMenu)
+		protected.POST("/:restaurant_slug/qrcode/:id", menuHandler.GenerateQRCode)
+		protected.POST("/:restaurant_slug/publish/:id", menuHandler.PublishMenu)
 	}
 
 }

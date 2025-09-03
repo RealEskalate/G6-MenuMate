@@ -10,6 +10,9 @@ type DomainError struct {
 var (
 	ErrNotFound                       = errors.New("not found")
 	ErrUserNotFound                   = errors.New("user not found")
+	ErrDuplicateUser                  = errors.New("user already exists")
+	ErrUsernameAlreadyInUse           = errors.New("username already in use")
+	ErrPhoneAlreadyInUse              = errors.New("phone number already in use")
 	ErrTokenExpired                   = errors.New("token expired")
 	ErrInvalidInput                   = errors.New("invalid input")
 	ErrUnauthorized                   = errors.New("User not authenticated or authorized")
@@ -22,6 +25,7 @@ var (
 	ErrOTPInvalid                     = errors.New("invalid OTP")
 	ErrOTPFailedToDelete              = errors.New("failed to delete OTP")
 	ErrRestaurantNotFound             = errors.New("restaurant not found")
+	ErrRestaurantDeleted              = errors.New("restaurant deleted")
 	ErrInvalidRequest                 = errors.New("invalid request")
 	ErrServerIssue                    = errors.New("internal server error")
 	ErrPasswordAndEmailRequired       = errors.New("email and password are required")
@@ -53,18 +57,16 @@ var (
 	ErrFailedToRevokeToken            = errors.New("failed to revoke token")
 	ErrFailedToUpdateToken            = errors.New("failed to update token")
 	ErrFailedToSaveToken              = errors.New("failed to save token")
-	ErrMenuNotPublished               = errors.New("menu is not published")
-	ErrQRCodeNotFound                 = errors.New("QR code not found")
-	ErrFailedToCreateQRCode           = errors.New("failed to create QR code")
-	ErrFailedToUpdateQRCode           = errors.New("failed to update QR code")
-	ErrFailedToDeleteQRCode           = errors.New("failed to delete QR code")
-	ErrFailedToGetQRCode              = errors.New("failed to get QR code")
-	ErrFailedToUpdateQRStatus         = errors.New("failed to update QR code status")
+	ErrMenuNotPublished               = errors.New("menu not published")
+	ErrFailedToUpdateQRStatus         = errors.New("failed to update qr status")
+	ErrQRCodeNotFound                 = errors.New("qr code not found")
+	ErrFailedToGetQRCode              = errors.New("failed to get qr code")
 	ErrPasswordShortLen               = errors.New("password must be at least 8 characters long")
 	ErrPasswordMustContainUpperLetter = errors.New("password must contain at least one uppercase letter")
 	ErrPasswordMustContainLowerLetter = errors.New("password must contain at least one lowercase letter")
 	ErrPasswordMustContainNumber      = errors.New("password must contain at least one number")
 	ErrPasswordMustContainSpecialChar = errors.New("password must contain at least one special character")
+	ErrFailedToDeleteQRCode           = errors.New("failed to delete qr code")
 )
 
 var (
@@ -74,4 +76,5 @@ var (
 	MsgDeleted          = "Resource deleted successfully"
 	MsgValidationFailed = "Validation failed, please check your input"
 	MsgProcessing       = "Processing your request"
+	MsgRetrieved        = "Resource retrieved successfully"
 )

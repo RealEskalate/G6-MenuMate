@@ -24,11 +24,11 @@ func NewQRCodeHandler(qrUsecase domain.IQRCodeUseCase, notifUc domain.INotificat
 
 // change status
 func (h *QRCodeHandler) UpdateQRCodeStatus(c *gin.Context) {
-	restaurantId := c.Param("restaurant_id")
-	statusStr := c.Query("status")
+	restaurantId := c.Param("restaurant_slug")
+	statusStr := c.Param("status")
 
 	if restaurantId == "" {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: "Restaurant ID is required"})
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: "Restaurant slug is required"})
 		return
 	}
 
@@ -52,7 +52,7 @@ func (h *QRCodeHandler) UpdateQRCodeStatus(c *gin.Context) {
 
 // Get qr code
 func (h *QRCodeHandler) GetQRCode(c *gin.Context) {
-	restaurantId := c.Param("restaurant_id")
+	restaurantId := c.Param("restaurant_slug")
 	if restaurantId == "" {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: "Restaurant ID is required"})
 		return
@@ -73,7 +73,7 @@ func (h *QRCodeHandler) GetQRCode(c *gin.Context) {
 
 // Delete qr code
 func (h *QRCodeHandler) DeleteQRCode(c *gin.Context) {
-	restaurantId := c.Param("restaurant_id")
+	restaurantId := c.Param("restaurant_slug")
 	if restaurantId == "" {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: "Restaurant ID is required"})
 		return
