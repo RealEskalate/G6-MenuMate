@@ -19,14 +19,14 @@ type Review struct {
 	FlagCount    int
 }
 
-type Reaction struct {
-	ID        string
-	ReviewID  string
-	UserID    string
-	Type      string
-	CreatedAt time.Time
-	IsDeleted bool
-}
+// type Reaction struct {
+// 	ID        string
+// 	ReviewID  string
+// 	UserID    string
+// 	Type      string
+// 	CreatedAt time.Time
+// 	IsDeleted bool
+// }
 
 type IReviewUseCase interface {
 	CreateReview(review *Review) error
