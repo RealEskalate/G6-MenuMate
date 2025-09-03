@@ -1,12 +1,12 @@
-// context/RegisterContext.tsx
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode } from "react";
 
 interface UploadedFile {
   name: string;
-  size: number; // in MB
-  url?: string; // optional URL if uploaded to server
+  size: number; 
+  file: File;   
 }
 
 export interface RegisterData {
