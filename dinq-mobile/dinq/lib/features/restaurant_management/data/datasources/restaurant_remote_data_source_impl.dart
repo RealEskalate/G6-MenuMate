@@ -5,10 +5,12 @@ import '../../../../core/error/exceptions.dart';
 import '../../../../core/temp/app_config.dart';
 import '../../../../core/temp/demo_http_client.dart';
 import '../../domain/entities/category.dart';
+import '../../domain/entities/item.dart';
 import '../../domain/entities/menu.dart';
 import '../../domain/entities/restaurant.dart';
 import '../../domain/entities/review.dart';
 import '../model/category_model.dart';
+import '../model/item_model.dart';
 import '../model/menu_model.dart';
 import '../model/restaurant_model.dart';
 import '../model/review_model.dart';
@@ -373,6 +375,232 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
     } catch (e) {
       throw ServerException(
         'Unexpected error occurred while fetching user images for item $slug: ${e.toString()}',
+      );
+    }
+  }
+  
+  @override
+  Future<Restaurant> addRestaurant(Restaurant restaurant) async {
+    try {
+      final restaurantModel = restaurant as RestaurantModel;
+      final response = await dio.post(
+        '$_baseUrl/restaurants',
+        data: restaurantModel.toJson(),
+        options: Options(headers: {'Content-Type': _contentType}),
+      );
+      
+      final statusCode = response.statusCode;
+      if (statusCode == 201 || statusCode == 200) {
+        return RestaurantModel.fromMap(response.data).toEntity();
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'adding restaurant',
+          ),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'adding restaurant',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while adding restaurant: ${e.toString()}',
+      );
+    }
+  }
+  
+  @override
+  Future<Item> addItem(String categoryId, Item item) async {
+    try {
+      final itemModel = item as ItemModel;
+      final response = await dio.post(
+        '$_baseUrl/categories/$categoryId/items',
+        data: itemModel.toJson(),
+        options: Options(headers: {'Content-Type': _contentType}),
+      );
+      
+      final statusCode = response.statusCode;
+      if (statusCode == 201 || statusCode == 200) {
+        return ItemModel.fromMap(response.data).toEntity();
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'adding item to category $categoryId',
+          ),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'adding item to category $categoryId',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while adding item to category $categoryId: ${e.toString()}',
+      );
+    }
+  }
+  
+  @override
+  Future<Restaurant> updateRestaurant(String restaurantId, Restaurant restaurant) async {
+    try {
+      final restaurantModel = restaurant as RestaurantModel;
+      final response = await dio.put(
+        '$_baseUrl/restaurants/$restaurantId',
+        data: restaurantModel.toJson(),
+        options: Options(headers: {'Content-Type': _contentType}),
+      );
+      
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        return RestaurantModel.fromMap(response.data).toEntity();
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'updating restaurant $restaurantId',
+          ),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'updating restaurant $restaurantId',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while updating restaurant $restaurantId: ${e.toString()}',
+      );
+    }
+  }
+  
+  @override
+  Future<Menu> updateMenu(String restaurantId, Menu menu) async {
+    try {
+      final menuModel = menu as MenuModel;
+      final response = await dio.put(
+        '$_baseUrl/restaurants/$restaurantId/menu',
+        data: menuModel.toJson(),
+        options: Options(headers: {'Content-Type': _contentType}),
+      );
+      
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        return MenuModel.fromMap(response.data).toEntity();
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'updating menu for restaurant $restaurantId',
+          ),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'updating menu for restaurant $restaurantId',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while updating menu for restaurant $restaurantId: ${e.toString()}',
+      );
+    }
+  }
+  
+  @override
+  Future<Item> updateItem(String itemId, Item item) async {
+    try {
+      final itemModel = item as ItemModel;
+      final response = await dio.put(
+        '$_baseUrl/items/$itemId',
+        data: itemModel.toJson(),
+        options: Options(headers: {'Content-Type': _contentType}),
+      );
+      
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        return ItemModel.fromMap(response.data).toEntity();
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'updating item $itemId',
+          ),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'updating item $itemId',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while updating item $itemId: ${e.toString()}',
+      );
+    }
+  }
+  
+  @override
+  Future<bool> deleteItem(String itemId) async {
+    try {
+      final response = await dio.delete(
+        '$_baseUrl/items/$itemId',
+        options: Options(headers: {'Content-Type': _contentType}),
+      );
+      
+      final statusCode = response.statusCode;
+      if (statusCode == 200 || statusCode == 204) {
+        return true;
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'deleting item $itemId',
+          ),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'deleting item $itemId',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while deleting item $itemId: ${e.toString()}',
       );
     }
   }

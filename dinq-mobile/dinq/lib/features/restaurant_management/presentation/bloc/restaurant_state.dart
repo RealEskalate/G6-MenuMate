@@ -92,14 +92,17 @@ class RestaurantError extends RestaurantState {
   List<Object?> get props => [message];
 }
 
+
 class RestaurantLoaded extends RestaurantState {
   final Restaurant restaurant;
 
   const RestaurantLoaded(this.restaurant);
 
+
   @override
   List<Object?> get props => [restaurant];
 }
+
 
 class RestaurantActionSuccess extends RestaurantState {
   final String message;
