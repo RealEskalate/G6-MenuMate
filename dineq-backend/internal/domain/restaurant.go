@@ -8,6 +8,7 @@ import (
 type Restaurant struct {
 	ID                 string
 	Slug               string
+	PreviousSlugs      []string
 	RestaurantName     string
 	ManagerID          string
 	RestaurantPhone    string
@@ -52,6 +53,7 @@ const (
 
 type IRestaurantRepo interface {
 	GetBySlug(ctx context.Context, slug string) (*Restaurant, error)
+	GetByOldSlug(ctx context.Context, oldSlug string) (*Restaurant, error)
 	Create(ctx context.Context, r *Restaurant) error
 	Update(ctx context.Context, r *Restaurant) error
 	Delete(ctx context.Context, id string, manager string) error
@@ -61,9 +63,10 @@ type IRestaurantRepo interface {
 
 type IRestaurantUsecase interface {
 	CreateRestaurant(ctx context.Context, r *Restaurant, files map[string][]byte) error
-	UpdateRestaurant(ctx context.Context, r *Restaurant) error
+	UpdateRestaurant(ctx context.Context, r *Restaurant, files map[string][]byte) error
 	DeleteRestaurant(ctx context.Context, id string, manager string) error
 	GetRestaurantBySlug(ctx context.Context, slug string) (*Restaurant, error)
+	GetRestaurantByOldSlug(ctx context.Context, slug string) (*Restaurant, error)
 	ListBranchesBySlug(ctx context.Context, slug string, page, pageSize int) ([]*Restaurant, int64, error)
 	ListUniqueRestaurants(ctx context.Context, page, pageSize int) ([]*Restaurant, int64, error)
 }

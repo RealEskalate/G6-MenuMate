@@ -2,8 +2,10 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
@@ -29,10 +31,12 @@ type AuthController struct {
 	GoogleClientID       string
 	GoogleClientSecret   string
 	GoogleRedirectURL    string
+	CookieSecure         bool
+	CookieDomain         string
 }
 
 func (ac *AuthController) RegisterRequest(c *gin.Context) {
-	var newUser dto.UserDTO
+	var newUser dto.UserRequest
 	if err := c.ShouldBindJSON(&newUser); err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
@@ -42,26 +46,61 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 		return
 	}
 
-	if err := newUser.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
-		return
-	}
-
-	user, err := newUser.ToDomain()
+	user := dto.ToDomainUser(newUser)
+	err := ac.UserUsecase.Register(&user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		status := http.StatusInternalServerError
+		if errors.Is(err, domain.ErrEmailAlreadyInUse) || errors.Is(err, domain.ErrUsernameAlreadyInUse) || errors.Is(err, domain.ErrPhoneAlreadyInUse) || errors.Is(err, domain.ErrDuplicateUser) {
+			status = http.StatusConflict
+		}
+		c.JSON(status, dto.ErrorResponse{Message: err.Error(), Error: err.Error()})
 		return
 	}
-	err = ac.UserUsecase.Register(user)
+	// Generate access and refresh tokens for the newly registered user
+	tokens, err := ac.AuthService.GenerateTokens(user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
-	response := dto.SuccessResponse{
-		Message: domain.MsgCreated,
-		Data:    newUser.FromDomain(user),
+	// Prepare refresh token for DB
+	refreshToken := &domain.RefreshToken{
+		Token:     tokens.RefreshToken,
+		UserID:    user.ID,
+		Revoked:   false,
+		ExpiresAt: tokens.RefreshTokenExpiresAt,
+		CreatedAt: time.Now(),
 	}
-	c.JSON(http.StatusCreated, response)
+	// Save the refresh token
+	_ = ac.RefreshTokenUsecase.Save(refreshToken)
+	// Set the tokens in cookies
+	utils.SetCookie(c, utils.CookieOptions{
+		Name:     "refresh_token",
+		Value:    tokens.RefreshToken,
+		MaxAge:   int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()),
+		Path:     "/",
+		Domain:   "",
+		Secure:   ac.CookieSecure,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+	utils.SetCookie(c, utils.CookieOptions{
+		Name:     "access_token",
+		Value:    tokens.AccessToken,
+		MaxAge:   int(time.Until(tokens.AccessTokenExpiresAt).Seconds()),
+		Path:     "/",
+		Domain:   "",
+		Secure:   ac.CookieSecure,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "Registration successful",
+		"user":    dto.ToUserResponse(user),
+		"tokens": dto.LoginResponse{
+			AccessToken:  tokens.AccessToken,
+			RefreshToken: tokens.RefreshToken,
+		},
+	})
 }
 
 func (ac *AuthController) LoginRequest(c *gin.Context) {
@@ -70,13 +109,13 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
-	if loginRequest.Email == "" || loginRequest.Password == "" {
+	if loginRequest.Identifier == "" || loginRequest.Password == "" {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: domain.ErrPasswordAndEmailRequired.Error()})
 		return
 	}
 
-	// Check if user exists
-	user, err := ac.UserUsecase.GetUserByEmail(loginRequest.Email)
+	// Look up by email / username / phone (repository handles all via $or)
+	user, err := ac.UserUsecase.FindByUsernameOrEmail(c.Request.Context(), loginRequest.Identifier)
 	if err != nil {
 		// Use generic error message for both user not found and password mismatch
 		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error(), Error: err.Error()})
@@ -116,10 +155,8 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 	}
 
 	if existingToken != nil {
-		// Revoke the old token
-		if err := ac.RefreshTokenUsecase.RevokedToken(existingToken); err != nil {
-			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRevokeToken.Error(), Error: err.Error()})
-			return
+		if err := ac.RefreshTokenUsecase.RevokeByUserID(existingToken.UserID); err != nil {
+			fmt.Printf("warn: failed to revoke old refresh token for user %s: %v\n", existingToken.UserID, err)
 		}
 		// Replace with the new token
 		if err := ac.RefreshTokenUsecase.ReplaceToken(refreshToken); err != nil {
@@ -141,7 +178,7 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		MaxAge:   int(time.Until(response.RefreshTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-		Secure:   false,
+		Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -152,7 +189,7 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 		MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-		Secure:   false,
+		Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -229,10 +266,9 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 			ExpiresAt: response.RefreshTokenExpiresAt,
 			CreatedAt: time.Now(),
 		}
-		if err := ac.RefreshTokenUsecase.RevokedToken(tokenDoc); err != nil {
+		if err := ac.RefreshTokenUsecase.RevokeByUserID(tokenDoc.UserID); err != nil {
 			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRevokeToken.Error(), Error: err.Error()})
 			return
-
 		}
 		if err := ac.RefreshTokenUsecase.ReplaceToken(refreshToken); err != nil {
 			c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToUpdateToken.Error(), Error: err.Error()})
@@ -241,8 +277,8 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		refreshTokenValue = response.RefreshToken
 		refreshTokenExpiry = response.RefreshTokenExpiresAt
 	} else {
-		// Do not rotate: keep the old refresh token
-		refreshTokenValue = tokenDoc.Token
+		// Do not rotate: keep using the existing valid refresh token string from the request body
+		refreshTokenValue = req.RefreshToken
 		refreshTokenExpiry = tokenDoc.ExpiresAt
 	}
 
@@ -253,7 +289,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		MaxAge:   int(time.Until(refreshTokenExpiry).Seconds()),
 		Path:     "/",
 		Domain:   "",
-		Secure:   false,
+		Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -264,7 +300,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
 		Path:     "/",
 		Domain:   "",
-		Secure:   false,
+		Secure:   ac.CookieSecure,
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 	})
@@ -304,7 +340,7 @@ func (ac *AuthController) LogoutRequest(c *gin.Context) {
 		return
 	}
 	// revoke the token
-	if err := ac.RefreshTokenUsecase.RevokedToken(tokenDoc); err != nil {
+	if err := ac.RefreshTokenUsecase.RevokeByUserID(tokenDoc.UserID); err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRevokeToken.Error(), Error: err.Error()})
 		return
 	}
@@ -530,28 +566,21 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			Secure:   false,
 			SameSite: http.SameSiteStrictMode,
 		})
-		userDTO := dto.UserDTO{}
-		c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: userDTO.FromDomain(user)})
+		c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.ToUserResponse(*user)})
 		return
 	}
 
 	// If user not found – register new one
 	newUser := &domain.User{
+		Username:     strings.Split(userInfo.Email, "@")[0],
 		Email:        userInfo.Email,
-		PhoneNumber:  "",
-		Password:     "",
-		AuthProvider: domain.AuthGoogle,
-		IsVerified:   false,
 		FirstName:    userInfo.GivenName,
 		LastName:     userInfo.FamilyName,
+		Role:         domain.RoleCustomer,
+		AuthProvider: domain.AuthGoogle,
 		ProfileImage: userInfo.Picture,
-		Role:         domain.RoleUser,
-		Status:       domain.Active,
-		Preferences:  domain.Preferences{},
-		LastLoginAt:  time.Time{},
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
-		IsDeleted:    false,
 	}
 
 	if err := ac.UserUsecase.Register(newUser); err != nil {
@@ -600,6 +629,5 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		Secure:   false,
 		SameSite: http.SameSiteStrictMode,
 	})
-	userDTO := dto.UserDTO{}
-	c.JSON(http.StatusCreated, dto.SuccessResponse{Message: domain.MsgCreated, Data: userDTO.FromDomain(newUser)})
+	c.JSON(http.StatusCreated, dto.SuccessResponse{Message: domain.MsgCreated, Data: dto.ToUserResponse(*newUser)})
 }
