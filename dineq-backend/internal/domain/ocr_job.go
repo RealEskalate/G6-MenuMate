@@ -6,33 +6,33 @@ import (
 )
 
 type OCRJob struct {
-	ID               string
-	RestaurantID     string
-	UserID           string
-	ImageURL         string
-	Status           OCRJobStatus
-	ResultText       string
-	StructuredMenuID string
-	Error            string
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
+	ID                  string
+	RestaurantID        string
+	UserID              string
+	ImageURL            string
+	Status              OCRJobStatus
+	ResultText          string
+	StructuredMenuID    string
+	Error               string
+	CreatedAt           time.Time
+	UpdatedAt           time.Time
 	EstimatedCompletion time.Time
 	CompletedAt         *time.Time
 	Results             *OCRJobResult // structured response for polling
-	RawAIJSON           string // raw Gemini JSON for audit
-	Phase              string
-	Progress           int
-	PhaseHistory       []OCRPhase
+	RawAIJSON           string        // raw Gemini JSON for audit
+	Phase               string
+	Progress            int
+	PhaseHistory        []OCRPhase
 }
 
 // OCRJobResult holds structured result fields returned to clients
 type OCRJobResult struct {
-	ExtractedText    string          `json:"extracted_text,omitempty"`
-	PhotoMatches     []string        `json:"photo_matches,omitempty"`
-	ConfidenceScore  float64         `json:"confidence_score,omitempty"`
-	StructuredMenuID string          `json:"structured_menu_id,omitempty"`
-	Menu             *Menu           `json:"menu,omitempty"`
-	RawAIJSON        string          `json:"raw_ai_json,omitempty"`
+	ExtractedText    string   `json:"extracted_text,omitempty"`
+	PhotoMatches     []string `json:"photo_matches,omitempty"`
+	ConfidenceScore  float64  `json:"confidence_score,omitempty"`
+	StructuredMenuID string   `json:"structured_menu_id,omitempty"`
+	Menu             *Menu    `json:"menu,omitempty"`
+	RawAIJSON        string   `json:"raw_ai_json,omitempty"`
 }
 
 // OCRPhase represents a pipeline phase status

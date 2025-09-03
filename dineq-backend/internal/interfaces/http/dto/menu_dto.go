@@ -8,27 +8,27 @@ import (
 
 // MenuRequestDTO represents the structure for menu creation/update requests.
 type MenuRequest struct {
-	RestaurantID string       `json:"restaurant_id" validate:"required"`
-	Version      int          `json:"version,omitempty"`
-	IsPublished  bool         `json:"is_published,omitempty"`
+	RestaurantID string        `json:"restaurant_id" validate:"required"`
+	Version      int           `json:"version,omitempty"`
+	IsPublished  bool          `json:"is_published,omitempty"`
 	Items        []ItemRequest `json:"items"`
 }
 
 // MenuResponse represents the structure for menu responses.
 type MenuResponse struct {
-	ID           string        `json:"id"`
-	RestaurantID string        `json:"restaurant_id"`
-	Slug         string        `json:"slug"`
-	Version      int           `json:"version"`
-	IsPublished  bool          `json:"is_published"`
-	PublishedAt  time.Time     `json:"published_at"`
+	ID           string         `json:"id"`
+	RestaurantID string         `json:"restaurant_id"`
+	Slug         string         `json:"slug"`
+	Version      int            `json:"version"`
+	IsPublished  bool           `json:"is_published"`
+	PublishedAt  time.Time      `json:"published_at"`
 	Items        []ItemResponse `json:"items"`
-	CreatedAt    time.Time     `json:"created_at"`
-	UpdatedAt    time.Time     `json:"updated_at"`
-	UpdatedBy    string        `json:"updated_by"`
-	IsDeleted    bool          `json:"is_deleted"`
-	ViewCount    int           `json:"view_count"`
-	DeletedAt    *time.Time    `json:"deleted_at"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	UpdatedBy    string         `json:"updated_by"`
+	IsDeleted    bool           `json:"is_deleted"`
+	ViewCount    int            `json:"view_count"`
+	DeletedAt    *time.Time     `json:"deleted_at"`
 }
 
 // RequestToMenu converts a MenuRequest to a domain Menu.

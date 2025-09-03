@@ -30,7 +30,9 @@ func (uc *OCRJobUseCase) CreateOCRJob(job *domain.OCRJob) error {
 	job.UpdatedAt = time.Now()
 	// naive estimate: 2 minutes from now (could refine using historical averages)
 	job.EstimatedCompletion = job.CreatedAt.Add(2 * time.Minute)
-	if job.Status == "" { job.Status = domain.OCRProcessing }
+	if job.Status == "" {
+		job.Status = domain.OCRProcessing
+	}
 	return uc.repo.Create(ctx, job)
 }
 
@@ -88,14 +90,24 @@ func (uc *OCRJobUseCase) ProcessJob(jobID string) {
 	trimmed := slimOCRText(text.OCRText, 8000)
 	for attempt := 1; attempt <= 2; attempt++ {
 		base := 180 * time.Second
-		if len(trimmed) > 6000 { base = 240 * time.Second }
-		if len(trimmed) > 12000 { base = 300 * time.Second }
-		if len(trimmed) > 18000 { base = 360 * time.Second }
-		if len(trimmed) > 24000 { base = 390 * time.Second }
+		if len(trimmed) > 6000 {
+			base = 240 * time.Second
+		}
+		if len(trimmed) > 12000 {
+			base = 300 * time.Second
+		}
+		if len(trimmed) > 18000 {
+			base = 360 * time.Second
+		}
+		if len(trimmed) > 24000 {
+			base = 390 * time.Second
+		}
 		aiCtx, cancelAI := context.WithTimeout(context.Background(), base)
 		menu, aiErr = uc.aiService.StructureWithGemini(aiCtx, trimmed)
 		cancelAI()
-		if aiErr == nil { break }
+		if aiErr == nil {
+			break
+		}
 		if errors.Is(aiErr, context.DeadlineExceeded) || strings.Contains(aiErr.Error(), "context deadline exceeded") {
 			logger.Log.Warn().Str("job_id", jobID).Int("attempt", attempt).Err(aiErr).Msg("AI structuring timeout; retrying")
 			continue
@@ -157,7 +169,9 @@ func persistWithFallback(uc *OCRJobUseCase, job *domain.OCRJob, stage string) {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	err := uc.repo.Update(ctx, job.ID, job)
 	cancel()
-	if err == nil { return }
+	if err == nil {
+		return
+	}
 	logger.Log.Error().Str("job_id", job.ID).Str("stage", stage).Err(err).Msg("Primary job update failed; attempting fallback")
 	fbCtx, fbCancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	if err2 := uc.repo.Update(fbCtx, job.ID, job); err2 != nil {
@@ -174,14 +188,20 @@ func appendPhase(job *domain.OCRJob, phaseName, status string) {
 	for i := range job.PhaseHistory {
 		if job.PhaseHistory[i].Name == phaseName {
 			// update existing
-			if job.PhaseHistory[i].StartedAt == nil { job.PhaseHistory[i].StartedAt = &now }
-			if status == "done" || status == "failed" { job.PhaseHistory[i].EndedAt = &now }
+			if job.PhaseHistory[i].StartedAt == nil {
+				job.PhaseHistory[i].StartedAt = &now
+			}
+			if status == "done" || status == "failed" {
+				job.PhaseHistory[i].EndedAt = &now
+			}
 			job.PhaseHistory[i].Status = status
 			return
 		}
 	}
 	ph := domain.OCRPhase{Name: phaseName, Status: status, StartedAt: &now}
-	if status == "done" || status == "failed" { ph.EndedAt = &now }
+	if status == "done" || status == "failed" {
+		ph.EndedAt = &now
+	}
 	job.PhaseHistory = append(job.PhaseHistory, ph)
 }
 
@@ -214,7 +234,9 @@ func (uc *OCRJobUseCase) RetryJob(id string) (*domain.OCRJob, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	defer cancel()
 	job, err := uc.repo.GetByID(ctx, id)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	if job.Status != domain.OCRFailed {
 		return nil, errors.New("only failed jobs can be retried")
 	}
@@ -229,7 +251,9 @@ func (uc *OCRJobUseCase) RetryJob(id string) (*domain.OCRJob, error) {
 	job.Results = nil
 	job.UpdatedAt = time.Now()
 	job.EstimatedCompletion = time.Now().Add(2 * time.Minute)
-	if err := uc.repo.Update(ctx, job.ID, job); err != nil { return nil, err }
+	if err := uc.repo.Update(ctx, job.ID, job); err != nil {
+		return nil, err
+	}
 	// async reprocess
 	go uc.ProcessJob(job.ID)
 	return job, nil
@@ -237,12 +261,20 @@ func (uc *OCRJobUseCase) RetryJob(id string) (*domain.OCRJob, error) {
 
 // slimOCRText truncates very large OCR text to maxChars, preserving start and end segments.
 func slimOCRText(s string, maxChars int) string {
-	if maxChars <= 0 || len(s) <= maxChars { return s }
+	if maxChars <= 0 || len(s) <= maxChars {
+		return s
+	}
 	// keep 60% head, 40% tail
 	head := int(float64(maxChars) * 0.6)
 	tail := maxChars - head - 20 // allocate ellipsis marker length
-	if tail < 0 { tail = 0 }
-	if head > len(s) { head = len(s) }
-	if tail > len(s)-head { tail = len(s) - head }
+	if tail < 0 {
+		tail = 0
+	}
+	if head > len(s) {
+		head = len(s)
+	}
+	if tail > len(s)-head {
+		tail = len(s) - head
+	}
 	return s[:head] + "\n...[TRUNCATED]...\n" + s[len(s)-tail:]
 }

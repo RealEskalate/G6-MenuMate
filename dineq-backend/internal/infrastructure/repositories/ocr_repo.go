@@ -25,9 +25,15 @@ func NewOCRJobRepository(db mongo.Database, ocrCl string) domain.IOCRJobReposito
 // create ocr
 func (r *OCRRepository) Create(ctx context.Context, job *domain.OCRJob) error {
 	dbocr := mapper.FromDomainOCRJob(job)
-	if dbocr.CreatedAt.IsZero() { dbocr.CreatedAt = time.Now() }
-	if dbocr.UpdatedAt.IsZero() { dbocr.UpdatedAt = time.Now() }
-	if dbocr.Status == "" { dbocr.Status = string(domain.OCRProcessing) }
+	if dbocr.CreatedAt.IsZero() {
+		dbocr.CreatedAt = time.Now()
+	}
+	if dbocr.UpdatedAt.IsZero() {
+		dbocr.UpdatedAt = time.Now()
+	}
+	if dbocr.Status == "" {
+		dbocr.Status = string(domain.OCRProcessing)
+	}
 	res, err := r.db.Collection(r.ocrCl).InsertOne(ctx, dbocr)
 	if err != nil {
 		return err

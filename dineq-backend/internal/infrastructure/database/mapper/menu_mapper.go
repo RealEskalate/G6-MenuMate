@@ -68,7 +68,7 @@ func MergeMenuUpdate(updated *domain.Menu) *MenuDB {
 		Slug:         updated.Slug,
 		IsPublished:  updated.IsPublished,
 		PublishedAt:  updated.PublishedAt,
-		Items:       items,
+		Items:        items,
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 		UpdatedBy:    updated.UpdatedBy,
@@ -78,8 +78,6 @@ func MergeMenuUpdate(updated *domain.Menu) *MenuDB {
 		Version:      updated.Version + 1,
 	}
 }
-
-
 
 // ---------- Conversion ----------
 

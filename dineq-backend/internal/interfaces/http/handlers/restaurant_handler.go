@@ -296,11 +296,17 @@ func updateSlug(r *domain.Restaurant, newName string) {
 // collectTags gathers tags from form fields: tags, tags[], or a single comma-separated value.
 func collectTags(c *gin.Context) []string {
 	raw := c.PostFormArray("tags")
-	if len(raw) == 0 { raw = c.PostFormArray("tags[]") }
+	if len(raw) == 0 {
+		raw = c.PostFormArray("tags[]")
+	}
 	if len(raw) == 1 && strings.Contains(raw[0], ",") {
 		parts := strings.Split(raw[0], ",")
-		tmp := make([]string,0,len(parts))
-		for _, p := range parts { if t := strings.TrimSpace(p); t != "" { tmp = append(tmp, t) } }
+		tmp := make([]string, 0, len(parts))
+		for _, p := range parts {
+			if t := strings.TrimSpace(p); t != "" {
+				tmp = append(tmp, t)
+			}
+		}
 		raw = tmp
 	}
 	return normalizeTags(raw)
@@ -311,12 +317,18 @@ func normalizeTags(tags []string) []string {
 	seen := make(map[string]string, len(tags))
 	for _, t := range tags {
 		trimmed := strings.TrimSpace(t)
-		if trimmed == "" { continue }
+		if trimmed == "" {
+			continue
+		}
 		key := strings.ToLower(trimmed)
-		if _, exists := seen[key]; !exists { seen[key] = trimmed }
+		if _, exists := seen[key]; !exists {
+			seen[key] = trimmed
+		}
 	}
-	out := make([]string,0,len(seen))
-	for _, v := range seen { out = append(out, v) }
+	out := make([]string, 0, len(seen))
+	for _, v := range seen {
+		out = append(out, v)
+	}
 	sort.Strings(out)
 	return out
 }

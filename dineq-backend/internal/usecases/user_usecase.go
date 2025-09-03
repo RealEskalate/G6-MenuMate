@@ -61,7 +61,9 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 	// Generate default avatar if none provided
 	if strings.TrimSpace(request.ProfileImage) == "" {
 		avatarURL, err := uc.generateAndUploadAvatar(ctx, request)
-		if err == nil { request.ProfileImage = avatarURL }
+		if err == nil {
+			request.ProfileImage = avatarURL
+		}
 	}
 
 	err := uc.userRepo.CreateUser(ctx, request)
@@ -88,17 +90,27 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 	return nil
 }
 
-// generateAndUploadAvatar fetches a UI-Avatar image 
+// generateAndUploadAvatar fetches a UI-Avatar image
 func (uc *UserUsecase) generateAndUploadAvatar(ctx context.Context, u *domain.User) (string, error) {
 	name := strings.TrimSpace(u.Username)
 	if name == "" {
 		parts := []string{}
-		if u.FirstName != "" { parts = append(parts, u.FirstName) }
-		if u.LastName != "" { parts = append(parts, u.LastName) }
-		if len(parts) > 0 { name = strings.Join(parts, "+") }
+		if u.FirstName != "" {
+			parts = append(parts, u.FirstName)
+		}
+		if u.LastName != "" {
+			parts = append(parts, u.LastName)
+		}
+		if len(parts) > 0 {
+			name = strings.Join(parts, "+")
+		}
 	}
-	if name == "" && u.Email != "" { name = strings.Split(u.Email, "@")[0] }
-	if name == "" { name = "User" }
+	if name == "" && u.Email != "" {
+		name = strings.Split(u.Email, "@")[0]
+	}
+	if name == "" {
+		name = "User"
+	}
 	return fmt.Sprintf("https://ui-avatars.com/api/?name=%s&background=random&color=fff&format=png", name), nil
 }
 

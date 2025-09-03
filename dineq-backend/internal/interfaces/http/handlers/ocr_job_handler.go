@@ -60,15 +60,25 @@ const (
 
 // joinSlice joins a slice of strings with a comma+space; returns empty string if none
 func joinSlice(s []string) string {
-	if len(s) == 0 { return "" }
+	if len(s) == 0 {
+		return ""
+	}
 	out := ""
-	for i, v := range s { if i == 0 { out = v } else { out += ", " + v } }
+	for i, v := range s {
+		if i == 0 {
+			out = v
+		} else {
+			out += ", " + v
+		}
+	}
 	return out
 }
 
 // anyToString attempts to convert a loosely typed field to string
 func anyToString(v any) string {
-	if v == nil { return "" }
+	if v == nil {
+		return ""
+	}
 	switch t := v.(type) {
 	case string:
 		return t
@@ -82,30 +92,36 @@ func anyToString(v any) string {
 // fallbackTranslate currently returns the source string if translation missing.
 // TODO: integrate real Amharic translation (batch AI call) so blanks are fully localized.
 func fallbackTranslate(src string, existing string) string {
-	if existing != "" { return existing }
+	if existing != "" {
+		return existing
+	}
 	return src // placeholder until real translation integrated
 }
 
 // enforceAmharicScript replaces common English category/tab words with Amharic script if model missed translation
 func enforceAmharicScript(words []string) []string {
 	mapper := map[string]string{
- 		"Breakfast": "ቁርስ",
- 		"Lunch": "ምሳ",
- 		"Meat": "ስጋ",
- 		"Vegetable": "አትክልት",
- 		"Vegetarian": "በተክል",
- 		"Stew": "ወጥ",
- 		"Soup": "ሾርባ",
- 		"Egg": "እንቁላል",
- 		"Eggs": "እንቁላል",
- 		"Combination": "ቅልቅል",
- 		"Specialty": "ልዩ",
- 	}
- 	out := make([]string, len(words))
- 	for i, w := range words {
- 		if v, ok := mapper[w]; ok { out[i] = v } else { out[i] = w }
- 	}
- 	return out
+		"Breakfast":   "ቁርስ",
+		"Lunch":       "ምሳ",
+		"Meat":        "ስጋ",
+		"Vegetable":   "አትክልት",
+		"Vegetarian":  "በተክል",
+		"Stew":        "ወጥ",
+		"Soup":        "ሾርባ",
+		"Egg":         "እንቁላል",
+		"Eggs":        "እንቁላል",
+		"Combination": "ቅልቅል",
+		"Specialty":   "ልዩ",
+	}
+	out := make([]string, len(words))
+	for i, w := range words {
+		if v, ok := mapper[w]; ok {
+			out[i] = v
+		} else {
+			out[i] = w
+		}
+	}
+	return out
 }
 
 func NewOCRJobHandler(uc domain.IOCRJobUseCase, mc domain.IMenuUseCase, stg services.StorageService, nc domain.INotificationUseCase) *OCRJobHandler {
@@ -130,7 +146,7 @@ func (h *OCRJobHandler) CreateOCRJob(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, gin.H{
 		"success": true,
-		"data": OCRDto.FromDomain(job),
+		"data":    OCRDto.FromDomain(job),
 	})
 }
 
@@ -144,23 +160,33 @@ func (h *OCRJobHandler) GetOCRJobByID(c *gin.Context) {
 		return
 	}
 	response := gin.H{
-		"job_id":                   job.ID,
-		"status":                   job.Status,
-		"created_at":               job.CreatedAt,
+		"job_id":                    job.ID,
+		"status":                    job.Status,
+		"created_at":                job.CreatedAt,
 		"estimated_completion_time": job.EstimatedCompletion,
-		"phase":                    job.Phase,
-		"progress":                 job.Progress,
-		"phases":                   job.PhaseHistory,
+		"phase":                     job.Phase,
+		"progress":                  job.Progress,
+		"phases":                    job.PhaseHistory,
 	}
-	if job.CompletedAt != nil { response["completed_at"] = job.CompletedAt }
-	if job.Status == domain.OCRFailed && job.Error != "" { response["error"] = job.Error }
+	if job.CompletedAt != nil {
+		response["completed_at"] = job.CompletedAt
+	}
+	if job.Status == domain.OCRFailed && job.Error != "" {
+		response["error"] = job.Error
+	}
 	if job.Status == domain.OCRCompleted && job.Results != nil {
 		res := *job.Results
 		if res.Menu != nil {
 			sanitized := gin.H{}
-			if res.ExtractedText != "" { sanitized["extracted_text"] = res.ExtractedText }
-			if len(res.PhotoMatches) > 0 { sanitized["photo_matches"] = res.PhotoMatches }
-			if res.ConfidenceScore != 0 { sanitized["confidence_score"] = res.ConfidenceScore }
+			if res.ExtractedText != "" {
+				sanitized["extracted_text"] = res.ExtractedText
+			}
+			if len(res.PhotoMatches) > 0 {
+				sanitized["photo_matches"] = res.PhotoMatches
+			}
+			if res.ConfidenceScore != 0 {
+				sanitized["confidence_score"] = res.ConfidenceScore
+			}
 			// Provide structured categories/items if available
 			var menuItems []menuItemOut
 			for _, tab := range res.Menu.Tabs { // flatten tabs -> categories
@@ -168,23 +194,29 @@ func (h *OCRJobHandler) GetOCRJobByID(c *gin.Context) {
 					for _, it := range cat.Items {
 						englishAllergies := joinSlice(it.Allergies)
 						mi := menuItemOut{
-							Name:          it.Name,
-							NameAm:        fallbackTranslate(it.Name, it.NameAm),
-							Description:   it.Description,
-							DescriptionAm: fallbackTranslate(it.Description, it.DescriptionAm),
-							TabTags:       []string{tab.Name},
-							Price:         it.Price,
-							Currency:      it.Currency,
-							Allergies:     englishAllergies,
-							AllergiesAm:   it.AllergiesAm,
-							Ingredients:   it.Ingredients,
-							IngredientsAm: it.IngredientsAm,
+							Name:            it.Name,
+							NameAm:          fallbackTranslate(it.Name, it.NameAm),
+							Description:     it.Description,
+							DescriptionAm:   fallbackTranslate(it.Description, it.DescriptionAm),
+							TabTags:         []string{tab.Name},
+							Price:           it.Price,
+							Currency:        it.Currency,
+							Allergies:       englishAllergies,
+							AllergiesAm:     it.AllergiesAm,
+							Ingredients:     it.Ingredients,
+							IngredientsAm:   it.IngredientsAm,
 							PreparationTime: it.PreparationTime,
-							HowToEat:      anyToString(it.HowToEat),
-							HowToEatAm:    fallbackTranslate(anyToString(it.HowToEat), anyToString(it.HowToEatAm)),
+							HowToEat:        anyToString(it.HowToEat),
+							HowToEatAm:      fallbackTranslate(anyToString(it.HowToEat), anyToString(it.HowToEatAm)),
 						}
-						if mi.Allergies == "" && mi.AllergiesAm != "" { mi.Allergies = "Contains none commonly recognized. Please inform staff of any allergies." }
-						if tab.NameAm != "" { mi.TabTagsAm = []string{tab.NameAm} } else { mi.TabTagsAm = enforceAmharicScript([]string{tab.Name}) }
+						if mi.Allergies == "" && mi.AllergiesAm != "" {
+							mi.Allergies = "Contains none commonly recognized. Please inform staff of any allergies."
+						}
+						if tab.NameAm != "" {
+							mi.TabTagsAm = []string{tab.NameAm}
+						} else {
+							mi.TabTagsAm = enforceAmharicScript([]string{tab.Name})
+						}
 						if it.Calories > 0 || it.Protein > 0 || it.Carbs > 0 || it.Fat > 0 {
 							mi.NutritionalInfo = &nutritionalInfoOut{Calories: it.Calories, Protein: it.Protein, Carbs: it.Carbs, Fat: it.Fat}
 						}
@@ -192,8 +224,12 @@ func (h *OCRJobHandler) GetOCRJobByID(c *gin.Context) {
 					}
 				}
 			}
-			if len(menuItems) > 0 { sanitized["menu_items"] = menuItems }
-			if res.StructuredMenuID != "" { sanitized["structured_menu_id"] = res.StructuredMenuID }
+			if len(menuItems) > 0 {
+				sanitized["menu_items"] = menuItems
+			}
+			if res.StructuredMenuID != "" {
+				sanitized["structured_menu_id"] = res.StructuredMenuID
+			}
 			response["results"] = sanitized
 		} else {
 			response["results"] = res
@@ -220,18 +256,24 @@ func (h *OCRJobHandler) RetryOCRJob(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusAccepted, gin.H{"success": true, "data": gin.H{ "job_id": job.ID, "status": job.Status, "estimated_completion_time": job.EstimatedCompletion }})
+	c.JSON(http.StatusAccepted, gin.H{"success": true, "data": gin.H{"job_id": job.ID, "status": job.Status, "estimated_completion_time": job.EstimatedCompletion}})
 }
 
 // UploadMenu handles OCR job creation from an uploaded menu image
 func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 	userId := c.GetString("user_id")
-	if userId == "" { userId = c.GetString("userId") }
+	if userId == "" {
+		userId = c.GetString("userId")
+	}
 
 	// Attempt to derive restaurant ID from context or query; fallback to userId (TODO: fetch from user profile/role association)
 	restaurantID := c.GetString("restaurant_id")
-	if restaurantID == "" { restaurantID = c.Query("restaurant_id") }
-	if restaurantID == "" { restaurantID = userId }
+	if restaurantID == "" {
+		restaurantID = c.Query("restaurant_id")
+	}
+	if restaurantID == "" {
+		restaurantID = userId
+	}
 
 	file, err := c.FormFile("menuImage")
 	if err != nil {
@@ -258,7 +300,10 @@ func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 	}
 
 	// MIME sniffing
-	if len(data) < 10 { c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: "empty file"}); return }
+	if len(data) < 10 {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: "empty file"})
+		return
+	}
 	contentType := http.DetectContentType(data[:min(512, len(data))])
 	allowed := map[string]bool{"image/jpeg": true, "image/png": true, "image/webp": true}
 	if !allowed[contentType] {
@@ -296,8 +341,8 @@ func (h *OCRJobHandler) UploadMenu(c *gin.Context) {
 	c.JSON(http.StatusAccepted, gin.H{
 		"success": true,
 		"data": gin.H{
-			"job_id": job.ID,
-			"status": job.Status,
+			"job_id":                    job.ID,
+			"status":                    job.Status,
 			"estimated_completion_time": job.EstimatedCompletion,
 		},
 	})
@@ -314,4 +359,9 @@ func (h *OCRJobHandler) processJobAsync(ctx context.Context, jobID, userId strin
 }
 
 // helper: min int
-func min(a, b int) int { if a < b { return a }; return b }
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}

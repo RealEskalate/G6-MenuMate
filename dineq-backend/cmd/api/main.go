@@ -41,16 +41,21 @@ func main() {
 	router.Use(func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
 		allowAll := false
-		for _, o := range env.CORSAllowedOrigins { if o == "*" { allowAll = true; break } }
+		for _, o := range env.CORSAllowedOrigins {
+			if o == "*" {
+				allowAll = true
+				break
+			}
+		}
 		if allowAll {
-			if origin != "" { 
+			if origin != "" {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
 				c.Writer.Header().Set("Vary", "Origin")
 			} else {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 			}
 		} else if origin != "" {
-			
+
 			for _, allowed := range env.CORSAllowedOrigins {
 				if allowed == origin {
 					c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
