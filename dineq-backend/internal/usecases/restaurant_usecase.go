@@ -57,6 +57,9 @@ func (s *RestaurantUsecase) UpdateRestaurant(ctx context.Context, r *domain.Rest
 	defer cancel()
 
 	for field, data := range files {
+		if len(data) == 0 {
+			continue // skip empty files
+		}
 		url, _, err := s.StorageService.UploadFile(c, fmt.Sprintf("%s_%d", field, time.Now().UnixNano()), data, "restaurant_images")
 		if err != nil {
 			return fmt.Errorf("failed to upload %s: %w", field, err)
