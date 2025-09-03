@@ -43,3 +43,16 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Custom exclusions for MenuMate project
+# ======================================
+
+# Generated Flutter files - exclude from version control
+**/GeneratedPluginRegistrant.swift
+**/generated_plugin_registrant.cc
+**/generated_plugin_registrant.h
+**/generated_plugins.cmake
+# Generated files
+*.g.dart
+*.mocks.dart
+
