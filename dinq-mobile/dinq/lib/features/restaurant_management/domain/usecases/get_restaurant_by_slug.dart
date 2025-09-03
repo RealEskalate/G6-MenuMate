@@ -3,12 +3,12 @@ import '../../../../core/error/failures.dart';
 import '../entities/restaurant.dart';
 import '../repositories/restaurant_repository.dart';
 
-class GetRestaurants {
+class GetRestaurantBySlug {
   final RestaurantRepository repository;
 
-  GetRestaurants(this.repository);
+  GetRestaurantBySlug(this.repository);
 
-  Future<Either<Failure, List<Restaurant>>> call(int page, int pageSize) async {
-    return await repository.getRestaurants(page, pageSize);
+  Future<Either<Failure, Restaurant>> call(String slug) async {
+    return await repository.getRestaurantBySlug(slug);
   }
 }

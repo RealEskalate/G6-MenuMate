@@ -8,7 +8,10 @@ abstract class RestaurantEvent extends Equatable {
 }
 
 class LoadRestaurants extends RestaurantEvent {
-  const LoadRestaurants();
+  final int page;
+  final int pageSize;
+
+  const LoadRestaurants({required this.page, required this.pageSize});
 }
 
 class LoadMenu extends RestaurantEvent {
@@ -45,4 +48,41 @@ class LoadUserImages extends RestaurantEvent {
 
   @override
   List<Object?> get props => [slug];
+}
+
+class LoadRestaurantBySlug extends RestaurantEvent {
+  final String slug;
+
+  const LoadRestaurantBySlug(this.slug);
+
+  @override
+  List<Object?> get props => [slug];
+}
+
+class CreateRestaurantEvent extends RestaurantEvent {
+  final dynamic restaurantModel; // usually RestaurantModel
+
+  const CreateRestaurantEvent(this.restaurantModel);
+
+  @override
+  List<Object?> get props => [restaurantModel];
+}
+
+class UpdateRestaurantEvent extends RestaurantEvent {
+  final dynamic restaurantModel;
+  final String slug;
+
+  const UpdateRestaurantEvent(this.restaurantModel, this.slug);
+
+  @override
+  List<Object?> get props => [restaurantModel, slug];
+}
+
+class DeleteRestaurantEvent extends RestaurantEvent {
+  final String restaurantId;
+
+  const DeleteRestaurantEvent(this.restaurantId);
+
+  @override
+  List<Object?> get props => [restaurantId];
 }

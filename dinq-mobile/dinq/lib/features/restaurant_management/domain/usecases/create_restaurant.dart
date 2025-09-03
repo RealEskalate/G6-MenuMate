@@ -4,15 +4,12 @@ import '../../data/model/restaurant_model.dart';
 import '../entities/restaurant.dart';
 import '../repositories/restaurant_repository.dart';
 
-class UpdateRestaurant {
+class CreateRestaurant {
   final RestaurantRepository repository;
 
-  UpdateRestaurant(this.repository);
+  CreateRestaurant(this.repository);
 
-  Future<Either<Failure, Restaurant>> call(
-    RestaurantModel restaurant,
-    String slug,
-  ) async {
-    return await repository.updateRestaurant(restaurant, slug);
+  Future<Either<Failure, Restaurant>> call(RestaurantModel restaurant) async {
+    return await repository.createRestaurant(restaurant);
   }
 }
