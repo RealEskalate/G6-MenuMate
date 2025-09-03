@@ -31,25 +31,25 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 	var input dto.RestaurantResponse
 	manager := c.GetString("user_id")
 
-       if err := c.ShouldBindJSON(&input); err != nil {
-	       c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	       return
-       }
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-       // Validate manager_id
-       if manager == "" || !IsValidObjectID(manager) {
-	       c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or missing manager_id (must be a valid ObjectID)"})
-	       return
-       }
-       input.ManagerID = manager
+	// Validate manager_id
+	if manager == "" || !IsValidObjectID(manager) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or missing manager_id (must be a valid ObjectID)"})
+		return
+	}
+	input.ManagerID = manager
 
-       r := dto.ToDomainRestaurant(&input)
+	r := dto.ToDomainRestaurant(&input)
 
-       if err := h.RestaurantUsecase.CreateRestaurant(c.Request.Context(), r); err != nil {
-	       c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	       return
-       }
-       c.JSON(http.StatusCreated, dto.ToRestaurantResponse(r))
+	if err := h.RestaurantUsecase.CreateRestaurant(c.Request.Context(), r); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusCreated, dto.ToRestaurantResponse(r))
 }
 
 func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
@@ -115,7 +115,9 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 				if s == existing.Slug { // skip if same as current slug
 					continue
 				}
-				if _, ok := seen[s]; ok { continue }
+				if _, ok := seen[s]; ok {
+					continue
+				}
 				seen[s] = struct{}{}
 				cleaned = append(cleaned, s)
 			}
@@ -144,10 +146,7 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 	if len(input.Tags) > 0 { // replace tags if provided
 		existing.Tags = input.Tags
 	}
-	// MenuID optional replacement
-	if input.MenuID != "" {
-		existing.MenuID = input.MenuID
-	}
+
 	// VerificationStatus update only if provided and non-empty
 	if input.VerificationStatus != "" {
 		existing.VerificationStatus = domain.VerificationStatus(input.VerificationStatus)
