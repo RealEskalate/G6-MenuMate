@@ -18,13 +18,20 @@ type ItemDB struct {
 	Price           float64   `bson:"price"`
 	Currency        string    `bson:"currency"`
 	Allergies       []string  `bson:"allergies"`
+	AllergiesAm     string    `bson:"allergiesAm"`
 	UserImages      []string  `bson:"userImages"`
 	Calories        int       `bson:"calories"`
+	Protein         int       `bson:"protein"`
+	Carbs           int       `bson:"carbs"`
+	Fat             int       `bson:"fat"`
+	NutritionalInfo *domain.NutritionalInfo `bson:"nutritionalInfo,omitempty"`
+	TabTags         []string  `bson:"tabTags"`
+	TabTagsAm       []string  `bson:"tabTagsAm"`
 	Ingredients     []string  `bson:"ingredients"`
 	IngredientsAm   []string  `bson:"ingredientsAm"`
 	PreparationTime int       `bson:"preparationTime"`
-	HowToEat        any       `bson:"howToEat"`
-	HowToEatAm      any       `bson:"howToEatAm"`
+	HowToEat        string    `bson:"howToEat"`
+	HowToEatAm      string    `bson:"howToEatAm"`
 	CreatedAt       time.Time `bson:"createdAt"`
 	UpdatedAt       time.Time `bson:"updatedAt"`
 	IsDeleted       bool      `bson:"isDeleted"`
@@ -46,8 +53,15 @@ func FromDomainItem(item *domain.Item) *ItemDB {
 		Price:           item.Price,
 		Currency:        item.Currency,
 		Allergies:       item.Allergies,
+		AllergiesAm:     item.AllergiesAm,
 		UserImages:      item.UserImages,
 		Calories:        item.Calories,
+		Protein:         item.Protein,
+		Carbs:           item.Carbs,
+		Fat:             item.Fat,
+		NutritionalInfo: item.NutritionalInfo,
+		TabTags:         item.TabTags,
+		TabTagsAm:       item.TabTagsAm,
 		Ingredients:     item.Ingredients,
 		IngredientsAm:   item.IngredientsAm,
 		PreparationTime: item.PreparationTime,
@@ -75,8 +89,15 @@ func ToDomainItem(item *ItemDB) *domain.Item {
 		Price:           item.Price,
 		Currency:        item.Currency,
 		Allergies:       item.Allergies,
+		AllergiesAm:     item.AllergiesAm,
 		UserImages:      item.UserImages,
 		Calories:        item.Calories,
+		Protein:         item.Protein,
+		Carbs:           item.Carbs,
+		Fat:             item.Fat,
+		NutritionalInfo: item.NutritionalInfo,
+		TabTags:         item.TabTags,
+		TabTagsAm:       item.TabTagsAm,
 		Ingredients:     item.Ingredients,
 		IngredientsAm:   item.IngredientsAm,
 		PreparationTime: item.PreparationTime,
