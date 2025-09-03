@@ -8,6 +8,7 @@ import (
 type Menu struct {
 	ID           string    `json:"id"`
 	RestaurantID string    `json:"restaurant_id"`
+	Slug         string    `json:"slug"`
 	Version      int       `json:"version"`
 	IsPublished  bool      `json:"is_published"`
 	PublishedAt  time.Time `json:"published_at"`
@@ -17,6 +18,7 @@ type Menu struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 	UpdatedBy    string    `json:"updated_by"`
 	IsDeleted    bool      `json:"is_deleted"`
+	DeletedAt    *time.Time `json:"deleted_at,omitempty"`
 	ViewCount    int       `json:"view_count"`
 }
 
