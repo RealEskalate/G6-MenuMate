@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:dinq/features/restaurant_management/data/model/category_model.dart';
-import 'package:dinq/features/restaurant_management/data/model/tab_model.dart';
+import 'package:dinq/features/dinq/restaurant_management/data/model/category_model.dart';
+import 'package:dinq/features/dinq/restaurant_management/data/model/tab_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

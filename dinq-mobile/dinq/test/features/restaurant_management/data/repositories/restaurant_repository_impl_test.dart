@@ -1,11 +1,11 @@
 import 'package:dartz/dartz.dart';
 import 'package:dinq/core/error/exceptions.dart';
 import 'package:dinq/core/error/failures.dart';
-import 'package:dinq/features/restaurant_management/data/repositories/restaurant_repository_impl.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/category.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/menu.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/restaurant.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/review.dart';
+import 'package:dinq/features/dinq/restaurant_management/data/repositories/restaurant_repository_impl.dart';
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/category.dart';
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/menu.dart';
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/restaurant.dart';
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/review.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 

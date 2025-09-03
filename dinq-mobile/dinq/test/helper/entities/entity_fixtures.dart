@@ -1,9 +1,9 @@
-import 'package:dinq/features/restaurant_management/domain/entities/category.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/item.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/menu.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/restaurant.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/review.dart';
-import 'package:dinq/features/restaurant_management/domain/entities/tab.dart';
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/category.dart';
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/item.dart';
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/menu.dart';
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/restaurant.dart';
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/review.dart';
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/tab.dart';
 
 class RestaurantFixtures {
   static const tId = 'restaurant_1';

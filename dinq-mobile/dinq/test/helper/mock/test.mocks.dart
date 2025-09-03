@@ -8,19 +8,19 @@ import 'dart:async' as _i12;
 import 'package:dartz/dartz.dart' as _i2;
 import 'package:dinq/core/error/failures.dart' as _i13;
 import 'package:dinq/core/network/network_info.dart' as _i18;
-import 'package:dinq/features/restaurant_management/data/datasources/restaurant_remote_data_source.dart'
+import 'package:dinq/features/dinq/restaurant_management/data/datasources/restaurant_remote_data_source.dart'
     as _i17;
-import 'package:dinq/features/restaurant_management/data/model/restaurant_model.dart'
+import 'package:dinq/features/dinq/restaurant_management/data/model/restaurant_model.dart'
     as _i14;
-import 'package:dinq/features/restaurant_management/domain/entities/category.dart'
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/category.dart'
     as _i15;
-import 'package:dinq/features/restaurant_management/domain/entities/menu.dart'
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/menu.dart'
     as _i4;
-import 'package:dinq/features/restaurant_management/domain/entities/restaurant.dart'
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/restaurant.dart'
     as _i3;
-import 'package:dinq/features/restaurant_management/domain/entities/review.dart'
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/review.dart'
     as _i16;
-import 'package:dinq/features/restaurant_management/domain/repositories/restaurant_repository.dart'
+import 'package:dinq/features/dinq/restaurant_management/domain/repositories/restaurant_repository.dart'
     as _i11;
 import 'package:dio/src/adapter.dart' as _i6;
 import 'package:dio/src/cancel_token.dart' as _i19;

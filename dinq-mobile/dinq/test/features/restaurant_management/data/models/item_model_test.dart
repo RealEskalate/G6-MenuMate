@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:dinq/features/restaurant_management/data/model/item_model.dart';
+import 'package:dinq/features/dinq/restaurant_management/data/model/item_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
