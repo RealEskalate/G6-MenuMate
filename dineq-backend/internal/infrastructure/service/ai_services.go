@@ -135,7 +135,7 @@ func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string
 			if calories > 0 || protein > 0 || carbs > 0 || fat > 0 {
 				nutri = &domain.NutritionalInfo{Calories: calories, Protein: protein, Carbs: carbs, Fat: fat}
 			}
-			item := domain.Item{ID: bson.NewObjectID().Hex(), CategoryID: cat.ID, Name: mi.Name, NameAm: mi.NameAmharic, Description: mi.Description, DescriptionAm: mi.DescriptionAmharic, Price: mi.Price, Currency: firstNonEmpty(mi.Currency, "ETB"), PreparationTime: prep, Allergies: allergySlice, AllergiesAm: mi.AllergiesAm, HowToEat: mi.EatingInstructions, HowToEatAm: mi.EatingInstructionsAm, Calories: calories, Protein: protein, Carbs: carbs, Fat: fat, NutritionalInfo: nutri, TabTags: mi.TabTags, TabTagsAm: mi.TabTagsAm, IsDeleted: false}
+			item := domain.Item{ID: bson.NewObjectID().Hex(), Name: mi.Name, NameAm: mi.NameAmharic, Description: mi.Description, DescriptionAm: mi.DescriptionAmharic, Price: mi.Price, Currency: firstNonEmpty(mi.Currency, "ETB"), PreparationTime: prep, Allergies: allergySlice, AllergiesAm: mi.AllergiesAm, HowToEat: mi.EatingInstructions, HowToEatAm: mi.EatingInstructionsAm, Calories: calories, Protein: protein, Carbs: carbs, Fat: fat, NutritionalInfo: nutri, TabTags: mi.TabTags, TabTagsAm: mi.TabTagsAm, IsDeleted: false}
 			cat.Items = append(cat.Items, item)
 		}
 		for _, t := range tabIndex { menu.Tabs = append(menu.Tabs, *t) }
