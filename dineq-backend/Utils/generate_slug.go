@@ -13,14 +13,16 @@ import (
 // GenerateSlug converts an arbitrary title/sentence into a URL friendly slug and
 // appends an 8 char unique suffix derived from a UUID (hex only) to minimize collision risk.
 // Examples:
-//   "Hello World!" => "hello-world-1a2b3c4d"
-//   "Äëî Ünicôde"  => "aeio-unicode-9f8e7d6c"
+//
+//	"Hello World!" => "hello-world-1a2b3c4d"
+//	"Äëî Ünicôde"  => "aeio-unicode-9f8e7d6c"
+//
 // Rules:
-//   * Lower-case
-//   * Non alphanumeric (after accent stripping) become single hyphens
-//   * Trim leading / trailing hyphens
-//   * Collapse consecutive hyphens
-//   * Ensure base portion is not empty (fallback: "item")
+//   - Lower-case
+//   - Non alphanumeric (after accent stripping) become single hyphens
+//   - Trim leading / trailing hyphens
+//   - Collapse consecutive hyphens
+//   - Ensure base portion is not empty (fallback: "item")
 func GenerateSlug(text string) string {
 	base := sanitizeToSlugCore(text)
 	if base == "" {
@@ -76,4 +78,3 @@ func sanitizeToSlugCore(s string) string {
 	}
 	return s
 }
-

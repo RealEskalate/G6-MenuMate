@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/logger"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/repositories"
@@ -16,7 +17,7 @@ import (
 	"github.com/veryfi/veryfi-go/veryfi"
 )
 
-func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database, notifySvc services.NotificationService) {
+func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database, notifUc domain.INotificationUseCase) {
 
 	// context time out
 	ctxTimeout := time.Duration(env.CtxTSeconds) * time.Second
@@ -49,36 +50,24 @@ func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 		logger.Log.Fatal().Err(err).Msg("Failed to initialize AI Service")
 	}
 
-	// Notifcation
-	notifyRepo := repositories.NewNotificationRepository(db, env.NotificationCollection)
-	notificationUseCase := usecase.NewNotificationUseCase(notifyRepo, notifySvc)
-
 	// // Worker
 	// pollInterval := 5 * time.Second
 	// ocrWorker := services.NewWorker(ctx, ocrJobRepo, ocrService, aiService, imgService, pushService, pollInterval)
 	// go ocrWorker.Start()
 
+	// qr services
+	qrService := services.NewQRService()
+
 	// menu repo
 	menuRepo := repositories.NewMenuRepository(db, env.MenuCollection)
-	menuUsecase := usecase.NewMenuUseCase(menuRepo, ctxTimeout)
+	menuUsecase := usecase.NewMenuUseCase(menuRepo, *qrService, ctxTimeout)
 
 	// repositories and usecases
 	ocrJobRepo := repositories.NewOCRJobRepository(db, env.OCRJobCollection)
 	ocrJobUsecase := usecase.NewOCRJobUseCase(ocrJobRepo, menuRepo, ocrService, aiService, ctxTimeout)
 
 	// ocr Handler
-	ocrJobHandler := handler.NewOCRJobHandler(ocrJobUsecase, menuUsecase, cloudinaryStorage, notificationUseCase)
-
-	// Primary (current) OCR routes
-	protected := group.Group("/ocr")
-	protected.Use(middleware.AuthMiddleware(*env))
-	{
-		protected.POST("/upload", ocrJobHandler.UploadMenu)
-		protected.GET("/:id", ocrJobHandler.GetOCRJobByID)
-		protected.DELETE("/:id", ocrJobHandler.DeleteOCRJob)
-		// protected.GET("/:id/result", ocrJobHandler.GetOCRJobResult)
-		// protected.PUT("/:id/status", ocrJobHandler.UpdateOCRJobStatus)
-	}
+	ocrJobHandler := handler.NewOCRJobHandler(ocrJobUsecase, menuUsecase, cloudinaryStorage, notifUc)
 
 	// Backward compatibility / transition routes for previously documented /ocr-jobs paths
 	legacy := group.Group("/ocr-jobs")

@@ -27,7 +27,7 @@ func NewJWTService(accessSecret, refreshSecret string, accessExpiry, refreshExpi
 func (s *JwtService) GenerateTokens(user domain.User) (domain.RefreshTokenResponse, error) {
 	accessClaims := jwt.MapClaims{
 		"sub":         user.ID,
-		"username":    user.Username,
+		"email":       user.Email,
 		"is_verified": user.IsVerified,
 		"role":        user.Role,
 		"status":      user.Status,
