@@ -11,6 +11,7 @@ import (
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 // RestaurantHandler handles HTTP requests related to restaurants.
@@ -36,81 +37,80 @@ func IsValidObjectID(id string) bool {
 func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 	manager := c.GetString("user_id")
 
-	// Validate manager_id from context
 	if manager == "" || !IsValidObjectID(manager) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or missing manager_id (must be a valid ObjectID)"})
 		return
 	}
 
-	// Use a single domain.Restaurant object to consolidate data
+	if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse form: " + err.Error()})
+		return
+	}
+
 	r := &domain.Restaurant{
 		ManagerID: manager,
 	}
 
-	files := make(map[string][]byte)
-
-	contentType := c.ContentType()
-	if contentType == "application/json" {
-		// Handle JSON request
-		var input dto.RestaurantResponse
-		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		r.RestaurantName = input.Name
-		r.RestaurantPhone = input.Phone
-		r.About = input.About
-
-	} else if c.Request.MultipartForm != nil || contentType == "multipart/form-data" {
-		// Handle multipart/form-data request
-		restaurantName := c.PostForm("restaurant_name")
-		if restaurantName == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "restaurant_name is required"})
-			return
-		}
-		r.RestaurantName = restaurantName
-		r.RestaurantPhone = c.PostForm("restaurant_phone")
-		r.Tags = c.PostFormArray("tags")
-		about := c.PostForm("about")
-		if about != "" {
-			r.About = &about
-		}
-
-		// Read files into []byte
-		for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
-			fileHeader, err := c.FormFile(field)
-			if err != nil {
-				if err != http.ErrMissingFile {
-					c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s: %v", field, err)})
-					return
-				}
-				continue
-			}
-
-			file, err := fileHeader.Open()
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to open %s", field)})
-				return
-			}
-			defer file.Close()
-
-			data, err := io.ReadAll(file)
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s", field)})
-				return
-			}
-			files[field] = data
-		}
-
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported content type"})
+	// Required field
+	r.RestaurantName = c.PostForm("restaurant_name")
+	if r.RestaurantName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "restaurant_name is required"})
 		return
+	}
+
+	// Optional fields
+	r.RestaurantPhone = c.PostForm("restaurant_phone")
+	if about := c.PostForm("about"); about != "" {
+		r.About = &about
+	}
+
+	// Optional coordinates
+	latStr, lngStr := c.PostForm("lat"), c.PostForm("lng")
+	if latStr != "" && lngStr != "" {
+		lat, err1 := strconv.ParseFloat(latStr, 64)
+		lng, err2 := strconv.ParseFloat(lngStr, 64)
+		if err1 != nil || err2 != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid lat/lng"})
+			return
+		}
+		r.Location = &domain.Address{
+			Type:        "Point",
+			Coordinates: [2]float64{lng, lat}, // GeoJSON expects [lng, lat]
+		}
+	}
+
+	// Read optional files
+	files := make(map[string][]byte)
+	for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
+		fileHeader, err := c.FormFile(field)
+		if err != nil {
+			if err != http.ErrMissingFile {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s: %v", field, err)})
+				return
+			}
+			continue
+		}
+
+		file, err := fileHeader.Open()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to open %s", field)})
+			return
+		}
+		defer file.Close()
+
+		data, err := io.ReadAll(file)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s", field)})
+			return
+		}
+		files[field] = data
 	}
 
 	if err := h.RestaurantUsecase.CreateRestaurant(c.Request.Context(), r, files); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusCreated, dto.ToRestaurantResponse(r))
 }
 
@@ -159,8 +159,6 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 	}
 
 	files := make(map[string][]byte)
-
-	// Determine request type
 	contentType := c.ContentType()
 
 	if contentType == "application/json" {
@@ -169,6 +167,7 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+
 		// Merge mutable fields from JSON
 		if input.Name != "" && input.Name != existing.RestaurantName {
 			updateSlug(existing, input.Name)
@@ -179,15 +178,24 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 		if input.About != nil {
 			existing.About = input.About
 		}
-
 		if input.VerificationStatus != "" {
 			existing.VerificationStatus = domain.VerificationStatus(input.VerificationStatus)
 		}
+
+		// Update coordinates if provided
+		if len(input.Location.Coordinates) == 2 {
+			existing.Location.Coordinates = [2]float64{
+				input.Location.Coordinates[0], // longitude
+				input.Location.Coordinates[1], // latitude
+			}
+		}
+
 	} else if c.Request.MultipartForm != nil || contentType == "multipart/form-data" {
 		if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
 			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse form: " + err.Error()})
 			return
 		}
+
 		// Merge mutable fields from multipart form
 		if name := c.PostForm("name"); name != "" && name != existing.RestaurantName {
 			updateSlug(existing, name)
@@ -201,6 +209,19 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 		if status := c.PostForm("verification_status"); status != "" {
 			existing.VerificationStatus = domain.VerificationStatus(status)
 		}
+
+		// Update coordinates if provided
+		latStr := c.PostForm("lat")
+		lngStr := c.PostForm("lng")
+		fmt.Println("Updated coordinates:", latStr, lngStr)
+		if latStr != "" && lngStr != "" {
+			lat, err1 := strconv.ParseFloat(latStr, 64)
+			lng, err2 := strconv.ParseFloat(lngStr, 64)
+			if err1 == nil && err2 == nil {
+				existing.Location.Coordinates = [2]float64{lng, lat} // GeoJSON expects [lng, lat]
+			}
+		}
+
 		// Read files from multipart form
 		for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
 			fileHeader, err := c.FormFile(field)
@@ -334,6 +355,50 @@ func (h *RestaurantHandler) GetUniqueRestaurants(c *gin.Context) {
 		return
 	}
 
+	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
+
+	c.JSON(http.StatusOK, gin.H{
+		"page":        page,
+		"pageSize":    pageSize,
+		"total":       total,
+		"totalPages":  totalPages,
+		"restaurants": dto.ToRestaurantResponseList(restaurants),
+	})
+}
+func (h *RestaurantHandler) GetNearby(c *gin.Context) {
+	latStr := c.Query("lat") //latitiude string
+	lngStr := c.Query("lng") //longitude string
+	disStr := c.DefaultQuery("distance", "2000")
+
+	page, pageSize := 1, 10
+	if p := c.Query("page"); p != "" {
+		if val, _ := strconv.Atoi(p); val > 0 {
+			page = val
+		}
+	}
+
+	if ps := c.Query("pageSize"); ps != "" {
+		if val, _ := strconv.Atoi(ps); val > 0 {
+			pageSize = val
+		}
+	}
+
+	lat, err1 := strconv.ParseFloat(latStr, 64)
+	lng, err2 := strconv.ParseFloat(lngStr, 64)
+	distance, err3 := strconv.Atoi(disStr)
+
+	if err1 != nil || err2 != nil || err3 != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid lng/lat/distance"})
+		return
+	}
+	log.Info().Float64("lng", lng).Float64("lat", lat).Int("distance", distance).Msg("FindNearby query")
+
+	restaurants, total, err := h.RestaurantUsecase.FindNearby(c.Request.Context(), lat, lng, distance, page, pageSize)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
 
 	c.JSON(http.StatusOK, gin.H{

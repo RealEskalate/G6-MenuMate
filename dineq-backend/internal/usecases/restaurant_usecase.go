@@ -113,3 +113,12 @@ func (s *RestaurantUsecase) ListUniqueRestaurants(ctx context.Context, page, pag
 	}
 	return s.Repo.ListUniqueRestaurants(c, page, pageSize)
 }
+
+func (s *RestaurantUsecase) FindNearby(ctx context.Context, lat, lng float64, maxDistance int, page, pageSize int) ([]*domain.Restaurant, int64, error) {
+	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
+	defer cancel()
+	if pageSize > 50 {
+		pageSize = 50
+	}
+	return s.Repo.FindNearby(c, lat, lng, maxDistance, page, pageSize)
+}

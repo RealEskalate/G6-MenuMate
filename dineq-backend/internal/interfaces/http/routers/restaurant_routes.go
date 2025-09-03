@@ -33,6 +33,7 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 		pub.GET("", restaurantHandler.GetUniqueRestaurants)
 		pub.GET("/:slug", restaurantHandler.GetRestaurant)
 		pub.GET("/:slug/branches", restaurantHandler.GetBranches)
+		pub.GET("/nearby", restaurantHandler.GetNearby)
 	}
 
 	// Protected endpoints (auth required)
