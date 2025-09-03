@@ -14,8 +14,7 @@ import '../model/restaurant_model.dart';
 import '../model/review_model.dart';
 import 'restaurant_remote_data_source.dart';
 
-const String _baseUrl = baseUrl;
-const String _contentType = 'application/json';
+const String content = 'application/json';
 
 class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   final Dio dio;
@@ -30,36 +29,67 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   void toggleDemoMode() {
     _demoClient.setDemoMode(!_demoClient.isDemoMode);
     // ignore: avoid_print
-    print('🔄 Restaurant DataSource Demo Mode: ${_demoClient.isDemoMode ? 'ENABLED' : 'DISABLED'}');
+    print(
+      '🔄 Restaurant DataSource Demo Mode: ${_demoClient.isDemoMode ? 'ENABLED' : 'DISABLED'}',
+    );
   }
 
   /// Check if demo mode is enabled
   bool get isDemoMode => _demoClient.isDemoMode;
 
   @override
-  Future<List<Restaurant>> getRestaurants() async {
-      try {
-        final response = await dio.get(
-          '$_baseUrl/restaurants',
-          options: Options(headers: {'Content-Type': _contentType}),
+  Future<Restaurant> createRestaurant(RestaurantModel restaurant) async {
+    try {
+      final response = await dio.post(
+        '$baseUrl/restaurants',
+        data: restaurant.toMap(),
+        options: Options(
+          headers: {
+            'Content-Type': content,
+            'Authorization': 'Bearer $accessToken',
+          },
+        ),
+      );
+      final statusCode = response.statusCode;
+      if (statusCode == 201 || statusCode == 200) {
+        return RestaurantModel.fromMap(response.data).toEntity();
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'creating restaurant',
+          ),
+          statusCode: statusCode,
         );
-        final statusCode = response.statusCode;
-        if (statusCode == 200) {
-          final data = response.data;
-          return data
-              .map((json) => RestaurantModel.fromMap(json).toEntity())
-              .toList();
-        } else {
-          throw ServerException(
-            HttpErrorHandler.getExceptionMessage(
-              statusCode,
-              'fetching restaurants list',
-            ),
-            statusCode: statusCode,
-          );
-        }
-      } on DioException catch (e) {
-        final statusCode = e.response?.statusCode;
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(statusCode, 'creating restaurant'),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while creating restaurant: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<List<Restaurant>> getRestaurants(int page, int pageSize) async {
+    try {
+      final response = await dio.get(
+        '$baseUrl/restaurants',
+        queryParameters: {'page': page, 'pageSize': pageSize},
+        options: Options(headers: {'Content-Type': content}),
+      );
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        final data = response.data;
+        return data
+            .map((json) => RestaurantModel.fromMap(json).toEntity())
+            .toList();
+      } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
             statusCode,
@@ -67,35 +97,150 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
           ),
           statusCode: statusCode,
         );
-      } catch (e) {
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'fetching restaurants list',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while fetching restaurants list: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<Restaurant> getRestaurantBySlug(String slug) async {
+    try {
+      final response = await dio.get(
+        '$baseUrl/restaurants/$slug',
+        options: Options(headers: {'Content-Type': content}),
+      );
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        return RestaurantModel.fromMap(response.data).toEntity();
+      } else {
         throw ServerException(
-          'Unexpected error occurred while fetching restaurants list: ${e.toString()}',
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'fetching restaurants list',
+          ),
+          statusCode: statusCode,
         );
       }
-    
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'fetching restaurants list',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while fetching restaurants list: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<Restaurant> updateRestaurant(
+    RestaurantModel restaurant,
+    String slug,
+  ) async {
+    try {
+      final response = await dio.put(
+        '$baseUrl/restaurants/$slug',
+        data: restaurant.toMap(),
+        options: Options(
+          headers: {
+            'Content-Type': content,
+            'Authorization': 'Bearer $accessToken',
+          },
+        ),
+      );
+      final statuscode = response.statusCode;
+      if (statuscode == 200) {
+        return RestaurantModel.fromMap(response.data).toEntity();
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statuscode,
+            'PUT: update restaurant',
+          ),
+          statusCode: statuscode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'fetching restaurants list',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while fetching restaurants list: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<void> deleteRestaurant(String restaurantId) async {
+    try {
+      final response = await dio.delete(
+        '$baseUrl/restaurants/$restaurantId',
+        options: Options(
+          headers: {
+            'Content-Type': content,
+            'Authorization': 'Bearer $accessToken',
+          },
+        ),
+      );
+      final statusCode = response.statusCode;
+      if (statusCode == 200 || statusCode == 204) {
+        return;
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'deleting restaurant',
+          ),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(statusCode, 'deleting restaurant'),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while deleting restaurant: ${e.toString()}',
+      );
+    }
   }
 
   @override
   Future<Menu> getMenu(String restaurantId) async {
-      try {
-        final response = await dio.get(
-          '$_baseUrl/restaurants/$restaurantId/menu',
-          options: Options(headers: {'Content-Type': _contentType}),
-        );
-        final statusCode = response.statusCode;
-        if (statusCode == 200) {
-          return MenuModel.fromMap(response.data).toEntity();
-        } else {
-          throw ServerException(
-            HttpErrorHandler.getExceptionMessage(
-              statusCode,
-              'fetching menu for restaurant $restaurantId',
-            ),
-            statusCode: statusCode,
-          );
-        }
-      } on DioException catch (e) {
-        final statusCode = e.response?.statusCode;
+    try {
+      final response = await dio.get(
+        '$baseUrl/menus/:$restaurantId',
+        options: Options(headers: {'Content-Type': content}),
+      );
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        return MenuModel.fromMap(response.data).toEntity();
+      } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
             statusCode,
@@ -103,37 +248,37 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
           ),
           statusCode: statusCode,
         );
-      } catch (e) {
-        throw ServerException(
-          'Unexpected error occurred while fetching menu for restaurant $restaurantId: ${e.toString()}',
-        );
       }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'fetching menu for restaurant $restaurantId',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while fetching menu for restaurant $restaurantId: ${e.toString()}',
+      );
+    }
   }
 
   @override
   Future<List<Category>> getCategories(String tabId) async {
-      try {
-        final response = await dio.get(
-          '$_baseUrl/tabs/$tabId/categories',
-          options: Options(headers: {'Content-Type': _contentType}),
-        );
-        final statusCode = response.statusCode;
-        if (statusCode == 200) {
-          final List<dynamic> data = response.data;
-          return data
-              .map((json) => CategoryModel.fromMap(json).toEntity())
-              .toList();
-        } else {
-          throw ServerException(
-            HttpErrorHandler.getExceptionMessage(
-              statusCode,
-              'fetching categories for tab $tabId',
-            ),
-            statusCode: statusCode,
-          );
-        }
-      } on DioException catch (e) {
-        final statusCode = e.response?.statusCode;
+    try {
+      final response = await dio.get(
+        '$baseUrl/tabs/$tabId/categories',
+        options: Options(headers: {'Content-Type': content}),
+      );
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data
+            .map((json) => CategoryModel.fromMap(json).toEntity())
+            .toList();
+      } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
             statusCode,
@@ -141,37 +286,37 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
           ),
           statusCode: statusCode,
         );
-      } catch (e) {
-        throw ServerException(
-          'Unexpected error occurred while fetching categories for tab $tabId: ${e.toString()}',
-        );
       }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'fetching categories for tab $tabId',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while fetching categories for tab $tabId: ${e.toString()}',
+      );
+    }
   }
 
   @override
   Future<List<Review>> getReviews(String itemId) async {
-      try {
-        final response = await dio.get(
-          '$_baseUrl/items/$itemId/reviews',
-          options: Options(headers: {'Content-Type': _contentType}),
-        );
-        final statusCode = response.statusCode;
-        if (statusCode == 200) {
-          final List<dynamic> data = response.data;
-          return data
-              .map((json) => ReviewModel.fromMap(json).toEntity())
-              .toList();
-        } else {
-          throw ServerException(
-            HttpErrorHandler.getExceptionMessage(
-              statusCode,
-              'fetching reviews for item $itemId',
-            ),
-            statusCode: statusCode,
-          );
-        }
-      } on DioException catch (e) {
-        final statusCode = e.response?.statusCode;
+    try {
+      final response = await dio.get(
+        '$baseUrl/items/$itemId/reviews',
+        options: Options(headers: {'Content-Type': content}),
+      );
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data
+            .map((json) => ReviewModel.fromMap(json).toEntity())
+            .toList();
+      } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
             statusCode,
@@ -179,35 +324,35 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
           ),
           statusCode: statusCode,
         );
-      } catch (e) {
-        throw ServerException(
-          'Unexpected error occurred while fetching reviews for item $itemId: ${e.toString()}',
-        );
       }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'fetching reviews for item $itemId',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while fetching reviews for item $itemId: ${e.toString()}',
+      );
+    }
   }
 
   @override
   Future<List<String>> getUserImages(String slug) async {
-      try {
-        final response = await dio.get(
-          '$_baseUrl/items/$slug/images',
-          options: Options(headers: {'Content-Type': _contentType}),
-        );
-        final statusCode = response.statusCode;
-        if (statusCode == 200) {
-          final List<dynamic> data = response.data;
-          return data.map((json) => json.toString()).toList();
-        } else {
-          throw ServerException(
-            HttpErrorHandler.getExceptionMessage(
-              statusCode,
-              'fetching user images for item $slug',
-            ),
-            statusCode: statusCode,
-          );
-        }
-      } on DioException catch (e) {
-        final statusCode = e.response?.statusCode;
+    try {
+      final response = await dio.get(
+        '$baseUrl/items/$slug/images',
+        options: Options(headers: {'Content-Type': content}),
+      );
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((json) => json.toString()).toList();
+      } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
             statusCode,
@@ -215,10 +360,20 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
           ),
           statusCode: statusCode,
         );
-      } catch (e) {
-        throw ServerException(
-          'Unexpected error occurred while fetching user images for item $slug: ${e.toString()}',
-        );
       }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'fetching user images for item $slug',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while fetching user images for item $slug: ${e.toString()}',
+      );
+    }
   }
 }
