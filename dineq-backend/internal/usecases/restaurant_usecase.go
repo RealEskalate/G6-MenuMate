@@ -26,7 +26,7 @@ func NewRestaurantUsecase(r domain.IRestaurantRepo, timeout time.Duration, stora
 
 func (s *RestaurantUsecase) CreateRestaurant(ctx context.Context, r *domain.Restaurant, files map[string][]byte) error {
 	r.Slug = utils.GenerateSlug(r.RestaurantName)
-	c, cancel := context.WithTimeout(ctx, s.ctxtimeout*5)
+	c, cancel := context.WithTimeout(ctx, s.ctxtimeout*60)
 	defer cancel()
 
 	for fieldName, fileData := range files {
@@ -34,7 +34,7 @@ func (s *RestaurantUsecase) CreateRestaurant(ctx context.Context, r *domain.Rest
 			continue // skip empty files
 		}
 
-		url, _, err := s.StorageService.UploadFile(context.Background(), fmt.Sprintf("%s_%d", fieldName, time.Now().UnixNano()), fileData, "restaurant_images")
+		url, _, err := s.StorageService.UploadFile(c, fmt.Sprintf("%s_%d", fieldName, time.Now().UnixNano()), fileData, "restaurant_images")
 		if err != nil {
 			return fmt.Errorf("failed to upload %s: %w", fieldName, err)
 		}
