@@ -17,7 +17,6 @@ type ItemDB struct {
 	DescriptionAm   string        `bson:"descriptionAm"`
 	Image           []string      `bson:"image"`
 	Price           float64       `bson:"price"`
-	TabTags         []string      `bson:"tabTags"`
 	CategoryTags    []string      `bson:"categoryTags"`
 	Currency        string        `bson:"currency"`
 	Allergies       []string      `bson:"allergies"`
@@ -61,7 +60,6 @@ func NewItemDBFromDomain(item *domain.Item) *ItemDB {
 		DescriptionAm:   item.DescriptionAm,
 		Image:           item.Image,
 		Price:           item.Price,
-		TabTags:         item.TabTags,
 		CategoryTags:    item.CategoryTags,
 		Currency:        item.Currency,
 		Allergies:       item.Allergies,
@@ -119,7 +117,6 @@ func MergeItemUpdate(updated *domain.Item) *ItemDB {
 		ViewCount:       updated.ViewCount,
 		AverageRating:   updated.AverageRating,
 		ReviewIDs:       updated.ReviewIds,
-		DeletedAt:       updated.DeletedAt,
 	}
 }
 
@@ -147,7 +144,6 @@ func ToDomainItem(item *ItemDB) *domain.Item {
 		Carbs:           item.Carbs,
 		Fat:             item.Fat,
 		NutritionalInfo: item.NutritionalInfo,
-		TabTags:         item.TabTags,
 		TabTagsAm:       item.TabTagsAm,
 		Ingredients:     item.Ingredients,
 		IngredientsAm:   item.IngredientsAm,
@@ -160,7 +156,6 @@ func ToDomainItem(item *ItemDB) *domain.Item {
 		ViewCount:       item.ViewCount,
 		AverageRating:   item.AverageRating,
 		ReviewIds:       item.ReviewIDs,
-		DeletedAt:       item.DeletedAt,
 	}
 }
 
