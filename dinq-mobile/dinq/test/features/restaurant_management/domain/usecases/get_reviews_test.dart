@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dinq/core/error/failures.dart';
-import 'package:dinq/features/restaurant_management/domain/usecases/get_reviews.dart';
+import 'package:dinq/features/dinq/restaurant_management/domain/usecases/get_reviews.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 
