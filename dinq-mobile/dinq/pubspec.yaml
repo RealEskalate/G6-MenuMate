@@ -36,6 +36,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
+  flutter_colorpicker: ^1.1.0
   get_it: ^8.2.0
   image_picker: ^1.2.0
   internet_connection_checker: ^3.0.1

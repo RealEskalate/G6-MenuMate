@@ -1,5 +1,9 @@
 import 'package:equatable/equatable.dart';
 
+import '../../domain/entities/item.dart';
+import '../../domain/entities/menu.dart';
+import '../../domain/entities/restaurant.dart';
+
 abstract class RestaurantEvent extends Equatable {
   const RestaurantEvent();
 
@@ -50,6 +54,7 @@ class LoadUserImages extends RestaurantEvent {
   List<Object?> get props => [slug];
 }
 
+
 class LoadRestaurantBySlug extends RestaurantEvent {
   final String slug;
 
@@ -85,4 +90,5 @@ class DeleteRestaurantEvent extends RestaurantEvent {
 
   @override
   List<Object?> get props => [restaurantId];
+
 }
