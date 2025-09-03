@@ -8,23 +8,23 @@ import (
 )
 
 type OCRJobDB struct {
-	ID               bson.ObjectID `bson:"_id,omitempty"`
-	RestaurantID     string        `bson:"restaurantId"`
-	ImageURL         string        `bson:"imageUrl"`
-	UserID           string        `bson:"userId"`
-	Status           string        `bson:"status"`
-	ResultText       string        `bson:"resultText"`
-	StructuredMenuID string        `bson:"structuredMenuId"`
-	Error            string        `bson:"error"`
-	CreatedAt        time.Time     `bson:"createdAt"`
-	UpdatedAt        time.Time     `bson:"updatedAt"`
-	EstimatedCompletion time.Time  `bson:"estimatedCompletion"`
-	CompletedAt         *time.Time `bson:"completedAt"`
-	Results            *domain.OCRJobResult `bson:"results,omitempty"`
-	RawAIJSON          string        `bson:"rawAiJson,omitempty"`
-	Phase              string        `bson:"phase,omitempty"`
-	Progress           int           `bson:"progress,omitempty"`
-	PhaseHistory       []domain.OCRPhase `bson:"phaseHistory,omitempty"`
+	ID                  bson.ObjectID       `bson:"_id,omitempty"`
+	RestaurantID        string              `bson:"restaurantId"`
+	ImageURL            string              `bson:"imageUrl"`
+	UserID              string              `bson:"userId"`
+	Status              string              `bson:"status"`
+	ResultText          string              `bson:"resultText"`
+	StructuredMenuID    string              `bson:"structuredMenuId"`
+	Error               string              `bson:"error"`
+	CreatedAt           time.Time           `bson:"createdAt"`
+	UpdatedAt           time.Time           `bson:"updatedAt"`
+	EstimatedCompletion time.Time           `bson:"estimatedCompletion"`
+	CompletedAt         *time.Time          `bson:"completedAt"`
+	Results             *domain.OCRJobResult `bson:"results,omitempty"`
+	RawAIJSON           string              `bson:"rawAiJson,omitempty"`
+	Phase               string              `bson:"phase,omitempty"`
+	Progress            int                 `bson:"progress,omitempty"`
+	PhaseHistory        []domain.OCRPhase   `bson:"phaseHistory,omitempty"`
 }
 
 func ToDomainOCRJob(m *OCRJobDB) *domain.OCRJob {
