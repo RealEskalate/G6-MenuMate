@@ -1,27 +1,94 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Pencil, FileText, Image as ImageIcon, Tag } from "lucide-react";
+import { Pencil, FileText, Image as ImageIcon } from "lucide-react";
 import { useRegister } from "@/context/RegisterContext";
 import Image from "next/image";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 export default function ReviewPage() {
   const router = useRouter();
-  const { data } = useRegister();
+  const { data, resetData } = useRegister();
+  const { data: session } = useSession(); 
 
   const basicInfo = {
-    "Restaurant Name": data.restaurant,
-    "Phone Number": data.phone,
-    Location: data.address,
-    About: data.about || "-",
-    Tags: data.tags && data.tags.length > 0 ? data.tags.join(", ") : "-",
+    Name: data.name,
+    Email: data.email,
+    Restaurant: data.restaurant,
+    Address: data.address,
+    Phone: data.phone,
+    About: data.about || "N/A",
+    Tags: data.tags?.join(", ") || "None",
   };
 
-  const documents = data.businessLicense ? [data.businessLicense] : [];
   const logoImage = data.logo_image;
+  const documents = data.businessLicense ? [data.businessLicense] : [];
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    // submission logic here (API call)
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (!session?.accessToken) {
+        throw new Error("Unauthorized: No access token found");
+      }
+
+      const formData = new FormData();
+
+      // match API field names
+      formData.append("restaurant_name", data.restaurant);
+      formData.append("restaurant_phone", data.phone);
+      formData.append("about", data.about || "");
+
+      if (data.tags && data.tags.length > 0) {
+        data.tags.forEach((tag: string) => {
+          formData.append("tags", tag);
+        });
+      }
+
+      // files
+      if (data.logo_image?.file) {
+        formData.append("logo_image", data.logo_image.file);
+      }
+
+      if (data.businessLicense?.file) {
+        formData.append("verification_docs", data.businessLicense.file);
+      }
+
+      if ((data as any).coverImage?.file) {
+        formData.append("cover_image", (data as any).coverImage.file);
+      }
+
+      const res = await fetch(
+        "https://g6-menumate.onrender.com/v1/restaurants",
+        {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${session.accessToken}`, // ✅ include token
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Failed to create restaurant");
+      }
+
+      const result = await res.json();
+      console.log("✅ Created restaurant:", result);
+
+      resetData();
+      router.push("/restaurant/success");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,12 +113,12 @@ export default function ReviewPage() {
                 key={key}
                 className="flex items-center justify-between border border-gray-300 rounded-lg px-3 sm:px-4 py-2 bg-white"
               >
-                <span className="text-gray-700 text-sm sm:text-base ">
+                <span className="text-gray-700 text-sm sm:text-base text-right ml-4 ">
                   {key}:{value}
                 </span>
                 <button
                   type="button"
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 hover:text-gray-700 ml-2"
                   onClick={() => router.push("/register/basic-info")}
                 >
                   <Pencil className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -75,7 +142,7 @@ export default function ReviewPage() {
               <div className="flex items-center space-x-3 border border-gray-300 rounded-lg px-3 sm:px-4 py-2 bg-white">
                 <ImageIcon className="w-5 h-5 text-gray-500" />
                 <Image
-                  src={logoImage.url || "/placeholder.png"}
+                  src={URL.createObjectURL(logoImage.file)}
                   alt="Restaurant Logo"
                   width={60}
                   height={60}
@@ -126,11 +193,13 @@ export default function ReviewPage() {
           <button
             type="button"
             onClick={handleSubmit}
+            disabled={loading}
             className="w-full sm:w-auto px-5 sm:px-6 py-2 rounded-md bg-orange-500 text-white hover:bg-orange-600 text-sm sm:text-base"
           >
-            Submit →
+            {loading ? "Submitting..." : "Submit →"}
           </button>
         </div>
+        {error && <p className="text-red-500 mt-4">{error}</p>}
       </div>
     </div>
   );
