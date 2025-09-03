@@ -24,14 +24,19 @@ type ForgotPasswordRequest struct {
 type ResetPasswordRequest struct {
 	Email       string `json:"email" binding:"required,email"`
 	Token       string `json:"token" binding:"required"`
-	NewPassword string `json:"new_password" binding:"required,min=6"`
+	NewPassword string `json:"new_password" binding:"required,min=8"`
 }
 
 type ChangeRoleRequest struct {
-	UserID string `json:"user_id" validate:"required"`
+	UserID string `json:"userId" validate:"required"`
 	Role   string `json:"role" validate:"required,oneof=admin user superadmin"`
 }
 
 type VerifyEmailRequest struct {
 	Email string `json:"email" validate:"required,email"`
 }
+
+// type ChangePasswordRequest struct {
+// 	OldPassword string `json:"oldPassword" validate:"required,min=8"`
+// 	NewPassword string `json:"newPassword" validate:"required,min=8"`
+// }

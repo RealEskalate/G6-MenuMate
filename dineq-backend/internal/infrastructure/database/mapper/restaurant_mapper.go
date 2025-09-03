@@ -1,6 +1,8 @@
 package mapper
 
 import (
+	"fmt"
+
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -20,6 +22,7 @@ type RestaurantModel struct {
 	VerificationDocs   string         `bson:"verificationDocs"`
 	CoverImage         string         `bson:"coverImage"`
 	AverageRating      float64        `bson:"averageRating"`
+	CoverImage         string         `bson:"coverImage"`
 	ViewCount          int64          `bson:"viewCount"`
 	CreatedAt          bson.DateTime  `bson:"createdAt"`
 	UpdatedAt          bson.DateTime  `bson:"updatedAt"`
@@ -29,6 +32,7 @@ type RestaurantModel struct {
 // Parse converts domain.Restaurant → RestaurantModel
 func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 	managerOID, err := bson.ObjectIDFromHex(r.ManagerID)
+	fmt.Println("manager", r.ManagerID)
 	if err != nil {
 		return err
 	}
@@ -42,14 +46,17 @@ func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 
 	m.Location = r.Location
 	m.About = ""
-	if r.About != nil {
-		m.About = *r.About
+	if r.About != "" {
+		m.About = r.About
 	}
 	m.LogoImage = ""
-	if r.LogoImage != nil {
-		m.LogoImage = *r.LogoImage
+	if r.LogoImage != "" {
+		m.LogoImage = r.LogoImage
 	}
-
+	m.CoverImage = ""
+	if r.CoverImage != "" {
+		m.CoverImage = r.CoverImage
+	}
 	// Convert VerificationDocs (skip empty/invalid)
 	m.VerificationDocs = ""
 	if r.VerificationDocs != nil {
@@ -81,8 +88,8 @@ func (m *RestaurantModel) ToDomain() *domain.Restaurant {
 		ManagerID:          m.ManagerID.Hex(),
 		RestaurantPhone:    m.Phone,
 		Location:           m.Location,
-		About:              nil,
-		LogoImage:          nil,
+		About:              m.About,
+		LogoImage:          m.LogoImage,
 		VerificationStatus: domain.VerificationStatus(m.VerificationStatus),
 		VerificationDocs:   nil,
 		CoverImage:         nil,
@@ -94,10 +101,10 @@ func (m *RestaurantModel) ToDomain() *domain.Restaurant {
 	}
 
 	if m.About != "" {
-		r.About = &m.About
+		r.About = m.About
 	}
 	if m.LogoImage != "" {
-		r.LogoImage = &m.LogoImage
+		r.LogoImage = m.LogoImage
 	}
 	if m.VerificationDocs != "" {
 		r.VerificationDocs = &m.VerificationDocs

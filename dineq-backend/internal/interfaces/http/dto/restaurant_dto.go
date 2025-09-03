@@ -12,11 +12,11 @@ type RestaurantResponse struct {
 	Name               string    `json:"name"`
 	ManagerID          string    `json:"manager_id"`
 	Phone              string    `json:"phone"`
-	About              *string   `json:"about,omitempty"`
-	LogoImage          *string   `json:"logo_image,omitempty"`
+	About              string    `json:"about,omitempty"`
+	LogoImage          string    `json:"logo_image,omitempty"`
 	VerificationStatus string    `json:"verification_status"`
-	VerificationDocs   *string   `json:"verification_docs,omitempty"`
-	CoverImage         *string   `json:"cover_image,omitempty"`
+	VerificationDocs   string    `json:"verification_docs,omitempty"`
+	CoverImage         string    `json:"cover_image,omitempty"`
 	AverageRating      float64   `json:"average_rating"`
 	ViewCount          int64     `json:"view_count"`
 	CreatedAt          time.Time `json:"created_at"`
