@@ -175,7 +175,7 @@ export default function SignupForm() {
       {/* Sign In */}
       <p className="text-center mt-4 text-sm">
         Already have an account?{" "}
-        <Link href="/signin" className="text-[var(--color-primary)]">
+        <Link href="/auth/signin" className="text-[var(--color-primary)]">
           Sign in
         </Link>
       </p>
@@ -193,7 +193,7 @@ export default function SignupForm() {
         className="w-full flex items-center justify-center gap-2"
       >
         <Image
-          src="/google-icon.svg"
+          src="/icons/google.png"
           width={100}
           height={120}
           alt="Google"
