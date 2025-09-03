@@ -58,6 +58,12 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 	now := time.Now()
 	request.CreatedAt = now
 	request.UpdatedAt = now
+	// Generate default avatar if none provided
+	if strings.TrimSpace(request.ProfileImage) == "" {
+		avatarURL, err := uc.generateAndUploadAvatar(ctx, request)
+		if err == nil { request.ProfileImage = avatarURL }
+	}
+
 	err := uc.userRepo.CreateUser(ctx, request)
 	if err != nil {
 		// Handle duplicate key errors from Mongo instead of racing with manual existence queries
@@ -80,6 +86,20 @@ func (uc *UserUsecase) Register(request *domain.User) error {
 		return err
 	}
 	return nil
+}
+
+// generateAndUploadAvatar fetches a UI-Avatar image 
+func (uc *UserUsecase) generateAndUploadAvatar(ctx context.Context, u *domain.User) (string, error) {
+	name := strings.TrimSpace(u.Username)
+	if name == "" {
+		parts := []string{}
+		if u.FirstName != "" { parts = append(parts, u.FirstName) }
+		if u.LastName != "" { parts = append(parts, u.LastName) }
+		if len(parts) > 0 { name = strings.Join(parts, "+") }
+	}
+	if name == "" && u.Email != "" { name = strings.Split(u.Email, "@")[0] }
+	if name == "" { name = "User" }
+	return fmt.Sprintf("https://ui-avatars.com/api/?name=%s&background=random&color=fff&format=png", name), nil
 }
 
 // find user by username or id
