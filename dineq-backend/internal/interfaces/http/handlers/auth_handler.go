@@ -33,6 +33,7 @@ type AuthController struct {
 	GoogleRedirectURL    string
 	CookieSecure         bool
 	CookieDomain         string
+	FrontendBaseURL      string
 }
 
 func (ac *AuthController) RegisterRequest(c *gin.Context) {
@@ -47,8 +48,7 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 	}
 
 	user := dto.ToDomainUser(newUser)
-	err := ac.UserUsecase.Register(&user)
-	if err != nil {
+	if err := ac.UserUsecase.Register(&user); err != nil {
 		status := http.StatusInternalServerError
 		if errors.Is(err, domain.ErrEmailAlreadyInUse) || errors.Is(err, domain.ErrUsernameAlreadyInUse) || errors.Is(err, domain.ErrPhoneAlreadyInUse) || errors.Is(err, domain.ErrDuplicateUser) {
 			status = http.StatusConflict
@@ -56,148 +56,56 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 		c.JSON(status, dto.ErrorResponse{Message: err.Error(), Error: err.Error()})
 		return
 	}
-	// Generate access and refresh tokens for the newly registered user
+
 	tokens, err := ac.AuthService.GenerateTokens(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
-	// Prepare refresh token for DB
-	refreshToken := &domain.RefreshToken{
-		Token:     tokens.RefreshToken,
-		UserID:    user.ID,
-		Revoked:   false,
-		ExpiresAt: tokens.RefreshTokenExpiresAt,
-		CreatedAt: time.Now(),
-	}
-	// Save the refresh token
+	refreshToken := &domain.RefreshToken{Token: tokens.RefreshToken, UserID: user.ID, Revoked: false, ExpiresAt: tokens.RefreshTokenExpiresAt, CreatedAt: time.Now()}
 	_ = ac.RefreshTokenUsecase.Save(refreshToken)
-	// Set the tokens in cookies
-	utils.SetCookie(c, utils.CookieOptions{
-		Name:     "refresh_token",
-		Value:    tokens.RefreshToken,
-		MaxAge:   int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()),
-		Path:     "/",
-		Domain:   "",
-		Secure:   ac.CookieSecure,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	})
-	utils.SetCookie(c, utils.CookieOptions{
-		Name:     "access_token",
-		Value:    tokens.AccessToken,
-		MaxAge:   int(time.Until(tokens.AccessTokenExpiresAt).Seconds()),
-		Path:     "/",
-		Domain:   "",
-		Secure:   ac.CookieSecure,
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-	})
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "Registration successful",
-		"user":    dto.ToUserResponse(user),
-		"tokens": dto.LoginResponse{
-			AccessToken:  tokens.AccessToken,
-			RefreshToken: tokens.RefreshToken,
-		},
-	})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: tokens.RefreshToken, MaxAge: int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: true, SameSite: http.SameSiteStrictMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: tokens.AccessToken, MaxAge: int(time.Until(tokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: true, SameSite: http.SameSiteStrictMode})
+	c.JSON(http.StatusCreated, gin.H{"message": "Registration successful", "user": dto.ToUserResponse(user), "tokens": dto.LoginResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}})
 }
 
+// Standard email/password login
 func (ac *AuthController) LoginRequest(c *gin.Context) {
-    var loginRequest dto.LoginRequest
-    if err := c.ShouldBindJSON(&loginRequest); err != nil {
-        c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
-        return
-    }
-    if loginRequest.Identifier == "" || loginRequest.Password == "" {
-        c.JSON(http.StatusBadRequest, dto.ErrorResponse{
-            Message: domain.ErrInvalidInput.Error(),
-            Error:   domain.ErrPasswordAndEmailRequired.Error(),
-        })
-        return
-    }
-
-    // Find user by identifier (email | username | phone)
-    user, err := ac.UserUsecase.FindByUsernameOrEmail(c.Request.Context(), loginRequest.Identifier)
-    if err != nil {
-        c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error(), Error: err.Error()})
-        return
-    }
-
-    // Check password
-    if err := security.ValidatePassword(user.Password, loginRequest.Password); err != nil {
-        c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrInvalidCredentials.Error(), Error: err.Error()})
-        return
-    }
-
-    // Generate tokens
-    tokens, err := ac.AuthService.GenerateTokens(*user)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrTokenGenerationIssue.Error(), Error: err.Error()})
-        return
-    }
-
-    // Build refresh token model
-    rt := &domain.RefreshToken{
-        Token:     tokens.RefreshToken,
-        UserID:    user.ID,
-        Revoked:   false,
-        ExpiresAt: tokens.RefreshTokenExpiresAt,
-        CreatedAt: time.Now(),
-    }
-
-    // Upsert refresh token (revoke old if exists)
-    if existing, findErr := ac.RefreshTokenUsecase.FindByUserID(user.ID); findErr == nil && existing != nil {
-        _ = ac.RefreshTokenUsecase.RevokeByUserID(existing.UserID)
-        if err := ac.RefreshTokenUsecase.ReplaceToken(rt); err != nil {
-            c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToUpdateToken.Error(), Error: err.Error()})
-            return
-        }
-    } else {
-        if findErr != nil && findErr.Error() != domain.ErrRefreshTokenNotFound.Error() {
-            c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: findErr.Error()})
-            return
-        }
-        if err := ac.RefreshTokenUsecase.Save(rt); err != nil {
-            c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToSaveToken.Error(), Error: err.Error()})
-            return
-        }
-    }
-
-    // Set cookies
-    utils.SetCookie(c, utils.CookieOptions{
-        Name:     string(domain.RefreshTokenType),
-        Value:    tokens.RefreshToken,
-        MaxAge:   int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()),
-        Path:     "/",
-        Domain:   ac.CookieDomain,
-        Secure:   ac.CookieSecure,
-        HttpOnly: true,
-        SameSite: http.SameSiteStrictMode,
-    })
-    utils.SetCookie(c, utils.CookieOptions{
-        Name:     string(domain.AccessTokenType),
-        Value:    tokens.AccessToken,
-        MaxAge:   int(time.Until(tokens.AccessTokenExpiresAt).Seconds()),
-        Path:     "/",
-        Domain:   ac.CookieDomain,
-        Secure:   ac.CookieSecure,
-        HttpOnly: true,
-        SameSite: http.SameSiteStrictMode,
-    })
-
-    // Unified response shape (matches registration style)
-    c.JSON(http.StatusOK, gin.H{
-        "message": "Login successful",
-        "user":    dto.ToUserResponse(*user),
-        "tokens": dto.LoginResponse{
-            AccessToken:  tokens.AccessToken,
-            RefreshToken: tokens.RefreshToken,
-        },
-    })
+	var loginRequest dto.LoginRequest
+	if err := c.ShouldBindJSON(&loginRequest); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		return
+	}
+	if err := validate.Struct(loginRequest); err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
+		return
+	}
+	ctx := context.Background()
+	user, err := ac.UserUsecase.FindByUsernameOrEmail(ctx, loginRequest.Identifier)
+	if err != nil || user == nil {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrInvalidCredentials.Error(), Error: domain.ErrUserNotFound.Error()})
+		return
+	}
+	if err := security.ValidatePassword(user.Password, loginRequest.Password); err != nil {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrInvalidCredentials.Error(), Error: err.Error()})
+		return
+	}
+	tokens, err := ac.AuthService.GenerateTokens(*user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrTokenGenerationIssue.Error(), Error: err.Error()})
+		return
+	}
+	rt := &domain.RefreshToken{Token: tokens.RefreshToken, UserID: user.ID, Revoked: false, ExpiresAt: tokens.RefreshTokenExpiresAt, CreatedAt: time.Now()}
+	if existing, findErr := ac.RefreshTokenUsecase.FindByUserID(user.ID); findErr == nil && existing != nil {
+		_ = ac.RefreshTokenUsecase.RevokeByUserID(existing.UserID)
+		_ = ac.RefreshTokenUsecase.ReplaceToken(rt)
+	} else {
+		_ = ac.RefreshTokenUsecase.Save(rt)
+	}
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: tokens.RefreshToken, MaxAge: int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: true, SameSite: http.SameSiteStrictMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: tokens.AccessToken, MaxAge: int(time.Until(tokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: true, SameSite: http.SameSiteStrictMode})
+	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "user": dto.ToUserResponse(*user), "tokens": dto.LoginResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}})
 }
-
-// ...existing code below...
 
 func (ac *AuthController) RefreshToken(c *gin.Context) {
 	var req dto.RefreshTokenRequest
@@ -545,87 +453,30 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			ac.RefreshTokenUsecase.Save(refreshToken)
 		}
 
-		utils.SetCookie(c, utils.CookieOptions{
-			Name:     string(domain.RefreshTokenType),
-			Value:    response.RefreshToken,
-			MaxAge:   int(time.Until(response.RefreshTokenExpiresAt).Seconds()),
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   false,
-			SameSite: http.SameSiteStrictMode,
-		})
-
-		utils.SetCookie(c, utils.CookieOptions{
-			Name:     string(domain.AccessTokenType),
-			Value:    response.AccessToken,
-			MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   false,
-			SameSite: http.SameSiteStrictMode,
-		})
-		c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.ToUserResponse(*user)})
+		utils.SetCookie(c, utils.CookieOptions{ Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode })
+		utils.SetCookie(c, utils.CookieOptions{ Name: string(domain.AccessTokenType), Value: response.AccessToken, MaxAge: int(time.Until(response.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode })
+		redir := ac.FrontendBaseURL
+		if redir == "" { redir = "/" }
+		c.Redirect(http.StatusTemporaryRedirect, redir+"/auth/google/success")
 		return
 	}
 
 	// If user not found – register new one
-	newUser := &domain.User{
-		Username:     strings.Split(userInfo.Email, "@")[0],
-		Email:        userInfo.Email,
-		FirstName:    userInfo.GivenName,
-		LastName:     userInfo.FamilyName,
-		Role:         domain.RoleCustomer,
-		AuthProvider: domain.AuthGoogle,
-		ProfileImage: userInfo.Picture,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-	}
-
+	newUser := &domain.User{Username: strings.Split(userInfo.Email, "@")[0], Email: strings.ToLower(userInfo.Email), FirstName: userInfo.GivenName, LastName: userInfo.FamilyName, Role: domain.RoleCustomer, AuthProvider: domain.AuthGoogle, ProfileImage: userInfo.Picture, CreatedAt: time.Now(), UpdatedAt: time.Now(), IsVerified: true}
 	if err := ac.UserUsecase.Register(newUser); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRegisterUser.Error(), Error: err.Error()})
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
 		return
 	}
-
-	// Generate token for new user
-	response, err := ac.AuthService.GenerateTokens(*newUser)
+	newTokens, err := ac.AuthService.GenerateTokens(*newUser)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrTokenGenerationIssue.Error(), Error: err.Error()})
 		return
 	}
-
-	refreshToken := &domain.RefreshToken{
-		Token:     response.RefreshToken,
-		UserID:    newUser.ID,
-		ExpiresAt: response.RefreshTokenExpiresAt,
-		Revoked:   false,
-		CreatedAt: time.Now(),
-	}
-
-	if existingToken, err := ac.RefreshTokenUsecase.FindByUserID(newUser.ID); err == nil {
-		ac.RefreshTokenUsecase.RevokedToken(existingToken)
-		ac.RefreshTokenUsecase.ReplaceToken(refreshToken)
-	} else {
-		ac.RefreshTokenUsecase.Save(refreshToken)
-	}
-
-	utils.SetCookie(c, utils.CookieOptions{
-		Name:     string(domain.RefreshTokenType),
-		Value:    response.RefreshToken,
-		MaxAge:   int(time.Until(response.RefreshTokenExpiresAt).Seconds()),
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteStrictMode,
-	})
-
-	utils.SetCookie(c, utils.CookieOptions{
-		Name:     string(domain.AccessTokenType),
-		Value:    response.AccessToken,
-		MaxAge:   int(time.Until(response.AccessTokenExpiresAt).Seconds()),
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteStrictMode,
-	})
-	c.JSON(http.StatusCreated, dto.SuccessResponse{Message: domain.MsgCreated, Data: dto.ToUserResponse(*newUser)})
+	refreshToken := &domain.RefreshToken{Token: newTokens.RefreshToken, UserID: newUser.ID, ExpiresAt: newTokens.RefreshTokenExpiresAt, Revoked: false, CreatedAt: time.Now()}
+	_ = ac.RefreshTokenUsecase.Save(refreshToken)
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: newTokens.RefreshToken, MaxAge: int(time.Until(newTokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: newTokens.AccessToken, MaxAge: int(time.Until(newTokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
+	redir := ac.FrontendBaseURL
+	if redir == "" { redir = "/" }
+	c.Redirect(http.StatusTemporaryRedirect, redir+"/auth/google/success?new=1")
 }
