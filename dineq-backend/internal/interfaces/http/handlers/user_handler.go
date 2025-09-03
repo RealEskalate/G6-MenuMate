@@ -25,18 +25,25 @@ func NewUserController(userUC domain.IUserUsecase, notificationUC domain.INotifi
 // GetAvatarOptions returns selectable avatar image URLs.
 // Query param: gender=male|female (optional). If omitted returns combined list.
 func (ctrl *UserController) GetAvatarOptions(c *gin.Context) {
- 	gender := c.Query("gender")
+	gender := c.Query("gender")
 	numParam := c.Query("number")
- 	base := "https://avatar.iran.liara.run/public"
- 	// Ranges: male 1-20, female 50-69 (20 each)
-	type avatar struct { ID int `json:"id"`; URL string `json:"url"`; Gender string `json:"gender"` }
+	base := "https://avatar.iran.liara.run/public"
+	// Ranges: male 1-20, female 50-69 (20 each)
+	type avatar struct {
+		ID     int    `json:"id"`
+		URL    string `json:"url"`
+		Gender string `json:"gender"`
+	}
 	var list []avatar
 	includeMale := gender == "" || gender == "male"
 	includeFemale := gender == "" || gender == "female"
-	if gender != "" && gender != "male" && gender != "female" { c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: "invalid gender"}); return }
+	if gender != "" && gender != "male" && gender != "female" {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: "invalid gender"})
+		return
+	}
 
 	maleEndDefault := 10
-	femaleSpanDefault := 10 
+	femaleSpanDefault := 10
 	var maleEnd int = maleEndDefault
 	var femaleEnd int = 50 + femaleSpanDefault - 1
 	if numParam != "" {
@@ -46,50 +53,63 @@ func (ctrl *UserController) GetAvatarOptions(c *gin.Context) {
 			// For female example: number=40 -> 50..(50+40)
 			femaleEnd = 50 + n
 			// basic upper bounds to avoid runaway
-			if maleEnd > 49 { maleEnd = 49 }
-			if femaleEnd > 49 { femaleEnd = 49 }
+			if maleEnd > 49 {
+				maleEnd = 49
+			}
+			if femaleEnd > 49 {
+				femaleEnd = 49
+			}
 		}
 	}
 
 	if includeMale {
-		for i := 1; i <= maleEnd; i++ { list = append(list, avatar{ID: i, URL: fmt.Sprintf("%s/%d", base, i), Gender: "male"}) }
+		for i := 1; i <= maleEnd; i++ {
+			list = append(list, avatar{ID: i, URL: fmt.Sprintf("%s/%d", base, i), Gender: "male"})
+		}
 	}
 	if includeFemale {
-		for i := 50; i <= femaleEnd; i++ { list = append(list, avatar{ID: i, URL: fmt.Sprintf("%s/%d", base, i), Gender: "female"}) }
+		for i := 50; i <= femaleEnd; i++ {
+			list = append(list, avatar{ID: i, URL: fmt.Sprintf("%s/%d", base, i), Gender: "female"})
+		}
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": gin.H{"count": len(list), "avatars": list}})
 }
 
 // Me returns the currently authenticated user's profile
 func (ctrl *UserController) Me(c *gin.Context) {
- 	uid := c.GetString("user_id")
- 	if uid == "" { uid = c.GetString("userId") }
- 	if uid == "" {
- 		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error()})
- 		return
- 	}
- 	user, err := ctrl.userUC.FindUserByID(uid)
- 	if err != nil {
- 		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error(), Error: err.Error()})
- 		return
- 	}
- 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.ToUserResponse(*user)})
+	uid := c.GetString("user_id")
+	if uid == "" {
+		uid = c.GetString("userId")
+	}
+	if uid == "" {
+		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error()})
+		return
+	}
+	user, err := ctrl.userUC.FindUserByID(uid)
+	if err != nil {
+		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error(), Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.ToUserResponse(*user)})
 }
 
 // GetPublicUser exposes a public profile by user id (limited fields)
 func (ctrl *UserController) GetPublicUser(c *gin.Context) {
- 	id := c.Param("id")
- 	if id == "" { c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: "missing id"}); return }
- 	user, err := ctrl.userUC.FindUserByID(id)
- 	if err != nil {
- 		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error(), Error: err.Error()})
- 		return
- 	}
- 	resp := dto.ToUserResponse(*user)
- 	// Redact sensitive fields (email, phone) for public
- 	resp.Email = ""
- 	resp.PhoneNumber = ""
- 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: resp})
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: "missing id"})
+		return
+	}
+	user, err := ctrl.userUC.FindUserByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error(), Error: err.Error()})
+		return
+	}
+	resp := dto.ToUserResponse(*user)
+	// Redact sensitive fields (email, phone) for public
+	resp.Email = ""
+	resp.PhoneNumber = ""
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: resp})
 }
 
 func (ctrl *UserController) UpdateProfile(c *gin.Context) {

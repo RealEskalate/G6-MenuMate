@@ -394,7 +394,7 @@ func (ac *AuthController) ResendOTPRequest(c *gin.Context) {
 //Oauth Google handlers
 
 func (ac *AuthController) GoogleLogin(c *gin.Context) {
-		client := c.Query("client") // "web" or "mobile"
+	client := c.Query("client") // "web" or "mobile"
 	if client == "" {
 		client = "web"
 	}
@@ -455,10 +455,12 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			ac.RefreshTokenUsecase.Save(refreshToken)
 		}
 
-		utils.SetCookie(c, utils.CookieOptions{ Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode })
-		utils.SetCookie(c, utils.CookieOptions{ Name: string(domain.AccessTokenType), Value: response.AccessToken, MaxAge: int(time.Until(response.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode })
+		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
+		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: response.AccessToken, MaxAge: int(time.Until(response.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
 		redir := ac.FrontendBaseURL
-		if redir == "" { redir = "/" }
+		if redir == "" {
+			redir = "/"
+		}
 		c.Redirect(http.StatusTemporaryRedirect, redir+"/auth/google/success")
 		return
 	}
@@ -479,6 +481,8 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: newTokens.RefreshToken, MaxAge: int(time.Until(newTokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
 	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: newTokens.AccessToken, MaxAge: int(time.Until(newTokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
 	redir := ac.FrontendBaseURL
-	if redir == "" { redir = "/" }
+	if redir == "" {
+		redir = "/"
+	}
 	c.Redirect(http.StatusTemporaryRedirect, redir+"/auth/google/success?new=1")
 }

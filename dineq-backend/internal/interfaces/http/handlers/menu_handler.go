@@ -129,7 +129,7 @@ func (h *MenuHandler) DeleteMenu(c *gin.Context) {
 	c.JSON(http.StatusNoContent, dto.SuccessResponse{Message: domain.MsgDeleted})
 }
 
-//get menu by id
+// get menu by id
 func (h *MenuHandler) GetMenuByID(c *gin.Context) {
 	_ = c.Param("restaurant_slug")
 	menuID := c.Param("id")

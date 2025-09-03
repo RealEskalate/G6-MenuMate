@@ -6,47 +6,47 @@ import (
 )
 
 type Item struct {
-	ID              string    `json:"id"`
-	Name            string    `json:"name"`
-	NameAm          string    `json:"name_am"`
-	Slug            string    `json:"slug"`
-	MenuSlug        string    `json:"category_id"`
-	Description     string    `json:"description"`
-	DescriptionAm   string    `json:"description_am"`
-	CategoryTags   []string   // e.g. Appetizers, Main Course, Desserts
-	Image           []string  `json:"image"`              
-	ThumbnailImages []string  `json:"thumbnail_images"`    
-	Price           float64   `json:"price"`
-	Currency        string    `json:"currency"`
-	Allergies       []string  `json:"allergies"`
-	AllergiesAm     string    `json:"allergies_am"`
-	UserImages      []string  `json:"user_images"`
-	TabTags         []string  `json:"tab_tags"`
-	TabTagsAm       []string  `json:"tab_tags_am"`
-	Calories        int       `json:"calories"`
-	Protein         int       `json:"protein"`
-	Carbs           int       `json:"carbs"`
-	Fat             int       `json:"fat"`
+	ID              string           `json:"id"`
+	Name            string           `json:"name"`
+	NameAm          string           `json:"name_am"`
+	Slug            string           `json:"slug"`
+	MenuSlug        string           `json:"category_id"`
+	Description     string           `json:"description"`
+	DescriptionAm   string           `json:"description_am"`
+	CategoryTags    []string         // e.g. Appetizers, Main Course, Desserts
+	Image           []string         `json:"image"`
+	ThumbnailImages []string         `json:"thumbnail_images"`
+	Price           float64          `json:"price"`
+	Currency        string           `json:"currency"`
+	Allergies       []string         `json:"allergies"`
+	AllergiesAm     string           `json:"allergies_am"`
+	UserImages      []string         `json:"user_images"`
+	TabTags         []string         `json:"tab_tags"`
+	TabTagsAm       []string         `json:"tab_tags_am"`
+	Calories        int              `json:"calories"`
+	Protein         int              `json:"protein"`
+	Carbs           int              `json:"carbs"`
+	Fat             int              `json:"fat"`
 	NutritionalInfo *NutritionalInfo `json:"nutritional_info,omitempty"`
-	Ingredients     []string  `json:"ingredients"`
-	IngredientsAm   []string  `json:"ingredients_am"`
-	PreparationTime int       `json:"preparation_time"`
-	HowToEat        string    `json:"how_to_eat"`
-	HowToEatAm      string    `json:"how_to_eat_am"`
-	CreatedAt       time.Time `json:"created_at"`
-	UpdatedAt       time.Time `json:"updated_at"`
-	IsDeleted       bool      `json:"is_deleted"`
-	ViewCount       int       `json:"view_count"`
-	AverageRating   float64   `json:"average_rating"`
-	ReviewIds       []string  `json:"review_ids"`
+	Ingredients     []string         `json:"ingredients"`
+	IngredientsAm   []string         `json:"ingredients_am"`
+	PreparationTime int              `json:"preparation_time"`
+	HowToEat        string           `json:"how_to_eat"`
+	HowToEatAm      string           `json:"how_to_eat_am"`
+	CreatedAt       time.Time        `json:"created_at"`
+	UpdatedAt       time.Time        `json:"updated_at"`
+	IsDeleted       bool             `json:"is_deleted"`
+	ViewCount       int              `json:"view_count"`
+	AverageRating   float64          `json:"average_rating"`
+	ReviewIds       []string         `json:"review_ids"`
 }
 
 type NutritionalInfo struct {
-    Calories int `json:"calories"`
-    Protein  int `json:"protein"`
-    Carbs    int `json:"carbs"`
-    Fat      int `json:"fat"`
-	DeletedAt       *time.Time
+	Calories  int `json:"calories"`
+	Protein   int `json:"protein"`
+	Carbs     int `json:"carbs"`
+	Fat       int `json:"fat"`
+	DeletedAt *time.Time
 }
 
 type IItemRepository interface {

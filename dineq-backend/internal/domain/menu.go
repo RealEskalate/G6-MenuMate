@@ -13,13 +13,13 @@ type Menu struct {
 	IsPublished  bool      `json:"is_published"`
 	PublishedAt  time.Time `json:"published_at"`
 	Tabs         []Tab     `json:"tabs"`
-	Items          []Item
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	UpdatedBy    string    `json:"updated_by"`
-	IsDeleted    bool      `json:"is_deleted"`
+	Items        []Item
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
+	UpdatedBy    string     `json:"updated_by"`
+	IsDeleted    bool       `json:"is_deleted"`
 	DeletedAt    *time.Time `json:"deleted_at,omitempty"`
-	ViewCount    int       `json:"view_count"`
+	ViewCount    int        `json:"view_count"`
 }
 
 type Tab struct {

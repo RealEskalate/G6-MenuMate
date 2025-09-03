@@ -44,73 +44,73 @@ type ItemRequest struct {
 
 // ItemResponse represents the outward facing item payload
 type ItemResponse struct {
-	ID              string             `json:"id"`
-	Name            string             `json:"name"`
-	NameAm          string             `json:"name_am"`
-	Slug            string             `json:"slug"`
-	MenuSlug        string             `json:"menu_slug"`
-	CategoryID      string             `json:"category_id,omitempty"` // derived (same as MenuSlug)
-	Description     string             `json:"description,omitempty"`
-	DescriptionAm   string             `json:"description_am,omitempty"`
-	Image           []string           `json:"image,omitempty"`
-	Price           float64            `json:"price"`
-	Currency        string             `json:"currency"`
-	Allergies       []string           `json:"allergies,omitempty"`
-	AllergiesAm     string             `json:"allergies_am,omitempty"`
-	UserImages      []string           `json:"user_images,omitempty"`
-	TabTags         []string           `json:"tab_tags,omitempty"`
-	TabTagsAm       []string           `json:"tab_tags_am,omitempty"`
-	Calories        int                `json:"calories,omitempty"`
-	Protein         int                `json:"protein,omitempty"`
-	Carbs           int                `json:"carbs,omitempty"`
-	Fat             int                `json:"fat,omitempty"`
+	ID              string              `json:"id"`
+	Name            string              `json:"name"`
+	NameAm          string              `json:"name_am"`
+	Slug            string              `json:"slug"`
+	MenuSlug        string              `json:"menu_slug"`
+	CategoryID      string              `json:"category_id,omitempty"` // derived (same as MenuSlug)
+	Description     string              `json:"description,omitempty"`
+	DescriptionAm   string              `json:"description_am,omitempty"`
+	Image           []string            `json:"image,omitempty"`
+	Price           float64             `json:"price"`
+	Currency        string              `json:"currency"`
+	Allergies       []string            `json:"allergies,omitempty"`
+	AllergiesAm     string              `json:"allergies_am,omitempty"`
+	UserImages      []string            `json:"user_images,omitempty"`
+	TabTags         []string            `json:"tab_tags,omitempty"`
+	TabTagsAm       []string            `json:"tab_tags_am,omitempty"`
+	Calories        int                 `json:"calories,omitempty"`
+	Protein         int                 `json:"protein,omitempty"`
+	Carbs           int                 `json:"carbs,omitempty"`
+	Fat             int                 `json:"fat,omitempty"`
 	NutritionalInfo *NutritionalInfoDTO `json:"nutritional_info,omitempty"`
-	Ingredients     []string           `json:"ingredients,omitempty"`
-	IngredientsAm   []string           `json:"ingredients_am,omitempty"`
-	PreparationTime int                `json:"preparation_time,omitempty"`
-	HowToEat        string             `json:"how_to_eat,omitempty"`
-	HowToEatAm      string             `json:"how_to_eat_am,omitempty"`
-	CreatedAt       time.Time          `json:"created_at"`
-	UpdatedAt       time.Time          `json:"updated_at"`
-	IsDeleted       bool               `json:"is_deleted"`
-	ViewCount       int                `json:"view_count"`
-	AverageRating   float64            `json:"average_rating"`
-	ReviewIDs       []string           `json:"review_ids"`
+	Ingredients     []string            `json:"ingredients,omitempty"`
+	IngredientsAm   []string            `json:"ingredients_am,omitempty"`
+	PreparationTime int                 `json:"preparation_time,omitempty"`
+	HowToEat        string              `json:"how_to_eat,omitempty"`
+	HowToEatAm      string              `json:"how_to_eat_am,omitempty"`
+	CreatedAt       time.Time           `json:"created_at"`
+	UpdatedAt       time.Time           `json:"updated_at"`
+	IsDeleted       bool                `json:"is_deleted"`
+	ViewCount       int                 `json:"view_count"`
+	AverageRating   float64             `json:"average_rating"`
+	ReviewIDs       []string            `json:"review_ids"`
 }
 
 // ItemDTO consolidated struct (camelCase variant if needed by other layers)
 type ItemDTO struct {
-	ID              string             `json:"id"`
-	Name            string             `json:"name"`
-	NameAm          string             `json:"name_am,omitempty"`
-	Slug            string             `json:"slug"`
-	CategoryID      string             `json:"category_id"`
-	Description     string             `json:"description,omitempty"`
-	DescriptionAm   string             `json:"description_am,omitempty"`
-	Image           []string           `json:"image,omitempty"`
-	Price           float64            `json:"price"`
-	Currency        string             `json:"currency"`
-	Allergies       []string           `json:"allergies,omitempty"`
-	AllergiesAm     string             `json:"allergies_am,omitempty"`
-	TabTags         []string           `json:"tab_tags,omitempty"`
-	TabTagsAm       []string           `json:"tab_tags_am,omitempty"`
-	UserImages      []string           `json:"user_images,omitempty"`
-	Calories        int                `json:"calories,omitempty"`
-	Protein         int                `json:"protein,omitempty"`
-	Carbs           int                `json:"carbs,omitempty"`
-	Fat             int                `json:"fat,omitempty"`
+	ID              string              `json:"id"`
+	Name            string              `json:"name"`
+	NameAm          string              `json:"name_am,omitempty"`
+	Slug            string              `json:"slug"`
+	CategoryID      string              `json:"category_id"`
+	Description     string              `json:"description,omitempty"`
+	DescriptionAm   string              `json:"description_am,omitempty"`
+	Image           []string            `json:"image,omitempty"`
+	Price           float64             `json:"price"`
+	Currency        string              `json:"currency"`
+	Allergies       []string            `json:"allergies,omitempty"`
+	AllergiesAm     string              `json:"allergies_am,omitempty"`
+	TabTags         []string            `json:"tab_tags,omitempty"`
+	TabTagsAm       []string            `json:"tab_tags_am,omitempty"`
+	UserImages      []string            `json:"user_images,omitempty"`
+	Calories        int                 `json:"calories,omitempty"`
+	Protein         int                 `json:"protein,omitempty"`
+	Carbs           int                 `json:"carbs,omitempty"`
+	Fat             int                 `json:"fat,omitempty"`
 	NutritionalInfo *NutritionalInfoDTO `json:"nutritional_info,omitempty"`
-	Ingredients     []string           `json:"ingredients,omitempty"`
-	IngredientsAm   []string           `json:"ingredients_am,omitempty"`
-	PreparationTime int                `json:"preparation_time,omitempty"`
-	HowToEat        string             `json:"how_to_eat,omitempty"`
-	HowToEatAm      string             `json:"how_to_eat_am,omitempty"`
-	CreatedAt       time.Time          `json:"created_at"`
-	UpdatedAt       time.Time          `json:"updated_at"`
-	IsDeleted       bool               `json:"is_deleted"`
-	ViewCount       int                `json:"view_count"`
-	AverageRating   float64            `json:"average_rating"`
-	ReviewIDs       []string           `json:"review_ids"`
+	Ingredients     []string            `json:"ingredients,omitempty"`
+	IngredientsAm   []string            `json:"ingredients_am,omitempty"`
+	PreparationTime int                 `json:"preparation_time,omitempty"`
+	HowToEat        string              `json:"how_to_eat,omitempty"`
+	HowToEatAm      string              `json:"how_to_eat_am,omitempty"`
+	CreatedAt       time.Time           `json:"created_at"`
+	UpdatedAt       time.Time           `json:"updated_at"`
+	IsDeleted       bool                `json:"is_deleted"`
+	ViewCount       int                 `json:"view_count"`
+	AverageRating   float64             `json:"average_rating"`
+	ReviewIDs       []string            `json:"review_ids"`
 }
 
 // Validate basic required fields for ItemDTO
@@ -164,7 +164,9 @@ func (i *ItemDTO) ToDomain() *domain.Item {
 
 // FromDomain populates ItemDTO from domain.Item
 func (i *ItemDTO) FromDomain(item *domain.Item) *ItemDTO {
-	if item == nil { return nil }
+	if item == nil {
+		return nil
+	}
 	var nutri *NutritionalInfoDTO
 	if item.NutritionalInfo != nil {
 		nutri = &NutritionalInfoDTO{Calories: item.NutritionalInfo.Calories, Protein: item.NutritionalInfo.Protein, Carbs: item.NutritionalInfo.Carbs, Fat: item.NutritionalInfo.Fat}
@@ -206,7 +208,9 @@ func (i *ItemDTO) FromDomain(item *domain.Item) *ItemDTO {
 
 // RequestToItem converts creation request to domain.Item
 func RequestToItem(r *ItemRequest) *domain.Item {
-	if r == nil { return nil }
+	if r == nil {
+		return nil
+	}
 	return &domain.Item{
 		Name:            r.Name,
 		NameAm:          r.NameAm,
@@ -236,7 +240,9 @@ func RequestToItem(r *ItemRequest) *domain.Item {
 
 // ItemToResponse converts a domain item to response DTO
 func ItemToResponse(item *domain.Item) *ItemResponse {
-	if item == nil { return nil }
+	if item == nil {
+		return nil
+	}
 	var nutri *NutritionalInfoDTO
 	if item.NutritionalInfo != nil {
 		nutri = &NutritionalInfoDTO{Calories: item.NutritionalInfo.Calories, Protein: item.NutritionalInfo.Protein, Carbs: item.NutritionalInfo.Carbs, Fat: item.NutritionalInfo.Fat}
@@ -280,6 +286,8 @@ func ItemToResponse(item *domain.Item) *ItemResponse {
 // ItemToResponseList converts slice domain -> slice response
 func ItemToResponseList(items []domain.Item) []ItemResponse {
 	out := make([]ItemResponse, 0, len(items))
-	for i := range items { out = append(out, *ItemToResponse(&items[i])) }
+	for i := range items {
+		out = append(out, *ItemToResponse(&items[i]))
+	}
 	return out
 }

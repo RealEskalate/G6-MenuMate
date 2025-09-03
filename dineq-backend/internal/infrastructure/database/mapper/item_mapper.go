@@ -8,39 +8,39 @@ import (
 )
 
 type ItemDB struct {
-	ID              bson.ObjectID `bson:"_id,omitempty"`
-	Name            string        `bson:"name"`
-	NameAm          string        `bson:"nameAm"`
-	Slug            string        `bson:"slug"`
-	MenuSlug       string        `bson:"menuSlug"`
-	Description     string        `bson:"description"`
-	DescriptionAm   string        `bson:"descriptionAm"`
-	Image           []string      `bson:"image"`
-	Price           float64       `bson:"price"`
-	CategoryTags    []string      `bson:"categoryTags"`
-	Currency        string        `bson:"currency"`
-	Allergies       []string      `bson:"allergies"`
-	AllergiesAm     string    `bson:"allergiesAm"`
-	UserImages      []string      `bson:"userImages"`
-	Calories        int           `bson:"calories"`
-	Protein         int       `bson:"protein"`
-	Carbs           int       `bson:"carbs"`
-	Fat             int       `bson:"fat"`
+	ID              bson.ObjectID           `bson:"_id,omitempty"`
+	Name            string                  `bson:"name"`
+	NameAm          string                  `bson:"nameAm"`
+	Slug            string                  `bson:"slug"`
+	MenuSlug        string                  `bson:"menuSlug"`
+	Description     string                  `bson:"description"`
+	DescriptionAm   string                  `bson:"descriptionAm"`
+	Image           []string                `bson:"image"`
+	Price           float64                 `bson:"price"`
+	CategoryTags    []string                `bson:"categoryTags"`
+	Currency        string                  `bson:"currency"`
+	Allergies       []string                `bson:"allergies"`
+	AllergiesAm     string                  `bson:"allergiesAm"`
+	UserImages      []string                `bson:"userImages"`
+	Calories        int                     `bson:"calories"`
+	Protein         int                     `bson:"protein"`
+	Carbs           int                     `bson:"carbs"`
+	Fat             int                     `bson:"fat"`
 	NutritionalInfo *domain.NutritionalInfo `bson:"nutritionalInfo,omitempty"`
-	TabTags         []string  `bson:"tabTags"`
-	TabTagsAm       []string  `bson:"tabTagsAm"`
-	Ingredients     []string      `bson:"ingredients"`
-	IngredientsAm   []string      `bson:"ingredientsAm"`
-	PreparationTime int           `bson:"preparationTime"`
-	HowToEat        string        `bson:"howToEat"`
-	HowToEatAm      string        `bson:"howToEatAm"`
-	CreatedAt       time.Time     `bson:"createdAt"`
-	UpdatedAt       time.Time     `bson:"updatedAt"`
-	IsDeleted       bool          `bson:"isDeleted"`
-	ViewCount       int           `bson:"viewCount"`
-	AverageRating   float64       `bson:"averageRating"`
-	ReviewIDs       []string      `bson:"reviewIds"`
-	DeletedAt       *time.Time    `bson:"deletedAt,omitempty"`
+	TabTags         []string                `bson:"tabTags"`
+	TabTagsAm       []string                `bson:"tabTagsAm"`
+	Ingredients     []string                `bson:"ingredients"`
+	IngredientsAm   []string                `bson:"ingredientsAm"`
+	PreparationTime int                     `bson:"preparationTime"`
+	HowToEat        string                  `bson:"howToEat"`
+	HowToEatAm      string                  `bson:"howToEatAm"`
+	CreatedAt       time.Time               `bson:"createdAt"`
+	UpdatedAt       time.Time               `bson:"updatedAt"`
+	IsDeleted       bool                    `bson:"isDeleted"`
+	ViewCount       int                     `bson:"viewCount"`
+	AverageRating   float64                 `bson:"averageRating"`
+	ReviewIDs       []string                `bson:"reviewIds"`
+	DeletedAt       *time.Time              `bson:"deletedAt,omitempty"`
 }
 
 // ---------- Creation ----------
@@ -55,7 +55,7 @@ func NewItemDBFromDomain(item *domain.Item) *ItemDB {
 		Name:            item.Name,
 		NameAm:          item.NameAm,
 		Slug:            item.Slug,
-		MenuSlug:       item.MenuSlug,
+		MenuSlug:        item.MenuSlug,
 		Description:     item.Description,
 		DescriptionAm:   item.DescriptionAm,
 		Image:           item.Image,
@@ -95,7 +95,7 @@ func MergeItemUpdate(updated *domain.Item) *ItemDB {
 		Name:            updated.Name,
 		NameAm:          updated.NameAm,
 		Slug:            updated.Slug,
-		MenuSlug:       updated.MenuSlug,
+		MenuSlug:        updated.MenuSlug,
 		Description:     updated.Description,
 		DescriptionAm:   updated.DescriptionAm,
 		Image:           updated.Image,
@@ -119,7 +119,6 @@ func MergeItemUpdate(updated *domain.Item) *ItemDB {
 		ReviewIDs:       updated.ReviewIds,
 	}
 }
-
 
 // ---------- Conversion ----------
 
