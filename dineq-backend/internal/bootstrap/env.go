@@ -37,6 +37,11 @@ type Env struct {
 	// Cookie / Security settings
 	CookieSecure bool `mapstructure:"COOKIE_SECURE"`
 	CookieDomain string `mapstructure:"COOKIE_DOMAIN"`
+	FrontendBaseURL string `mapstructure:"FRONTEND_BASE_URL"`
+
+	// CORS configuration
+	CORSAllowedOriginsRaw string   `mapstructure:"CORS_ALLOWED_ORIGINS"`
+	CORSAllowedOrigins    []string `mapstructure:"-"`
 
 	// user refresh token collection
 	RefreshTokenCollection string `mapstructure:"REFRESH_TOKEN_COLLECTION"`
@@ -88,6 +93,10 @@ type Env struct {
 	// Programmable search engine config
 	SearchEngineID string `mapstructure:"SEARCH_ENGINE_ID"`
 	SearchAPIKey   string `mapstructure:"SEARCH_ENGINE_API_KEY"`
+
+	// Additional image provider API keys
+	UnsplashAPIKey string `mapstructure:"UNSPLASH_API_KEY"`
+	PexelsAPIKey   string `mapstructure:"PEXELS_API_KEY"`
 
 	// Cloudinary Config
 	CloudinaryAPIKey string `mapstructure:"CLD_API_KEY"`
@@ -159,6 +168,8 @@ func NewEnv() (*Env, error) {
 	env.RapidAPIContentType = os.Getenv("RAPIDAPI_CONTENT_TYPE")
 	env.SearchEngineID = os.Getenv("SEARCH_ENGINE_ID")
 	env.SearchAPIKey = os.Getenv("SEARCH_ENGINE_API_KEY")
+	env.UnsplashAPIKey = os.Getenv("UNSPLASH_API_KEY")
+	env.PexelsAPIKey = os.Getenv("PEXELS_API_KEY")
 	env.CloudinaryAPIKey = os.Getenv("CLD_API_KEY")
 	env.CloudinarySecret = os.Getenv("CLD_SECRET")
 	env.CloudinaryName = os.Getenv("CLD_NAME")
@@ -171,6 +182,16 @@ func NewEnv() (*Env, error) {
 	env.MenuCollection = os.Getenv("MENU_COLLECTION")
 	env.CookieSecure = strings.ToLower(os.Getenv("COOKIE_SECURE")) == "true"
 	env.CookieDomain = os.Getenv("COOKIE_DOMAIN")
+	env.FrontendBaseURL = os.Getenv("FRONTEND_BASE_URL")
+	// CORS allowed origins (comma separated, * means all)
+	env.CORSAllowedOriginsRaw = os.Getenv("CORS_ALLOWED_ORIGINS")
+	if raw := env.CORSAllowedOriginsRaw; raw != "" {
+		parts := strings.Split(raw, ",")
+		for _, p := range parts {
+			v := strings.TrimSpace(p)
+			if v != "" { env.CORSAllowedOrigins = append(env.CORSAllowedOrigins, v) }
+		}
+	}
 
 	if env.AppEnv == "development" {
 		log.Println("The App is running in development env")
