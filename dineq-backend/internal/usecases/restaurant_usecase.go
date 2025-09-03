@@ -52,9 +52,25 @@ func (s *RestaurantUsecase) CreateRestaurant(ctx context.Context, r *domain.Rest
 	return s.Repo.Create(c, r)
 }
 
-func (s *RestaurantUsecase) UpdateRestaurant(ctx context.Context, r *domain.Restaurant) error {
+func (s *RestaurantUsecase) UpdateRestaurant(ctx context.Context, r *domain.Restaurant, files map[string][]byte) error {
 	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
 	defer cancel()
+
+	for field, data := range files {
+		url, _, err := s.StorageService.UploadFile(c, fmt.Sprintf("%s_%d", field, time.Now().UnixNano()), data, "restaurant_images")
+		if err != nil {
+			return fmt.Errorf("failed to upload %s: %w", field, err)
+		}
+
+		switch field {
+		case "logo_image":
+			r.LogoImage = &url
+		case "verification_docs":
+			r.VerificationDocs = &url
+		case "cover_image":
+			r.CoverImage = &url
+		}
+	}
 	return s.Repo.Update(c, r)
 }
 
@@ -68,6 +84,12 @@ func (s *RestaurantUsecase) GetRestaurantBySlug(ctx context.Context, slug string
 	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
 	defer cancel()
 	return s.Repo.GetBySlug(c, slug)
+}
+
+func (s *RestaurantUsecase) GetRestaurantByOldSlug(ctx context.Context, slug string) (*domain.Restaurant, error) {
+	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
+	defer cancel()
+	return s.Repo.GetByOldSlug(c, slug)
 }
 
 func (s *RestaurantUsecase) ListBranchesBySlug(ctx context.Context, slug string, page, pageSize int) ([]*domain.Restaurant, int64, error) {

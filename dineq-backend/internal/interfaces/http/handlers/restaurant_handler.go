@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 
+	utils "github.com/RealEskalate/G6-MenuMate/Utils"
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
 	"github.com/gin-gonic/gin"
@@ -86,35 +87,141 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 }
 
 func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
-
 	slug := c.Param("slug")
 	r, err := h.RestaurantUsecase.GetRestaurantBySlug(c.Request.Context(), slug)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		if err == domain.ErrRestaurantDeleted {
+			c.JSON(http.StatusGone, gin.H{"error": "restaurant deleted"})
+			return
+		}
+		// try old slug fallback
+		old, oldErr := h.RestaurantUsecase.GetRestaurantByOldSlug(c.Request.Context(), slug)
+		if oldErr != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
+		}
+		// Redirect (permanent, preserve method) to new slug
+		c.Header("Location", "/api/v1/restaurants/"+old.Slug)
+		c.JSON(http.StatusPermanentRedirect, gin.H{"redirect_to": old.Slug})
 		return
 	}
 	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
 }
 
 func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
-	var input dto.RestaurantResponse
-	manager := c.GetString("userid")
-	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	slug := c.Param("slug")
+	manager := c.GetString("user_id")
+
+	// Validate manager id
+	if manager == "" || !IsValidObjectID(manager) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or missing manager_id (must be a valid ObjectID)"})
 		return
 	}
-	input.ManagerID = manager
 
-	r := dto.ToDomainRestaurant(&input)
-	if err := h.RestaurantUsecase.UpdateRestaurant(c.Request.Context(), r); err != nil {
+	// Fetch existing restaurant by slug so we obtain its persistent ID
+	existing, err := h.RestaurantUsecase.GetRestaurantBySlug(c.Request.Context(), slug)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	// ownership check (only manager can update)
+	if existing.ManagerID != manager {
+		c.JSON(http.StatusForbidden, gin.H{"error": "not authorized to update this restaurant"})
+		return
+	}
+
+	if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse form: " + err.Error()})
+		return
+	}
+
+	// Merge allowed mutable fields; if name changes, regenerate slug & store previous
+	if name := c.PostForm("name"); name != "" {
+		if name != existing.RestaurantName {
+			// append current slug to previous list if changed
+			// dedupe and cap at 10
+			seen := make(map[string]struct{})
+			var cleaned []string
+			// include existing previous first
+			for _, s := range existing.PreviousSlugs {
+				if s == existing.Slug { // skip if same as current slug
+					continue
+				}
+				if _, ok := seen[s]; ok {
+					continue
+				}
+				seen[s] = struct{}{}
+				cleaned = append(cleaned, s)
+			}
+			// append current slug
+			if _, ok := seen[existing.Slug]; !ok {
+				cleaned = append(cleaned, existing.Slug)
+			}
+			// cap length
+			if len(cleaned) > 10 {
+				cleaned = cleaned[len(cleaned)-10:]
+			}
+			existing.PreviousSlugs = cleaned
+			existing.RestaurantName = name
+			existing.Slug = utils.GenerateSlug(name)
+		}
+	}
+	if phone := c.PostForm("phone"); phone != "" {
+		existing.RestaurantPhone = phone
+	}
+	if about := c.PostForm("about"); about != "" {
+		existing.About = &about
+	}
+	if status := c.PostForm("verification_status"); status != "" {
+		existing.VerificationStatus = domain.VerificationStatus(status)
+	}
+
+	// VerificationStatus update only if provided and non-empty
+	if verificationStatus := c.PostForm("verification_status"); verificationStatus != "" {
+		existing.VerificationStatus = domain.VerificationStatus(verificationStatus)
+	}
+
+	// Set manager explicitly (should already match)
+	existing.ManagerID = manager
+
+	files := make(map[string][]byte)
+	for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
+		f, err := c.FormFile(field)
+		if err != nil {
+			if err != http.ErrMissingFile {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s: %v", field, err)})
+				return
+			}
+			// Skip if optional field not provided
+			continue
+
+		} else {
+
+			file, err := f.Open()
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s", field)})
+				return
+			}
+			data, err := io.ReadAll(file)
+			file.Close()
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s", field)})
+				return
+			}
+			files[field] = data
+		}
+	}
+
+	if err := h.RestaurantUsecase.UpdateRestaurant(c.Request.Context(), existing, files); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
+	c.JSON(http.StatusOK, dto.ToRestaurantResponse(existing))
 }
 
 func (h *RestaurantHandler) DeleteRestaurant(c *gin.Context) {
-	manager := c.GetString("userid")
+	manager := c.GetString("user_id")
 	id := c.Param("id")
 	if err := h.RestaurantUsecase.DeleteRestaurant(c.Request.Context(), id, manager); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

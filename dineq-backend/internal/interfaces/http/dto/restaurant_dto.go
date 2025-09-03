@@ -12,7 +12,6 @@ type RestaurantResponse struct {
 	Name               string    `json:"name"`
 	ManagerID          string    `json:"manager_id"`
 	Phone              string    `json:"phone"`
-	MenuID             string    `json:"menu_id"`
 	About              *string   `json:"about,omitempty"`
 	LogoImage          *string   `json:"logo_image,omitempty"`
 	VerificationStatus string    `json:"verification_status"`
