@@ -14,6 +14,7 @@ import (
 // AuthMiddleware checks if the user is authenticated by verifying the JWT token
 func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 	return func(c *gin.Context) {
+
 		var tokenStr string
 		var err error
 
@@ -22,14 +23,13 @@ func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 		// if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		// 	tokenStr = authHeader[7:]
 		// } else {
-			// Fallback to cookie
-			tokenStr, err = utils.GetCookie(c, string(domain.AccessTokenType))
-			if err != nil {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found, please login again"})
-				c.Abort()
-				return
-			}
-		// }
+		// 	// Fallback to cookie
+		tokenStr, err = utils.GetCookie(c, "access_token")
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found, please login again"})
+			c.Abort()
+			return
+		}
 
 		// Parse and validate the JWT
 		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
