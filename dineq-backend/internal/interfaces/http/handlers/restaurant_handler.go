@@ -5,7 +5,9 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 	"strconv"
+	"strings"
 
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -43,14 +45,12 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 	}
 
 	// Use a single domain.Restaurant object to consolidate data
-	r := &domain.Restaurant{
-		ManagerID: manager,
-	}
+	r := &domain.Restaurant{ManagerID: manager}
 
 	files := make(map[string][]byte)
 
-	contentType := c.ContentType()
-	if contentType == "application/json" {
+	contentType := c.GetHeader("Content-Type")
+	if strings.HasPrefix(contentType, "application/json") {
 		// Handle JSON request
 		var input dto.RestaurantResponse
 		if err := c.ShouldBindJSON(&input); err != nil {
@@ -61,16 +61,28 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 		r.RestaurantPhone = input.Phone
 		r.About = input.About
 
-	} else if c.Request.MultipartForm != nil || contentType == "multipart/form-data" {
-		// Handle multipart/form-data request
-		restaurantName := c.PostForm("restaurant_name")
-		if restaurantName == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "restaurant_name is required"})
+	} else if strings.HasPrefix(contentType, "multipart/form-data") {
+		// ensure form is parsed (limit ~10MB)
+		if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse multipart form: " + err.Error()})
 			return
 		}
-		r.RestaurantName = restaurantName
+		// Handle multipart/form-data request
+		name := c.PostForm("restaurant_name")
+		if name == "" { // allow fallback to generic name key
+			name = c.PostForm("name")
+		}
+		if name == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "restaurant_name (or name) is required"})
+			return
+		}
+		r.RestaurantName = name
 		r.RestaurantPhone = c.PostForm("restaurant_phone")
-		r.Tags = c.PostFormArray("tags")
+		if r.RestaurantPhone == "" { // fallback key
+			r.RestaurantPhone = c.PostForm("phone")
+		}
+		// collect tags (repeated keys, tags[] or single CSV string)
+		r.Tags = collectTags(c)
 		about := c.PostForm("about")
 		if about != "" {
 			r.About = &about
@@ -103,10 +115,14 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 		}
 
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported content type"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported content type: " + contentType})
 		return
 	}
 
+	// generate slug if not yet set
+	if r.RestaurantName != "" && r.Slug == "" {
+		r.Slug = utils.GenerateSlug(r.RestaurantName)
+	}
 	if err := h.RestaurantUsecase.CreateRestaurant(c.Request.Context(), r, files); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -201,6 +217,10 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 		if status := c.PostForm("verification_status"); status != "" {
 			existing.VerificationStatus = domain.VerificationStatus(status)
 		}
+		// tags update (supports csv)
+		if tags := collectTags(c); len(tags) > 0 {
+			existing.Tags = tags
+		}
 		// Read files from multipart form
 		for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
 			fileHeader, err := c.FormFile(field)
@@ -271,6 +291,34 @@ func updateSlug(r *domain.Restaurant, newName string) {
 	r.PreviousSlugs = cleaned
 	r.RestaurantName = newName
 	r.Slug = utils.GenerateSlug(newName)
+}
+
+// collectTags gathers tags from form fields: tags, tags[], or a single comma-separated value.
+func collectTags(c *gin.Context) []string {
+	raw := c.PostFormArray("tags")
+	if len(raw) == 0 { raw = c.PostFormArray("tags[]") }
+	if len(raw) == 1 && strings.Contains(raw[0], ",") {
+		parts := strings.Split(raw[0], ",")
+		tmp := make([]string,0,len(parts))
+		for _, p := range parts { if t := strings.TrimSpace(p); t != "" { tmp = append(tmp, t) } }
+		raw = tmp
+	}
+	return normalizeTags(raw)
+}
+
+// normalizeTags trims, lowercases for uniqueness, preserves original case of first instance, and sorts.
+func normalizeTags(tags []string) []string {
+	seen := make(map[string]string, len(tags))
+	for _, t := range tags {
+		trimmed := strings.TrimSpace(t)
+		if trimmed == "" { continue }
+		key := strings.ToLower(trimmed)
+		if _, exists := seen[key]; !exists { seen[key] = trimmed }
+	}
+	out := make([]string,0,len(seen))
+	for _, v := range seen { out = append(out, v) }
+	sort.Strings(out)
+	return out
 }
 
 // DeleteRestaurant handles the deletion of a restaurant.
