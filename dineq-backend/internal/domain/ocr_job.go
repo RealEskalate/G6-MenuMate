@@ -16,7 +16,41 @@ type OCRJob struct {
 	Error            string
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+	EstimatedCompletion time.Time
+	CompletedAt         *time.Time
+	Results             *OCRJobResult // structured response for polling
+	RawAIJSON           string // raw Gemini JSON for audit
+	Phase              string
+	Progress           int
+	PhaseHistory       []OCRPhase
 }
+
+// OCRJobResult holds structured result fields returned to clients
+type OCRJobResult struct {
+	ExtractedText    string          `json:"extractedText,omitempty"`
+	PhotoMatches     []string        `json:"photoMatches,omitempty"`
+	ConfidenceScore  float64         `json:"confidenceScore,omitempty"`
+	StructuredMenuID string          `json:"structuredMenuId,omitempty"`
+	Menu             *Menu           `json:"menu,omitempty"`
+	RawAIJSON        string          `json:"rawAiJson,omitempty"`
+}
+
+// OCRPhase represents a pipeline phase status
+type OCRPhase struct {
+	Name      string     `bson:"name" json:"name"`
+	Status    string     `bson:"status" json:"status"` // pending|running|done|failed
+	StartedAt *time.Time `bson:"startedAt,omitempty" json:"startedAt,omitempty"`
+	EndedAt   *time.Time `bson:"endedAt,omitempty" json:"endedAt,omitempty"`
+}
+
+// Phase names constants
+const (
+	PhaseReceived      = "received"
+	PhaseOCRExtraction = "ocr_extraction"
+	PhaseAIStructuring = "ai_structuring"
+	PhaseMenuPersist   = "menu_persist"
+	PhaseCompleted     = "completed"
+)
 
 type OCRJobStatus string
 
@@ -31,8 +65,9 @@ type IOCRJobUseCase interface {
 	CreateOCRJob(job *OCRJob) error
 	UpdateOCRJobStatus(id string, status OCRJobStatus) error
 	GetOCRJobByID(id string) (*OCRJob, error)
-	// ProcessOCRJob(id string) (*AIParseResult, error)
+	ProcessJob(id string)
 	DeleteOCRJob(id string) error
+	RetryJob(id string) (*OCRJob, error)
 }
 
 type IOCRJobRepository interface {

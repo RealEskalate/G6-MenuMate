@@ -76,6 +76,7 @@ func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 		protected.POST("/upload", ocrJobHandler.UploadMenu)
 		protected.GET("/:id", ocrJobHandler.GetOCRJobByID)
 		protected.DELETE("/:id", ocrJobHandler.DeleteOCRJob)
+		protected.POST("/:id/retry", ocrJobHandler.RetryOCRJob)
 		// protected.GET("/:id/result", ocrJobHandler.GetOCRJobResult)
 		// protected.PUT("/:id/status", ocrJobHandler.UpdateOCRJobStatus)
 	}
@@ -89,5 +90,6 @@ func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 		legacy.POST("/upload", ocrJobHandler.UploadMenu)
 		legacy.GET("/:id", ocrJobHandler.GetOCRJobByID)
 		legacy.DELETE("/:id", ocrJobHandler.DeleteOCRJob)
+		legacy.POST("/:id/retry", ocrJobHandler.RetryOCRJob)
 	}
 }

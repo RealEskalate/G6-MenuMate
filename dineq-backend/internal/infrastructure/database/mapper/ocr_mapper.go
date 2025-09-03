@@ -18,6 +18,13 @@ type OCRJobDB struct {
 	Error            string        `bson:"error"`
 	CreatedAt        time.Time     `bson:"createdAt"`
 	UpdatedAt        time.Time     `bson:"updatedAt"`
+	EstimatedCompletion time.Time  `bson:"estimatedCompletion"`
+	CompletedAt         *time.Time `bson:"completedAt"`
+	Results            *domain.OCRJobResult `bson:"results,omitempty"`
+	RawAIJSON          string        `bson:"rawAiJson,omitempty"`
+	Phase              string        `bson:"phase,omitempty"`
+	Progress           int           `bson:"progress,omitempty"`
+	PhaseHistory       []domain.OCRPhase `bson:"phaseHistory,omitempty"`
 }
 
 func ToDomainOCRJob(m *OCRJobDB) *domain.OCRJob {
@@ -32,19 +39,40 @@ func ToDomainOCRJob(m *OCRJobDB) *domain.OCRJob {
 		Error:            m.Error,
 		CreatedAt:        m.CreatedAt,
 		UpdatedAt:        m.UpdatedAt,
+		EstimatedCompletion: m.EstimatedCompletion,
+		CompletedAt:         m.CompletedAt,
+		Results:             m.Results,
+		RawAIJSON:           m.RawAIJSON,
+		Phase:               m.Phase,
+		Progress:            m.Progress,
+		PhaseHistory:        m.PhaseHistory,
 	}
 }
 
 func FromDomainOCRJob(d *domain.OCRJob) *OCRJobDB {
+	var oid bson.ObjectID
+	if d.ID != "" {
+		if parsed, err := bson.ObjectIDFromHex(d.ID); err == nil {
+			oid = parsed
+		}
+	}
 	return &OCRJobDB{
-		RestaurantID:     d.RestaurantID,
-		UserID:           d.UserID,
-		ImageURL:         d.ImageURL,
-		Status:           string(d.Status),
-		ResultText:       d.ResultText,
-		StructuredMenuID: d.StructuredMenuID,
-		Error:            d.Error,
-		CreatedAt:        d.CreatedAt,
-		UpdatedAt:        d.UpdatedAt,
+		ID:                oid,
+		RestaurantID:      d.RestaurantID,
+		UserID:            d.UserID,
+		ImageURL:          d.ImageURL,
+		Status:            string(d.Status),
+		ResultText:        d.ResultText,
+		StructuredMenuID:  d.StructuredMenuID,
+		Error:             d.Error,
+		CreatedAt:         d.CreatedAt,
+		UpdatedAt:         d.UpdatedAt,
+		EstimatedCompletion: d.EstimatedCompletion,
+		CompletedAt:          d.CompletedAt,
+		Results:             d.Results,
+		RawAIJSON:           d.RawAIJSON,
+		Phase:               d.Phase,
+		Progress:            d.Progress,
+		PhaseHistory:        d.PhaseHistory,
 	}
 }
