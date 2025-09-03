@@ -7,9 +7,8 @@ export default function UserSignup() {
   return (
     <div className="flex lg:flex-row min-h-screen">
       {/* Left side - form */}
-      <div className="flex items-center justify-center w-full lg:w-2/3   ">
-        <div >
-          {/*className="w-full max-w-md bg-white p-6 lg:p-8 my-8"*/}
+      <div className="flex justify-center w-full lg:w-2/3">
+        <div className="w-full max-w-md mt-5 ">
           <h1 className="text-2xl lg:text-3xl font-bold text-center">
             Create Your Account
           </h1>
@@ -25,7 +24,3 @@ export default function UserSignup() {
     </div>
   );
 }
-
-
-
-

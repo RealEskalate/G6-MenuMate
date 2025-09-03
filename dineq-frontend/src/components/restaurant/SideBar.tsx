@@ -9,11 +9,7 @@ function SideBar() {
   const pathname = usePathname();
 
   const links = [
-<<<<<<< HEAD
-    { name: "Menus", href: "/restaurant/dashboard/", icon: "/icons/menu.svg" },
-=======
     { name: "Menus", href: "/restaurant/dashboard", icon: "/icons/menu.svg" },
->>>>>>> a40b108dc33d2b88911e3b83a1ec36dec369366a
     { name: "QR Manager", href: "/restaurant/dashboard/qr-manager", icon: "/icons/qr.png" },
     { name: "Settings", href: "/restaurant/dashboard/settings", icon: "/icons/setting.png" },
     { name: "Analytics", href: "/restaurant/dashboard/analytics", icon: "/icons/Analytics.png", pro: true },
