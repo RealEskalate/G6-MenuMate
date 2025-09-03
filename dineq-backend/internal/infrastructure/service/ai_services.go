@@ -1,14 +1,14 @@
 package services
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
+	"log"
+	"math"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -16,378 +16,350 @@ import (
 	"google.golang.org/genai"
 )
 
+// Interface kept for existing callers
 type IAIService interface {
 	StructureWithGemini(ctx context.Context, ocrText string) (*domain.Menu, error)
-	// EnhanceWithGemini(ctx context.Context, text string) (string, error)
 	TranslateAIBit(text, target string) (string, error)
 }
 
-type AiService struct {
-	Client             *genai.Client
-	Model              string
-	ImageSearchService IImageSearchService
+type GeminiService struct {
+	client *genai.Client
+	model  string
+	lastRaw string
 }
 
-func NewAIService(ctx context.Context, apiKey string, model string, imageSearchService IImageSearchService) (IAIService, error) {
-	// Initialize the GenAI client with the provided API key
-	client, err := genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey: apiKey,
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to create GenAI client: %w", err)
-	}
-	return &AiService{
-		Client:             client,
-		Model:              model,
-		ImageSearchService: imageSearchService,
-	}, nil
-}
-func (s *AiService) StructureWithGemini(ctx context.Context, ocrText string) (*domain.Menu, error) {
-	itemsJSON, _ := json.MarshalIndent(ocrText, "", "  ")
-
-	data, err := os.ReadFile("prompt.txt")
-	if err != nil {
-		return nil, err
-	}
-	prompt := string(data)
-	oid := bson.NewObjectID()
-	prompt = strings.ReplaceAll(prompt, "{{MenuID}}", oid.Hex())
-	prompt = strings.ReplaceAll(prompt, "{{TabID}}", bson.NewObjectID().Hex())
-	prompt = strings.ReplaceAll(prompt, "{{CategoryID}}", bson.NewObjectID().Hex())
-	prompt = strings.ReplaceAll(prompt, "{{OCR_TEXT}}", string(itemsJSON))
-
-	const maxRetries = 3
-	baseDelay := time.Second
-	var resp *genai.GenerateContentResponse
-
-	for attempt := 0; attempt < maxRetries; attempt++ {
-		resp, err = s.Client.Models.GenerateContent(
-			ctx,
-			s.Model,
-			genai.Text(prompt),
-			nil,
-		)
-		if err == nil {
-			// Success, proceed with the rest of the code
-			break
-		}
-
-		fmt.Printf("GenAI Error on attempt %d: %v\n", attempt+1, err)
-
-		if attempt == maxRetries-1 {
-			// Last attempt failed
-			return nil, err
-		}
-
-		// Exponential backoff
-		delay := baseDelay * time.Duration(1<<attempt)
-		select {
-		case <-time.After(delay):
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		}
-	}
-
-	if resp != nil && (len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0) {
-		return nil, fmt.Errorf("empty response from model")
-	}
-
-	responseText := resp.Candidates[0].Content.Parts[0].Text
-
-	// Clean the response text to remove markdown formatting
-	cleanedText := strings.TrimSpace(responseText)
-	// Remove markdown code block markers
-	cleanedText = strings.TrimPrefix(cleanedText, "```json")
-	cleanedText = strings.TrimPrefix(cleanedText, "```")
-	cleanedText = strings.TrimSuffix(cleanedText, "```")
-	// Remove any remaining backticks
-	cleanedText = strings.ReplaceAll(cleanedText, "`", "")
-	cleanedText = strings.TrimSpace(cleanedText)
-
-	var menuItem domain.Menu
-	if err := json.Unmarshal([]byte(cleanedText), &menuItem); err != nil {
-		fmt.Printf("Failed to parse AI response as JSON: %v\n", err)
-		fmt.Printf("Raw response: %s\n", responseText)
-		fmt.Printf("Cleaned response: %s\n", cleanedText)
-		// return fallbackStructure(ocrText), err
-	}
-
-	if len(menuItem.Tabs) == 0 {
-		fmt.Printf("AI returned an empty menu, using fallback\n")
-		// menuItem = *fallbackStructure(ocrText)
-	}
-
-	// Update the IDs for menu items
-	menuItem.RestaurantID = bson.NewObjectID().Hex()
-	for i := range menuItem.Tabs {
-		menuItem.Tabs[i].ID = bson.NewObjectID().Hex()
-		for j := range menuItem.Tabs[i].Categories {
-			menuItem.Tabs[i].Categories[j].ID = bson.NewObjectID().Hex()
-			for k := range menuItem.Tabs[i].Categories[j].Items {
-				menuItem.Tabs[i].Categories[j].Items[k].ID = bson.NewObjectID().Hex()
-			}
-		}
-	}
-
-	// Assign images to menu items
-	if err := AssignImagesToMenu(ctx, s.ImageSearchService, &menuItem); err != nil {
-		return nil, err
-	}
-	// fmt.Println("_________________Final Menu with Images:_______________\n", menuItem)
-	return &menuItem, nil
+func NewAIService(ctx context.Context, apiKey string, model string, _ IImageSearchService) (IAIService, error) {
+	if model == "" { model = "gemini-1.5-flash" }
+	client, err := genai.NewClient(ctx, &genai.ClientConfig{APIKey: apiKey})
+	if err != nil { return nil, fmt.Errorf("failed to create Gemini client: %w", err) }
+	return &GeminiService{client: client, model: model}, nil
 }
 
-// func (s *aiService) EnhanceWithGemini(ctx context.Context, text string) (string, error) {
-// 	geminiURL := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyCBRSoLk2_mjiU1UZubHwbqIuPYW957Gok"
-// 	prompt := fmt.Sprintf(`Refine this description to be engaging, concise, and informative for an Ethiopian cuisine menu:
-// %s
-
-// Include:
-// - A vivid, appealing description of the dish.
-// - Key ingredients (infer based on the dish name or typical Ethiopian cuisine).
-// - An estimated calorie range (e.g., 300-500 kcal).
-// - Keep the culinary context of Ethiopian cuisine.
-// - Return plain text without markdown or backticks.`, text)
-
-// 	reqBody, _ := json.Marshal(map[string]interface{}{
-// 		"contents": []map[string]interface{}{
-// 			{
-// 				"parts": []map[string]string{
-// 					{"text": prompt},
-// 				},
-// 			},
-// 		},
-// 	})
-
-// 	req, _ := http.NewRequest("POST", geminiURL, strings.NewReader(string(reqBody)))
-// 	req.Header.Set("Content-Type", "application/json")
-
-// 	client := &http.Client{}
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		return text, err
-// 	}
-// 	defer resp.Body.Close()
-
-// 	var result GeminiResponse
-// 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-// 		return text, err
-// 	}
-
-// 	responseText := result.Candidates[0].Content.Parts[0].Text
-// 	responseText = strings.Trim(responseText, "` \n\t")
-// 	re := regexp.MustCompile("(?s)```(?:json|text)?\n?(.*?)\n?```")
-// 	if matches := re.FindStringSubmatch(responseText); len(matches) > 1 {
-// 		responseText = matches[1]
-// 	}
-// 	return responseText, nil
-// }
-
-func (s *AiService) TranslateAIBit(text, target string) (string, error) {
-	url := "https://aibit-translator.p.rapidapi.com/api/v1/translator/text"
-	payload := struct {
-		From     string `json:"from"`
-		To       string `json:"to"`
-		Text     string `json:"text"`
-		Provider string `json:"provider"`
-	}{
-		From:     "auto",
-		To:       target,
-		Text:     text,
-		Provider: "google",
-	}
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		return text, err
-	}
-	req, err := http.NewRequest("POST", url, strings.NewReader(string(payloadBytes)))
-	if err != nil {
-		return text, err
-	}
-
-	req.Header.Add("x-rapidapi-key", "29440ed5ccmsha8462d51777b4cdp18e853jsnac8279828a68")
-	req.Header.Add("x-rapidapi-host", "aibit-translator.p.rapidapi.com")
-	req.Header.Add("Content-Type", "application/json")
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return text, err
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return text, err
-	}
-
-	var result struct {
-		Translated string `json:"trans"`
-	}
-	if err := json.Unmarshal(body, &result); err != nil {
-		return text, err
-	}
-
-	return result.Translated, nil
+// Internal DTOs matching expected JSON
+type menuProcessingResults struct { MenuItems []menuItemResult `json:"menuItems"` }
+type menuItemResult struct {
+	ID                  string   `json:"id"`
+	Name                string   `json:"name"`
+	NameAmharic         string   `json:"nameAmharic"`
+	Description         string   `json:"description"`
+	DescriptionAmharic  string   `json:"descriptionAmharic"`
+	Price               float64  `json:"price"`
+	Currency            string   `json:"currency"`
+	Tab                 string   `json:"tab"`
+	TabTags             []string `json:"tab_tags"`
+	TabTagsAm           []string `json:"tab_tags_am"`
+	Ingredients         any      `json:"ingredients"`
+	NutritionalInfo     any      `json:"nutritionalInfo"`
+	Allergens           []string `json:"allergens"`
+	Allergies           string   `json:"allergies"`
+	AllergiesAm         string   `json:"allergies_am"`
+	EatingInstructions  string   `json:"eatingInstructions"`
+	EatingInstructionsAm string  `json:"eatingInstructionsAm"`
+	IsAvailable         bool     `json:"isAvailable"`
+	PreparationTime     int      `json:"preparationTime"`
 }
 
-// func fallbackStructure(ocrText string) *domain.Menu {
-// 		lines := strings.Split(ocrText, "\n")
-// 		var items []domain.Item
-
-// 		menuID := bson.NewObjectID().Hex()
-// 		tabID := bson.NewObjectID().Hex()
-// 		categoryID := bson.NewObjectID().Hex()
-
-// 		// Create a default tab
-// 		tab := domain.Tab{
-// 			ID:        tabID,
-// 			MenuID:    menuID,
-// 			Name:      "Food",
-// 			IsDeleted: false,
-// 			Categories: []domain.Category{
-// 				{
-// 					ID:    categoryID,
-// 					TabID: tabID,
-// 					Name:  "MENU ITEM (ምግብ ዝርዝር)",
-// 					Items: []domain.Item{},
-// 				},
-// 			},
-// 		}
-
-// 		for _, line := range lines {
-// 			line = strings.TrimSpace(line)
-// 			if line == "" || !strings.Contains(line, "$") {
-// 				continue
-// 			}
-
-// 			// Split by $ to get name and price
-// 			parts := strings.Split(line, "$")
-// 			if len(parts) != 2 {
-// 				continue
-// 			}
-// 			name := strings.TrimSpace(parts[0])
-// 			priceStr := strings.TrimSpace(parts[1])
-
-// 			// Remove number prefix if present (e.g., "2 ", "3 ")
-// 			if strings.HasPrefix(name, "1 ") || strings.HasPrefix(name, "2 ") || strings.HasPrefix(name, "3 ") ||
-// 				strings.HasPrefix(name, "4 ") || strings.HasPrefix(name, "5 ") || strings.HasPrefix(name, "6 ") ||
-// 				strings.HasPrefix(name, "7 ") || strings.HasPrefix(name, "8 ") || strings.HasPrefix(name, "9 ") ||
-// 				strings.HasPrefix(name, "10 ") || strings.HasPrefix(name, "11 ") || strings.HasPrefix(name, "12 ") ||
-// 				strings.HasPrefix(name, "13 ") || strings.HasPrefix(name, "14 ") || strings.HasPrefix(name, "15 ") ||
-// 				strings.HasPrefix(name, "16 ") || strings.HasPrefix(name, "17 ") {
-// 				name = strings.TrimSpace(name[2:])
-// 			}
-
-// 			// Parse price
-// 			priceStr = strings.ReplaceAll(priceStr, ",", "") // Remove commas if any
-// 			var price float64
-// 			if p, err := strconv.ParseFloat(priceStr, 64); err == nil {
-// 				price = p
-// 			} else {
-// 				price = 0.0
-// 			}
-
-// 			// Detect if Amharic (contains Ethiopic script)
-// 			isAmharic := strings.ContainsAny(name, "አኡኢኤእኦኧበቡቢባቤብቦቧቨቩቪቫቬቭቮቯኀኁኂኃኄኅኆኈኊኋኌኍነኑኒናኔንኖኗኘኙኚኛኜኝኞኟአኡኢኤእኦኧበቡቢባቤብቦቧቨቩቪቫቬቭቮቯኀኁኂኃኄኅኆኈኊኋኌኍነኑኒናኔንኖኗኘኙኚኛኜኝኞኟወዉዊዋዌውዎዏዐዑዒዓዔዕዖዘዙዚዛዜዝዞዟዠዡዢዣዤዥዦዧየዩዪያዬይዮዯደዱዲዳዴድዶዷጀጁጂጃጄጅጆጇገጉጊጋጌግጎጏጐ጑ጒጓጔጕ጖ጘጙጚጛጜጝጞጟጠጡጢጣጤጥጦጧጨጩጪጫጬጭጮጯጰጱጲጳጴጵጶጷጸጹጺጻጼጽጾጿፀፁፂፃፄፅፆፈፉፊፋፌፍፎፏፐፑፒፓፔፕፖፗፘፙፚ")
-// 			description := "Traditional Ethiopian dish"
-// 			if !isAmharic {
-// 				description = "Ethiopian dish"
-// 			}
-
-// 			menuItem := domain.Item{
-// 				ID:              bson.NewObjectID().Hex(),
-// 				CategoryID:      categoryID,
-// 				Name:            name,
-// 				Description:     description,
-// 				Price:           price,
-// 				Allergies:       []string{},
-// 				HowToEat:        "Serve as usual",
-// 				PreparationTime: 0,
-// 				Calories:        0,
-// 				Image:           []string{"https://placeholder.com/image.jpg"},
-// 			}
-
-// 			// Append to default category
-// 			tab.Categories[0].Items = append(tab.Categories[0].Items, menuItem)
-// 		}
-
-// 		menu := &domain.Menu{
-// 			ID:           menuID,
-// 			RestaurantID: bson.NewObjectID().Hex(),
-// 			Version:      1,
-// 			IsPublished:  false,
-// 			PublishedAt:  time.Now(),
-// 			Tabs:         []domain.Tab{tab},
-// 			CreatedAt:    time.Now(),
-// 			UpdatedAt:    time.Now(),
-// 			UpdatedBy:    "system",
-// 			IsDeleted:    false,
-// 			ViewCount:    0,
-// 		}
-
-// 		return menu
-// 	}
-
-func AssignImagesToMenu(ctx context.Context, s IImageSearchService, menu *domain.Menu) error {
-	// 1. Flatten all items into a slice of pointers
-	type ItemPointer struct {
-		Item *domain.Item
+// StructureWithGemini adapts ProcessOCRText style to existing domain.Menu output
+func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string) (*domain.Menu, error) {
+	prompt := gs.createMenuStructuringPrompt(ocrText, "")
+	var lastErr error
+	var raw string
+	// exponential backoff for transient errors (429/503) only
+	for attempt := 1; attempt <= 3; attempt++ {
+		resp, err := gs.client.Models.GenerateContent(ctx, gs.model, genai.Text(prompt), nil)
+		if err != nil {
+			if transient(err) && attempt < 3 {
+				backoff := time.Duration(math.Pow(2, float64(attempt-1))) * 500 * time.Millisecond
+				time.Sleep(backoff)
+				lastErr = err
+				continue
+			}
+			return nil, fmt.Errorf("failed to generate content: %w", err)
+		}
+		if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
+			lastErr = errors.New("no response from Gemini")
+			continue
+		}
+		var buf strings.Builder
+		for _, p := range resp.Candidates[0].Content.Parts { buf.WriteString(fmt.Sprintf("%v", p)) }
+	raw = buf.String()
+	gs.lastRaw = raw
+		results, err := gs.parseGeminiResponse(raw)
+		if err != nil {
+			lastErr = fmt.Errorf("failed to parse Gemini response: %w", err)
+			if attempt < 3 { time.Sleep(300 * time.Millisecond); continue }
+			return nil, lastErr
+		}
+		// Build menu
+		menu := &domain.Menu{ID: bson.NewObjectID().Hex(), RestaurantID: bson.NewObjectID().Hex(), Version: 1, CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()}
+		tabIndex := map[string]*domain.Tab{}
+		for _, mi := range results.MenuItems {
+			if strings.TrimSpace(mi.Name) == "" { continue }
+			// bound prep time 1..60 (default 15 if zero)
+			prep := mi.PreparationTime
+			if prep <= 0 { prep = 15 }
+			if prep < 1 { prep = 1 }
+			if prep > 60 { prep = 60 }
+			// derive tab from tags
+			var firstTab string
+			if len(mi.TabTags) > 0 { firstTab = mi.TabTags[0] }
+			tabName := firstNonEmpty(mi.Tab, firstTab, "General")
+			t, ok := tabIndex[tabName]
+			if !ok {
+				// attempt Amharic name mapping for tab
+				amTab := amharicScriptForLabel(tabName)
+				t = &domain.Tab{ID: bson.NewObjectID().Hex(), MenuID: menu.ID, Name: tabName, NameAm: amTab}
+				tabIndex[tabName] = t
+			}
+			// classify category heuristically
+			catName := classifyCategory(mi.Name, mi.Description)
+			amCat := amharicScriptForLabel(catName)
+			var cat *domain.Category
+			for i := range t.Categories { if t.Categories[i].Name == catName { cat = &t.Categories[i]; break } }
+			if cat == nil { t.Categories = append(t.Categories, domain.Category{ID: bson.NewObjectID().Hex(), TabID: t.ID, Name: catName, NameAm: amCat}); cat = &t.Categories[len(t.Categories)-1] }
+			// Combine legacy array 'Allergens' with new scalar 'Allergies'
+			allergySlice := mi.Allergens
+			if len(allergySlice) == 0 && strings.TrimSpace(mi.Allergies) != "" {
+				// Create a single entry slice from full sentence; could be improved to parse ingredients list
+				allergySlice = []string{mi.Allergies}
+			}
+			// Extract nutritional info if object
+			var calories, protein, carbs, fat int
+			if m, ok := mi.NutritionalInfo.(map[string]any); ok {
+				if v, ok2 := m["calories"]; ok2 { if f, ok3 := toInt(v); ok3 { calories = f } }
+				if v, ok2 := m["protein"]; ok2 { if f, ok3 := toInt(v); ok3 { protein = f } }
+				if v, ok2 := m["carbs"]; ok2 { if f, ok3 := toInt(v); ok3 { carbs = f } }
+				if v, ok2 := m["fat"]; ok2 { if f, ok3 := toInt(v); ok3 { fat = f } }
+			}
+			var nutri *domain.NutritionalInfo
+			if calories > 0 || protein > 0 || carbs > 0 || fat > 0 {
+				nutri = &domain.NutritionalInfo{Calories: calories, Protein: protein, Carbs: carbs, Fat: fat}
+			}
+			item := domain.Item{ID: bson.NewObjectID().Hex(), CategoryID: cat.ID, Name: mi.Name, NameAm: mi.NameAmharic, Description: mi.Description, DescriptionAm: mi.DescriptionAmharic, Price: mi.Price, Currency: firstNonEmpty(mi.Currency, "ETB"), PreparationTime: prep, Allergies: allergySlice, AllergiesAm: mi.AllergiesAm, HowToEat: mi.EatingInstructions, HowToEatAm: mi.EatingInstructionsAm, Calories: calories, Protein: protein, Carbs: carbs, Fat: fat, NutritionalInfo: nutri, TabTags: mi.TabTags, TabTagsAm: mi.TabTagsAm, IsDeleted: false}
+			cat.Items = append(cat.Items, item)
+		}
+		for _, t := range tabIndex { menu.Tabs = append(menu.Tabs, *t) }
+		// attach raw JSON to menu in a placeholder way (could be stored elsewhere via caller)
+		// The caller (usecase) will capture raw JSON via job.Results.RawAIJSON if integrated.
+		_ = raw
+		return menu, nil
 	}
-	var itemsList []ItemPointer
-	for ti := range menu.Tabs {
-		tab := &menu.Tabs[ti]
-		for ci := range tab.Categories {
-			cat := &tab.Categories[ci]
-			for ii := range cat.Items {
-				itemsList = append(itemsList, ItemPointer{
-					Item: &cat.Items[ii],
-				})
+	if lastErr != nil { return nil, lastErr }
+	return nil, errors.New("AI structuring failed with unknown error")
+}
+
+// RawLastAIJSON returns the last raw AI JSON (best-effort) produced by StructureWithGemini
+func (gs *GeminiService) RawLastAIJSON() string { return gs.lastRaw }
+
+func (gs *GeminiService) createMenuStructuringPrompt(ocrText, restaurantName string) string {
+	return fmt.Sprintf(`You are an expert Ethiopian menu structuring AI. Produce ONLY one valid JSON object. No markdown, no commentary.
+
+SCHEMA (exact field names):
+{
+	"menuItems": [
+		{
+			"name": "English dish name",
+			"nameAmharic": "Amharic script dish name",
+			"description": "Concise English description (<=18 words).",
+			"descriptionAmharic": "Amharic script translation of description",
+			"tab_tags": ["Breakfast","Lunch"],
+			"tab_tags_am": ["ቁርስ","ምሳ"],
+			"price": 60.0,
+			"currency": "ETB",
+			"allergies": "Contains Dairy, Gluten. Please inform staff of any allergies.",
+			"allergies_am": "ይዟል ወተት, ግሉተን። እባክዎን ስለ አለርጂ ለሰራተኞች ያሳውቁ።",
+			"ingredients": ["Tomato","Berbere","Injera"],
+			"ingredients_am": ["ቲማቲም","በርበሬ","እንጀራ"],
+			"nutritional_info": {"calories": 320, "protein": 15, "carbs": 28, "fat": 14},
+			"preparation_time": 25,
+			"how_to_eat": "Tear injera, scoop stew, eat by hand.",
+			"how_to_eat_am": "እንጀራ ቁርጠው ወጡን ይውሰዱ በእጅ ይበሉ።"
+		}
+	]
+}
+
+TRANSLATION & NAME RULES:
+1. name (English): If a widely accepted English menu term exists (e.g. "Shiro Stew", "Lentil Sambusa"), use it. If not, use a clear Latin transliteration of the Amharic (e.g. "Doro Wot", "Yebeg Tibs"). No Amharic script in the English name.
+2. nameAmharic: ALWAYS true Amharic Ethiopic script (ግዕዝ letters). Never leave blank. Must not repeat Latin letters. If OCR only had Latin form, translate or transliterate into proper Amharic script.
+3. description: Natural English sentence (<=18 words), no leading dish name repetition unless needed for clarity.
+4. descriptionAmharic: Faithful Amharic translation (script), not Latin. If unsure, concise neutral descriptive translation.
+5. *_am lists (tab_tags_am, ingredients_am): each element translated into Amharic script (not Latin). If no direct Amharic for a foreign brand term, transliterate into script.
+6. Never output null; use [] or "". *_am fields must never be missing or empty unless the English counterpart is also empty AND genuinely unknowable.
+7. If an English ingredient lacks direct translation, keep English in ingredients and provide best Amharic transliteration in ingredients_am.
+
+ALLERGEN RULES:
+English: "Contains X, Y, Z. Please inform staff of any allergies." If none: "Contains none commonly recognized. Please inform staff of any allergies."
+Amharic: "ይዟል X, Y, Z። እባክዎን ስለ አለርጂ ለሰራተኞች ያሳውቁ።" or for none: "ታዋቂ አለርጂ አልተገኘም። እባክዎን ስለ አለርጂ ለሰራተኞች ያሳውቁ።".
+
+NUTRITION:
+Estimate realistic positive integers: calories 80–1200; macros consistent (protein+carbs+fat*9 ~= calories within 15%%).
+
+OTHER RULES:
+- preparation_time integer 1–60.
+- currency: ETB default if absent.
+- Deduplicate identical (name+price) items by merging ingredients.
+- NO images if not present in text -> set image arrays empty (but still output fields as empty arrays if schema demands—they are not in this reduced schema so omit).
+- Absolutely NO null, markdown fences, or commentary. Output only JSON.
+- Ensure EVERY menu item has nameAmharic & descriptionAmharic filled (never identical Latin copy of English).
+- Absolutely forbid returning English words inside *_am fields when a standard Amharic equivalent exists; use Ethiopic characters (e.g. Breakfast -> ቁርስ, Lunch -> ምሳ, Meat -> ስጋ, Vegetable -> አትክልት, Stew -> ወጥ, Soup -> ሾርባ, Egg(s) -> እንቁላል, Combination -> ቅልቅል, Specialty -> ልዩ, Vegetarian -> በተክል).
+
+Restaurant: %s
+OCR TEXT:
+%s`, restaurantName, ocrText)
+}
+
+func (gs *GeminiService) parseGeminiResponse(response string) (*menuProcessingResults, error) {
+	response = strings.TrimSpace(response)
+	// Preserve newlines initially for better pattern detection, then clean.
+	log.Printf("[DEBUG] Raw Gemini response (original): %.500s", response)
+
+	// If response contains a Go fmt of struct (&{... ```json{ ... }```}) we try to isolate the JSON code block
+	// Remove any leading Go struct prefix up to first code fence or '{'
+	if idx := strings.Index(response, "```json"); idx > 0 {
+		response = response[idx:]
+	}
+	if !strings.HasPrefix(response, "{" ) {
+		// attempt to find first '{' that begins a JSON object containing "menuItems"
+		if start := strings.Index(response, "{\n"); start != -1 {
+			response = response[start:]
+		}
+	}
+
+	// Strip fences
+	response = strings.TrimPrefix(response, "```json")
+	response = strings.TrimPrefix(response, "```")
+	response = strings.TrimSuffix(response, "```")
+
+	// Now collapse whitespace
+	response = strings.TrimSpace(response)
+	response = strings.Trim(response, "`\"")
+	response = strings.ReplaceAll(response, "\r", "")
+
+	// Some models wrap again inside text; extract largest JSON object containing "menuItems"
+	if !strings.HasPrefix(response, "{") || !strings.Contains(response, "menuItems") {
+		if start := strings.Index(response, "{"); start != -1 {
+			if end := strings.LastIndex(response, "}"); end != -1 && end > start {
+				candidate := response[start : end+1]
+				if strings.Contains(candidate, "menuItems") { response = candidate }
 			}
 		}
 	}
 
-	// 2. Concurrency setup
-	var wg sync.WaitGroup
-	sem := make(chan struct{}, 5) // max 5 concurrent API calls
-	cache := sync.Map{}           // cache for repeated item names
-
-	for _, ptr := range itemsList {
-		wg.Add(1)
-		go func(item *domain.Item) {
-			defer wg.Done()
-
-			// Skip if already has image
-			if len(item.Image) != 0 {
-				return
-			}
-
-			// Use cache if already searched
-			if url, ok := cache.Load(item.Name); ok {
-				item.Image = []string{url.(string)}
-				return
-			}
-
-			// Acquire semaphore
-			sem <- struct{}{}
-			defer func() { <-sem }()
-
-			// Use name or description for query
-			query := item.Name
-			if query == "" && item.Description != "" {
-				query = item.Description
-			}
-
-			url, err := s.SearchImage(ctx, query)
-			if err != nil || url == "" {
-				url = "https://placeholder.com/image.jpg"
-			}
-
-			item.Image = []string{url}
-			cache.Store(item.Name, url)
-		}(ptr.Item)
+	log.Printf("[DEBUG] Gemini JSON candidate: %.500s", response)
+	// Normalize field aliases (snake_case to camelCase expected by struct tags)
+	normalized := normalizeAIJSONAliases(response)
+	var results menuProcessingResults
+	dec := json.NewDecoder(bytes.NewReader([]byte(normalized)))
+	if err := dec.Decode(&results); err != nil {
+		start := strings.Index(normalized, "{")
+		end := strings.LastIndex(normalized, "}")
+		if start != -1 && end != -1 && end > start {
+			jsonStr := normalized[start : end+1]
+			dec2 := json.NewDecoder(bytes.NewReader([]byte(jsonStr)))
+			if err2 := dec2.Decode(&results); err2 == nil { return &results, nil } else { return nil, fmt.Errorf("failed to decode JSON response: %v, response: %s", err2, normalized) }
+		}
+		return nil, fmt.Errorf("failed to decode JSON response: %v, response: %s", err, normalized)
 	}
+	return &results, nil
+}
 
-	wg.Wait() // wait for all goroutines
-	return nil
+// normalizeAIJSONAliases replaces snake_case keys produced by prompt with the camelCase keys expected by the parser structs.
+func normalizeAIJSONAliases(s string) string {
+	replacer := strings.NewReplacer(
+		"\"name_am\"", "\"nameAmharic\"",
+		"\"description_am\"", "\"descriptionAmharic\"",
+		"\"nutritional_info\"", "\"nutritionalInfo\"",
+		"\"how_to_eat\"", "\"eatingInstructions\"",
+		"\"how_to_eat_am\"", "\"eatingInstructionsAm\"",
+	)
+	return replacer.Replace(s)
+}
+
+// toInt attempts to coerce numeric JSON (float64, int, string) to int
+func toInt(v any) (int, bool) {
+	switch n := v.(type) {
+	case float64:
+		return int(n), true
+	case int:
+		return n, true
+	case int32:
+		return int(n), true
+	case int64:
+		return int(n), true
+	case string:
+		if strings.TrimSpace(n) == "" { return 0, false }
+		var f float64
+		_, err := fmt.Sscanf(n, "%f", &f)
+		if err != nil { return 0, false }
+		return int(f), true
+	default:
+		return 0, false
+	}
+}
+
+// TranslateAIBit simple translation using same model
+func (gs *GeminiService) TranslateAIBit(text, target string) (string, error) {
+	ctx := context.Background()
+	var langName string
+	switch target { case "am": langName = "Amharic"; case "or": langName = "Oromo"; case "en": langName = "English"; default: langName = "English" }
+	prompt := fmt.Sprintf("Translate the following text to %s. Return only the translation without any additional text:\n\n%s", langName, text)
+	resp, err := gs.client.Models.GenerateContent(ctx, gs.model, genai.Text(prompt), nil)
+	if err != nil { return text, fmt.Errorf("failed to translate text: %w", err) }
+	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 { return text, fmt.Errorf("no translation response from Gemini") }
+	var out string
+	for _, part := range resp.Candidates[0].Content.Parts { out += fmt.Sprintf("%v", part) }
+	return strings.TrimSpace(out), nil
+}
+
+func firstNonEmpty(vals ...string) string { for _, v := range vals { if strings.TrimSpace(v) != "" { return v } }; return "" }
+
+// transient determines if an error is a retryable transient AI error (HTTP 429/503)
+func transient(err error) bool {
+	if err == nil { return false }
+	msg := err.Error()
+	if strings.Contains(msg, "429") || strings.Contains(strings.ToLower(msg), "too many requests") { return true }
+	if strings.Contains(msg, "503") || strings.Contains(strings.ToLower(msg), "unavailable") { return true }
+	if strings.Contains(strings.ToLower(msg), "overloaded") { return true }
+	return false
+}
+
+// classifyCategory provides a lightweight heuristic categorization when category tags removed.
+func classifyCategory(name, desc string) string {
+ 	n := strings.ToLower(name + " " + desc)
+ 	switch {
+ 	case strings.Contains(n, "soup") || strings.Contains(n, "ቅቅል") || strings.Contains(n, "broth"):
+ 		return "Soup"
+ 	case strings.Contains(n, "stew") || strings.Contains(n, "wot") || strings.Contains(n, "ወጥ"):
+ 		return "Stew"
+ 	case strings.Contains(n, "egg") || strings.Contains(n, "እንቁላል"):
+ 		return "Eggs"
+ 	case strings.Contains(n, "kitfo") || strings.Contains(n, "tibs") || strings.Contains(n, "beef") || strings.Contains(n, "meat") || strings.Contains(n, "ስጋ"):
+ 		return "Meat"
+ 	case strings.Contains(n, "gomen") || strings.Contains(n, "greens") || strings.Contains(n, "አትክልት"):
+ 		return "Vegetable"
+ 	case strings.Contains(n, "firfir") || strings.Contains(n, "combination") || strings.Contains(n, "mahber"):
+ 		return "Combination"
+ 	case strings.Contains(n, "genfo") || strings.Contains(n, "porridge"):
+ 		return "Vegetarian"
+ 	default:
+ 		return "General"
+ 	}
+}
+
+// amharicScriptForLabel maps known English category/tab labels to Amharic script.
+func amharicScriptForLabel(label string) string {
+ 	switch strings.ToLower(strings.TrimSpace(label)) {
+ 	case "breakfast": return "ቁርስ"
+ 	case "lunch": return "ምሳ"
+ 	case "meat": return "ስጋ"
+ 	case "vegetable": return "አትክልት"
+ 	case "vegetarian": return "በተክል"
+ 	case "stew": return "ወጥ"
+ 	case "soup": return "ሾርባ"
+ 	case "eggs", "egg": return "እንቁላል"
+ 	case "combination": return "ቅልቅል"
+ 	case "specialty": return "ልዩ"
+ 	case "general": return "አጠቃላይ"
+ 	default: return "" // unknown -> let caller fallback
+ 	}
 }
