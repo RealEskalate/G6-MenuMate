@@ -9,11 +9,7 @@ export default function ManagerSignup() {
       {/* Left side - form */}
       <div className="flex items-center justify-center w-full lg:w-2/3 bg-gray-50 p-4 lg:p-8">
         <div className="w-full max-w-md bg-white p-6 lg:p-8 rounded-2xl shadow">
-<<<<<<< HEAD
           <h1 className="text-2xl lg:text-3xl font-bold text-center">
-=======
-          <h1 className="text-2xl lg:text-3xl font-bold text-center mb-2">
->>>>>>> a40b108dc33d2b88911e3b83a1ec36dec369366a
             Create Manager Account
           </h1>
           <p className="text-gray-500 text-center mb-6 text-sm lg:text-base">

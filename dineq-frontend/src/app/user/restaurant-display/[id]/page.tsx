@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-
->>>>>>> a40b108dc33d2b88911e3b83a1ec36dec369366a
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { FaHeart } from "react-icons/fa";
