@@ -10,10 +10,9 @@ type Item struct {
 	Name            string           `json:"name"`
 	NameAm          string           `json:"name_am"`
 	Slug            string           `json:"slug"`
-	MenuSlug        string           `json:"category_id"`
+	MenuSlug        string           `json:"menu_slug"`
 	Description     string           `json:"description"`
 	DescriptionAm   string           `json:"description_am"`
-	CategoryTags    []string         // e.g. Appetizers, Main Course, Desserts
 	Image           []string         `json:"image"`
 	ThumbnailImages []string         `json:"thumbnail_images"`
 	Price           float64          `json:"price"`
