@@ -25,26 +25,17 @@ type QRCodeCustomization struct {
 	GradientTo      string  `json:"gradient_to,omitempty"`
 	GradientDirection string `json:"gradient_direction,omitempty"`
 	Margin          int     `json:"margin,omitempty"`
-	ErrorCorrection string  `json:"error_correction,omitempty"`
 	LabelText       string  `json:"label_text,omitempty"`
 	LabelColor      string  `json:"label_color,omitempty"`
 	LabelFontSize   int     `json:"label_font_size,omitempty"`
 	LabelFontURL    string  `json:"label_font_url,omitempty"`
-	LogoBackground bool    `json:"logo_background,omitempty"`
-	LogoBackgroundColor string `json:"logo_background_color,omitempty"`
-	LogoBackgroundPadding int `json:"logo_background_padding,omitempty"`
-	LogoTintGradient bool `json:"logo_tint_gradient,omitempty"`
-	LogoOpacity int `json:"logo_opacity,omitempty"`
-	LogoBlendMode string `json:"logo_blend_mode,omitempty"`
-	LogoTintStrength int `json:"logo_tint_strength,omitempty"`
-	LogoAutoRemoveWhite bool `json:"logo_auto_remove_white,omitempty"`
-	LogoWhiteThreshold int `json:"logo_white_threshold,omitempty"`
 }
 
 // QRCodeResponse represents a QR code generation response
 type QRCodeResponse struct {
 	QRCodeID      string    `json:"qr_code_id"`
 	ImageURL      string    `json:"image_url"`
+	CloudImageURL string    `json:"cloud_image_url,omitempty"`
 	PublicMenuURL string    `json:"public_menu_url"`
 	DownloadURL   string    `json:"download_url"`
 	IsActive      bool      `json:"is_active"`
@@ -67,9 +58,7 @@ func DTOToQRCodeRequest(req *QRCodeRequest) *domain.QRCodeRequest {
 }
 
 func DTOToQRCodeCustomization(cust *QRCodeCustomization) *domain.QRCodeCustomization {
-	if cust == nil {
-		return nil
-	}
+	if cust == nil { return nil }
 	return &domain.QRCodeCustomization{
 		BackgroundColor: cust.BackgroundColor,
 		ForegroundColor: cust.ForegroundColor,
@@ -79,20 +68,10 @@ func DTOToQRCodeCustomization(cust *QRCodeCustomization) *domain.QRCodeCustomiza
 		GradientTo:      cust.GradientTo,
 		GradientDirection: cust.GradientDirection,
 		Margin:          cust.Margin,
-		ErrorCorrection: cust.ErrorCorrection,
 		LabelText:       cust.LabelText,
 		LabelColor:      cust.LabelColor,
 		LabelFontSize:   cust.LabelFontSize,
 		LabelFontURL:    cust.LabelFontURL,
-		LogoBackground: cust.LogoBackground,
-		LogoBackgroundColor: cust.LogoBackgroundColor,
-		LogoBackgroundPadding: cust.LogoBackgroundPadding,
-		LogoTintGradient: cust.LogoTintGradient,
-		LogoOpacity: cust.LogoOpacity,
-		LogoBlendMode: cust.LogoBlendMode,
-		LogoTintStrength: cust.LogoTintStrength,
-		LogoAutoRemoveWhite: cust.LogoAutoRemoveWhite,
-		LogoWhiteThreshold: cust.LogoWhiteThreshold,
 	}
 }
 

@@ -1,12 +1,13 @@
 package routers
 
 import (
-    "time"
-    "github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
-    services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
-    handler "github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/handlers"
-    "github.com/RealEskalate/G6-MenuMate/internal/interfaces/middleware"
-    "github.com/gin-gonic/gin"
+	"time"
+
+	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
+	handler "github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/handlers"
+	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/middleware"
+	"github.com/gin-gonic/gin"
 )
 
 // NewUploadRoutes registers image upload endpoints (Cloudinary-backed)
