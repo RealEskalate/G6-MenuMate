@@ -40,7 +40,7 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 
 	// Validate manager_id from context
 	if manager == "" || !IsValidObjectID(manager) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or missing manager_id (must be a valid ObjectID)"})
+		dto.WriteValidationError(c, "manager_id", "invalid or missing manager_id", "invalid_manager_id", nil)
 		return
 	}
 
@@ -54,7 +54,7 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 		// Handle JSON request
 		var input dto.RestaurantResponse
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			dto.WriteValidationError(c, "payload", "invalid JSON body", "invalid_json", err)
 			return
 		}
 		r.RestaurantName = input.Name
@@ -64,7 +64,7 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 	} else if strings.HasPrefix(contentType, "multipart/form-data") {
 		// ensure form is parsed (limit ~10MB)
 		if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse multipart form: " + err.Error()})
+			dto.WriteValidationError(c, "form", "failed to parse multipart form", "multipart_parse_failed", err)
 			return
 		}
 		// Handle multipart/form-data request
@@ -73,7 +73,7 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 			name = c.PostForm("name")
 		}
 		if name == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "restaurant_name (or name) is required"})
+			dto.WriteValidationError(c, "restaurant_name", "restaurant_name (or name) is required", "restaurant_name_required", nil)
 			return
 		}
 		r.RestaurantName = name
@@ -93,7 +93,7 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 			fileHeader, err := c.FormFile(field)
 			if err != nil {
 				if err != http.ErrMissingFile {
-					c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s: %v", field, err)})
+					dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
 					return
 				}
 				continue
@@ -101,21 +101,21 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 
 			file, err := fileHeader.Open()
 			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to open %s", field)})
+				dto.WriteValidationError(c, field, fmt.Sprintf("failed to open %s", field), "file_open_failed", err)
 				return
 			}
 			defer file.Close()
 
 			data, err := io.ReadAll(file)
 			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s", field)})
+				dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
 				return
 			}
 			files[field] = data
 		}
 
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported content type: " + contentType})
+		dto.WriteValidationError(c, "content_type", "unsupported content type", "unsupported_content_type", nil)
 		return
 	}
 
@@ -124,7 +124,7 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 		r.Slug = utils.GenerateSlug(r.RestaurantName)
 	}
 	if err := h.RestaurantUsecase.CreateRestaurant(c.Request.Context(), r, files); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusCreated, dto.ToRestaurantResponse(r))
@@ -136,16 +136,15 @@ func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
 	r, err := h.RestaurantUsecase.GetRestaurantBySlug(c.Request.Context(), slug)
 	if err != nil {
 		if err == domain.ErrRestaurantDeleted {
-			c.JSON(http.StatusGone, gin.H{"error": "restaurant deleted"})
+			// Use standardized error
+			dto.WriteError(c, domain.ErrRestaurantDeleted)
 			return
 		}
-		// Try old slug fallback
 		old, oldErr := h.RestaurantUsecase.GetRestaurantByOldSlug(c.Request.Context(), slug)
 		if oldErr != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			dto.WriteError(c, err)
 			return
 		}
-		// Redirect permanently to new slug
 		c.Header("Location", "/api/v1/restaurants/"+old.Slug)
 		c.JSON(http.StatusPermanentRedirect, gin.H{"redirect_to": old.Slug})
 		return
@@ -159,18 +158,19 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 	manager := c.GetString("user_id")
 
 	if manager == "" || !IsValidObjectID(manager) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid or missing manager_id (must be a valid ObjectID)"})
+		dto.WriteValidationError(c, "manager_id", "invalid or missing manager_id", "invalid_manager_id", nil)
 		return
 	}
 
 	existing, err := h.RestaurantUsecase.GetRestaurantBySlug(c.Request.Context(), slug)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 
 	if existing.ManagerID != manager {
-		c.JSON(http.StatusForbidden, gin.H{"error": "not authorized to update this restaurant"})
+		// Use generic unauthorized domain error for consistency
+		dto.WriteError(c, domain.ErrUnauthorized)
 		return
 	}
 
@@ -182,7 +182,7 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 	if contentType == "application/json" {
 		var input dto.RestaurantResponse
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			dto.WriteValidationError(c, "payload", "invalid JSON body", "invalid_json", err)
 			return
 		}
 		// Merge mutable fields from JSON
@@ -201,7 +201,7 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 		}
 	} else if c.Request.MultipartForm != nil || contentType == "multipart/form-data" {
 		if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
-			c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse form: " + err.Error()})
+			dto.WriteValidationError(c, "form", "failed to parse form", "multipart_parse_failed", err)
 			return
 		}
 		// Merge mutable fields from multipart form
@@ -226,7 +226,7 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 			fileHeader, err := c.FormFile(field)
 			if err != nil {
 				if err != http.ErrMissingFile {
-					c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s: %v", field, err)})
+					dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
 					return
 				}
 				continue
@@ -234,28 +234,28 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 
 			file, err := fileHeader.Open()
 			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to open %s", field)})
+				dto.WriteValidationError(c, field, fmt.Sprintf("failed to open %s", field), "file_open_failed", err)
 				return
 			}
 			defer file.Close()
 
 			data, err := io.ReadAll(file)
 			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s", field)})
+				dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
 				return
 			}
 			files[field] = data
 		}
 
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unsupported content type"})
+		dto.WriteValidationError(c, "content_type", "unsupported content type", "unsupported_content_type", nil)
 		return
 	}
 
 	existing.ManagerID = manager
 
 	if err := h.RestaurantUsecase.UpdateRestaurant(c.Request.Context(), existing, files); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, dto.ToRestaurantResponse(existing))
@@ -338,7 +338,7 @@ func (h *RestaurantHandler) DeleteRestaurant(c *gin.Context) {
 	manager := c.GetString("user_id")
 	id := c.Param("id")
 	if err := h.RestaurantUsecase.DeleteRestaurant(c.Request.Context(), id, manager); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.Status(http.StatusNoContent)
@@ -360,7 +360,7 @@ func (h *RestaurantHandler) GetBranches(c *gin.Context) {
 	}
 	branches, total, err := h.RestaurantUsecase.ListBranchesBySlug(c.Request.Context(), slug, page, pageSize)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
@@ -390,7 +390,7 @@ func (h *RestaurantHandler) GetUniqueRestaurants(c *gin.Context) {
 
 	restaurants, total, err := h.RestaurantUsecase.ListUniqueRestaurants(c.Request.Context(), page, pageSize)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 

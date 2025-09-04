@@ -132,16 +132,16 @@ func NewOCRJobHandler(uc domain.IOCRJobUseCase, mc domain.IMenuUseCase, stg serv
 func (h *OCRJobHandler) CreateOCRJob(c *gin.Context) {
 	var OCRDto dto.OCRJobDTO
 	if err := c.ShouldBindJSON(&OCRDto); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		dto.WriteValidationError(c, "payload", "invalid JSON body", "invalid_json", err)
 		return
 	}
 	if err := OCRDto.Validate(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		dto.WriteValidationError(c, "payload", err.Error(), "validation_failed", err)
 		return
 	}
 	job := OCRDto.ToDomain()
 	if err := h.UseCase.CreateOCRJob(job); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
@@ -242,7 +242,7 @@ func (h *OCRJobHandler) GetOCRJobByID(c *gin.Context) {
 func (h *OCRJobHandler) DeleteOCRJob(c *gin.Context) {
 	id := c.Param("id")
 	if err := h.UseCase.DeleteOCRJob(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "OCR job deleted"})
@@ -253,7 +253,7 @@ func (h *OCRJobHandler) RetryOCRJob(c *gin.Context) {
 	id := c.Param("id")
 	job, err := h.UseCase.RetryJob(id)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusAccepted, gin.H{"success": true, "data": gin.H{"job_id": job.ID, "status": job.Status, "estimated_completion_time": job.EstimatedCompletion}})

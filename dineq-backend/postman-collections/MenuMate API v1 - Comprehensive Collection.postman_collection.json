@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "d2d08772-826d-488f-a8c6-bb83768f4e72",
     "name": "MenuMate API v1 - Comprehensive Collection",
-    "description": "Complete API documentation for MenuMate Backend - A restaurant management and discovery platform.\n\n## Overview\n\nMenuMate is a comprehensive restaurant management system that allows restaurant owners to manage restaurants, menus, staff, and for customers to discover and review places.\n\n## Base URL\n\n`http://localhost:8080/api/v1`\n\n## Authentication\n\nMost endpoints require JWT authentication. Send the access token via Authorization header or cookies.\n\n- Header: `Authorization: Bearer`\n    \n- Cookies: `access_token` and `refresh_token` are set by the server when you login/register.\n    \n\n## API Versioning\n\nAll endpoints are prefixed with `/api/v1`.\n\n## Errors\n\nStandard error format:\n\n``` json\n{\n  \"message\": \"Error description\",\n  \"error\": \"Detailed error information (optional)\"\n}\n\n ```\n\n## Success\n\nStandard success format may be either:\n\n``` json\n{ \"message\": \"Operation completed successfully\", \"data\": { ... } }\n\n ```\n\nOR an object payload (e.g., login returns tokens).",
+    "description": "Complete API documentation for MenuMate Backend - A restaurant management and discovery platform.\n\n## Overview\n\nMenuMate is a comprehensive restaurant management system that allows restaurant owners to manage restaurants, menus, staff, and for customers to discover and review places.\n\n## Base URL\n\n`http://localhost:8080/api/v1`\n\n## Authentication\n\nMost endpoints require JWT authentication. Send the access token via Authorization header or cookies.\n\n- Header: `Authorization: Bearer`\n    \n- Cookies: `access_token` and `refresh_token` are set by the server when you login/register.\n    \n\n## API Versioning\n\nAll endpoints are prefixed with `/api/v1`.\n\n## Errors\n\nStandard error format (refactored unified schema):\n\n```json\n{\n  \"message\": \"Short human readable explanation\",\n  \"code\": \"snake_case_machine_code\",\n  \"field\": \"field_name_if_applicable\",\n  \"error\": \"internal or debug detail (may be omitted in production)\"\n}\n```\n\nExamples:\n```json\n{\n  \"message\": \"email already in use\",\n  \"code\": \"email_already_in_use\",\n  \"field\": \"email\"\n}\n```\n```json\n{\n  \"message\": \"invalid credentials\",\n  \"code\": \"invalid_credentials\"\n}\n```\n\n## Success\n\nStandard success format may be either:\n\n``` json\n{ \"message\": \"Operation completed successfully\", \"data\": { ... } }\n```\nOR an object payload (e.g., login returns tokens).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "43798053",
     "_collection_link": "https://tesfamichael.postman.co/workspace/cd610ad1-271f-46f0-80a2-fb050932281a/collection/43798053-d2d08772-826d-488f-a8c6-bb83768f4e72?action=share&source=collection_link&creator=43798053"
@@ -55,7 +55,22 @@
                 },
                 "description": "Register a new user account.\n\n**Registration Rules:**\nYou MUST provide: \n- `username` (unique)\n- `password`\n- Either `email` OR `phone_number` (at least one)\n- `auth_provider` must match the primary credential used: `EMAIL` when using email, `PHONE` when using phone-only signup, `GOOGLE` for OAuth flow.\n\n**Request Body Fields (Standard Email Registration):**\n- `username` (string, required): 3-50 alphanumeric characters\n- `email` (string, required if auth_provider=EMAIL): Valid email address\n- `phone_number` (string, required if auth_provider=PHONE): E.164 format (e.g. +15551234567)\n- `password` (string, required): 6-100 characters\n- `auth_provider` (string, required): One of `EMAIL`, `PHONE`, `GOOGLE`\n- `first_name` (string, optional): 2-50 alphabetic characters\n- `last_name` (string, optional): 2-50 alphabetic characters\n- `role` (string, optional): One of `CUSTOMER`, `OWNER`, `MANAGER`, `STAFF`, `ADMIN` (defaults to `CUSTOMER`)\n\n**Examples:**\n_Email Based:_\n```json\n{\n  \"username\": \"johndoe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"securepassword123\",\n  \"auth_provider\": \"EMAIL\"\n}\n```\n_Phone Based:_\n```json\n{\n  \"username\": \"janedoe\",\n  \"phone_number\": \"+15551234567\",\n  \"password\": \"securepassword123\",\n  \"auth_provider\": \"PHONE\"\n}\n```\n\n**Conflict Handling (409):**\n- `username already exists`\n- `email already exists`\n- `phone number already exists`\n\n**Response:** Returns created user object without password hash."
               },
-              "response": []
+              "response": [
+                {
+                  "name": "201 Created",
+                  "status": "Created",
+                  "code": 201,
+                  "_postman_previewlanguage": "json",
+                  "body": "{\n  \"message\": \"Registration successful\",\n  \"user\": {\n    \"id\": \"663f1c...\",\n    \"username\": \"johndoe\",\n    \"email\": \"john.doe@example.com\"\n  },\n  \"tokens\": {\n    \"access_token\": \"eyJ...\",\n    \"refresh_token\": \"eyJ...\"\n  }\n}"
+                },
+                {
+                  "name": "409 Conflict (Email)",
+                  "status": "Conflict",
+                  "code": 409,
+                  "_postman_previewlanguage": "json",
+                  "body": "{\n  \"message\": \"email already in use\",\n  \"code\": \"email_already_in_use\",\n  \"field\": \"email\"\n}"
+                }
+              ]
             },
             {
               "name": "Login User",
@@ -162,7 +177,7 @@
                     }
                   ],
                   "cookie": [],
-                  "body": "{\n  \"message\": \"invalid credentials\",\n  \"error\": \"username/email or password is incorrect\"\n}"
+                  "body": "{\n  \"message\": \"invalid credentials\",\n  \"code\": \"invalid_credentials\"\n}"
                 }
               ]
             },
