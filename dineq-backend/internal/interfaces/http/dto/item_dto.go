@@ -21,7 +21,7 @@ type ItemRequest struct {
 	Name            string   `json:"name" validate:"required_without=name_am,omitempty"`
 	NameAm          string   `json:"name_am" validate:"required_without=name,omitempty"`
 	Slug            string   `json:"slug,omitempty"`
-	CategoryID      string   `json:"category_id,omitempty"` // mapped to domain.Item.MenuSlug (legacy naming)
+	MenuSlug        string   `json:"menu_slug,omitempty"`
 	Description     string   `json:"description,omitempty"`
 	DescriptionAm   string   `json:"description_am,omitempty"`
 	Image           []string `json:"image,omitempty"`
@@ -51,7 +51,6 @@ type ItemResponse struct {
 	NameAm          string              `json:"name_am"`
 	Slug            string              `json:"slug"`
 	MenuSlug        string              `json:"menu_slug"`
-	CategoryID      string              `json:"category_id,omitempty"` // derived (same as MenuSlug)
 	Description     string              `json:"description,omitempty"`
 	DescriptionAm   string              `json:"description_am,omitempty"`
 	Image           []string            `json:"image,omitempty"`
@@ -86,7 +85,7 @@ type ItemDTO struct {
 	Name            string              `json:"name"`
 	NameAm          string              `json:"name_am,omitempty"`
 	Slug            string              `json:"slug"`
-	CategoryID      string              `json:"category_id"`
+	MenuSlug        string              `json:"menu_slug"`
 	Description     string              `json:"description,omitempty"`
 	DescriptionAm   string              `json:"description_am,omitempty"`
 	Image           []string            `json:"image,omitempty"`
@@ -117,8 +116,8 @@ type ItemDTO struct {
 
 // Validate basic required fields for ItemDTO
 func (i *ItemDTO) Validate() error {
-	if i.Name == "" || i.CategoryID == "" || i.Price <= 0 {
-		return fmt.Errorf("item name, categoryID, and positive price are required")
+	if i.Name == "" || i.MenuSlug == "" || i.Price <= 0 {
+		return fmt.Errorf("item name, menu_slug, and positive price are required")
 	}
 	return nil
 }
@@ -134,7 +133,7 @@ func (i *ItemDTO) ToDomain() *domain.Item {
 		Name:            i.Name,
 		NameAm:          i.NameAm,
 		Slug:            i.Slug,
-		MenuSlug:        i.CategoryID,
+		MenuSlug:        i.MenuSlug,
 		Description:     i.Description,
 		DescriptionAm:   i.DescriptionAm,
 		Image:           i.Image,
@@ -178,7 +177,7 @@ func (i *ItemDTO) FromDomain(item *domain.Item) *ItemDTO {
 		Name:            item.Name,
 		NameAm:          item.NameAm,
 		Slug:            item.Slug,
-		CategoryID:      item.MenuSlug,
+		MenuSlug:        item.MenuSlug,
 		Description:     item.Description,
 		DescriptionAm:   item.DescriptionAm,
 		Image:           item.Image,
@@ -224,7 +223,7 @@ func RequestToItem(r *ItemRequest) *domain.Item {
 		Name:            r.Name,
 		NameAm:          r.NameAm,
 		Slug:            r.Slug,
-		MenuSlug:        r.CategoryID,
+		MenuSlug:        r.MenuSlug,
 		Description:     r.Description,
 		DescriptionAm:   r.DescriptionAm,
 		Image:           r.Image,
@@ -290,7 +289,6 @@ func ItemToResponse(item *domain.Item) *ItemResponse {
 		NameAm:          item.NameAm,
 		Slug:            item.Slug,
 		MenuSlug:        item.MenuSlug,
-		CategoryID:      item.MenuSlug,
 		Description:     item.Description,
 		DescriptionAm:   item.DescriptionAm,
 		Image:           item.Image,

@@ -17,7 +17,6 @@ type ItemDB struct {
 	DescriptionAm   string                  `bson:"descriptionAm"`
 	Image           []string                `bson:"image"`
 	Price           float64                 `bson:"price"`
-	CategoryTags    []string                `bson:"categoryTags"`
 	Currency        string                  `bson:"currency"`
 	Allergies       []string                `bson:"allergies"`
 	AllergiesAm     string                  `bson:"allergiesAm"`
@@ -60,7 +59,6 @@ func NewItemDBFromDomain(item *domain.Item) *ItemDB {
 		DescriptionAm:   item.DescriptionAm,
 		Image:           item.Image,
 		Price:           item.Price,
-		CategoryTags:    item.CategoryTags,
 		Currency:        item.Currency,
 		Allergies:       item.Allergies,
 		AllergiesAm:     item.AllergiesAm,
@@ -101,7 +99,6 @@ func MergeItemUpdate(updated *domain.Item) *ItemDB {
 		Image:           updated.Image,
 		Price:           updated.Price,
 		TabTags:         updated.TabTags,
-		CategoryTags:    updated.CategoryTags,
 		Currency:        updated.Currency,
 		Allergies:       updated.Allergies,
 		UserImages:      updated.UserImages,
@@ -136,7 +133,6 @@ func ToItemDBForUpdate(it *domain.Item) *ItemDB {
 		DescriptionAm:   it.DescriptionAm,
 		Image:           it.Image,
 		Price:           it.Price,
-		CategoryTags:    it.CategoryTags,
 		Currency:        it.Currency,
 		Allergies:       it.Allergies,
 		AllergiesAm:     it.AllergiesAm,
@@ -176,7 +172,6 @@ func ToDomainItem(item *ItemDB) *domain.Item {
 		Price:           item.Price,
 		Currency:        item.Currency,
 		TabTags:         item.TabTags,
-		CategoryTags:    item.CategoryTags,
 		Allergies:       item.Allergies,
 		AllergiesAm:     item.AllergiesAm,
 		UserImages:      item.UserImages,
