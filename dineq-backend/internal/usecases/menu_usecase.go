@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
@@ -24,7 +25,20 @@ func (uc *MenuUseCase) CreateMenu(menu *domain.Menu) error {
 	defer cancel()
 	menu.CreatedAt = time.Now()
 	menu.UpdatedAt = time.Now()
-	menu.Slug = utils.GenerateSlug(menu.RestaurantID)
+	// Build slug from menu name (ensure contains word 'menu') plus short uuid fragment for uniqueness
+	name := strings.TrimSpace(menu.Name)
+	if name == "" {
+		name = menu.RestaurantID + " menu"
+	}
+	lowerName := strings.ToLower(name)
+	if !strings.Contains(lowerName, "menu") {
+		name = name + " Menu"
+	}
+	baseSlug := utils.GenerateSlug(name)
+	// append 6-char uuid segment for uniqueness
+	uidPart := utils.GenerateUUID()
+	if len(uidPart) > 8 { uidPart = uidPart[:8] }
+	menu.Slug = baseSlug + "-" + uidPart
 	return uc.menuRepo.Create(ctx, menu)
 }
 
