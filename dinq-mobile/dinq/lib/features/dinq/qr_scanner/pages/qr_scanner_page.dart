@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-// import 'package:qr_code_tools/qr_code_tools.dart';
-import 'package:qr_code_tools/qr_code_tools.dart';
+// import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../../core/util/theme.dart';
@@ -44,7 +44,11 @@ class _QrScannerPageState extends State<QrScannerPage> {
     try {
       print('Processing image: \\${imageFile.path}');
       // Extract QR code from image
-      String? qrContent = await QrCodeToolsPlugin.decodeFrom(imageFile.path);
+      final scanResult = await MobileScanner.scanPath(imageFile.path);
+      String? qrContent;
+      if (result.barcodes.isNotEmpty) {
+        qrContent = result.barcodes.first.rawValue;
+      }
       print('QR content: $qrContent');
       if (qrContent == null) {
         _showFailure(const NotFoundFailure('No QR code found in image.'));
@@ -123,7 +127,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
+
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -238,7 +242,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
               text: 'Capture the entire QR Code in frame',
             ),
             const SizedBox(height: 12),
-            
+
           ],
         ),
       ),

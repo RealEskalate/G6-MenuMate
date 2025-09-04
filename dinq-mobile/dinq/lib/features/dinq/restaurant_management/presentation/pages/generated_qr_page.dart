@@ -6,7 +6,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../../../core/util/theme.dart';
+import '../../../../../core/util/theme.dart';
 
 class GeneratedQrPage extends StatefulWidget {
   final String qrImagePath; // Local asset or network path to QR image

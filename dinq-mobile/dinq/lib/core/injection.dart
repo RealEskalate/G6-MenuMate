@@ -41,15 +41,11 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetMenu(sl()));
   sl.registerLazySingleton(() => GetCategories(sl()));
   sl.registerLazySingleton(() => GetReviews(sl()));
-<<<<<<< HEAD
-  sl.registerLazySingleton(() => GetUserimages(sl()));
+  sl.registerLazySingleton(() => GetUserImages(sl()));
   sl.registerLazySingleton(() => GetRestaurantBySlug(sl()));
   sl.registerLazySingleton(() => CreateRestaurant(sl()));
   sl.registerLazySingleton(() => UpdateRestaurant(sl()));
   sl.registerLazySingleton(() => DeleteRestaurant(sl()));
-=======
-  sl.registerLazySingleton(() => GetUserImages(sl()));
->>>>>>> m-feature/restaurant-menu
 
   // Repository
   sl.registerLazySingleton<RestaurantRepository>(

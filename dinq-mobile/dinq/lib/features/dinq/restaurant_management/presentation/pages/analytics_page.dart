@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import '../../../../core/util/theme.dart';
+import '../../../../../core/util/theme.dart';
 import '../widgets/owner_navbar.dart';
 
 class AnalyticsPage extends StatelessWidget {
@@ -21,7 +21,7 @@ class AnalyticsPage extends StatelessWidget {
       '4PM',
       '6PM',
       '8PM',
-      '10PM', 
+      '10PM',
     ];
     final popularItems = [
       {'name': 'Special Firfir', 'views': 245},

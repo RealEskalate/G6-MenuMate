@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/util/theme.dart';
+import '../../../../../core/util/theme.dart';
 
 class DigitizeMenuButton extends StatelessWidget {
   final IconData icon;

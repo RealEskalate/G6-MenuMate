@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/routing/app_route.dart';
-import '../../../../core/util/theme.dart';
+import '../../../../../core/routing/app_route.dart';
+import '../../../../../core/util/theme.dart';
 
 class OwnerNavBar extends StatelessWidget {
   final bool isRestaurantOwner;
