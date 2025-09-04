@@ -23,19 +23,37 @@ type UploadResult struct {
 	Bytes    int64
 }
 
-// CloudinaryUploader provides a simple wrapper around cloudinary-go for QR image uploads
-// It expects the following env vars to be set:
-//   CLOUDINARY_CLOUD_NAME
-//   CLOUDINARY_API_KEY
-//   CLOUDINARY_API_SECRET
-// Optionally CLOUDINARY_UPLOAD_FOLDER (defaults to "qr_codes")
-func UploadToCloudinary(localPath string) (*UploadResult, error) {
-	cloudName := os.Getenv("CLOUDINARY_CLOUD_NAME")
-	apiKey := os.Getenv("CLOUDINARY_API_KEY")
-	apiSecret := os.Getenv("CLOUDINARY_API_SECRET")
+func resolveCloudinaryCreds() (cloudName, apiKey, apiSecret string, err error) {
+	cloudName = os.Getenv("CLOUDINARY_CLOUD_NAME")
+	apiKey = os.Getenv("CLOUDINARY_API_KEY")
+	apiSecret = os.Getenv("CLOUDINARY_API_SECRET")
+	// Fallback to alternate variable names (CLD_*)
+	if cloudName == "" { cloudName = os.Getenv("CLD_NAME") }
+	if apiKey == "" { apiKey = os.Getenv("CLD_API_KEY") }
+	if apiSecret == "" { apiSecret = os.Getenv("CLD_SECRET") }
 	if cloudName == "" || apiKey == "" || apiSecret == "" {
-		return nil, fmt.Errorf("cloudinary credentials missing env vars")
+		if raw := os.Getenv("CLOUDINARY_URL"); raw != "" {
+			parts := strings.SplitN(raw, "@", 2)
+			if len(parts) == 2 {
+				cred := strings.TrimPrefix(parts[0], "cloudinary://")
+				cParts := strings.SplitN(cred, ":", 2)
+				if len(cParts) == 2 {
+					apiKey = cParts[0]
+					apiSecret = cParts[1]
+					cloudName = strings.TrimSuffix(parts[1], "/")
+				}
+			}
+		}
 	}
+	if cloudName == "" || apiKey == "" || apiSecret == "" {
+		return "", "", "", fmt.Errorf("cloudinary credentials missing env vars")
+	}
+	return
+}
+
+func UploadToCloudinary(localPath string) (*UploadResult, error) {
+	cloudName, apiKey, apiSecret, err := resolveCloudinaryCreds()
+	if err != nil { return nil, err }
 
 	cld, err := cloudinary.NewFromParams(cloudName, apiKey, apiSecret)
 	if err != nil {
@@ -76,15 +94,9 @@ func UploadToCloudinary(localPath string) (*UploadResult, error) {
 	}, nil
 }
 
-// UploadBytesToCloudinary uploads raw image bytes (e.g., generated in-memory) to Cloudinary
-// filename is used to derive extension & optional public id.
 func UploadBytesToCloudinary(data []byte, filename string) (*UploadResult, error) {
-	cloudName := os.Getenv("CLOUDINARY_CLOUD_NAME")
-	apiKey := os.Getenv("CLOUDINARY_API_KEY")
-	apiSecret := os.Getenv("CLOUDINARY_API_SECRET")
-	if cloudName == "" || apiKey == "" || apiSecret == "" {
-		return nil, fmt.Errorf("cloudinary credentials missing env vars")
-	}
+	cloudName, apiKey, apiSecret, err := resolveCloudinaryCreds()
+	if err != nil { return nil, err }
 	cld, err := cloudinary.NewFromParams(cloudName, apiKey, apiSecret)
 	if err != nil { return nil, fmt.Errorf("init cloudinary: %w", err) }
 	folder := os.Getenv("CLOUDINARY_UPLOAD_FOLDER")
