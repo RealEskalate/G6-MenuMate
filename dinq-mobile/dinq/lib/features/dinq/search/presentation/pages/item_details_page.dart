@@ -1,5 +1,5 @@
-import 'package:dinq/features/dinq/search/presentation/pages/add_review_page.dart';
-import 'package:dinq/features/dinq/search/presentation/widgets/bottom_navbar.dart';
+import 'add_review_page.dart';
+import '../widgets/bottom_navbar.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
 import '../../domain/entities/menu.dart' as models;
@@ -13,7 +13,7 @@ class _FavoritesStore {
 class ItemDetailsPage extends StatefulWidget {
   final models.Item item;
 
-  const ItemDetailsPage({Key? key, required this.item}) : super(key: key);
+  const ItemDetailsPage({super.key, required this.item});
 
   @override
   State<ItemDetailsPage> createState() => _ItemDetailsPageState();
@@ -93,7 +93,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 15),
+                  const SizedBox(height: 15),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
@@ -116,7 +116,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                       style: TextStyle(color: Colors.black),
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   if (widget.item.description != null) ...[
                     const Text(
                       'Description',
@@ -271,12 +271,12 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                       color: Colors.grey[100],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
-                        const Icon(Icons.mic, color: Colors.grey),
-                        const SizedBox(width: 8),
+                        Icon(Icons.mic, color: Colors.grey),
+                        SizedBox(width: 8),
                         Expanded(
-                          child: const Text(
+                          child: Text(
                             '|||||||||',
                             style: TextStyle(fontSize: 18, letterSpacing: 2),
                           ),
@@ -385,7 +385,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                     date: '1 week ago',
                     rating: 4,
                     review:
-                        "Great dish with rich flavors. The chicken was tender and the sauce was delicious. Portion size is generous too!",
+                        'Great dish with rich flavors. The chicken was tender and the sauce was delicious. Portion size is generous too!',
                   ),
                   const SizedBox(height: 12),
                   _buildReviewTile(
@@ -393,7 +393,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                     date: '2 weeks ago',
                     rating: 5,
                     review:
-                        "This brings back memories of home! Perfectly seasoned and cooked to perfection. Highly recommend!",
+                        'This brings back memories of home! Perfectly seasoned and cooked to perfection. Highly recommend!',
                   ),
                   const SizedBox(height: 12),
                   Center(

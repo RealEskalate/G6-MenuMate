@@ -218,7 +218,7 @@ class MockRestaurantRepository extends _i1.Mock
           as _i12.Future<_i2.Either<_i13.Failure, void>>);
 
   @override
-  _i12.Future<_i2.Either<_i13.Failure, List<_i15.Category>>> getCategories(
+  _i12.Future<_i2.Either<_i13.Failure, List<_i15.Category>>> deleteReview(
     String? tabId,
   ) =>
       (super.noSuchMethod(

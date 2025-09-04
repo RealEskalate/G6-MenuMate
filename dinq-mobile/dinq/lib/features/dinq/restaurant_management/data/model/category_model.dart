@@ -33,11 +33,9 @@ class CategoryModel extends Category {
     'items': items.map((e) => (e as ItemModel).toMap()).toList(),
   };
 
-
   factory CategoryModel.fromJson(String data) {
     return CategoryModel.fromMap(json.decode(data) as Map<String, dynamic>);
   }
-
 
   String toJson() => json.encode(toMap());
 
@@ -61,4 +59,12 @@ class CategoryModel extends Category {
   bool get stringify => true;
 
   Category toEntity() => this;
+
+  factory CategoryModel.fromEntity(Category entity) => CategoryModel(
+    id: entity.id,
+    tabId: entity.tabId,
+    name: entity.name,
+    nameAm: entity.nameAm,
+    items: entity.items.map((e) => ItemModel.fromEntity(e)).toList(),
+  );
 }

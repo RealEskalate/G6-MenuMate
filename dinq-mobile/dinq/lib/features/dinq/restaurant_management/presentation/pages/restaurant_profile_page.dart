@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/settings_item.dart';
 
 class RestaurantProfilePage extends StatelessWidget {
-  const RestaurantProfilePage({Key? key}) : super(key: key);
+  const RestaurantProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {

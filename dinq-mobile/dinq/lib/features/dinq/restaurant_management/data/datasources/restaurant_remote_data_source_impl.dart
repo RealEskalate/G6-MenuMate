@@ -1,14 +1,7 @@
 import 'package:dio/dio.dart';
 
-import '../../../../../core/constants.dart';
+import '../../../../../core/constants/constants.dart';
 import '../../../../../core/error/exceptions.dart';
-import '../../../../../core/temp/app_config.dart';
-import '../../../../../core/temp/demo_http_client.dart';
-import '../../domain/entities/category.dart';
-import '../../domain/entities/menu.dart';
-import '../../domain/entities/restaurant.dart';
-import '../../domain/entities/review.dart';
-import '../model/category_model.dart';
 import '../model/menu_model.dart';
 import '../model/restaurant_model.dart';
 import '../model/review_model.dart';
@@ -18,27 +11,12 @@ const String content = 'application/json';
 
 class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   final Dio dio;
-  late final DemoHttpClient _demoClient;
 
-  RestaurantRemoteDataSourceImpl({required this.dio}) {
-    _demoClient = DemoHttpClient(dio);
-    _demoClient.setDemoMode(AppConfig.useDemoMode);
-  }
-
-  /// Toggle demo mode for this data source
-  void toggleDemoMode() {
-    _demoClient.setDemoMode(!_demoClient.isDemoMode);
-    // ignore: avoid_print
-    print(
-      '🔄 Restaurant DataSource Demo Mode: ${_demoClient.isDemoMode ? 'ENABLED' : 'DISABLED'}',
-    );
-  }
-
-  /// Check if demo mode is enabled
-  bool get isDemoMode => _demoClient.isDemoMode;
+  RestaurantRemoteDataSourceImpl({required this.dio});
 
   @override
-  Future<Restaurant> createRestaurant(RestaurantModel restaurant) async {
+  Future<RestaurantModel> createRestaurant(RestaurantModel restaurant) async {
+    print('[Remote] createRestaurant - POST /restaurants');
     try {
       final response = await dio.post(
         '$baseUrl/restaurants',
@@ -51,8 +29,11 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
         ),
       );
       final statusCode = response.statusCode;
+      print(
+        '[Remote] createRestaurant - response status=$statusCode data=${response.data}',
+      );
       if (statusCode == 201 || statusCode == 200) {
-        return RestaurantModel.fromMap(response.data).toEntity();
+        return RestaurantModel.fromMap(response.data);
       } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
@@ -76,19 +57,31 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   }
 
   @override
-  Future<List<Restaurant>> getRestaurants({int page =1, int pageSize= 20}) async {
+  Future<List<RestaurantModel>> getRestaurants({
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    print(
+      '[Remote] getRestaurants - GET /restaurants?page=$page&pageSize=$pageSize',
+    );
     try {
-      final response = await dio.get(
-        '$baseUrl/restaurants',
-        queryParameters: {'page': page, 'pageSize': pageSize},
-        options: Options(headers: {'Content-Type': content}),
+      final uri = Uri.parse('$baseUrl/restaurants').replace(
+        queryParameters: {
+          'page': page.toString(),
+          'pageSize': pageSize.toString(),
+        },
       );
+      print('[Remote][Request] GET ${uri.toString()}');
+      print('[Remote][Request] dio.defaultHeaders=${dio.options.headers}');
+      print('[Remote][Request] requestOptions.headers=');
+      final response = await dio.getUri(uri);
       final statusCode = response.statusCode;
+      print(
+        '[Remote] getRestaurants - response status=$statusCode data=${response.data}',
+      );
       if (statusCode == 200) {
-        final data = response.data;
-        return data
-            .map((json) => RestaurantModel.fromMap(json).toEntity())
-            .toList();
+        final data = response.data as List<dynamic>;
+        return data.map((json) => RestaurantModel.fromMap(json)).toList();
       } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
@@ -115,15 +108,19 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   }
 
   @override
-  Future<Restaurant> getRestaurantBySlug(String slug) async {
+  Future<RestaurantModel> getRestaurantBySlug(String slug) async {
+    print('[Remote] getRestaurantBySlug - GET /restaurants/$slug');
     try {
       final response = await dio.get(
         '$baseUrl/restaurants/$slug',
         options: Options(headers: {'Content-Type': content}),
       );
       final statusCode = response.statusCode;
+      print(
+        '[Remote] getRestaurantBySlug - response status=$statusCode data=${response.data}',
+      );
       if (statusCode == 200) {
-        return RestaurantModel.fromMap(response.data).toEntity();
+        return RestaurantModel.fromMap(response.data);
       } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
@@ -150,10 +147,11 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   }
 
   @override
-  Future<Restaurant> updateRestaurant(
+  Future<RestaurantModel> updateRestaurant(
     RestaurantModel restaurant,
     String slug,
   ) async {
+    print('[Remote] updateRestaurant - PUT /restaurants/$slug');
     try {
       final response = await dio.put(
         '$baseUrl/restaurants/$slug',
@@ -167,7 +165,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       );
       final statuscode = response.statusCode;
       if (statuscode == 200) {
-        return RestaurantModel.fromMap(response.data).toEntity();
+        return RestaurantModel.fromMap(response.data);
       } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
@@ -195,6 +193,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<void> deleteRestaurant(String restaurantId) async {
+    print('[Remote] deleteRestaurant - DELETE /restaurants/$restaurantId');
     try {
       final response = await dio.delete(
         '$baseUrl/restaurants/$restaurantId',
@@ -231,7 +230,10 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   }
 
   @override
-  Future<Menu> getMenu(String restaurantId) async {
+  Future<MenuModel> getMenu(String restaurantId) async {
+    print(
+      '[Remote] getMenu - GET /menus/<restaurantId> (requested: $restaurantId)',
+    );
     try {
       final response = await dio.get(
         '$baseUrl/menus/:$restaurantId',
@@ -239,7 +241,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       );
       final statusCode = response.statusCode;
       if (statusCode == 200) {
-        return MenuModel.fromMap(response.data).toEntity();
+        return MenuModel.fromMap(response.data);
       } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
@@ -266,45 +268,79 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   }
 
   @override
-  Future<List<Category>> getCategories(String tabId) async {
+  Future<void> deleteMenu(String menuId) async {
+    print('[Remote] deleteMenu - DELETE /menus/$menuId');
     try {
-      final response = await dio.get(
-        '$baseUrl/tabs/$tabId/categories',
-        options: Options(headers: {'Content-Type': content}),
+      final response = await dio.delete(
+        '$baseUrl/menus/$menuId',
+        options: Options(
+          headers: {
+            'Content-Type': content,
+            'Authorization': 'Bearer $accessToken',
+          },
+        ),
       );
       final statusCode = response.statusCode;
-      if (statusCode == 200) {
-        final List<dynamic> data = response.data;
-        return data
-            .map((json) => CategoryModel.fromMap(json).toEntity())
-            .toList();
+      if (statusCode == 200 || statusCode == 204) {
+        return;
       } else {
         throw ServerException(
-          HttpErrorHandler.getExceptionMessage(
-            statusCode,
-            'fetching categories for tab $tabId',
-          ),
+          HttpErrorHandler.getExceptionMessage(statusCode, 'deleting menu'),
           statusCode: statusCode,
         );
       }
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
       throw ServerException(
-        HttpErrorHandler.getExceptionMessage(
-          statusCode,
-          'fetching categories for tab $tabId',
-        ),
+        HttpErrorHandler.getExceptionMessage(statusCode, 'deleting menu'),
         statusCode: statusCode,
       );
     } catch (e) {
       throw ServerException(
-        'Unexpected error occurred while fetching categories for tab $tabId: ${e.toString()}',
+        'Unexpected error occurred while deleting menu: ${e.toString()}',
       );
     }
   }
 
   @override
-  Future<List<Review>> getReviews(String itemId) async {
+  Future<MenuModel> updateMenu(MenuModel menu) async {
+    print('[Remote] updateMenu - PUT /menus/${menu.id}');
+    try {
+      final response = await dio.put(
+        '$baseUrl/menus/${menu.id}',
+        data: menu.toMap(),
+        options: Options(
+          headers: {
+            'Content-Type': content,
+            'Authorization': 'Bearer $accessToken',
+          },
+        ),
+      );
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        return MenuModel.fromMap(response.data);
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(statusCode, 'updating menu'),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(statusCode, 'updating menu'),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while updating menu: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<List<ReviewModel>> getReviews(String itemId) async {
+    print('[Remote] getReviews - GET /items/$itemId/reviews');
     try {
       final response = await dio.get(
         '$baseUrl/items/$itemId/reviews',
@@ -313,9 +349,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       final statusCode = response.statusCode;
       if (statusCode == 200) {
         final List<dynamic> data = response.data;
-        return data
-            .map((json) => ReviewModel.fromMap(json).toEntity())
-            .toList();
+        return data.map((json) => ReviewModel.fromMap(json)).toList();
       } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
@@ -342,7 +376,43 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   }
 
   @override
+  Future<void> deleteReview(String reviewId) async {
+    print('[Remote] deleteReview - DELETE /reviews/$reviewId');
+    try {
+      final response = await dio.delete(
+        '$baseUrl/reviews/$reviewId',
+        options: Options(
+          headers: {
+            'Content-Type': content,
+            'Authorization': 'Bearer $accessToken',
+          },
+        ),
+      );
+      final statusCode = response.statusCode;
+      if (statusCode == 200 || statusCode == 204) {
+        return;
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(statusCode, 'deleting review'),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(statusCode, 'deleting review'),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while deleting review: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
   Future<List<String>> getUserImages(String slug) async {
+    print('[Remote] getUserImages - GET /items/$slug/images');
     try {
       final response = await dio.get(
         '$baseUrl/items/$slug/images',
@@ -376,230 +446,4 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       );
     }
   }
-
-  //   @override
-  //   Future<Restaurant> addRestaurant(Restaurant restaurant) async {
-  //     try {
-  //       final restaurantModel = restaurant as RestaurantModel;
-  //       final response = await dio.post(
-  //         '$_baseUrl/restaurants',
-  //         data: restaurantModel.toJson(),
-  //         options: Options(headers: {'Content-Type': _contentType}),
-  //       );
-
-  //       final statusCode = response.statusCode;
-  //       if (statusCode == 201 || statusCode == 200) {
-  //         return RestaurantModel.fromMap(response.data).toEntity();
-  //       } else {
-  //         throw ServerException(
-  //           HttpErrorHandler.getExceptionMessage(
-  //             statusCode,
-  //             'adding restaurant',
-  //           ),
-  //           statusCode: statusCode,
-  //         );
-  //       }
-  //     } on DioException catch (e) {
-  //       final statusCode = e.response?.statusCode;
-  //       throw ServerException(
-  //         HttpErrorHandler.getExceptionMessage(
-  //           statusCode,
-  //           'adding restaurant',
-  //         ),
-  //         statusCode: statusCode,
-  //       );
-  //     } catch (e) {
-  //       throw ServerException(
-  //         'Unexpected error occurred while adding restaurant: ${e.toString()}',
-  //       );
-  //     }
-  //   }
-
-  //   @override
-  //   Future<Item> addItem(String categoryId, Item item) async {
-  //     try {
-  //       final itemModel = item as ItemModel;
-  //       final response = await dio.post(
-  //         '$_baseUrl/categories/$categoryId/items',
-  //         data: itemModel.toJson(),
-  //         options: Options(headers: {'Content-Type': _contentType}),
-  //       );
-
-  //       final statusCode = response.statusCode;
-  //       if (statusCode == 201 || statusCode == 200) {
-  //         return ItemModel.fromMap(response.data).toEntity();
-  //       } else {
-  //         throw ServerException(
-  //           HttpErrorHandler.getExceptionMessage(
-  //             statusCode,
-  //             'adding item to category $categoryId',
-  //           ),
-  //           statusCode: statusCode,
-  //         );
-  //       }
-  //     } on DioException catch (e) {
-  //       final statusCode = e.response?.statusCode;
-  //       throw ServerException(
-  //         HttpErrorHandler.getExceptionMessage(
-  //           statusCode,
-  //           'adding item to category $categoryId',
-  //         ),
-  //         statusCode: statusCode,
-  //       );
-  //     } catch (e) {
-  //       throw ServerException(
-  //         'Unexpected error occurred while adding item to category $categoryId: ${e.toString()}',
-  //       );
-  //     }
-  //   }
-
-  //   @override
-  //   Future<Restaurant> updateRestaurant(String restaurantId, Restaurant restaurant) async {
-  //     try {
-  //       final restaurantModel = restaurant as RestaurantModel;
-  //       final response = await dio.put(
-  //         '$_baseUrl/restaurants/$restaurantId',
-  //         data: restaurantModel.toJson(),
-  //         options: Options(headers: {'Content-Type': _contentType}),
-  //       );
-
-  //       final statusCode = response.statusCode;
-  //       if (statusCode == 200) {
-  //         return RestaurantModel.fromMap(response.data).toEntity();
-  //       } else {
-  //         throw ServerException(
-  //           HttpErrorHandler.getExceptionMessage(
-  //             statusCode,
-  //             'updating restaurant $restaurantId',
-  //           ),
-  //           statusCode: statusCode,
-  //         );
-  //       }
-  //     } on DioException catch (e) {
-  //       final statusCode = e.response?.statusCode;
-  //       throw ServerException(
-  //         HttpErrorHandler.getExceptionMessage(
-  //           statusCode,
-  //           'updating restaurant $restaurantId',
-  //         ),
-  //         statusCode: statusCode,
-  //       );
-  //     } catch (e) {
-  //       throw ServerException(
-  //         'Unexpected error occurred while updating restaurant $restaurantId: ${e.toString()}',
-  //       );
-  //     }
-  //   }
-
-  //   @override
-  //   Future<Menu> updateMenu(String restaurantId, Menu menu) async {
-  //     try {
-  //       final menuModel = menu as MenuModel;
-  //       final response = await dio.put(
-  //         '$_baseUrl/restaurants/$restaurantId/menu',
-  //         data: menuModel.toJson(),
-  //         options: Options(headers: {'Content-Type': _contentType}),
-  //       );
-
-  //       final statusCode = response.statusCode;
-  //       if (statusCode == 200) {
-  //         return MenuModel.fromMap(response.data).toEntity();
-  //       } else {
-  //         throw ServerException(
-  //           HttpErrorHandler.getExceptionMessage(
-  //             statusCode,
-  //             'updating menu for restaurant $restaurantId',
-  //           ),
-  //           statusCode: statusCode,
-  //         );
-  //       }
-  //     } on DioException catch (e) {
-  //       final statusCode = e.response?.statusCode;
-  //       throw ServerException(
-  //         HttpErrorHandler.getExceptionMessage(
-  //           statusCode,
-  //           'updating menu for restaurant $restaurantId',
-  //         ),
-  //         statusCode: statusCode,
-  //       );
-  //     } catch (e) {
-  //       throw ServerException(
-  //         'Unexpected error occurred while updating menu for restaurant $restaurantId: ${e.toString()}',
-  //       );
-  //     }
-  //   }
-
-  //   @override
-  //   Future<Item> updateItem(String itemId, Item item) async {
-  //     try {
-  //       final itemModel = item as ItemModel;
-  //       final response = await dio.put(
-  //         '$_baseUrl/items/$itemId',
-  //         data: itemModel.toJson(),
-  //         options: Options(headers: {'Content-Type': _contentType}),
-  //       );
-
-  //       final statusCode = response.statusCode;
-  //       if (statusCode == 200) {
-  //         return ItemModel.fromMap(response.data).toEntity();
-  //       } else {
-  //         throw ServerException(
-  //           HttpErrorHandler.getExceptionMessage(
-  //             statusCode,
-  //             'updating item $itemId',
-  //           ),
-  //           statusCode: statusCode,
-  //         );
-  //       }
-  //     } on DioException catch (e) {
-  //       final statusCode = e.response?.statusCode;
-  //       throw ServerException(
-  //         HttpErrorHandler.getExceptionMessage(
-  //           statusCode,
-  //           'updating item $itemId',
-  //         ),
-  //         statusCode: statusCode,
-  //       );
-  //     } catch (e) {
-  //       throw ServerException(
-  //         'Unexpected error occurred while updating item $itemId: ${e.toString()}',
-  //       );
-  //     }
-  //   }
-
-  //   @override
-  //   Future<bool> deleteItem(String itemId) async {
-  //     try {
-  //       final response = await dio.delete(
-  //         '$_baseUrl/items/$itemId',
-  //         options: Options(headers: {'Content-Type': _contentType}),
-  //       );
-
-  //       final statusCode = response.statusCode;
-  //       if (statusCode == 200 || statusCode == 204) {
-  //         return true;
-  //       } else {
-  //         throw ServerException(
-  //           HttpErrorHandler.getExceptionMessage(
-  //             statusCode,
-  //             'deleting item $itemId',
-  //           ),
-  //           statusCode: statusCode,
-  //         );
-  //       }
-  //     } on DioException catch (e) {
-  //       final statusCode = e.response?.statusCode;
-  //       throw ServerException(
-  //         HttpErrorHandler.getExceptionMessage(
-  //           statusCode,
-  //           'deleting item $itemId',
-  //         ),
-  //         statusCode: statusCode,
-  //       );
-  //     } catch (e) {
-  //       throw ServerException(
-  //         'Unexpected error occurred while deleting item $itemId: ${e.toString()}',
-  //       );
-  //     }
-  //   }
 }

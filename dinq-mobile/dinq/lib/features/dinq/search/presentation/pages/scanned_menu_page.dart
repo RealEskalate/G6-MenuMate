@@ -1,4 +1,4 @@
-import 'package:dinq/features/dinq/search/presentation/widgets/scanned_menu.dart';
+import '../widgets/scanned_menu.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
 import '../widgets/bottom_navbar.dart';
@@ -47,9 +47,9 @@ class ScannedMenuPage extends StatelessWidget {
                 child: const Icon(Icons.restaurant_menu, color: AppColors.primaryColor, size: 32),
               ),
               const SizedBox(width: 14),
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     'Bella Vista',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
@@ -68,18 +68,18 @@ class ScannedMenuPage extends StatelessWidget {
           const SizedBox(height: 18),
 
           // Appetizers Section
-          _SectionHeader(
+          const _SectionHeader(
             icon: Icons.emoji_food_beverage,
             label: 'Appetizers',
           ),
           const SizedBox(height: 10),
-          MenuItemCard(
+          const MenuItemCard(
             imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
             name: 'Bruschetta Classica',
             price: '350br',
             description: 'Fresh tomatoes, basil, garlic on toasted bread',
           ),
-          MenuItemCard(
+          const MenuItemCard(
             imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
             name: 'Antipasto Misto',
             price: '300br',
@@ -88,24 +88,24 @@ class ScannedMenuPage extends StatelessWidget {
           const SizedBox(height: 18),
 
           // Main Courses Section
-          _SectionHeader(
+          const _SectionHeader(
             icon: Icons.local_pizza,
             label: 'Main Courses',
           ),
           const SizedBox(height: 10),
-          MenuItemCard(
+          const MenuItemCard(
             imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
             name: 'Spaghetti Carbonara',
             price: '560br',
             description: 'Traditional Roman pasta with eggs, pancetta, and pecorino',
           ),
-          MenuItemCard(
+          const MenuItemCard(
             imageUrl: 'https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=crop&w=400&q=80',
             name: 'Pizza Margherita',
             price: '670br',
             description: 'San Marzano tomatoes, fresh mozzarella, basil',
           ),
-          MenuItemCard(
+          const MenuItemCard(
             imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
             name: 'Grilled Salmon',
             price: '\$22.00',
@@ -114,18 +114,18 @@ class ScannedMenuPage extends StatelessWidget {
           const SizedBox(height: 18),
 
           // Desserts Section
-          _SectionHeader(
+          const _SectionHeader(
             icon: Icons.icecream,
             label: 'Desserts',
           ),
           const SizedBox(height: 10),
-          MenuItemCard(
+          const MenuItemCard(
             imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
             name: 'Tiramisu',
             price: '\$7.50',
             description: 'Classic Italian dessert with mascarpone and coffee',
           ),
-          MenuItemCard(
+          const MenuItemCard(
             imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
             name: 'Panna Cotta',
             price: '\$6.50',

@@ -1,21 +1,21 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/usecases/get_categories.dart';
-import '../../domain/usecases/get_menu.dart';
-import '../../domain/usecases/get_restaurants.dart';
-import '../../domain/usecases/get_reviews.dart';
 import '../../domain/usecases/get_user_images.dart';
-import '../../domain/usecases/get_restaurant_by_slug.dart';
-import '../../domain/usecases/create_restaurant.dart';
-import '../../domain/usecases/update_restaurant.dart';
-import '../../domain/usecases/delete_restaurant.dart';
+import '../../domain/usecases/menu/get_menu.dart';
+import '../../domain/usecases/restaurant/create_restaurant.dart';
+import '../../domain/usecases/restaurant/delete_restaurant.dart';
+import '../../domain/usecases/restaurant/get_restaurant_by_slug.dart';
+import '../../domain/usecases/restaurant/get_restaurants.dart';
+import '../../domain/usecases/restaurant/update_restaurant.dart';
+import '../../domain/usecases/review/delete_review.dart';
+import '../../domain/usecases/review/get_reviews.dart';
 import 'restaurant_event.dart';
 import 'restaurant_state.dart';
 
 class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
   final GetRestaurants getRestaurants;
   final GetMenu getMenu;
-  final GetCategories getCategories;
+  final DeleteReview getCategories;
   final GetReviews getReviews;
   final GetUserimages getUserImages;
   final GetRestaurantBySlug getRestaurantBySlug;
@@ -36,7 +36,7 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
   }) : super(const RestaurantInitial()) {
     on<LoadRestaurants>(_onLoadRestaurants);
     on<LoadMenu>(_onLoadMenu);
-    on<LoadCategories>(_onLoadCategories);
+    // on<LoadCategories>(_onLoadCategories);
     on<LoadUserImages>(_onLoadUserImages);
     on<LoadReviews>(_onLoadReviews);
     on<LoadRestaurantBySlug>(_onLoadRestaurantBySlug);
@@ -65,8 +65,9 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     final result = await createRestaurant(event.restaurantModel);
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
-      (restaurant) =>
-          emit(const RestaurantActionSuccess('Restaurant created successfully')),
+      (restaurant) => emit(
+        const RestaurantActionSuccess('Restaurant created successfully'),
+      ),
     );
   }
 
@@ -78,8 +79,9 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     final result = await updateRestaurant(event.restaurantModel, event.slug);
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
-      (restaurant) =>
-          emit(const RestaurantActionSuccess('Restaurant updated successfully')),
+      (restaurant) => emit(
+        const RestaurantActionSuccess('Restaurant updated successfully'),
+      ),
     );
   }
 
@@ -102,7 +104,10 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     Emitter<RestaurantState> emit,
   ) async {
     emit(const RestaurantLoading());
-    final result = await getRestaurants(page:event.page, pageSize:event.pageSize);
+    final result = await getRestaurants(
+      page: event.page,
+      pageSize: event.pageSize,
+    );
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
       (restaurants) => emit(RestaurantsLoaded(restaurants)),
@@ -121,25 +126,25 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     );
   }
 
-  Future<void> _onLoadCategories(
-    LoadCategories event,
-    Emitter<RestaurantState> emit,
-  ) async {
-    final currentState = state;
-    if (currentState is MenuLoaded) {
-      emit(const RestaurantLoading());
-      final result = await getCategories(event.tabId);
-      result.fold((failure) => emit(RestaurantError(failure.message)), (
-        categories,
-      ) {
-        final updatedCategories = Map<String, List<dynamic>>.from(
-          currentState.categories,
-        );
-        updatedCategories[event.tabId] = categories;
-        emit(currentState.copyWith(categories: updatedCategories));
-      });
-    }
-  }
+  // Future<void> _onLoadCategories(
+  //   LoadCategories event,
+  //   Emitter<RestaurantState> emit,
+  // ) async {
+  //   final currentState = state;
+  //   if (currentState is MenuLoaded) {
+  //     emit(const RestaurantLoading());
+  //     final result = await getCategories(event.tabId);
+  //     result.fold((failure) => emit(RestaurantError(failure.message)), (
+  //       categories,
+  //     ) {
+  //       final updatedCategories = Map<String, List<dynamic>>.from(
+  //         currentState.categories,
+  //       );
+  //       updatedCategories[event.tabId] = categories;
+  //       emit(currentState.copyWith(categories: updatedCategories));
+  //     });
+  //   }
+  // }
 
   Future<void> _onLoadReviews(
     LoadReviews event,

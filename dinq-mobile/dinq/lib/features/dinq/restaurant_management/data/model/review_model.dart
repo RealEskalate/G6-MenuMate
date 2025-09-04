@@ -1,46 +1,50 @@
 import 'dart:convert';
 
 import '../../domain/entities/review.dart';
+import '../model/user_model.dart';
 
 class ReviewModel extends Review {
   const ReviewModel({
     required super.id,
     required super.itemId,
-    required super.userId,
-    required super.userName,
-    required super.userAvatar,
-    super.rating,
-    super.comment,
+    required super.user,
+    required super.rating,
+    required super.comment,
     super.images,
     required super.like,
     required super.disLike,
     required super.createdAt,
   });
 
-  factory ReviewModel.fromMap(Map<String, dynamic> data) => ReviewModel(
-    id: data['id'] ?? '',
-    itemId: data['itemId'] ?? '',
-    userId: data['userId'] ?? '',
-    userName: data['userName'] ?? '',
-    userAvatar: data['userAvatar'] ?? '',
-    rating: (data['rating'] as num?)?.toDouble(),
-    comment: data['comment'],
-    images: (data['images'] as List<dynamic>?)
-        ?.map((e) => e as String)
-        .toList(),
-    like: data['like'] ?? 0,
-    disLike: data['disLike'] ?? 0,
-    createdAt: DateTime.parse(
-      data['createdAt'] ?? DateTime.now().toIso8601String(),
-    ),
-  );
+  factory ReviewModel.fromMap(Map<String, dynamic> data) {
+    final userData =
+        data['user'] as Map<String, dynamic>? ??
+        (data['userInfo'] as Map<String, dynamic>?) ??
+        {};
+
+    return ReviewModel(
+      id: data['id'] ?? '',
+      itemId: data['itemId'] ?? data['item_id'] ?? '',
+      user: UserModel.fromMap(userData),
+      rating: (data['rating'] as num?)?.toDouble() ?? 0.0,
+      comment: (data['comment'] ?? data['message'] ?? '') as String,
+      images: (data['images'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      like: data['like'] ?? 0,
+      disLike: data['disLike'] ?? data['dis_like'] ?? 0,
+      createdAt: DateTime.parse(
+        data['createdAt'] ??
+            data['created_at'] ??
+            DateTime.now().toIso8601String(),
+      ),
+    );
+  }
 
   Map<String, dynamic> toMap() => {
     'id': id,
     'itemId': itemId,
-    'userId': userId,
-    'userName': userName,
-    'userAvatar': userAvatar,
+    'user': (user as UserModel).toMap(),
     'rating': rating,
     'comment': comment,
     'images': images,
@@ -58,9 +62,7 @@ class ReviewModel extends Review {
   ReviewModel copyWith({
     String? id,
     String? itemId,
-    String? userId,
-    String? userName,
-    String? userAvatar,
+    UserModel? user,
     double? rating,
     String? comment,
     List<String>? images,
@@ -71,9 +73,7 @@ class ReviewModel extends Review {
     return ReviewModel(
       id: id ?? this.id,
       itemId: itemId ?? this.itemId,
-      userId: userId ?? this.userId,
-      userName: userName ?? this.userName,
-      userAvatar: userAvatar ?? this.userAvatar,
+      user: user ?? (this.user as UserModel),
       rating: rating ?? this.rating,
       comment: comment ?? this.comment,
       images: images ?? this.images,
@@ -87,4 +87,16 @@ class ReviewModel extends Review {
   bool get stringify => true;
 
   Review toEntity() => this;
+
+  factory ReviewModel.fromEntity(Review entity) => ReviewModel(
+    id: entity.id,
+    itemId: entity.itemId,
+    user: UserModel.fromEntity(entity.user),
+    rating: entity.rating,
+    comment: entity.comment,
+    images: entity.images,
+    like: entity.like,
+    disLike: entity.disLike,
+    createdAt: entity.createdAt,
+  );
 }

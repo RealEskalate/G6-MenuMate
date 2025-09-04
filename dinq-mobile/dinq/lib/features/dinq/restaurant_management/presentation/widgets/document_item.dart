@@ -6,11 +6,11 @@ class DocumentItem extends StatelessWidget {
   final VoidCallback onDelete;
 
   const DocumentItem({
-    Key? key,
+    super.key,
     required this.fileName,
     required this.fileSize,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

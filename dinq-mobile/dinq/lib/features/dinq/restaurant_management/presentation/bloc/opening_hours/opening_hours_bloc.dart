@@ -38,7 +38,7 @@ class OpeningHoursBloc extends Bloc<OpeningHoursEvent, OpeningHoursState> {
       emit(OpeningHoursLoaded(
         openingTimes: openingTimes,
         closingTimes: closingTimes,
-        specialDays: [],
+        specialDays: const [],
       ));
     } catch (e) {
       emit(OpeningHoursError(e.toString()));

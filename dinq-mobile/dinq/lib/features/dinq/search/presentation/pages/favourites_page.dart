@@ -1,4 +1,4 @@
-import 'package:dinq/features/dinq/search/domain/entities/Restaurant.dart'
+import '../../domain/entities/Restaurant.dart'
     as models;
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
@@ -17,10 +17,10 @@ class FavouritesPage extends StatefulWidget {
   final List<models.Item> allDishes;
 
   const FavouritesPage({
-    Key? key,
+    super.key,
     required this.allRestaurants,
     required this.allDishes,
-  }) : super(key: key);
+  });
 
   @override
   State<FavouritesPage> createState() => _FavouritesPageState();

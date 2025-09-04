@@ -185,7 +185,7 @@ class HomePage extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        SizedBox(width: 4),
+                        const SizedBox(width: 4),
                         PopularDishCard(
                           imageUrl: margheritaPizza.images![0],
                           name: margheritaPizza.name,

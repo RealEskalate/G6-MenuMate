@@ -85,7 +85,6 @@ class ItemModel extends Item {
     'reviewIds': reviewIds,
   };
 
-
   factory ItemModel.fromJson(String data) {
     return ItemModel.fromMap(json.decode(data) as Map<String, dynamic>);
   }
@@ -144,4 +143,28 @@ class ItemModel extends Item {
   bool get stringify => true;
 
   Item toEntity() => this;
+
+  factory ItemModel.fromEntity(Item entity) => ItemModel(
+    id: entity.id,
+    name: entity.name,
+    nameAm: entity.nameAm,
+    slug: entity.slug,
+    categoryId: entity.categoryId,
+    description: entity.description,
+    descriptionAm: entity.descriptionAm,
+    image: entity.image,
+    price: entity.price,
+    currency: entity.currency,
+    allergies: entity.allergies,
+    userImages: entity.userImages,
+    calories: entity.calories,
+    ingredients: entity.ingredients,
+    ingredientsAm: entity.ingredientsAm,
+    preparationTime: entity.preparationTime,
+    howToEat: entity.howToEat,
+    howToEatAm: entity.howToEatAm,
+    viewCount: entity.viewCount,
+    averageRating: entity.averageRating,
+    reviewIds: entity.reviewIds,
+  );
 }

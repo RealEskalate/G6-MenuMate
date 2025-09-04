@@ -8,10 +8,10 @@ class BottomNavBar extends StatelessWidget {
   final ValueChanged<BottomNavTab> onTabSelected;
 
   const BottomNavBar({
-    Key? key,
+    super.key,
     required this.selectedTab,
     required this.onTabSelected,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

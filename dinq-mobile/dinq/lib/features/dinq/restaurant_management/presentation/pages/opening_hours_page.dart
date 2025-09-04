@@ -8,7 +8,7 @@ import '../widgets/special_day_item.dart';
 import '../widgets/time_picker_widget.dart';
 
 class OpeningHoursPage extends StatefulWidget {
-  const OpeningHoursPage({Key? key}) : super(key: key);
+  const OpeningHoursPage({super.key});
 
   @override
   State<OpeningHoursPage> createState() => OpeningHoursPageState();

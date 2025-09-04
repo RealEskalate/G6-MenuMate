@@ -8,12 +8,12 @@ class TimePickerWidget extends StatelessWidget {
   final Function(TimeOfDay) onClosingTimeChanged;
 
   const TimePickerWidget({
-    Key? key,
+    super.key,
     this.openingTime,
     this.closingTime,
     required this.onOpeningTimeChanged,
     required this.onClosingTimeChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

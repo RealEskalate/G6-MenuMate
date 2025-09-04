@@ -163,9 +163,7 @@ void main() {
           ).thenAnswer((_) async => CategoryFixtures.tCategoryList);
 
           // Act
-          final result = await repository.getCategories(
-            CategoryFixtures.tTabId,
-          );
+          final result = await repository.deleteReview(CategoryFixtures.tTabId);
 
           // Assert
           expect(result, Right(CategoryFixtures.tCategoryList));
@@ -184,9 +182,7 @@ void main() {
           ).thenThrow(ServerException('Server error'));
 
           // Act
-          final result = await repository.getCategories(
-            CategoryFixtures.tTabId,
-          );
+          final result = await repository.deleteReview(CategoryFixtures.tTabId);
 
           // Assert
           expect(result, isA<Left<Failure, List<Category>>>());
@@ -204,9 +200,7 @@ void main() {
           when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
           // Act
-          final result = await repository.getCategories(
-            CategoryFixtures.tTabId,
-          );
+          final result = await repository.deleteReview(CategoryFixtures.tTabId);
 
           // Assert
           expect(result, isA<Left<Failure, List<Category>>>());

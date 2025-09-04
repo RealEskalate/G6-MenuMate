@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../features/dinq/qr_scanner/pages/qr_scanner_page.dart';
-import '../../features/dinq/search/presentation/pages/favourites_page.dart';
-import '../../features/dinq/search/presentation/pages/home_page.dart';
-import '../../features/dinq/search/presentation/pages/item_details_page.dart';
-import '../../features/dinq/search/presentation/pages/profile_page.dart';
-import '../../features/dinq/search/presentation/pages/restaurant_page.dart';
-import '../../features/dinq/search/presentation/pages/scanned_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/billing_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/branding_preferences_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/legal_info_page.dart';
@@ -14,6 +8,12 @@ import '../../features/dinq/restaurant_management/presentation/pages/opening_hou
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_details_page.dart';
 // restaurant management pages
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_profile_page.dart';
+import '../../features/dinq/search/presentation/pages/favourites_page.dart';
+import '../../features/dinq/search/presentation/pages/home_page.dart';
+import '../../features/dinq/search/presentation/pages/item_details_page.dart';
+import '../../features/dinq/search/presentation/pages/profile_page.dart';
+import '../../features/dinq/search/presentation/pages/restaurant_page.dart';
+import '../../features/dinq/search/presentation/pages/scanned_menu_page.dart';
 
 Route<dynamic> generateRoute(RouteSettings settings) {
   switch (settings.name) {

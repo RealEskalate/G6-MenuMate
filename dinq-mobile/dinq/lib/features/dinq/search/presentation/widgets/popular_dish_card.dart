@@ -9,13 +9,13 @@ class PopularDishCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const PopularDishCard({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.name,
     required this.restaurant,
     required this.price,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

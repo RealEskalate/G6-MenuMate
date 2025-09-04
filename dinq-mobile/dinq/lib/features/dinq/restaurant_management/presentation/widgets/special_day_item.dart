@@ -7,12 +7,12 @@ class SpecialDayItem extends StatelessWidget {
   final VoidCallback onDelete;
 
   const SpecialDayItem({
-    Key? key,
+    super.key,
     required this.date,
     required this.title,
     required this.status,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

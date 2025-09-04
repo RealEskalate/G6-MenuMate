@@ -32,7 +32,7 @@ class RestaurantDebugPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                final restaurant = RestaurantModel(
+                final restaurant = const RestaurantModel(
                   id: 'debug-id',
                   name: 'Debug Resto',
                   description: 'desc',
@@ -48,7 +48,7 @@ class RestaurantDebugPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                final restaurant = RestaurantModel(
+                final restaurant = const RestaurantModel(
                   id: 'debug-id',
                   name: 'Debug Resto Updated',
                   description: 'desc',
