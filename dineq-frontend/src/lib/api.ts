@@ -19,3 +19,34 @@ export async function registerUser(
 
   return res.json();
 }
+
+export interface ForgotPasswordPayload {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
+export async function forgotPassword(
+  data: ForgotPasswordPayload
+): Promise<ForgotPasswordResponse> {
+  console.log(
+    "📤 Sending payload:",
+    data,
+    "to",
+    `${BASE_URL}/auth/forgot-password`
+  );
+
+  const res = await fetch(`${BASE_URL}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    throw new Error("❌ Failed to send reset link");
+  }
+
+  return res.json();
+}
