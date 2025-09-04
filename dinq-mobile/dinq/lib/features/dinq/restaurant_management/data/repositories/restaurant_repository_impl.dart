@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 
 import '../../../../../core/error/exceptions.dart';
@@ -137,6 +139,26 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   }
 
   // Menu
+
+@override
+  Future<Either<Failure, Menu>> uploadMenu(File printedMenu) async {
+    final connected = await network.isConnected;
+    if (connected) {
+      try {
+        final menuModel = await remoteDataSource.uploadMenu(printedMenu);
+        return Right(menuModel.toEntity());
+      } catch (e) {
+        return Left(ExceptionMapper.toFailure(e as Exception));
+      }
+    } else {
+      return const Left(
+        NetworkFailure(
+          'No internet connection available. Please check your network settings and try again.',
+        ),
+      );
+    }
+  }
+
   @override
   Future<Either<Failure, Menu>> getMenu(String restaurantId) async {
     final connected = await network.isConnected;

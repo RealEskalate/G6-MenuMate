@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 
 import '../../../../../core/constants/constants.dart';
@@ -230,6 +232,111 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   }
 
   @override
+  Future<MenuModel> uploadMenu(File printedMenu) async {
+    print('[Remote] uploadMenu - POST /ocr/upload');
+    try {
+      // Create FormData for multipart upload
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          printedMenu.path,
+          filename: 'menu_image.jpg',  // Adjust filename as needed
+        ),
+      });
+
+      // POST to upload endpoint
+      final uploadResponse = await dio.post(
+        '$baseUrl/ocr/upload',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      final uploadStatusCode = uploadResponse.statusCode;
+      print('[Remote] uploadMenu - upload response status=$uploadStatusCode data=${uploadResponse.data}');
+
+      if (uploadStatusCode == 200 || uploadStatusCode == 201) {
+        final uploadData = uploadResponse.data;
+        if (uploadData['success'] == true) {
+          final jobId = uploadData['data']['jobId'] as String;
+          print('[Remote] uploadMenu - jobId: $jobId');
+
+          // Poll the job status every 2 seconds until completed
+          while (true) {
+            await Future.delayed(const Duration(seconds: 2));
+
+            final pollResponse = await dio.get(
+              '$baseUrl/ocr/$jobId',
+              options: Options(
+                headers: {
+                  'Authorization': 'Bearer $accessToken',
+                  'Content-Type': content,
+                },
+              ),
+            );
+
+            final pollStatusCode = pollResponse.statusCode;
+            print('[Remote] uploadMenu - poll response status=$pollStatusCode data=${pollResponse.data}');
+
+            if (pollStatusCode == 200) {
+              final pollData = pollResponse.data;
+              if (pollData['success'] == true) {
+                final status = pollData['data']['status'] as String;
+                if (status == 'completed') {
+                  // Parse the results into MenuModel
+                  final results = pollData['data']['results'];
+                  // Assuming MenuModel.fromMap can handle the results structure
+                  // If MenuModel expects a specific format, adjust accordingly (e.g., wrap in a map)
+                  return MenuModel.fromMap(results);
+                } else if (status == 'failed') {
+                  throw ServerException(
+                    'OCR job failed',
+                    statusCode: 200,
+                  );
+                }
+                // Continue polling if still processing
+              } else {
+                throw ServerException(
+                  'Polling failed: ${pollData['message'] ?? 'Unknown error'}',
+                  statusCode: pollStatusCode,
+                );
+              }
+            } else {
+              throw ServerException(
+                HttpErrorHandler.getExceptionMessage(pollStatusCode, 'polling OCR job'),
+                statusCode: pollStatusCode,
+              );
+            }
+          }
+        } else {
+          throw ServerException(
+            'Upload failed: ${uploadData['message'] ?? 'Unknown error'}',
+            statusCode: uploadStatusCode,
+          );
+        }
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(uploadStatusCode, 'uploading menu'),
+          statusCode: uploadStatusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(statusCode, 'uploading menu'),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while uploading menu: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
   Future<MenuModel> getMenu(String restaurantId) async {
     print(
       '[Remote] getMenu - GET /menus/<restaurantId> (requested: $restaurantId)',
@@ -446,4 +553,5 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       );
     }
   }
+
 }
