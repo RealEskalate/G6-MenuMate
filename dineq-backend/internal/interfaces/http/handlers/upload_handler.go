@@ -1,13 +1,14 @@
 package handler
 
 import (
-    "io"
-    "net/http"
-    "strings"
-    "github.com/RealEskalate/G6-MenuMate/internal/domain"
-    services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
-    "github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
-    "github.com/gin-gonic/gin"
+	"io"
+	"net/http"
+	"strings"
+
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
+	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
+	"github.com/gin-gonic/gin"
 )
 
 // ImageUploadHandler handles generic image uploads (e.g., QR logos)
@@ -15,8 +16,6 @@ type ImageUploadHandler struct { Storage services.StorageService }
 
 func NewImageUploadHandler(storage services.StorageService) *ImageUploadHandler { return &ImageUploadHandler{Storage: storage} }
 
-// UploadImage handles generic image uploads (PNG/JPEG/GIF/WebP) via multipart form.
-// Form field: "image" (alias: "file"). Optional query/form field: folder (sanitized).
 func (h *ImageUploadHandler) UploadImage(c *gin.Context) {
     // Accept either 'image' or 'file'
     file, err := c.FormFile("image")
