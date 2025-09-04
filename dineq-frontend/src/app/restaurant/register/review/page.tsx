@@ -74,8 +74,12 @@ export default function ReviewPage() {
 
       resetData();
       router.push("/restaurant/success");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(
+        typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "An unexpected error occurred"
+      );
     } finally {
       setLoading(false);
     }

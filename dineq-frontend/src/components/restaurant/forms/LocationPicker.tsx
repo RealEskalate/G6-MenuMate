@@ -1,20 +1,8 @@
-// components/LocationPicker.tsx
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { FaMapMarkerAlt } from "react-icons/fa";
-import dynamic from "next/dynamic";
-// Removed direct Leaflet import as it's not strictly needed here anymore,
-// and can cause issues with SSR if not handled carefully.
-
-const MapModal = dynamic(() => import("./MapModal"), {
-  ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white z-50">
-      Loading Map...
-    </div>
-  ),
-});
 
 type LocationPickerProps = {
   value: string; // "latitude, longitude"
@@ -28,35 +16,18 @@ export default function LocationPicker({
   compact = false,
 }: LocationPickerProps) {
   const [error, setError] = useState("");
-  const [showMapModal, setShowMapModal] = useState(false);
-  const [userChoice, setUserChoice] = useState<
-    "current" | "map" | null
-  >(null);
-  const [tempInitialMapLocation, setTempInitialMapLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | undefined>(undefined);
+  const [userChoice, setUserChoice] = useState<"current" | null>(null);
 
-  // Parse the current value into a {lat, lng} object for the map
-  const parsedValue = value
-    ? {
-        lat: parseFloat(value.split(",")[0]?.trim()),
-        lng: parseFloat(value.split(",")[1]?.trim()),
-      }
-    : undefined;
-
-  // Effect to set userChoice based on initial `value` prop
+  
   useEffect(() => {
     if (value) {
-      // Assuming if value is present, it was either picked from current or map
-      // We can't definitively know which, but for UI feedback, we can assume it's "map" if not explicitly "current"
-      if (!userChoice) { // Only set if not already set by user action
-          setUserChoice("map"); // Default visual to map if value exists but no explicit choice
+      if (!userChoice) {
+        setUserChoice("current");
       }
     } else {
       setUserChoice(null);
     }
-  }, [value]); // Only re-run if 'value' changes
+  }, [value]);
 
   const handleLocationFetch = () => {
     if (!navigator.geolocation) {
@@ -70,10 +41,6 @@ export default function LocationPicker({
         onChange(coords);
         setError("");
         setUserChoice("current");
-        setTempInitialMapLocation({ // Also update temp for map if they switch
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-        });
       },
       (err) => {
         console.error("Geolocation error:", err);
@@ -82,50 +49,10 @@ export default function LocationPicker({
     );
   };
 
-  const handleMapSelectLocation = (location: { lat: number; lng: number }) => {
-    onChange(`${location.lat}, ${location.lng}`);
-    setUserChoice("map");
-    setTempInitialMapLocation(location); // Update temp location so map remembers last picked spot
-  };
-
-  const handleOpenMap = () => {
-    // If a location is already set, use it.
-    // Otherwise, try to get current location to set as initial map center.
-    if (parsedValue) {
-      setTempInitialMapLocation(parsedValue);
-      setShowMapModal(true);
-    } else if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setTempInitialMapLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-          setShowMapModal(true);
-        },
-        (err) => {
-          console.warn("Could not get current location for map:", err);
-          setError("Could not get current location for map. Opening map at default view.");
-          setShowMapModal(true); // Open map even if location fails, it will default to 0,0
-        }
-      );
-    } else {
-      setError("Geolocation is not supported. Cannot get current location for map.");
-      setShowMapModal(true); // Open map at default view
-    }
-  };
-
-  const handleCloseMap = () => {
-    setShowMapModal(false);
-    // Optionally reset tempInitialMapLocation if you want map to always reopen from scratch
-    // setTempInitialMapLocation(undefined);
-  };
-
   const handleClearSelection = () => {
-    onChange(""); // Clear the location
-    setUserChoice(null); // Reset choice
-    setError(""); // Clear any errors
-    setTempInitialMapLocation(undefined); // Clear temp map location
+    onChange("");
+    setUserChoice(null);
+    setError("");
   };
 
   return (
@@ -164,15 +91,6 @@ export default function LocationPicker({
         >
           📍 Use my current location
         </button>
-        <button
-          type="button"
-          onClick={handleOpenMap}
-          className={`text-orange-600 hover:underline ${
-            compact ? "text-xs" : "text-sm"
-          } ${userChoice === "map" ? "font-bold" : ""}`}
-        >
-          🗺️ Choose on map
-        </button>
       </div>
 
       {value && (
@@ -196,14 +114,6 @@ export default function LocationPicker({
           {error}
         </p>
       )}
-
-      {/* Map Modal */}
-      <MapModal
-        isOpen={showMapModal}
-        onClose={handleCloseMap}
-        onSelectLocation={handleMapSelectLocation}
-        initialLocation={tempInitialMapLocation || parsedValue} // Prefer temp if set, else parsedValue
-      />
     </div>
   );
 }
