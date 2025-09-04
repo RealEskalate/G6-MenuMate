@@ -41,25 +41,18 @@ func main() {
 	router.Use(func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
 		allowAll := false
-		for _, o := range env.CORSAllowedOrigins {
-			if o == "*" {
-				allowAll = true
-				break
-			}
-		}
+		for _, o := range env.CORSAllowedOrigins { if o == "*" { allowAll = true; break } }
+		if origin != "" { c.Writer.Header().Add("Vary", "Origin") }
 		if allowAll {
 			if origin != "" {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
-				c.Writer.Header().Set("Vary", "Origin")
 			} else {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 			}
 		} else if origin != "" {
-
 			for _, allowed := range env.CORSAllowedOrigins {
 				if allowed == origin {
 					c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
-					c.Writer.Header().Set("Vary", "Origin")
 					break
 				}
 			}
@@ -67,6 +60,7 @@ func main() {
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization, Accept")
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type")
 		if c.Request.Method == http.MethodOptions {
 			c.AbortWithStatus(http.StatusNoContent)
 			return

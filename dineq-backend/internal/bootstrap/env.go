@@ -187,6 +187,18 @@ func NewEnv() (*Env, error) {
 	env.ItemCollection = os.Getenv("ITEM_COLLECTION")
 	env.CookieSecure = strings.ToLower(os.Getenv("COOKIE_SECURE")) == "true"
 	env.CookieDomain = os.Getenv("COOKIE_DOMAIN")
+	env.CORSAllowedOriginsRaw = os.Getenv("CORS_ALLOWED_ORIGINS")
+	if env.CORSAllowedOriginsRaw == "" {
+		// default allow all for dev convenience
+		env.CORSAllowedOrigins = []string{"*"}
+	} else {
+		parts := strings.Split(env.CORSAllowedOriginsRaw, ",")
+		for _, p := range parts {
+			trim := strings.TrimSpace(p)
+			if trim != "" { env.CORSAllowedOrigins = append(env.CORSAllowedOrigins, trim) }
+		}
+		if len(env.CORSAllowedOrigins) == 0 { env.CORSAllowedOrigins = []string{"*"} }
+	}
 
 	if env.AppEnv == "development" {
 		log.Println("The App is running in development env")
