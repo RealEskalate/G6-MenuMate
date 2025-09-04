@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-
 import Roles from "../../Types/role";
 
 function NavBar({ role }: Roles) {
