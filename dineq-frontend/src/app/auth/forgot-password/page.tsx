@@ -18,8 +18,9 @@ const ForgotPassword = () => {
     try {
       const res = await forgotPassword({ email });
       setMessage(res.message || "✅ Reset link sent to your email.");
-    } catch (err: any) {
-      setMessage(err.message || "❌ Something went wrong.");
+    } catch (err) {
+      setMessage( "❌ Something went wrong.");
+      console.error("❌ Error:", err);
     } finally {
       setLoading(false);
     }
@@ -34,8 +35,8 @@ const ForgotPassword = () => {
             Forgot Password?
           </h1>
           <p className="text-gray-600 mb-6 text-center">
-            Enter your email address below and we'll send you a link to reset
-            your password.
+            Enter your email address below and we&apos;ll send you a link to
+            reset your password.
           </p>
 
           {/* Email */}

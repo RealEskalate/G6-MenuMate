@@ -22,6 +22,7 @@ export async function GET(request: Request) {
     const data = await res.json()
     return NextResponse.json(data)
   } catch (err) {
+    console.error('❌ Fetch error:', err)
     return NextResponse.json({ error: 'Network error' }, { status: 500 })
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Fullscreen } from "lucide-react";
+// import { Fullscreen } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
 

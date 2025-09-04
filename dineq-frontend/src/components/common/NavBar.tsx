@@ -5,10 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-<<<<<<< HEAD
-=======
-
->>>>>>> 4e17300aafb91a17ff00c37388e16ac3d5ffdd4f
 import Roles from "../../Types/role";
 
 function NavBar({ role }: Roles) {
@@ -41,11 +37,7 @@ function NavBar({ role }: Roles) {
 
   return (
     <nav className="w-full bg-white/95 backdrop-blur-md border-b border-gray-100 z-50">
-<<<<<<< HEAD
-      <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between">
-=======
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
->>>>>>> 4e17300aafb91a17ff00c37388e16ac3d5ffdd4f
         {/* Logo */}
         <Link href="/">
           <Image src="/logo.png" alt="Logo" width={100} height={100} />
