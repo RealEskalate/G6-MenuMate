@@ -1,6 +1,7 @@
 // lib/features/dinq/auth/domain/usecases/register_user_usecase.dart
 import 'package:dinq/features/dinq/auth/Domain/entities/customer_registration.dart';
 import 'package:dinq/features/dinq/auth/Domain/repository/customer_reg_repo.dart';
+import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
 
 
 
@@ -9,7 +10,7 @@ class RegisterUserUseCase {
 
   RegisterUserUseCase(this.repository);
 
-  Future<CustomerRegistration> call({
+  Future<UserModel> call({
     required String username,
     required String email,
     required String password,
@@ -19,7 +20,7 @@ class RegisterUserUseCase {
     String? phoneNumber,
   }) async {
     // Business logic validation can go here
-    return await repository.registerUser(
+    final user = await repository.registerUser(
       username: username,
       email: email,
       password: password,
@@ -28,5 +29,6 @@ class RegisterUserUseCase {
       lastName: lastName,
       phoneNumber: phoneNumber,
     );
+    return user; // UserModel is a CustomerRegistration
   }
 }

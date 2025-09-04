@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dinq/core/util/theme.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/resturant_registration.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/checkbox.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_event.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_state.dart';
 
 class MangerRegistration extends StatefulWidget {
   const MangerRegistration({super.key});
@@ -18,6 +22,19 @@ class _MangerRegistrationState extends State<MangerRegistration>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _scaleAnimation;
+
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  String? _usernameError;
+  String? _emailError;
+  String? _phoneError;
+  String? _passwordError;
+  String? _confirmPasswordError;
+  bool _isTermsAccepted = false;
 
   @override
   void initState() {
@@ -58,12 +75,128 @@ class _MangerRegistrationState extends State<MangerRegistration>
   @override
   void dispose() {
     _controller.dispose();
+    _usernameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  bool _validateAllFields() {
+    setState(() {
+      _usernameError = _validateUsername(_usernameController.text);
+      _emailError = _validateEmail(_emailController.text);
+      _phoneError = _validatePhone(_phoneController.text);
+      _passwordError = _validatePassword(_passwordController.text);
+      _confirmPasswordError = _validateConfirmPassword(_confirmPasswordController.text);
+    });
+
+    return _usernameError == null &&
+        _emailError == null &&
+        _phoneError == null &&
+        _passwordError == null &&
+        _confirmPasswordError == null &&
+        _isTermsAccepted;
+  }
+
+  String? _validateUsername(String? value) {
+    if (value == null || value.isEmpty) return 'Username is required';
+    if (value.length < 3) return 'Username must be at least 3 characters';
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value))
+      return 'Only letters, numbers, and underscores allowed';
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) return 'Email is required';
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value))
+      return 'Please enter a valid email address';
+    return null;
+  }
+
+  String? _validatePhone(String? value) {
+    if (value == null || value.isEmpty) return 'Phone number is required';
+    if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(value))
+      return 'Please enter a valid phone number';
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) return 'Password is required';
+    if (value.length < 8) return 'Password must be at least 8 characters';
+    return null;
+  }
+
+  String? _validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) return 'Please confirm your password';
+    if (value != _passwordController.text) return 'Passwords do not match';
+    return null;
+  }
+
+  void _registerManager() {
+    if (_validateAllFields()) {
+      context.read<AuthBloc>().add(
+        RegisterUserEvent(
+          username: _usernameController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          authProvider: 'EMAIL',
+          phoneNumber: _phoneController.text.trim(),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fix the validation errors and accept terms'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthRegistered) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Manager registration successful! Please continue with restaurant setup.'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+          Future.delayed(const Duration(seconds: 3), () {
+            Navigator.push(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) => const ResturantRegistration(),
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(1, 0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 400),
+              ),
+            );
+          });
+        } else if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      },
+      child: Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -110,8 +243,15 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 animation: _fadeAnimation,
                 delay: 100,
                 child: LoginTextfields(
+                  controller: _usernameController,
                   labeltext: "Username",
                   hintText: "Enter your Username",
+                  errorText: _usernameError,
+                  onChanged: (value) {
+                    setState(() {
+                      _usernameError = _validateUsername(value);
+                    });
+                  },
                 ),
               ),
 
@@ -120,9 +260,16 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 animation: _fadeAnimation,
                 delay: 200,
                 child: LoginTextfields(
+                  controller: _emailController,
                   labeltext: "Email Address",
                   hintText: "We'll use this to send you important updates",
                   keyboardType: TextInputType.emailAddress,
+                  errorText: _emailError,
+                  onChanged: (value) {
+                    setState(() {
+                      _emailError = _validateEmail(value);
+                    });
+                  },
                 ),
               ),
               const SizedBox(height: 20),
@@ -130,9 +277,16 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 animation: _fadeAnimation,
                 delay: 300,
                 child: LoginTextfields(
+                  controller: _phoneController,
                   labeltext: "Phone Number",
                   hintText: "Include country code (e.g., +251 for Ethiopia)",
                   isPhoneNumber: true,
+                  errorText: _phoneError,
+                  onChanged: (value) {
+                    setState(() {
+                      _phoneError = _validatePhone(value);
+                    });
+                  },
                 ),
               ),
               const SizedBox(height: 20),
@@ -140,9 +294,16 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 animation: _fadeAnimation,
                 delay: 400,
                 child: LoginTextfields(
+                  controller: _passwordController,
                   labeltext: "Password",
                   hintText: "Must be at least 8 characters with uppercase, lowercase, and number",
                   isPassword: true,
+                  errorText: _passwordError,
+                  onChanged: (value) {
+                    setState(() {
+                      _passwordError = _validatePassword(value);
+                    });
+                  },
                 ),
               ),
               const SizedBox(height: 20),
@@ -150,9 +311,16 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 animation: _fadeAnimation,
                 delay: 500,
                 child: LoginTextfields(
+                  controller: _confirmPasswordController,
                   labeltext: "Confirm Password",
                   hintText: "Re-enter your password to confirm",
                   isPassword: true,
+                  errorText: _confirmPasswordError,
+                  onChanged: (value) {
+                    setState(() {
+                      _confirmPasswordError = _validateConfirmPassword(value);
+                    });
+                  },
                 ),
               ),
               const SizedBox(height: 20),
@@ -166,7 +334,13 @@ class _MangerRegistrationState extends State<MangerRegistration>
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CustomCheckbox(),
+                        CustomCheckbox(
+                          onChanged: (value) {
+                            setState(() {
+                              _isTermsAccepted = value ?? false;
+                            });
+                          },
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: RichText(
@@ -219,28 +393,18 @@ class _MangerRegistrationState extends State<MangerRegistration>
               ),
               const SizedBox(height: 30),
               // Animated button with scale effect
-              ScaleTransition(
-                scale: _scaleAnimation,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => const ResturantRegistration(),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                          return SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(1, 0),
-                              end: Offset.zero,
-                            ).animate(animation),
-                            child: child,
-                          );
-                        },
-                        transitionDuration: const Duration(milliseconds: 400),
-                      ),
-                    );
-                  },
-                  child: LoginButton(buttonname: "Create Account")),
+              BlocBuilder<AuthBloc, AuthState>(
+                builder: (context, state) {
+                  return ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: state is AuthLoading
+                        ? const CircularProgressIndicator()
+                        : GestureDetector(
+                            onTap: _registerManager,
+                            child: const LoginButton(buttonname: "Create Account"),
+                          ),
+                  );
+                },
               ),
               const SizedBox(height: 30),
               // Animated "or" divider
@@ -322,6 +486,7 @@ class _MangerRegistrationState extends State<MangerRegistration>
             ],
           ),
         ),
+      ),
       ),
     );
   }

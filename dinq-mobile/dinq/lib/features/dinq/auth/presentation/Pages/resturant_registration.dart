@@ -3,8 +3,8 @@ import 'package:dinq/core/util/theme.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/resturant_data.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding_first.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:dinq/core/util/theme.dart';
 import 'package:iconsax/iconsax.dart';
 
 class ResturantRegistration extends StatefulWidget {
@@ -113,8 +113,11 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
   }
 
   void _skipForNow() {
-    // Navigate to home page (replace with your actual home page route)
-    Navigator.pushReplacementNamed(context, '/home');
+    // Navigate to onboarding page
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const OnboardingFirst()),
+    );
   }
 
   @override

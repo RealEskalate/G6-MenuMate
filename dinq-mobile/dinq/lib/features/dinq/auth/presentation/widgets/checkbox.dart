@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:dinq/core/util/theme.dart';
 
 class CustomCheckbox extends StatefulWidget {
-  const CustomCheckbox({super.key});
+  final ValueChanged<bool>? onChanged;
+
+  const CustomCheckbox({super.key, this.onChanged});
 
   @override
   State<CustomCheckbox> createState() => _CustomCheckboxState();
@@ -19,6 +21,7 @@ class _CustomCheckboxState extends State<CustomCheckbox> {
         setState(() {
           _isChecked = value ?? false;
         });
+        widget.onChanged?.call(_isChecked);
       },
       activeColor: AppColors.secondaryColor, // Color when checked
       checkColor: AppColors.primaryColor, // Color of the check icon

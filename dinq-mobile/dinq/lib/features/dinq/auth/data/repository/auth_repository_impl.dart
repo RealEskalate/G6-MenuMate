@@ -3,8 +3,7 @@ import 'package:dinq/core/network/api_client.dart';
 import 'package:dinq/core/network/api_endpoints.dart';
 import 'package:dinq/core/network/api_exceptions.dart';
 import 'package:dinq/core/network/token_manager.dart';
-import 'package:dinq/features/DineQ_App/auth/Domain/repository/Customer_reg_repo.dart';
-// import 'package:dinq/features/DineQ_App/auth/domain/repositories/auth_repository.dart';
+import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart';
 import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
