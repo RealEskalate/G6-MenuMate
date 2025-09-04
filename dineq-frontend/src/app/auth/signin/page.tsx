@@ -46,7 +46,7 @@ export default function LoginPage() {
       const session = await getSession();
 
       if (session?.user.role === "CUSTOMER") {
-        router.push("/user/restaurant-display");
+        router.push("/user");
       }  else {
         router.push("/restaurant/dashboard/menu");
       }
