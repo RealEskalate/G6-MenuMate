@@ -76,8 +76,7 @@ function QrManager() {
                     src="/icons/edit.png"
                     alt="Edit"
                     className="w-4 h-4 mr-2"
-                    width={110}
-                    height={105}
+                  
                   />
                   Customize
                 </button>

@@ -13,6 +13,7 @@ export default function BasicInfoForm() {
   const location = data.address || "";
   const businessLicense = data.businessLicense || null;
   const logoImage = data.logo_image || null;
+  const coverImage = data.cover_image || null;
   const router = useRouter();
 
   const [error, setError] = useState<string | null>(null);
@@ -27,13 +28,12 @@ export default function BasicInfoForm() {
     router.push("/restaurant/register/review");
   };
 
-  // ✅ Helper to wrap File into UploadedFile format
   const handleFileChange = (file: UploadedFile | null, key: "logo_image" | "businessLicense") => {
     if (file) {
       updateData({
         [key]: {
           name: file.name,
-          size: Math.round(file.size / (1024 * 1024)), // size in MB
+          size: Math.round(file.size / (1024 * 1024)), 
           file,
         },
       });
@@ -98,7 +98,7 @@ export default function BasicInfoForm() {
         {/* About */}
         <div>
           <label className="block text-md font-medium text-gray-700 mb-1 text-left">
-            About (optional)
+            About 
           </label>
           <div className="relative w-full">
             <textarea
@@ -151,10 +151,19 @@ export default function BasicInfoForm() {
 
         {/* Logo Upload */}
         <FileUploadBox
-          label="Logo Image (optional)"
+          label="Logo Image"
           required={false}
           file={logoImage}
           onFileChange={(file) => handleFileChange(file, "logo_image")}
+          compact={true}
+        />
+
+        {/* Banner Upload */}
+        <FileUploadBox
+          label="Banner Image"
+          required
+          file={coverImage}
+          onFileChange={(file) => handleFileChange(file, "businessLicense")}
           compact={true}
         />
 
@@ -166,6 +175,8 @@ export default function BasicInfoForm() {
           onFileChange={(file) => handleFileChange(file, "businessLicense")}
           compact={true}
         />
+
+        
 
         {error && <p className="text-red-500 text-xs">{error}</p>}
         <div className="flex justify-end pt-2">
