@@ -13,7 +13,7 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
   final GetMenu getMenu;
   final GetCategories getCategories;
   final GetReviews getReviews;
-  final GetUserimages getUserImages;
+  final GetUserImages getUserImages;
 
   RestaurantBloc({
     required this.getRestaurants,
