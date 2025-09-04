@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
-import '../../features/restaurant_management/presentation/pages/analytics_page.dart';
-import '../../features/restaurant_management/presentation/pages/create_menu_manually_page.dart';
-import '../../features/restaurant_management/presentation/pages/digitize_menu_page.dart';
-import '../../features/restaurant_management/presentation/pages/edit_menu_page.dart';
-import '../../features/restaurant_management/presentation/pages/edit_menu_item_page.dart';
-import '../../features/restaurant_management/presentation/pages/edit_single_menu_page.dart';
-import '../../features/restaurant_management/presentation/pages/edit_uploaded_menu_page.dart';
-import '../../features/restaurant_management/presentation/pages/generated_qr_page.dart';
-import '../../features/restaurant_management/presentation/pages/menus_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/analytics_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/create_menu_manually_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/digitize_menu_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_item_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/edit_single_menu_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/edit_uploaded_menu_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/generated_qr_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/menus_page.dart';
 
 class AppRoute {
   static const String menus = '/menus';

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../../../../core/util/theme.dart';
+import '../../../../../core/util/theme.dart';
 import 'edit_uploaded_menu_page.dart';
 
 class DigitizeMenuPage extends StatefulWidget {

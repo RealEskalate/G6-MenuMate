@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../domain/entities/tab.dart' as entity;
-import '../../../../core/util/theme.dart';
+// import '../../../../restaurant_management/domain/entities/tab.dart' as entity;
+import '../../../../../core/util/theme.dart';
+// import '../../../../restaurant_management/domain/entities/item.dart';
 import '../../domain/entities/item.dart';
+import '../../domain/entities/tab.dart' as entity;
 import '../pages/edit_menu_page.dart';
 import '../pages/edit_single_menu_page.dart';
 
