@@ -1,5 +1,5 @@
 // lib/features/DineQ_App/auth/data/models/user_model.dart
-import 'package:dinq/features/DineQ_App/auth/Domain/entities/customer_registration.dart';
+import 'package:dinq/features/dinq/auth/domain/entities/customer_registration.dart';
 
 
 

@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dinq/core/network/api_client.dart';
 import 'package:dinq/core/network/api_endpoints.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/DineQ_App/auth/Domain/repository/Customer_reg_repo.dart';
-import 'package:dinq/features/DineQ_App/auth/data/repository/auth_repository_impl.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/manger_registration.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/user_Register.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/bloc/registration/registration_bloc.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/choose_box.dart';
+import 'package:dinq/features/dinq/auth/Domain/repository/Customer_reg_repo.dart';
+import 'package:dinq/features/dinq/auth/data/repository/auth_repository_impl.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/manger_registration.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/user_Register.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/choose_box.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -177,7 +177,7 @@ class _RegisterPageState extends State<RegisterPage>
                             );
                           },
                           child: ChooseBox(
-                            category: "Customer", 
+                            category: "Customer",
                             explanation: "Discover dishes, scan QR menus and share reviews",
                             icon: Icons.person,
                           ),
@@ -215,7 +215,7 @@ class _RegisterPageState extends State<RegisterPage>
                             );
                           },
                           child: ChooseBox(
-                            category: "Restaurant", 
+                            category: "Restaurant",
                             explanation: "Create and manage digital menus, generate QR codes and track performance",
                             icon: Icons.restaurant,
                           ),

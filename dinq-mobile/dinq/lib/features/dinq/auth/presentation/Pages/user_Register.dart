@@ -3,13 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dinq/core/network/api_client.dart';
 import 'package:dinq/core/network/api_endpoints.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/DineQ_App/auth/data/repository/auth_repository_impl.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/login_page.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/bloc/registration/registration_bloc.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/bloc/registration/registration_event.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/bloc/registration/registration_state.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_button.dart';
+import 'package:dinq/features/dinq/auth/data/repository/auth_repository_impl.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/login_page.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_event.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_state.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
+import 'package:dinq/features/dinq/auth/domain/repository/customer_reg_repo.dart';
 
 class UserRegister extends StatefulWidget {
   const UserRegister({super.key});

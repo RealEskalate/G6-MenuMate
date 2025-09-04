@@ -1,79 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/login_page.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/onboarding2_page.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/onboarding_first.dart';
-class OnboardingThirdPage extends StatelessWidget {
-  const OnboardingThirdPage({super.key});
+import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding2_page.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding3.dart';
+
+class OnboardingFirst extends StatelessWidget {
+  const OnboardingFirst({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      backgroundColor: AppColors.whiteColor,
+      body: SingleChildScrollView(
+        child: Center(
           child: Column(
             children: [
-              const SizedBox(height: 30),
-              
-              // Image with cute decoration
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.asset(
-                    "assets/images/image1.png",
-                    width: 300,
-                    height: 280,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+              const SizedBox(height: 70),
+              // First logo with safe animation
+              _buildSafeAnimatedLogo(
+                'assets/images/logo.png',
+                174,
+                174,
+                0, // delay
               ),
-              
-              const SizedBox(height: 40),
-              
-              // Title with cute styling
-              Text(
-                "Bring your menu to life!",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Inter',
-                  color: Colors.black,
-                  fontSize: 20,
-                ),
-                textAlign: TextAlign.center,
+              // Second logo with safe animation
+              _buildSafeSlideUpLogo(
+                'assets/images/logo2.png',
+                200,
+                98,
+                400, // delay
               ),
-              
-              const SizedBox(height: 20),
-              
-              // Description with cute styling
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  "Upload your menu, share your QR code, and make it easy for customers to explore what you serve.",
-                  style: TextStyle(
-                    fontWeight: FontWeight.normal,
-                    fontFamily: 'Inter',
-                    color: AppColors.secondaryColor,
-                    fontSize: 16,
-                    height: 1.6,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              
-              const SizedBox(height: 40),
-              
-              // Button with cute styling
+              const SizedBox(height: 90),
+              // Custom Get Started button
               GestureDetector(
                 onTap: () {
-                  // Add navigation logic here if needed
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    MaterialPageRoute(builder: (context) => const OnboardingSecondPage()),
                   );
                 },
                 child: Container(
@@ -81,11 +43,11 @@ class OnboardingThirdPage extends StatelessWidget {
                   height: 50,
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
                     child: Text(
-                      "Continue ->",
+                      "Get Started",
                       style: TextStyle(
                         color: AppColors.whiteColor,
                         fontWeight: FontWeight.normal,
@@ -95,10 +57,7 @@ class OnboardingThirdPage extends StatelessWidget {
                   ),
                 ),
               ),
-              
-              const SizedBox(height: 30),
-              
-              // Cute decorative dots
+              const  SizedBox(height: 50,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -114,16 +73,17 @@ class OnboardingThirdPage extends StatelessWidget {
                       height: 12,
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.secondaryColor.withOpacity(0.3),
+                        color: AppColors.primaryColor.withOpacity(0.3),
                         shape: BoxShape.circle,
-                        boxShadow: [
+                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.secondaryColor.withOpacity(0.4),
+                            color: AppColors.primaryColor.withOpacity(0.4),
                             blurRadius: 6,
                             spreadRadius: 1,
                           ),
                         ],
                       ),
+
                     ),
                   ),
                   GestureDetector(
@@ -162,25 +122,84 @@ class OnboardingThirdPage extends StatelessWidget {
                       height: 12,
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withOpacity(0.3),
+                        color: AppColors.secondaryColor.withOpacity(0.3),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryColor.withOpacity(0.4),
-                            blurRadius: 6,
-                            spreadRadius: 1,
-                          ),
-                        ],
                       ),
                     ),
                   ),
                 ],
               ),
-              
-              const SizedBox(height: 40),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // Safe fade animation with scaling for the first logo
+  Widget _buildSafeAnimatedLogo(
+    String asset,
+    double width,
+    double height,
+    int delay,
+  ) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 1000 + delay),
+      curve: Curves.easeInOut,
+      builder: (context, value, child) {
+        // Clamp the value to ensure it stays within [0, 1]
+        final clampedValue = value.clamp(0.0, 1.0);
+        return Opacity(
+          opacity: clampedValue,
+          child: Transform.scale(
+            scale: 0.8 + (clampedValue * 0.2),
+            child: Transform.rotate(
+              angle: (1 - clampedValue) * 0.1,
+              child: child,
+            ),
+          ),
+        );
+      },
+      child: Image.asset(
+        asset,
+        width: width,
+        height: height,
+        fit: BoxFit.contain,
+      ),
+    );
+  }
+
+  // Safe slide-up animation for the second logo
+  Widget _buildSafeSlideUpLogo(
+    String asset,
+    double width,
+    double height,
+    int delay,
+  ) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 800 + delay),
+      curve: Curves.easeOut,
+      builder: (context, value, child) {
+        // Clamp the value to ensure it stays within [0, 1]
+        final clampedValue = value.clamp(0.0, 1.0);
+        return Transform.translate(
+          offset: Offset(0, (1 - clampedValue) * 100),
+          child: Opacity(
+            opacity: clampedValue,
+            child: Transform.scale(
+              scale: 0.7 + (clampedValue * 0.3),
+              child: child,
+            ),
+          ),
+        );
+      },
+      child: Image.asset(
+        asset,
+        width: width,
+        height: height,
+        fit: BoxFit.contain,
       ),
     );
   }

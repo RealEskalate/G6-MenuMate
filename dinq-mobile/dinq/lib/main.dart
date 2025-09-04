@@ -6,16 +6,16 @@ import 'package:dinq/core/network/api_client.dart';
 import 'package:dinq/core/network/api_endpoints.dart';
 import 'package:dinq/core/network/api_exceptions.dart';
 
-import 'package:dinq/features/DineQ_App/auth/data/repository/auth_repository_impl.dart';
+import 'package:dinq/features/dinq/auth/data/repository/auth_repository_impl.dart';
 
-import 'package:dinq/features/DineQ_App/auth/presentation/bloc/registration/registration_bloc.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/pages/onboarding_first.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
+import 'package:dinq/features/dinq/auth/presentation/pages/onboarding_first.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   print('🚀 Starting comprehensive API diagnostics...');
-  
+
   // Run tests in sequence using async/await
   runTests().then((_) {
     print('\n🎉 All diagnostics completed!');
@@ -35,22 +35,22 @@ Future<void> runTests() async {
 
 Future<void> testServerConnectivity() async {
   final client = http.Client();
-  
+
   print('🌐 Testing server connectivity...');
-  
+
   try {
     // Test basic connectivity
     final response = await client.get(Uri.parse('https://g6-menumate.onrender.com'));
     print('✅ Server is reachable - Status: ${response.statusCode}');
-    
+
     // Test API root
     final apiResponse = await client.get(Uri.parse('https://g6-menumate.onrender.com/api/v1'));
     print('✅ API root - Status: ${apiResponse.statusCode}');
-    
+
     // Print response bodies for clues
     print('Server response: ${response.body}');
     print('API response: ${apiResponse.body}');
-    
+
   } catch (e) {
     print('❌ Server connectivity failed: $e');
   } finally {
@@ -60,24 +60,24 @@ Future<void> testServerConnectivity() async {
 
 Future<void> testWithBasicHttp() async {
   print('🔧 Testing with basic http client...');
-  
+
   try {
     // Test 1: Simple GET to base URL
     var response = await http.get(Uri.parse('https://g6-menumate.onrender.com'));
     print('Base URL - Status: ${response.statusCode}, Body: ${response.body}');
-    
+
     // Test 2: API v1
     response = await http.get(Uri.parse('https://g6-menumate.onrender.com/api/v1'));
     print('API v1 - Status: ${response.statusCode}, Body: ${response.body}');
-    
+
     // Test 3: Auth endpoint
     response = await http.get(Uri.parse('https://g6-menumate.onrender.com/api/v1/auth'));
     print('Auth - Status: ${response.statusCode}, Body: ${response.body}');
-    
+
     // Test 4: Specific register endpoint
     response = await http.get(Uri.parse('https://g6-menumate.onrender.com/api/v1/auth/register'));
     print('Register - Status: ${response.statusCode}, Body: ${response.body}');
-    
+
   } catch (e) {
     print('❌ Basic http test failed: $e');
   }
@@ -85,9 +85,9 @@ Future<void> testWithBasicHttp() async {
 
 Future<void> debugApiEndpoints() async {
   final apiClient = ApiClient(baseUrl: 'https://g6-menumate-1.onrender.com/api/v1');
-  
+
   print('🔍 Debugging API endpoints...');
-  
+
   // Test different URL patterns
   final testUrls = [
     '/api/v1/auth/register',
@@ -98,7 +98,7 @@ Future<void> debugApiEndpoints() async {
     '/api/auth/register',
     '/v1/auth/register',
   ];
-  
+
   for (var url in testUrls) {
     print('\n🧪 Testing: $url');
     try {
@@ -116,7 +116,7 @@ Future<void> debugApiEndpoints() async {
     } catch (e) {
       print('❌ GET $url - Error: $e');
     }
-    
+
     await Future.delayed(Duration(milliseconds: 500));
   }
 }
@@ -129,7 +129,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(
+          create: (context) => AuthBloc( 
             authRepository: AuthRepositoryImpl(
               apiClient: ApiClient(baseUrl: ApiEndpoints.baseUrl),
             ),

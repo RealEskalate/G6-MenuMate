@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_button.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
 
 class VerifyPage extends StatefulWidget {
   const VerifyPage({super.key});
@@ -20,7 +20,7 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -95,8 +95,8 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height - 
-                        MediaQuery.of(context).padding.top - 
+              minHeight: MediaQuery.of(context).size.height -
+                        MediaQuery.of(context).padding.top -
                         MediaQuery.of(context).padding.bottom,
             ),
             child: AnimatedBuilder(
@@ -135,7 +135,7 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
                           ),
                         ),
                         const SizedBox(height: 30),
-                        
+
                         // Animated title text
                         SlideTransition(
                           position: _textSlideAnimation,
@@ -161,7 +161,7 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
                           ),
                         ),
                         const SizedBox(height: 30),
-                        
+
                         // Animated description text
                         SlideTransition(
                           position: _textSlideAnimation,
@@ -180,7 +180,7 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
                           ),
                         ),
                         const SizedBox(height: 40),
-                        
+
                         // Animated button
                         SlideTransition(
                           position: _buttonSlideAnimation,

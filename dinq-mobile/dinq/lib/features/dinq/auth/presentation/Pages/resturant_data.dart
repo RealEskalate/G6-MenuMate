@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/prefiled.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/prefiled.dart';
 
 class RestaurantData extends StatefulWidget {
   final String name;
@@ -59,7 +59,7 @@ class _RestaurantDataState extends State<RestaurantData> {
   Widget _buildFileItem(PlatformFile file) {
     IconData icon;
     Color iconColor;
-    
+
     if (file.extension == 'pdf') {
       icon = Icons.picture_as_pdf;
       iconColor = Colors.red;
@@ -67,7 +67,7 @@ class _RestaurantDataState extends State<RestaurantData> {
       icon = Icons.image;
       iconColor = Colors.blue;
     }
-    
+
     return Card(
       margin: EdgeInsets.symmetric(vertical: 5),
       child: ListTile(
@@ -128,7 +128,7 @@ class _RestaurantDataState extends State<RestaurantData> {
               const SizedBox(height: 20), // Reduced from 40
               CustomTextField(labelText:"Phone Number" , initialText: widget.phoneNumber),
               const SizedBox(height: 24),
-              
+
               Text("Your Legal Document",
                 style: TextStyle(
                   fontFamily: 'Inter',
@@ -147,13 +147,13 @@ class _RestaurantDataState extends State<RestaurantData> {
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               // File display and edit section
-              if (_selectedFile != null) 
+              if (_selectedFile != null)
                 _buildFileItem(_selectedFile!),
-              
+
               const SizedBox(height: 16),
-              
+
               // Change file button
               SizedBox(
                 width: 200,
