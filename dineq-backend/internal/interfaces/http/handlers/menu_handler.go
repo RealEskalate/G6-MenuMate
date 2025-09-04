@@ -24,18 +24,18 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 
 	var menuDto dto.MenuRequest
 	if err := c.ShouldBindJSON(&menuDto); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
 	menuDto.RestaurantID = slug
-	if validate.Struct(menuDto) != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: validate.Struct(menuDto).Error()})
+	if err := validate.Struct(menuDto); err != nil {
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
 
 	menu := dto.RequestToMenu(&menuDto)
 	if err := h.UseCase.CreateMenu(menu); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusCreated, dto.SuccessResponse{Message: domain.MsgCreated, Data: gin.H{"menu": dto.MenuToResponse(menu)}})
@@ -46,7 +46,7 @@ func (h *MenuHandler) GetMenus(c *gin.Context) {
 	id := c.Param("restaurant_slug")
 	menu, err := h.UseCase.GetByRestaurantID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrNotFound.Error(), Error: err.Error()})
+		dto.WriteError(c, domain.ErrNotFound)
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menu": dto.MenuResponseList(menu)}})
@@ -60,18 +60,18 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 
 	var menuDto dto.MenuRequest
 	if err := c.ShouldBindJSON(&menuDto); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
 	menuDto.RestaurantID = slug
 
-	if validate.Struct(menuDto) != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: validate.Struct(menuDto).Error()})
+	if err := validate.Struct(menuDto); err != nil {
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
 	menu := dto.RequestToMenu(&menuDto)
 	if err := h.UseCase.UpdateMenu(menuID, userId, menu); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgUpdated, Data: gin.H{"menu": dto.MenuToResponse(menu)}})
@@ -84,7 +84,7 @@ func (h *MenuHandler) PublishMenu(c *gin.Context) {
 	menuID := c.Param("id")
 
 	if err := h.UseCase.PublishMenu(menuID, userID); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 
@@ -98,7 +98,7 @@ func (h *MenuHandler) GenerateQRCode(c *gin.Context) {
 
 	var req dto.QRCodeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
 
@@ -106,11 +106,11 @@ func (h *MenuHandler) GenerateQRCode(c *gin.Context) {
 
 	qrCode, err := h.UseCase.GenerateQRCode(restaurantID, menuID, qrCodeRequest)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	if err := h.QrUseCase.CreateQRCode(qrCode); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 
@@ -123,7 +123,7 @@ func (h *MenuHandler) DeleteMenu(c *gin.Context) {
 	menuID := c.Param("id")
 
 	if err := h.UseCase.DeleteMenu(menuID); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusNoContent, dto.SuccessResponse{Message: domain.MsgDeleted})
@@ -135,7 +135,7 @@ func (h *MenuHandler) GetMenuByID(c *gin.Context) {
 	menuID := c.Param("id")
 	menu, err := h.UseCase.GetByID(menuID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrNotFound.Error(), Error: err.Error()})
+		dto.WriteError(c, domain.ErrNotFound)
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menu": dto.MenuToResponse(menu)}})

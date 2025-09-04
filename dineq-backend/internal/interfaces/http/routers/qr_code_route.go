@@ -24,7 +24,7 @@ func NewQRCodeRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 
 	protected := group.Group("/qr-code")
 	protected.Use(middleware.AuthMiddleware(*env))
-	protected.Use(middleware.ManagerOnly())
+	protected.Use(middleware.ManagerAndOwnerOnly())
 	{
 		protected.GET("/:restaurant_slug", qrHandler.GetQRCode)
 		protected.PATCH("/:restaurant_slug/:status", qrHandler.UpdateQRCodeStatus)

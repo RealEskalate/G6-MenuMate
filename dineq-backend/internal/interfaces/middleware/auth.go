@@ -93,11 +93,11 @@ func AdminOnly() gin.HandlerFunc {
 	}
 }
 
-// manager only
-func ManagerOnly() gin.HandlerFunc {
+// manager or Owner only
+func ManagerAndOwnerOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.GetString("role") != string(domain.RoleManager) && c.GetString("role") != string(domain.RoleOwner) {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "This Operation is allowed for MANAGER only"})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "This Operation is allowed for MANAGER or OWNERS only"})
 			return
 		}
 		c.Next()

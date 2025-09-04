@@ -37,7 +37,7 @@ func (ctrl *UserController) GetAvatarOptions(c *gin.Context) {
 	includeMale := gender == "" || gender == "male"
 	includeFemale := gender == "" || gender == "female"
 	if gender != "" && gender != "male" && gender != "female" {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: "invalid gender"})
+		dto.WriteValidationError(c, "gender", domain.ErrInvalidInput.Error(), "invalid_gender", fmt.Errorf("invalid gender"))
 		return
 	}
 
@@ -81,12 +81,12 @@ func (ctrl *UserController) Me(c *gin.Context) {
 		uid = c.GetString("userId")
 	}
 	if uid == "" {
-		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error()})
+		dto.WriteError(c, domain.ErrUnauthorized)
 		return
 	}
 	user, err := ctrl.userUC.FindUserByID(uid)
 	if err != nil {
-		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error(), Error: err.Error()})
+		dto.WriteError(c, domain.ErrUserNotFound)
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.ToUserResponse(*user)})
@@ -96,12 +96,12 @@ func (ctrl *UserController) Me(c *gin.Context) {
 func (ctrl *UserController) GetPublicUser(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: "missing id"})
+		dto.WriteValidationError(c, "id", domain.ErrInvalidInput.Error(), "missing_id", fmt.Errorf("missing id"))
 		return
 	}
 	user, err := ctrl.userUC.FindUserByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error(), Error: err.Error()})
+		dto.WriteError(c, domain.ErrUserNotFound)
 		return
 	}
 	resp := dto.ToUserResponse(*user)
@@ -118,17 +118,17 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		uid = c.GetString("userId")
 	}
 	if uid == "" {
-		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error()})
+		dto.WriteError(c, domain.ErrUnauthorized)
 		return
 	}
 
 	var req dto.UserUpdateProfileRequest
 	if err := c.ShouldBind(&req); err != nil { // auto-detect multipart
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
 	if err := validate.Struct(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidInput.Error(), "invalid_input", err)
 		return
 	}
 
@@ -144,13 +144,13 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	if fileHeader != nil {
 		f, err := fileHeader.Open()
 		if err != nil {
-			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: err.Error()})
+			dto.WriteValidationError(c, "profile_image", domain.ErrInvalidFile.Error(), "invalid_file", err)
 			return
 		}
 		defer f.Close()
 		data, err := io.ReadAll(f)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error(), Error: err.Error()})
+			dto.WriteValidationError(c, "profile_image", domain.ErrInvalidFile.Error(), "invalid_file", err)
 			return
 		}
 		avatarData = data
@@ -160,20 +160,20 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	update := domain.UserProfileUpdate{AvatarData: avatarData, FirstName: req.FirstName, LastName: req.LastName}
 	updatedUser, err := ctrl.userUC.UpdateProfile(uid, update, fileName)
 	if err == domain.ErrUserNotFound {
-		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrUserNotFound.Error()})
+		dto.WriteError(c, domain.ErrUserNotFound)
 		return
 	}
 	if err == domain.ErrInvalidFile {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidFile.Error()})
+		dto.WriteError(c, domain.ErrInvalidFile)
 		return
 	}
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 
 	if err := ctrl.notificationUC.SendNotificationFromRoute(c.Request.Context(), uid, "Your profile has been updated successfully!", domain.InfoUpdate); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: dto.ToUserResponse(*updatedUser)})
@@ -182,31 +182,31 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 func (ctrl *UserController) ChangePassword(c *gin.Context) {
 	var req dto.ChangePasswordRequest
 	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
 	if err := validate.Struct(req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidInput.Error(), "invalid_input", err)
 		return
 	}
 	userID := c.GetString("userId")
 	if userID == "" {
-		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUnauthorized.Error()})
+		dto.WriteError(c, domain.ErrUnauthorized)
 		return
 	}
 
 	// check password strength
 	if err := dto.ValidatePasswordStrength(req.NewPassword); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "new_password", domain.ErrInvalidInput.Error(), "invalid_input", err)
 		return
 	}
 
 	if err := ctrl.userUC.ChangePassword(userID, req.OldPassword, req.NewPassword); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	if err := ctrl.notificationUC.SendNotificationFromRoute(c.Request.Context(), userID, "Your password has been changed successfully!", domain.InfoUpdate); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 
