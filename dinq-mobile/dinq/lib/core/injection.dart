@@ -33,7 +33,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetMenu(sl()));
   sl.registerLazySingleton(() => GetCategories(sl()));
   sl.registerLazySingleton(() => GetReviews(sl()));
-  sl.registerLazySingleton(() => GetUserimages(sl()));
+  sl.registerLazySingleton(() => GetUserImages(sl()));
 
   // Repository
   sl.registerLazySingleton<RestaurantRepository>(
