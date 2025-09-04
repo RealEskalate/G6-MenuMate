@@ -35,6 +35,7 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 		NewImageSearchRoutes(env, api)
 		NewMenuRoutes(env, api, db, notificationUseCase)
 		NewQRCodeRoutes(env, api, db, notificationUseCase)
+		NewUploadRoutes(env, api)
 		NewItemRoutes(env, api, db, notifySvc)
 		h := handler.NewHealthHandler(db, 2*time.Second)
 		api.GET("/health", h.Health)
