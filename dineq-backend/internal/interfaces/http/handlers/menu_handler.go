@@ -27,6 +27,10 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
+	// Normalize possible OCR field alias
+	if len(menuDto.Items) == 0 && len(menuDto.MenuItems) > 0 {
+		menuDto.Items = menuDto.MenuItems
+	}
 	menuDto.RestaurantID = slug
 	if err := validate.Struct(menuDto); err != nil {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)

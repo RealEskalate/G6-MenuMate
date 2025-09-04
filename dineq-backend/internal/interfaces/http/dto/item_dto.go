@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -26,15 +27,16 @@ type ItemRequest struct {
 	Image           []string `json:"image,omitempty"`
 	Price           float64  `json:"price" validate:"required,gt=0"`
 	Currency        string   `json:"currency" validate:"required"`
-	Allergies       []string `json:"allergies,omitempty"`
+	Allergies       FlexibleAllergies `json:"allergies,omitempty"`
 	AllergiesAm     string   `json:"allergies_am,omitempty"`
 	UserImages      []string `json:"user_images,omitempty"`
 	TabTags         []string `json:"tab_tags,omitempty"`
 	TabTagsAm       []string `json:"tab_tags_am,omitempty"`
-	Calories        int      `json:"calories,omitempty" validate:"gte=0"`
+	Calories        int      `json:"calories,omitempty" validate:"gte=0"` // backward compatibility (flattened)
 	Protein         int      `json:"protein,omitempty" validate:"gte=0"`
 	Carbs           int      `json:"carbs,omitempty" validate:"gte=0"`
 	Fat             int      `json:"fat,omitempty" validate:"gte=0"`
+	NutritionalInfo *NutritionalInfoDTO `json:"nutritional_info,omitempty"`
 	Ingredients     []string `json:"ingredients,omitempty"`
 	IngredientsAm   []string `json:"ingredients_am,omitempty"`
 	PreparationTime int      `json:"preparation_time,omitempty" validate:"gte=0"`
@@ -211,6 +213,13 @@ func RequestToItem(r *ItemRequest) *domain.Item {
 	if r == nil {
 		return nil
 	}
+	var nutri *domain.NutritionalInfo
+	
+	if r != nil && r.NutritionalInfo != nil {
+		nutri = &domain.NutritionalInfo{Calories: r.NutritionalInfo.Calories, Protein: r.NutritionalInfo.Protein, Carbs: r.NutritionalInfo.Carbs, Fat: r.NutritionalInfo.Fat}
+	} else if r != nil && (r.Calories != 0 || r.Protein != 0 || r.Carbs != 0 || r.Fat != 0) {
+		nutri = &domain.NutritionalInfo{Calories: r.Calories, Protein: r.Protein, Carbs: r.Carbs, Fat: r.Fat}
+	}
 	return &domain.Item{
 		Name:            r.Name,
 		NameAm:          r.NameAm,
@@ -221,7 +230,7 @@ func RequestToItem(r *ItemRequest) *domain.Item {
 		Image:           r.Image,
 		Price:           r.Price,
 		Currency:        r.Currency,
-		Allergies:       r.Allergies,
+		Allergies:       r.Allergies.ToSlice(),
 		AllergiesAm:     r.AllergiesAm,
 		UserImages:      r.UserImages,
 		TabTags:         r.TabTags,
@@ -230,6 +239,7 @@ func RequestToItem(r *ItemRequest) *domain.Item {
 		Protein:         r.Protein,
 		Carbs:           r.Carbs,
 		Fat:             r.Fat,
+		NutritionalInfo: nutri,
 		Ingredients:     r.Ingredients,
 		IngredientsAm:   r.IngredientsAm,
 		PreparationTime: r.PreparationTime,
@@ -237,6 +247,33 @@ func RequestToItem(r *ItemRequest) *domain.Item {
 		HowToEatAm:      r.HowToEatAm,
 	}
 }
+
+// FlexibleAllergies allows a JSON field to be either a string sentence or an array of strings
+type FlexibleAllergies []string
+
+func (fa *FlexibleAllergies) UnmarshalJSON(data []byte) error {
+	// If it's a quoted string treat as single element
+	var single string
+	if err := json.Unmarshal(data, &single); err == nil {
+		if single == "" {
+			*fa = nil
+		} else {
+			*fa = []string{single}
+		}
+		return nil
+	}
+	// Try slice
+	var arr []string
+	if err := json.Unmarshal(data, &arr); err == nil {
+		*fa = FlexibleAllergies(arr)
+		return nil
+	}
+	// Fallback: ignore invalid type
+	*fa = nil
+	return nil
+}
+
+func (fa FlexibleAllergies) ToSlice() []string { return []string(fa) }
 
 // ItemToResponse converts a domain item to response DTO
 func ItemToResponse(item *domain.Item) *ItemResponse {
