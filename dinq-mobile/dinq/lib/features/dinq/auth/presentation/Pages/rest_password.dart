@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_button.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
 
 class RestPassword extends StatelessWidget {
   const RestPassword({super.key});

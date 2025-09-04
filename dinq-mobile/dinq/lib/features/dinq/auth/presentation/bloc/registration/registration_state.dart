@@ -1,7 +1,7 @@
 // lib/features/DineQ_App/auth/presentation/bloc/auth/auth_state.dart
 
 import 'package:equatable/equatable.dart';
-import 'package:dinq/features/DineQ_App/auth/Domain/entities/customer_registration.dart';
+import 'package:dinq/features/dinq/auth/domain/entities/customer_registration.dart';
 
 abstract class AuthState extends Equatable {
   const AuthState();

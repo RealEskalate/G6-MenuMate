@@ -1,6 +1,6 @@
-// lib/features/DineQ_App/auth/Domain/repository/auth_repository.dart
-import 'package:dinq/features/DineQ_App/auth/Domain/entities/customer_registration.dart';
-import 'package:dinq/features/DineQ_App/auth/data/models/user_model.dart';
+// lib/features/dinq/auth/Domain/repository/auth_repository.dart
+import 'package:dinq/features/dinq/auth/domain/entities/customer_registration.dart';
+import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
 
 abstract class AuthRepository {
   // Registration

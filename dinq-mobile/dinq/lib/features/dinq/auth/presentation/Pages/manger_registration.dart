@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/resturant_registration.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_button.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/checkbox.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/resturant_registration.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/checkbox.dart';
 
 class MangerRegistration extends StatefulWidget {
   const MangerRegistration({super.key});
@@ -22,19 +22,19 @@ class _MangerRegistrationState extends State<MangerRegistration>
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
       ),
     );
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -44,14 +44,14 @@ class _MangerRegistrationState extends State<MangerRegistration>
         curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
       ),
     );
-    
+
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
         curve: const Interval(0.6, 1.0, curve: Curves.elasticOut),
       ),
     );
-    
+
     _controller.forward();
   }
 
@@ -114,7 +114,7 @@ class _MangerRegistrationState extends State<MangerRegistration>
                   hintText: "Enter your Username",
                 ),
               ),
-              
+
               const SizedBox(height: 20),
               AnimatedFormField(
                 animation: _fadeAnimation,

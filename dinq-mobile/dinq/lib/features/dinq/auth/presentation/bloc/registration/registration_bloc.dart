@@ -1,10 +1,10 @@
 // lib/features/DineQ_App/auth/presentation/bloc/auth/auth_bloc.dart
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:dinq/features/DineQ_App/auth/Domain/entities/customer_registration.dart';
-import 'package:dinq/features/DineQ_App/auth/Domain/repository/Customer_reg_repo.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/bloc/registration/registration_event.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/bloc/registration/registration_state.dart';
+import 'package:dinq/features/dinq/auth/domain/entities/customer_registration.dart';
+import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_event.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_state.dart';
 
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {

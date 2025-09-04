@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/email_verfiction.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/login_page.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_button.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/email_verfiction.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/login_page.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
 
 // Add this import for the EmailVerification class
 
@@ -22,14 +22,14 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
   late Animation<double> _textFieldAnimation;
   late Animation<double> _buttonAnimation;
   late Animation<double> _backButtonAnimation;
-  
+
   // Add TextEditingController to capture the email input
   final TextEditingController _emailController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -86,7 +86,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
 
   void _navigateToEmailVerification() {
     final email = _emailController.text.trim();
-    
+
     // Basic email validation
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -97,7 +97,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
       );
       return;
     }
-    
+
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -189,7 +189,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
                     child: Opacity(
                       opacity: _textFieldAnimation.value,
                       child: LoginTextfields(
-                        labeltext: "Email Address", 
+                        labeltext: "Email Address",
                         hintText: "Enter your email.",
                         controller: _emailController, // Pass the controller
                       ),

@@ -5,7 +5,7 @@ import 'package:dinq/core/network/api_exceptions.dart';
 import 'package:dinq/core/network/token_manager.dart';
 import 'package:dinq/features/DineQ_App/auth/Domain/repository/Customer_reg_repo.dart';
 // import 'package:dinq/features/DineQ_App/auth/domain/repositories/auth_repository.dart';
-import 'package:dinq/features/DineQ_App/auth/data/models/user_model.dart';
+import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final ApiClient _apiClient;
@@ -36,11 +36,11 @@ class AuthRepositoryImpl implements AuthRepository {
       };
 
       print('📨 Registering user with data: $userData');
-      
+
       final response = await _apiClient.post(ApiEndpoints.register, body: userData);
 
       print('✅ Registration response: $response');
-      
+
       return UserModel.fromJson(response);
 
     } on ApiException catch (e) {

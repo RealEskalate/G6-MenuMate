@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:dinq/core/util/theme.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/resturant_data.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_TextFields.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/resturant_data.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
 import 'package:dinq/core/util/theme.dart';
 import 'package:iconsax/iconsax.dart';
 
@@ -53,7 +53,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
 
   bool _validateForm() {
     bool isValid = true;
-    
+
     // Validate name
     if (_nameController.text.isEmpty) {
       setState(() {
@@ -65,7 +65,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
         _nameError = null;
       });
     }
-    
+
     // Validate phone number
     if (_phoneController.text.isEmpty) {
       setState(() {
@@ -82,7 +82,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
         _phoneError = null;
       });
     }
-    
+
     return isValid;
   }
 
@@ -185,7 +185,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
               ),
             ),
             const SizedBox(height: 20),
-            
+
             // File upload button - only show if no file is selected
             if (_selectedFile == null)
               SizedBox(
@@ -220,7 +220,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
                 textAlign: TextAlign.center,
               ),
             const SizedBox(height: 30),
-            
+
             // Show selected file if one is chosen
             if (_selectedFile != null) ...[
               Text(
@@ -234,7 +234,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
               const SizedBox(height: 15),
               _buildFileItem(_selectedFile!),
               const SizedBox(height: 20),
-              
+
               // Option to change file
               SizedBox(
                 width: double.infinity,
@@ -256,7 +256,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
               ),
               const SizedBox(height: 20),
             ],
-            
+
             // Submit button
             const SizedBox(height: 30),
             SizedBox(
@@ -280,7 +280,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
                 ),
               ),
             ),
-            
+
             // Skip for now button moved to bottom
             const SizedBox(height: 20),
             SizedBox(
@@ -307,7 +307,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
     // Determine file type icon
     IconData icon;
     Color iconColor;
-    
+
     if (file.extension == 'pdf') {
       icon = Icons.picture_as_pdf;
       iconColor = Colors.red;
@@ -315,7 +315,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
       icon = Icons.image;
       iconColor = Colors.blue;
     }
-    
+
     return Card(
       margin: EdgeInsets.symmetric(vertical: 5),
       child: ListTile(

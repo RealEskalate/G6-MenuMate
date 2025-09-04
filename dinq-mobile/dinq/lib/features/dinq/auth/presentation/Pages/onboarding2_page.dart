@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/onboarding3.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/onboarding_first.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_button.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding3.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding_first.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
 
 class OnboardingSecondPage extends StatelessWidget {
   const OnboardingSecondPage({super.key});
@@ -17,7 +17,7 @@ class OnboardingSecondPage extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 30),
-              
+
               // Image with cute decoration
               Container(
                 decoration: BoxDecoration(
@@ -33,9 +33,9 @@ class OnboardingSecondPage extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Title with cute styling
               Text(
                 "Your next meal is just a scan away! 🍕",
@@ -47,9 +47,9 @@ class OnboardingSecondPage extends StatelessWidget {
                 ),
                 textAlign: TextAlign.center,
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Description with cute styling
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -65,9 +65,9 @@ class OnboardingSecondPage extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Button with cute styling
               GestureDetector(
                 onTap: () {
@@ -96,9 +96,9 @@ class OnboardingSecondPage extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 30),
-              
+
               // Cute decorative dots
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -170,7 +170,7 @@ class OnboardingSecondPage extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 40),
             ],
           ),

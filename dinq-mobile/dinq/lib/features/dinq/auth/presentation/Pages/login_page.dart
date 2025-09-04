@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/Register_page.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/Pages/forget_password_page.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:dinq/features/DineQ_App/auth/presentation/widgets/Login_button.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/Register_page.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/forget_password_page.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
+import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -32,7 +32,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -111,7 +111,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   bool _validateForm() {
     bool isValid = true;
-    
+
     // Validate email
     if (_emailController.text.isEmpty) {
       setState(() {
@@ -128,7 +128,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         _emailError = null;
       });
     }
-    
+
     // Validate password
     if (_passwordController.text.isEmpty) {
       setState(() {
@@ -145,7 +145,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         _passwordError = null;
       });
     }
-    
+
     return isValid;
   }
 
@@ -155,7 +155,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       // You would typically call your authentication service here
       print('Email: ${_emailController.text}');
       print('Password: ${_passwordController.text}');
-      
+
       // For demo purposes, just show a success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -163,7 +163,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           backgroundColor: Colors.green,
         ),
       );
-      
+
       // Navigate to home page or dashboard
       // Navigator.pushReplacementNamed(context, '/home');
     }

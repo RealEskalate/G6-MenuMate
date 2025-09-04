@@ -1,6 +1,6 @@
-// lib/features/DineQ_App/auth/domain/usecases/register_user_usecase.dart
-import 'package:dinq/features/DineQ_App/auth/Domain/entities/customer_registration.dart';
-import 'package:dinq/features/DineQ_App/auth/Domain/repository/customer_reg_repo.dart';
+// lib/features/dinq/auth/domain/usecases/register_user_usecase.dart
+import 'package:dinq/features/dinq/auth/Domain/entities/customer_registration.dart';
+import 'package:dinq/features/dinq/auth/Domain/repository/customer_reg_repo.dart';
 
 
 
