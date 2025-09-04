@@ -39,6 +39,16 @@ func (uc *MenuUseCase) CreateMenu(menu *domain.Menu) error {
 	uidPart := utils.GenerateUUID()
 	if len(uidPart) > 8 { uidPart = uidPart[:8] }
 	menu.Slug = baseSlug + "-" + uidPart
+
+	// Ensure each item has slug + menu slug
+	for i := range menu.Items {
+		base := strings.TrimSpace(menu.Items[i].Name)
+		if base == "" { base = strings.TrimSpace(menu.Items[i].NameAm) }
+		if menu.Items[i].Slug == "" && base != "" {
+			menu.Items[i].Slug = utils.GenerateSlug(base)
+		}
+		menu.Items[i].MenuSlug = menu.Slug
+	}
 	return uc.menuRepo.Create(ctx, menu)
 }
 
@@ -46,9 +56,31 @@ func (uc *MenuUseCase) UpdateMenu(id string, userId string, menu *domain.Menu) e
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	defer cancel()
 
-	menu.UpdatedAt = time.Now()
-	menu.UpdatedBy = userId
-	return uc.menuRepo.Update(ctx, id, menu)
+	// Load existing to preserve immutable / non-updated fields
+	existing, err := uc.menuRepo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// Only allowed fields: Name, Items. Everything else stays.
+	if strings.TrimSpace(menu.Name) != "" {
+		existing.Name = menu.Name
+	}
+	if len(menu.Items) > 0 {
+		// Replace items but enrich with slugs/menu slug where missing
+		for i := range menu.Items {
+			base := strings.TrimSpace(menu.Items[i].Name)
+			if base == "" { base = strings.TrimSpace(menu.Items[i].NameAm) }
+			if menu.Items[i].Slug == "" && base != "" {
+				menu.Items[i].Slug = utils.GenerateSlug(base)
+			}
+			menu.Items[i].MenuSlug = existing.Slug
+		}
+		existing.Items = menu.Items
+	}
+	existing.UpdatedAt = time.Now()
+	existing.UpdatedBy = userId
+	return uc.menuRepo.Update(ctx, id, existing)
 }
 
 func (uc *MenuUseCase) PublishMenu(id string, userID string) error {

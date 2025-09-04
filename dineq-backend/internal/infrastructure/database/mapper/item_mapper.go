@@ -120,6 +120,48 @@ func MergeItemUpdate(updated *domain.Item) *ItemDB {
 	}
 }
 
+func ToItemDBForUpdate(it *domain.Item) *ItemDB {
+	if it == nil { return nil }
+	createdAt := it.CreatedAt
+	if createdAt.IsZero() {
+		createdAt = time.Now().UTC()
+	}
+	return &ItemDB{
+		ID:              idempotentID(it.ID),
+		Name:            it.Name,
+		NameAm:          it.NameAm,
+		Slug:            it.Slug,
+		MenuSlug:        it.MenuSlug,
+		Description:     it.Description,
+		DescriptionAm:   it.DescriptionAm,
+		Image:           it.Image,
+		Price:           it.Price,
+		CategoryTags:    it.CategoryTags,
+		Currency:        it.Currency,
+		Allergies:       it.Allergies,
+		AllergiesAm:     it.AllergiesAm,
+		UserImages:      it.UserImages,
+		Calories:        it.Calories,
+		Protein:         it.Protein,
+		Carbs:           it.Carbs,
+		Fat:             it.Fat,
+		NutritionalInfo: it.NutritionalInfo,
+		TabTags:         it.TabTags,
+		TabTagsAm:       it.TabTagsAm,
+		Ingredients:     it.Ingredients,
+		IngredientsAm:   it.IngredientsAm,
+		PreparationTime: it.PreparationTime,
+		HowToEat:        it.HowToEat,
+		HowToEatAm:      it.HowToEatAm,
+		CreatedAt:       createdAt,
+		UpdatedAt:       time.Now().UTC(),
+		IsDeleted:       it.IsDeleted,
+		ViewCount:       it.ViewCount,
+		AverageRating:   it.AverageRating,
+		ReviewIDs:       it.ReviewIds,
+	}
+}
+
 // ---------- Conversion ----------
 
 func ToDomainItem(item *ItemDB) *domain.Item {
