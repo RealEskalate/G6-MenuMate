@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/dinq/auth/presentation/Pages/onboarding_first.dart';
 import '../../features/dinq/qr_scanner/pages/qr_scanner_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/analytics_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/billing_page.dart';
@@ -26,6 +27,7 @@ import '../../features/dinq/search/presentation/pages/scanned_menu_page.dart';
 
 class AppRoute {
   // Search routes
+  static const String onboarding = '/onboarding';
   static const String explore = '/explore';
   static const String favorites = '/favorites';
   static const String home = '/home';
@@ -58,6 +60,8 @@ class AppRoute {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       // Search routes
+      case onboarding:
+         return MaterialPageRoute(builder: (_) => const OnboardingFirst());
       case explore:
         return MaterialPageRoute(builder: (_) => const HomePage());
       case favorites:
@@ -101,9 +105,7 @@ class AppRoute {
       case qrcode:
         return MaterialPageRoute(builder: (_) => const QrScannerPage());
       case setting:
-       return MaterialPageRoute(builder: (_) => const SettingsPage());
-
-
+        return MaterialPageRoute(builder: (_) => const SettingsPage());
 
       // Menu management routes
       case menus:

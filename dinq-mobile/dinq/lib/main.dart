@@ -9,6 +9,7 @@ import 'core/injection.dart' as di;
 import 'core/routing/app_route.dart';
 import 'core/temp/app_config.dart';
 import 'core/util/theme.dart';
+import 'features/dinq/auth/presentation/Pages/onboarding_first.dart';
 import 'features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 
 void main() async {
@@ -30,7 +31,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        initialRoute: AppRoute.explore,
+        initialRoute: AppRoute.onboarding,
         onGenerateRoute: AppRoute.onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: appTheme,
