@@ -82,17 +82,7 @@ class PopularDishCard extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                      ),
+                     
                     ],
                   ),
                 ],
