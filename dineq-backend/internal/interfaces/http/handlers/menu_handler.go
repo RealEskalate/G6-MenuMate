@@ -19,8 +19,6 @@ func NewMenuHandler(uc domain.IMenuUseCase, qc domain.IQRCodeUseCase, rc domain.
 	return &MenuHandler{UseCase: uc, QrUseCase: qc, RestaurantUseCase: rc, NotificationUseCase: nc}
 }
 
-// ensureOwnership validates that the authenticated user (manager or owner) can act on the restaurant slug.
-// Returns false if response already written with error.
 func (h *MenuHandler) ensureOwnership(c *gin.Context, slug string, userID string) bool {
 	rest, err := h.RestaurantUseCase.GetRestaurantBySlug(c.Request.Context(), slug)
 	if err != nil || rest == nil {
@@ -92,11 +90,12 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 		return
 	}
 	menuDto.RestaurantID = slug
-
-	if err := validate.Struct(menuDto); err != nil {
-		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
+	if menuDto.Name == "" && len(menuDto.Items) == 0 && len(menuDto.MenuItems) == 0 {
+		dto.WriteValidationError(c, "payload", "nothing to update", "invalid_request", nil)
 		return
 	}
+	// Normalize OCR alias
+	if len(menuDto.Items) == 0 && len(menuDto.MenuItems) > 0 { menuDto.Items = menuDto.MenuItems }
 	menu := dto.RequestToMenu(&menuDto)
 	if err := h.UseCase.UpdateMenu(menuID, userId, menu); err != nil {
 		dto.WriteError(c, err)

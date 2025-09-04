@@ -129,21 +129,34 @@ func (r *MenuRepository) Update(ctx context.Context, id string, menu *domain.Men
 		return err
 	}
 
-	dbMenu := mapper.MergeMenuUpdate(menu)
+	// Build dynamic update: only allow changing name and items list.
+	setFields := bson.M{
+		"updatedAt": time.Now().UTC(),
+		"updatedBy": menu.UpdatedBy,
+	}
+	if menu.Name != "" { // update name if provided
+		setFields["name"] = menu.Name
+	}
 
-	// Define the filter to match the Menu document
-	filter := bson.M{"_id": oid}
+	// If items slice provided, map to DB representations (regenerating slugs left to upstream if desired)
+	if len(menu.Items) > 0 {
+		var dbItems []mapper.ItemDB
+		for i := range menu.Items {
+			dbItems = append(dbItems, *mapper.ToItemDBForUpdate(&menu.Items[i]))
+		}
+		setFields["items"] = dbItems
+	}
 
-	result, err := r.database.Collection(r.coll).UpdateOne(ctx, filter, bson.M{"$set": dbMenu})
+	update := bson.M{"$set": setFields, "$inc": bson.M{"version": 1}}
+	filter := bson.M{"_id": oid, "isDeleted": false}
+
+	result, err := r.database.Collection(r.coll).UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}
-
-	// Check if the document was found
 	if result.MatchedCount == 0 {
 		return mongo.ErrNoDocuments()
 	}
-
 	return nil
 }
 
