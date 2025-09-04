@@ -1,3 +1,3 @@
-export default interface Roles  {
-  role : 'OWNER' | 'MANAGER' | 'STAFF' | ' CUSTOMER' | 'ADMIN',
+export default interface Roles {
+  role: "OWNER" | "MANAGER" | "STAFF" | "CUSTOMER" | "ADMIN";
 }

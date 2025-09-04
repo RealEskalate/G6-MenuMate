@@ -1,11 +1,12 @@
-import NavBar from "@/components/restaurant/NavBar";
+import NavBar from "@/components/common/NavBar";
 import Image from "next/image";
+import SideBar from "@/components/restaurant/SideBar";
+import Dashboard from "./(restaurant)/dashboard/menu/page";
 
 export default function Home() {
   return (
-   <div>
-     <NavBar role = "OWNER"/>
-     <p>Your one-stop solution for restaurant reservations</p>
-   </div>
+    <div>
+      <Dashboard />
+    </div>
   );
 }
