@@ -1,6 +1,7 @@
 import 'package:dinq/features/dinq/search/presentation/pages/add_review_page.dart';
 import 'package:dinq/features/dinq/search/presentation/widgets/bottom_navbar.dart';
 import 'package:flutter/material.dart';
+import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../domain/entities/menu.dart' as models;
 
@@ -36,11 +37,11 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
 
   void _onTabSelected(BottomNavTab tab) {
     if (tab == BottomNavTab.explore) {
-      Navigator.pushReplacementNamed(context, '/explore');
+      Navigator.pushReplacementNamed(context, AppRoute.explore);
     } else if (tab == BottomNavTab.favorites) {
-      Navigator.pushReplacementNamed(context, '/favorites');
+      Navigator.pushReplacementNamed(context, AppRoute.favorites);
     } else if (tab == BottomNavTab.profile) {
-      Navigator.pushReplacementNamed(context, '/profile');
+      Navigator.pushReplacementNamed(context, AppRoute.profile);
     }
   }
 

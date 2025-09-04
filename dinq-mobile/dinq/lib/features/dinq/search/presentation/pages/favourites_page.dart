@@ -1,7 +1,9 @@
 import 'package:dinq/features/dinq/search/domain/entities/Restaurant.dart'
     as models;
 import 'package:flutter/material.dart';
+import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
+import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../../domain/entities/menu.dart' as models;
 import 'restaurant_page.dart';
 import 'item_details_page.dart';
@@ -44,11 +46,11 @@ class _FavouritesPageState extends State<FavouritesPage>
 
   void _onTabSelected(BottomNavTab tab) {
     if (tab == BottomNavTab.explore) {
-      Navigator.pushReplacementNamed(context, '/explore');
+      Navigator.pushReplacementNamed(context, AppRoute.explore);
     } else if (tab == BottomNavTab.favorites) {
       // Already on favorites, do nothing
     } else if (tab == BottomNavTab.profile) {
-      Navigator.pushReplacementNamed(context, '/profile');
+      Navigator.pushReplacementNamed(context, AppRoute.profile);
     }
   }
 
@@ -60,15 +62,15 @@ class _FavouritesPageState extends State<FavouritesPage>
     final favoriteRestaurants = widget.allRestaurants
         .where((r) => favoriteRestaurantIds.contains(r.id))
         .toList();
-    final favoriteDishes = widget.allDishes
-        .where((d) => favoriteDishIds.contains(d.id))
-        .toList();
+    final favoriteDishes =
+        widget.allDishes.where((d) => favoriteDishIds.contains(d.id)).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Saved Items'),
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
         foregroundColor: Colors.black,
         actions: [
           IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
@@ -187,10 +189,14 @@ class _FavouritesPageState extends State<FavouritesPage>
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavBar(
-        selectedTab: BottomNavTab.favorites,
-        onTabSelected: _onTabSelected,
+      bottomNavigationBar: const OwnerNavBar(
+        currentIndex: 1,
+        isRestaurantOwner: false,
       ),
+      // bottomNavigationBar: BottomNavBar(
+      //   selectedTab: BottomNavTab.favorites,
+      //   onTabSelected: _onTabSelected,
+      // ),
     );
   }
 

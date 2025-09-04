@@ -20,16 +20,10 @@ class OwnerNavBar extends StatelessWidget {
     if (isRestaurantOwner) {
       switch (index) {
         case 0:
-          // TODO: implement Explore route when ready
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Explore not wired yet')),
-          );
+          Navigator.pushReplacementNamed(context, AppRoute.explore);
           break;
         case 1:
-          // TODO: implement Favorites route when ready
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Favorites not wired yet')),
-          );
+          Navigator.pushReplacementNamed(context, AppRoute.favorites);
           break;
         case 2:
           Navigator.pushReplacementNamed(
@@ -52,14 +46,21 @@ class OwnerNavBar extends StatelessWidget {
           );
           break;
         case 4:
-          // TODO: implement Settings route when ready
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Settings not wired yet')),
-          );
+          Navigator.pushReplacementNamed(context, AppRoute.setting);
           break;
       }
     } else {
-      // Non-owner nav handling (if/when you add it)
+      switch(index){
+        case 0:
+          Navigator.pushReplacementNamed(context, AppRoute.explore);
+          break;
+        case 1:
+          Navigator.pushReplacementNamed(context, AppRoute.favorites);
+          break;
+        case 2:
+          Navigator.pushReplacementNamed(context, AppRoute.profile);
+          break;
+      }
     }
   }
 
@@ -97,7 +98,9 @@ class OwnerNavBar extends StatelessWidget {
               icon: Icon(Icons.favorite),
               label: 'Favorites',
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: 'Profile'),
           ];
 
     return BottomNavigationBar(
