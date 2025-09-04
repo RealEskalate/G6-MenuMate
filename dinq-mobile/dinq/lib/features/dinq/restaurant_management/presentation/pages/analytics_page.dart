@@ -58,6 +58,7 @@ class AnalyticsPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: Text(
           'Analytics',
@@ -262,7 +263,7 @@ class AnalyticsPage extends StatelessWidget {
           const SizedBox(height: 80),
         ],
       ),
-      bottomNavigationBar: OwnerNavBar(currentIndex: 0, restaurantId: 'dummy'),
+      bottomNavigationBar: OwnerNavBar(currentIndex: 2, isRestaurantOwner: false, restaurantId: 'dummy'),
     );
   }
 }

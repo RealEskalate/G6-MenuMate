@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
+import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../widgets/bottom_navbar.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -7,9 +9,9 @@ class ProfilePage extends StatelessWidget {
 
   void _onTabSelected(BuildContext context, BottomNavTab tab) {
     if (tab == BottomNavTab.explore) {
-      Navigator.pushReplacementNamed(context, '/explore');
+      Navigator.pushReplacementNamed(context, AppRoute.explore);
     } else if (tab == BottomNavTab.favorites) {
-      Navigator.pushReplacementNamed(context, '/favorites');
+      Navigator.pushReplacementNamed(context, AppRoute.favorites);
     } else if (tab == BottomNavTab.profile) {
       // Already on profile
     }
@@ -22,11 +24,12 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-
+        automaticallyImplyLeading: false,
         title: const Text(
           'Profile',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
+
         centerTitle: true,
         actions: [
           IconButton(
@@ -165,12 +168,16 @@ class ProfilePage extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavBar(
-        selectedTab: BottomNavTab.profile,
-        onTabSelected: (tab) {
-          _onTabSelected(context, tab);
-        },
+      bottomNavigationBar: const OwnerNavBar(
+        currentIndex: 2,
+        isRestaurantOwner: false,
       ),
+      // bottomNavigationBar: BottomNavBar(
+      //   selectedTab: BottomNavTab.profile,
+      //   onTabSelected: (tab) {
+      //     _onTabSelected(context, tab);
+      //   },
+      // ),
     );
   }
 }

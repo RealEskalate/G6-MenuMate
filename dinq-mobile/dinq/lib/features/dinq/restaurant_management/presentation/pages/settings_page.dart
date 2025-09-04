@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/owner_navbar.dart';
 import '../widgets/settings_item.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -20,8 +21,8 @@ class SettingsPage extends StatelessWidget {
             title: 'Restaurant profile',
             leadingIcon: Icons.restaurant,
             onTap: () {
-                Navigator.pushNamed(context, '/restaurant_profile');
-              },
+              Navigator.pushNamed(context, '/restaurant_profile');
+            },
           ),
           const Divider(),
           SettingsItem(
@@ -36,8 +37,8 @@ class SettingsPage extends StatelessWidget {
             title: 'Legal info',
             leadingIcon: Icons.gavel,
             onTap: () {
-                Navigator.pushNamed(context, '/legal_info');
-              },
+              Navigator.pushNamed(context, '/legal_info');
+            },
           ),
           const Divider(),
           SettingsItem(
@@ -58,34 +59,36 @@ class SettingsPage extends StatelessWidget {
           const Divider(),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.orange,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
-            label: 'Favorites',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics_outlined),
-            label: 'Analytics',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menu',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: 4, // Settings tab
-      ),
+      bottomNavigationBar:
+         const OwnerNavBar(currentIndex: 4, isRestaurantOwner: false),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   type: BottomNavigationBarType.fixed,
+      //   selectedItemColor: Colors.orange,
+      //   unselectedItemColor: Colors.grey,
+      //   items: const [
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.home),
+      //       label: 'Home',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.favorite_border),
+      //       label: 'Favorites',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.analytics_outlined),
+      //       label: 'Analytics',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.menu),
+      //       label: 'Menu',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.settings),
+      //       label: 'Settings',
+      //     ),
+      //   ],
+      //   currentIndex: 4, // Settings tab
+      // ),
     );
   }
 }
