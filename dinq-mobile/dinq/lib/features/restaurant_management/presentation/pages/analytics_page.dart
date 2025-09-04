@@ -21,7 +21,7 @@ class AnalyticsPage extends StatelessWidget {
       '4PM',
       '6PM',
       '8PM',
-      '10PM',
+      '10PM', 
     ];
     final popularItems = [
       {'name': 'Special Firfir', 'views': 245},
