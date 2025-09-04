@@ -53,6 +53,7 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 	}
 
 	menu := dto.RequestToMenu(&menuDto)
+	menu.CreatedBy = userId
 	menu.UpdatedBy = userId // attribute creator
 	if err := h.UseCase.CreateMenu(menu); err != nil {
 		dto.WriteError(c, err)

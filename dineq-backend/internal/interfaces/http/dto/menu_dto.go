@@ -8,6 +8,7 @@ import (
 
 // MenuRequestDTO represents the structure for menu creation/update requests.
 type MenuRequest struct {
+	Name         string        `json:"name" validate:"required,min=2"`
 	RestaurantID string        `json:"restaurant_id" validate:"required"`
 	Version      int           `json:"version,omitempty"`
 	IsPublished  bool          `json:"is_published,omitempty"`
@@ -18,6 +19,7 @@ type MenuRequest struct {
 // MenuResponse represents the structure for menu responses.
 type MenuResponse struct {
 	ID           string         `json:"id"`
+	Name         string         `json:"name"`
 	RestaurantID string         `json:"restaurant_id"`
 	Slug         string         `json:"slug"`
 	Version      int            `json:"version"`
@@ -26,6 +28,7 @@ type MenuResponse struct {
 	Items        []ItemResponse `json:"items"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
+	CreatedBy    string         `json:"created_by"`
 	UpdatedBy    string         `json:"updated_by"`
 	IsDeleted    bool           `json:"is_deleted"`
 	ViewCount    int            `json:"view_count"`
@@ -46,6 +49,7 @@ func RequestToMenu(dto *MenuRequest) *domain.Menu {
 		items[i] = *RequestToItem(&itemDTO)
 	}
 	return &domain.Menu{
+		Name:        dto.Name,
 		RestaurantID: dto.RestaurantID,
 		Version:      dto.Version,
 		IsPublished:  dto.IsPublished,
@@ -64,6 +68,7 @@ func MenuToResponse(menu *domain.Menu) *MenuResponse {
 	}
 	return &MenuResponse{
 		ID:           menu.ID,
+		Name:         menu.Name,
 		RestaurantID: menu.RestaurantID,
 		Slug:         menu.Slug,
 		Version:      menu.Version,
@@ -72,6 +77,7 @@ func MenuToResponse(menu *domain.Menu) *MenuResponse {
 		Items:        items,
 		CreatedAt:    menu.CreatedAt,
 		UpdatedAt:    menu.UpdatedAt,
+		CreatedBy:    menu.CreatedBy,
 		UpdatedBy:    menu.UpdatedBy,
 		IsDeleted:    menu.IsDeleted,
 		ViewCount:    menu.ViewCount,
