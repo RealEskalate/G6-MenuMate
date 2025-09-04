@@ -263,7 +263,7 @@ class AnalyticsPage extends StatelessWidget {
           const SizedBox(height: 80),
         ],
       ),
-      bottomNavigationBar: OwnerNavBar(currentIndex: 2, isRestaurantOwner: false, restaurantId: 'dummy'),
+      bottomNavigationBar: OwnerNavBar(currentIndex: 2, isRestaurantOwner: true, restaurantId: 'dummy'),
     );
   }
 }

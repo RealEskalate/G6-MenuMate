@@ -44,7 +44,7 @@ class UploadImage extends StatelessWidget {
             border: Border.all(color: Colors.grey[300]!),
           ),
           child: imageFile == null
-              ? Row(
+              ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton.icon(
@@ -61,7 +61,7 @@ class UploadImage extends StatelessWidget {
                       label: const Text('Extract from menu photo'),
                       onPressed: onExtractFromMenuPhoto,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(height: 12),
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.grey[300],

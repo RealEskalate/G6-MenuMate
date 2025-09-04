@@ -167,9 +167,8 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                   TextField(
                     controller: _menuNameController,
                     decoration: InputDecoration(
-                      labelText: 'Menu name',
-                      labelStyle: const TextStyle(color: Colors.black),
                       hintText: 'untitled menu',
+                      hintStyle: TextStyle(color: Colors.black54),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
@@ -193,8 +192,8 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                   DropdownButtonFormField<String>(
                     value: _selectedLanguage,
                     decoration: InputDecoration(
-                      labelText: 'Language',
-                      labelStyle: const TextStyle(color: Colors.black),
+                      hintText: 'Select language',
+                      hintStyle: TextStyle(color: Colors.black54),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(
@@ -368,8 +367,8 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                           icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: _sections.length > 1
                               ? () => setState(
-                                  () => _sections.removeAt(sectionIndex),
-                                )
+                                    () => _sections.removeAt(sectionIndex),
+                                  )
                               : null,
                         ),
                       ],
@@ -389,10 +388,9 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                                   child: TextField(
                                     controller: item.nameController,
                                     decoration: InputDecoration(
-                                      labelText: 'Item ${itemIndex + 1}',
-                                      labelStyle: const TextStyle(
-                                        color: Colors.black,
-                                      ),
+                                      hintText: 'Enter item name',
+                                      hintStyle:
+                                          TextStyle(color: Colors.black54),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
                                         borderSide: const BorderSide(
@@ -419,10 +417,9 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                                   child: TextField(
                                     controller: item.priceController,
                                     decoration: InputDecoration(
-                                      labelText: 'ETB',
-                                      labelStyle: const TextStyle(
-                                        color: Colors.black,
-                                      ),
+                                      hintText: '0.00',
+                                      hintStyle:
+                                          TextStyle(color: Colors.black54),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(8),
                                         borderSide: const BorderSide(
@@ -573,10 +570,8 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                             TextField(
                               controller: item.descController,
                               decoration: InputDecoration(
-                                labelText: 'Description',
-                                labelStyle: const TextStyle(
-                                  color: Colors.black,
-                                ),
+                                hintText: 'Enter description',
+                                hintStyle: TextStyle(color: Colors.black54),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: const BorderSide(
@@ -601,11 +596,8 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                             TextField(
                               controller: item.howToEatController,
                               decoration: InputDecoration(
-                                labelText: 'How to eat',
-                                labelStyle: const TextStyle(
-                                  color: Colors.black,
-                                ),
                                 hintText: 'Instructions (max 100 chars)',
+                                hintStyle: TextStyle(color: Colors.black54),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                   borderSide: const BorderSide(

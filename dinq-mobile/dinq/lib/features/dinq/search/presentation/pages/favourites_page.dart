@@ -191,7 +191,7 @@ class _FavouritesPageState extends State<FavouritesPage>
       ),
       bottomNavigationBar: const OwnerNavBar(
         currentIndex: 1,
-        isRestaurantOwner: false,
+        isRestaurantOwner: true,
       ),
       // bottomNavigationBar: BottomNavBar(
       //   selectedTab: BottomNavTab.favorites,
