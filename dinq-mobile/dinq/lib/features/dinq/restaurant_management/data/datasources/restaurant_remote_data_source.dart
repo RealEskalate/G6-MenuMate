@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../model/menu_model.dart';
 import '../model/restaurant_model.dart';
 import '../model/review_model.dart';
@@ -17,6 +19,7 @@ abstract class RestaurantRemoteDataSource {
   Future<void> deleteRestaurant(String restaurantId);
 
   // Menu
+  Future<MenuModel> uploadMenu(File printedMenu);
   Future<MenuModel> getMenu(String menuId);
   Future<void> deleteMenu(String menuId);
   Future<MenuModel> updateMenu(MenuModel menu);
