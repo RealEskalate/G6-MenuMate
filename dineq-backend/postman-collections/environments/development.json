@@ -51,6 +51,18 @@
       "enabled": true
     },
     {
+      "key": "menu_slug",
+      "value": "",
+      "description": "Current menu slug captured after menu creation",
+      "enabled": true
+    },
+    {
+      "key": "item_id",
+      "value": "",
+      "description": "Recently created menu item ID",
+      "enabled": true
+    },
+    {
       "key": "test_user_email",
       "value": "test@menumate.com",
       "description": "Test user email for development",
