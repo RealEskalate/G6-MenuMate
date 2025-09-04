@@ -123,6 +123,10 @@ func ToItemDBForUpdate(it *domain.Item) *ItemDB {
 	if createdAt.IsZero() {
 		createdAt = time.Now().UTC()
 	}
+	updatedAt := it.UpdatedAt
+	if updatedAt.IsZero() { // only set now if not already provided
+		updatedAt = time.Now().UTC()
+	}
 	return &ItemDB{
 		ID:              idempotentID(it.ID),
 		Name:            it.Name,
@@ -150,7 +154,7 @@ func ToItemDBForUpdate(it *domain.Item) *ItemDB {
 		HowToEat:        it.HowToEat,
 		HowToEatAm:      it.HowToEatAm,
 		CreatedAt:       createdAt,
-		UpdatedAt:       time.Now().UTC(),
+		UpdatedAt:       updatedAt,
 		IsDeleted:       it.IsDeleted,
 		ViewCount:       it.ViewCount,
 		AverageRating:   it.AverageRating,
