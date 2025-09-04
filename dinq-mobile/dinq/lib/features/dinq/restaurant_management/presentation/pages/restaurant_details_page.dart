@@ -7,14 +7,13 @@ class RestaurantDetailsPage extends StatefulWidget {
 
   @override
   State<RestaurantDetailsPage> createState() => _RestaurantDetailsPageState();
-
 }
 
 class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   final ImagePicker _picker = ImagePicker();
   File? _logoImage;
   File? _bannerImage;
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,34 +62,6 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.orange,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_border),
-            label: 'Favorites',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics_outlined),
-            label: 'Analytics',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menu',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: 4, // Settings tab
-      ),
     );
   }
 
@@ -109,7 +80,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             hintText: 'Enter $label',
           ),
         ),
@@ -152,10 +124,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
   Widget _buildImageUpload({bool isWide = false, bool isLogo = true}) {
     File? image = isLogo ? _logoImage : _bannerImage;
-    
+
     return GestureDetector(
       onTap: () async {
-        final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+        final XFile? pickedFile =
+            await _picker.pickImage(source: ImageSource.gallery);
         if (pickedFile != null) {
           setState(() {
             if (isLogo) {

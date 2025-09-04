@@ -120,7 +120,9 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                           children: [
                             Text(
                               'Section 1',
-                              style: Theme.of(context).textTheme.bodyLarge
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
                                   ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
@@ -131,7 +133,8 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                             DropdownButtonFormField<String>(
                               value: selectedSectionTag,
                               decoration: InputDecoration(
-                                labelText: 'Section',
+                                hintText: 'Select section',
+                                hintStyle: TextStyle(color: Colors.black54),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -177,7 +180,8 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                             TextField(
                               controller: itemNameController,
                               decoration: InputDecoration(
-                                labelText: 'Item 1',
+                                hintText: 'Enter item name',
+                                hintStyle: TextStyle(color: Colors.black54),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -194,7 +198,8 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                             TextField(
                               controller: priceController,
                               decoration: InputDecoration(
-                                labelText: 'ETB',
+                                hintText: '0.00',
+                                hintStyle: TextStyle(color: Colors.black54),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -220,9 +225,9 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                     child: Text(
                       'Image',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.secondaryColor,
-                      ),
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.secondaryColor,
+                          ),
                     ),
                   ),
                   Container(
@@ -363,8 +368,8 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                   Text(
                     'Ingredients',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Wrap(
@@ -384,9 +389,9 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                       Text(
                         'Add ingredient',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.secondaryColor,
-                        ),
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.secondaryColor,
+                            ),
                       ),
                       IconButton(
                         icon: const Icon(
@@ -443,7 +448,8 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                   TextField(
                     controller: descController,
                     decoration: InputDecoration(
-                      labelText: 'Description',
+                      hintText: 'Enter description',
+                      hintStyle: TextStyle(color: Colors.black54),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(
@@ -464,8 +470,8 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                   TextField(
                     controller: howToEatController,
                     decoration: InputDecoration(
-                      labelText: 'How to eat',
                       hintText: 'Instructions (max 100 chars)',
+                      hintStyle: TextStyle(color: Colors.black54),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(
@@ -486,9 +492,9 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                   Text(
                     'Voice Explanation',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.secondaryColor,
-                    ),
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.secondaryColor,
+                        ),
                   ),
                   const SizedBox(height: 6),
                   Container(
@@ -513,7 +519,9 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                             ),
                             label: Text(
                               'Upload mp3 (max 10MB)',
-                              style: Theme.of(context).textTheme.bodyMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
                                   ?.copyWith(color: AppColors.secondaryColor),
                             ),
                             onPressed: _pickVoice,
@@ -524,7 +532,9 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                               voiceFile!.path
                                   .split(Platform.pathSeparator)
                                   .last,
-                              style: Theme.of(context).textTheme.bodyMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
                                   ?.copyWith(color: Colors.black, fontSize: 13),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -560,9 +570,9 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
               child: Text(
                 'Save changes',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
               ),
             ),
           ),

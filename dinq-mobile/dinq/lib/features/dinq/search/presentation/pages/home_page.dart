@@ -180,13 +180,14 @@ class HomePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
-                  height: 170,
+                  height: 220,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
                         SizedBox(width: 4),
                         PopularDishCard(
+                          rating: 4,
                           imageUrl: margheritaPizza.images![0],
                           name: margheritaPizza.name,
                           restaurant: 'Bella Italia',
@@ -200,6 +201,7 @@ class HomePage extends StatelessWidget {
                           },
                         ),
                         PopularDishCard(
+                          rating: 4,
                           imageUrl: salmonSashimi.images![0],
                           name: salmonSashimi.name,
                           restaurant: 'Sakura Sushi',
@@ -213,6 +215,7 @@ class HomePage extends StatelessWidget {
                           },
                         ),
                         PopularDishCard(
+                          rating: 4,  
                           imageUrl: cheeseburger.images![0],
                           name: cheeseburger.name,
                           restaurant: 'Burger Haven',
@@ -253,7 +256,7 @@ class HomePage extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: const OwnerNavBar(
-        isRestaurantOwner: false,
+        isRestaurantOwner: true,
         currentIndex: 0,
       ),
     );

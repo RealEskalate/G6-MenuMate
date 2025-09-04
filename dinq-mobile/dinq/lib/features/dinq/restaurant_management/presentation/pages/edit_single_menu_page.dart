@@ -163,20 +163,16 @@ class _EditSingleMenuPageState extends State<EditSingleMenuPage> {
                   TextField(
                     controller: _menuNameController,
                     decoration: InputDecoration(
-                      labelText: 'Menu name',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      hintText: 'Enter menu name',
+                      hintStyle: TextStyle(color: Colors.black54),
                     ),
                   ),
                   const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
                     value: _selectedLanguage,
                     decoration: InputDecoration(
-                      labelText: 'Language',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      hintText: 'Select language',
+                      hintStyle: TextStyle(color: Colors.black54),
                     ),
                     items: const [
                       DropdownMenuItem(
@@ -285,10 +281,8 @@ class _EditSingleMenuPageState extends State<EditSingleMenuPage> {
                           child: DropdownButtonFormField<String>(
                             value: section.selectedSectionTag,
                             decoration: InputDecoration(
-                              labelText: 'Section',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                              hintText: 'Section',
+                              hintStyle: TextStyle(color: Colors.black54),
                             ),
                             items: const [
                               DropdownMenuItem(
@@ -337,20 +331,16 @@ class _EditSingleMenuPageState extends State<EditSingleMenuPage> {
                                 TextField(
                                   controller: item.nameController,
                                   decoration: InputDecoration(
-                                    labelText: 'Item ${itemIndex + 1}',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    hintText: 'Enter item name',
+                                    hintStyle: TextStyle(color: Colors.black54),
                                   ),
                                 ),
                                 const SizedBox(height: 10),
                                 TextField(
                                   controller: item.priceController,
                                   decoration: InputDecoration(
-                                    labelText: 'ETB',
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
+                                    hintText: '0.00 ETB',
+                                    hintStyle: TextStyle(color: Colors.black54),
                                   ),
                                   keyboardType: TextInputType.number,
                                 ),
@@ -528,10 +518,8 @@ class _EditSingleMenuPageState extends State<EditSingleMenuPage> {
                             TextField(
                               controller: item.descController,
                               decoration: InputDecoration(
-                                labelText: 'Description',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
+                                hintText: 'Enter description',
+                                hintStyle: TextStyle(color: Colors.black54),
                               ),
                               maxLines: 2,
                             ),
@@ -539,11 +527,9 @@ class _EditSingleMenuPageState extends State<EditSingleMenuPage> {
                             TextField(
                               controller: item.howToEatController,
                               decoration: InputDecoration(
-                                labelText: 'How to eat',
-                                hintText: 'Instructions (max 100 chars)',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
+                                hintText:
+                                    'How to eat Instructions (max 100 chars)',
+                                hintStyle: TextStyle(color: Colors.black54),
                               ),
                               maxLength: 100,
                             ),

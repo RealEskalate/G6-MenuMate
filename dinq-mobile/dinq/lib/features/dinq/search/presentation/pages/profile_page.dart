@@ -231,14 +231,9 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       bottomNavigationBar: const OwnerNavBar(
         currentIndex: 2,
-        isRestaurantOwner: false,
+        isRestaurantOwner: true,
       ),
-      // bottomNavigationBar: BottomNavBar(
-      //   selectedTab: BottomNavTab.profile,
-      //   onTabSelected: (tab) {
-      //     _onTabSelected(context, tab);
-      //   },
-      // ),
+      
     );
   }
 }
