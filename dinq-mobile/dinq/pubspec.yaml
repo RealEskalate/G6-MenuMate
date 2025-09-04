@@ -16,6 +16,11 @@ dependencies:
     sdk: flutter
   mobile_scanner: ^3.0.0
   cupertino_icons: ^1.0.8
+  # file_picker: ^5.5.0
+  iconsax: ^0.0.8
+  http: ^1.0.0
+  # flutter_bloc: ^8.1.2
+  shared_preferences: ^2.2.2
   flutter_bloc: ^9.1.1
   flutter_colorpicker: ^1.1.0
   get_it: ^8.2.0
