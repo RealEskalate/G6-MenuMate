@@ -123,8 +123,12 @@ func (h *MenuHandler) PublishMenu(c *gin.Context) {
 		dto.WriteError(c, err)
 		return
 	}
-
-	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
+	updated, err := h.UseCase.GetByID(menuID)
+	if err != nil {
+		c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
+		return
+	}
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menu": dto.MenuToResponse(updated)}})
 }
 
 // GenerateQRCode generates a QR code for a menu

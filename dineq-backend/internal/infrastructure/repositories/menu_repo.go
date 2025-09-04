@@ -129,13 +129,18 @@ func (r *MenuRepository) Update(ctx context.Context, id string, menu *domain.Men
 		return err
 	}
 
-	// Build dynamic update: only allow changing name and items list.
+	// Build dynamic update: allow changing name, items, and publish state.
 	setFields := bson.M{
 		"updatedAt": time.Now().UTC(),
 		"updatedBy": menu.UpdatedBy,
 	}
 	if menu.Name != "" { // update name if provided
 		setFields["name"] = menu.Name
+	}
+	// Publish state
+	if menu.IsPublished {
+		setFields["isPublished"] = true
+		if !menu.PublishedAt.IsZero() { setFields["publishedAt"] = menu.PublishedAt }
 	}
 
 	// If items slice provided, map to DB representations (regenerating slugs left to upstream if desired)
