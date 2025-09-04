@@ -27,19 +27,16 @@ const SettingProfile = () => {
         {/* Country Field */}
         <div>
           <label
-            htmlFor="country"
+            htmlFor="cuisine_type"
             className="block font-semibold text-base text-gray-700 mb-2"
           >
-            Country
+            Cuisine Type
           </label>
-          <select
-            id="country"
+          <input
+            type="text"
+            id="cuisine_type"
             className="block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="Ethiopia">Ethiopia</option>
-            <option value="Kenya">Kenya</option>
-            <option value="Uganda">Uganda</option>
-          </select>
+          />
         </div>
       </div>
 
