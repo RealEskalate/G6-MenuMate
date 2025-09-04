@@ -3,15 +3,15 @@
 import { useRouter } from "next/navigation";
 import { Pencil, FileText, Image as ImageIcon } from "lucide-react";
 import { useRegister } from "@/context/RegisterContext";
-import Image from "next/image";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 
 export default function ReviewPage() {
   const router = useRouter();
   const { data, resetData } = useRegister();
-  const session = useSession()?.data;
-
+  const { data: session } = useSession(); 
+  const tempToken =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTY5MDE4NjAsImlzX3ZlcmlmaWVkIjpmYWxzZSwicm9sZSI6Ik1BTkFHRVIiLCJzdGF0dXMiOiJBQ1RJVkUiLCJzdWIiOiI2OGI2ZTUxMjhmNGY5NTJkOGEyYWI1ZTkiLCJ1c2VybmFtZSI6Im5hbmFudGkifQ.q7AusSduKNQ2gLSUUPP-tcMMUvG3VAGfMTqiwex4_HM";
 
   const basicInfo = {
     Name: data.name,
@@ -23,8 +23,9 @@ export default function ReviewPage() {
     Tags: data.tags?.join(", ") || "None",
   };
 
-  const logoImage = data.logo_image;
+  const logoFile = data.logo_image;
   const documents = data.businessLicense ? [data.businessLicense] : [];
+  const bannerImage = data.cover_image;
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +41,6 @@ export default function ReviewPage() {
 
       const formData = new FormData();
 
-      // match API field names
       formData.append("restaurant_name", data.restaurant);
       formData.append("restaurant_phone", data.phone);
       formData.append("about", data.about || "");
@@ -51,29 +51,18 @@ export default function ReviewPage() {
         });
       }
 
-      // files
-      if (data.logo_image?.file) {
-        formData.append("logo_image", data.logo_image.file);
-      }
+      // Append files
+      if (logoFile?.file) formData.append("logo_image", logoFile.file);
+      if (data.businessLicense?.file) formData.append("verification_docs", data.businessLicense.file);
+      if (data.cover_image?.file) formData.append("cover_image", data.cover_image.file);
 
-      if (data.businessLicense?.file) {
-        formData.append("verification_docs", data.businessLicense.file);
-      }
-
-      // if ((data as any).coverImage?.file) {
-      //   formData.append("cover_image", (data as any).coverImage.file);
-      // }
-
-      const res = await fetch(
-        "https://g6-menumate.onrender.com/v1/restaurants",
-        {
-          method: "POST",
-          body: formData,
-          headers: {
-            Authorization: `Bearer ${session.accessToken}`, // ✅ include token
-          },
-        }
-      );
+      const res = await fetch("https://g6-menumate.onrender.com/v1/restaurants", {
+        method: "POST",
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${tempToken}`,
+        },
+      });
 
       if (!res.ok) {
         const err = await res.json();
@@ -85,8 +74,12 @@ export default function ReviewPage() {
 
       resetData();
       router.push("/restaurant/success");
-    } catch (err) {
-      setError((err as Error).message || "❌ Submission failed");
+    } catch (err: unknown) {
+      setError(
+        typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message: unknown }).message)
+          : "An unexpected error occurred"
+      );
     } finally {
       setLoading(false);
     }
@@ -115,12 +108,12 @@ export default function ReviewPage() {
                 className="flex items-center justify-between border border-gray-300 rounded-lg px-3 sm:px-4 py-2 bg-white"
               >
                 <span className="text-gray-700 text-sm sm:text-base text-right ml-4 ">
-                  {key}:{value}
+                  {key}: {value}
                 </span>
                 <button
                   type="button"
                   className="text-gray-500 hover:text-gray-700 ml-2"
-                  onClick={() => router.push("/register/basic-info")}
+                  onClick={() => router.push("/restaurant/register/basic-info")}
                 >
                   <Pencil className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
@@ -134,22 +127,46 @@ export default function ReviewPage() {
           <h2 className="text-lg sm:text-xl font-semibold mb-4 text-left">
             Logo Image
           </h2>
-          <div className="max-w-xl w-full">
-            {!logoImage ? (
+          <div className="space-y-3 max-w-xl w-full">
+            {logoFile?.file ? (
+              <div className="flex items-center justify-between bg-green-50 border border-green-200 px-3 sm:px-4 py-2 rounded">
+                <div className="flex items-center space-x-2">
+                  <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                  <div>
+                    <p className="text-gray-700 text-sm">{logoFile.name}</p>
+                    <p className="text-xs text-gray-400">{logoFile.size} MB</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
               <p className="text-gray-500 italic text-sm sm:text-base">
                 No logo uploaded.
               </p>
-            ) : (
-              <div className="flex items-center space-x-3 border border-gray-300 rounded-lg px-3 sm:px-4 py-2 bg-white">
-                <ImageIcon className="w-5 h-5 text-gray-500" />
-                <Image
-                  src={URL.createObjectURL(logoImage.file)}
-                  alt="Restaurant Logo"
-                  width={60}
-                  height={60}
-                  className="rounded-md object-cover"
-                />
+            )}
+          </div>
+        </section>
+        
+
+        {/* Banner Image */}
+        <section className="mb-10">
+          <h2 className="text-lg sm:text-xl font-semibold mb-4 text-left">
+            Banner Image
+          </h2>
+          <div className="space-y-3 max-w-xl w-full">
+            {bannerImage?.file ? (
+              <div className="flex items-center justify-between bg-green-50 border border-green-200 px-3 sm:px-4 py-2 rounded">
+                <div className="flex items-center space-x-2">
+                  <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
+                  <div>
+                    <p className="text-gray-700 text-sm">{bannerImage.name}</p>
+                    <p className="text-xs text-gray-400">{bannerImage.size} MB</p>
+                  </div>
+                </div>
               </div>
+            ) : (
+              <p className="text-gray-500 italic text-sm sm:text-base">
+                No logo uploaded.
+              </p>
             )}
           </div>
         </section>
@@ -181,6 +198,8 @@ export default function ReviewPage() {
             ))}
           </div>
         </section>
+
+        
 
         {/* Buttons */}
         <div className="flex flex-col sm:flex-row justify-between mt-10 space-y-3 sm:space-y-0 sm:space-x-4">
