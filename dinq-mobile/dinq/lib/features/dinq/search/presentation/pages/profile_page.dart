@@ -1,11 +1,67 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../widgets/bottom_navbar.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final pickedFile = await _picker.pickImage(source: source);
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      // Handle error
+      print('Error picking image: $e');
+    }
+  }
+
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select Image Source'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera),
+                title: const Text('Camera'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Gallery'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   void _onTabSelected(BuildContext context, BottomNavTab tab) {
     if (tab == BottomNavTab.explore) {
@@ -46,24 +102,29 @@ class ProfilePage extends StatelessWidget {
           Center(
             child: Stack(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 48,
-                  backgroundImage: AssetImage('assets/images/profile.jpg'),
+                  backgroundImage: _selectedImage != null
+                      ? FileImage(_selectedImage!) as ImageProvider
+                      : const AssetImage('assets/images/profile.jpg'),
                 ),
                 Positioned(
                   bottom: 0,
                   right: 0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    padding: const EdgeInsets.all(4),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      color: Colors.white,
-                      size: 20,
+                  child: GestureDetector(
+                    onTap: _showImageSourceDialog,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: const Icon(
+                        Icons.camera_alt,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
