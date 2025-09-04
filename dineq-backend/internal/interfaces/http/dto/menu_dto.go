@@ -12,6 +12,7 @@ type MenuRequest struct {
 	Version      int           `json:"version,omitempty"`
 	IsPublished  bool          `json:"is_published,omitempty"`
 	Items        []ItemRequest `json:"items"`
+	MenuItems    []ItemRequest `json:"menu_items,omitempty"` 
 }
 
 // MenuResponse represents the structure for menu responses.
@@ -35,6 +36,10 @@ type MenuResponse struct {
 func RequestToMenu(dto *MenuRequest) *domain.Menu {
 	if dto == nil {
 		return nil
+	}
+	// Normalize OCR alias
+	if len(dto.Items) == 0 && len(dto.MenuItems) > 0 {
+		dto.Items = dto.MenuItems
 	}
 	items := make([]domain.Item, len(dto.Items))
 	for i, itemDTO := range dto.Items {
