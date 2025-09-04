@@ -101,7 +101,14 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 		dto.WriteError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgUpdated, Data: gin.H{"menu": dto.MenuToResponse(menu)}})
+	// Reload full menu to include DB-populated fields (id, slug, version, etc.)
+	updated, err := h.UseCase.GetByID(menuID)
+	if err != nil {
+		// fallback: respond with partial menu
+		c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgUpdated, Data: gin.H{"menu": dto.MenuToResponse(menu)}})
+		return
+	}
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgUpdated, Data: gin.H{"menu": dto.MenuToResponse(updated)}})
 }
 
 // PublishMenu publishes a menu

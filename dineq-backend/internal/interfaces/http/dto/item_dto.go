@@ -18,6 +18,7 @@ type NutritionalInfoDTO struct {
 
 // ItemRequest represents data needed to create/update an item
 type ItemRequest struct {
+	ID              string   `json:"id,omitempty"`
 	Name            string   `json:"name" validate:"required_without=name_am,omitempty"`
 	NameAm          string   `json:"name_am" validate:"required_without=name,omitempty"`
 	Slug            string   `json:"slug,omitempty"`
@@ -220,6 +221,7 @@ func RequestToItem(r *ItemRequest) *domain.Item {
 		nutri = &domain.NutritionalInfo{Calories: r.Calories, Protein: r.Protein, Carbs: r.Carbs, Fat: r.Fat}
 	}
 	return &domain.Item{
+		ID:              r.ID,
 		Name:            r.Name,
 		NameAm:          r.NameAm,
 		Slug:            r.Slug,

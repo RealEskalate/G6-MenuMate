@@ -24,15 +24,15 @@ type MenuResponse struct {
 	Slug         string         `json:"slug"`
 	Version      int            `json:"version"`
 	IsPublished  bool           `json:"is_published"`
-	PublishedAt  time.Time      `json:"published_at"`
+	PublishedAt  *time.Time     `json:"published_at,omitempty"`
 	Items        []ItemResponse `json:"items"`
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 	CreatedBy    string         `json:"created_by"`
 	UpdatedBy    string         `json:"updated_by"`
-	IsDeleted    bool           `json:"is_deleted"`
-	ViewCount    int            `json:"view_count"`
-	DeletedAt    *time.Time     `json:"deleted_at"`
+	IsDeleted    bool           `json:"is_deleted,omitempty"`
+	ViewCount    int            `json:"view_count,omitempty"`
+	DeletedAt    *time.Time     `json:"deleted_at,omitempty"`
 }
 
 // RequestToMenu converts a MenuRequest to a domain Menu.
@@ -66,6 +66,11 @@ func MenuToResponse(menu *domain.Menu) *MenuResponse {
 	for i, item := range menu.Items {
 		items[i] = *ItemToResponse(&item)
 	}
+	var publishedAtPtr *time.Time
+	if menu.IsPublished && !menu.PublishedAt.IsZero() {
+		pa := menu.PublishedAt
+		publishedAtPtr = &pa
+	}
 	return &MenuResponse{
 		ID:           menu.ID,
 		Name:         menu.Name,
@@ -73,7 +78,7 @@ func MenuToResponse(menu *domain.Menu) *MenuResponse {
 		Slug:         menu.Slug,
 		Version:      menu.Version,
 		IsPublished:  menu.IsPublished,
-		PublishedAt:  menu.PublishedAt,
+		PublishedAt:  publishedAtPtr,
 		Items:        items,
 		CreatedAt:    menu.CreatedAt,
 		UpdatedAt:    menu.UpdatedAt,
