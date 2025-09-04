@@ -12,15 +12,30 @@ type MenuHandler struct {
 	UseCase             domain.IMenuUseCase
 	QrUseCase           domain.IQRCodeUseCase
 	NotificationUseCase domain.INotificationUseCase
+	RestaurantUseCase   domain.IRestaurantUsecase
 }
 
-func NewMenuHandler(uc domain.IMenuUseCase, qc domain.IQRCodeUseCase, nc domain.INotificationUseCase) *MenuHandler {
-	return &MenuHandler{UseCase: uc, QrUseCase: qc, NotificationUseCase: nc}
+func NewMenuHandler(uc domain.IMenuUseCase, qc domain.IQRCodeUseCase, rc domain.IRestaurantUsecase, nc domain.INotificationUseCase) *MenuHandler {
+	return &MenuHandler{UseCase: uc, QrUseCase: qc, RestaurantUseCase: rc, NotificationUseCase: nc}
 }
 
 // CreateMenu handles the creation of a new menu
 func (h *MenuHandler) CreateMenu(c *gin.Context) {
 	slug := c.Param("restaurant_slug")
+	userId := c.GetString("user_id")
+
+	// Ownership check: restaurant must exist and the requesting user must be manager/owner of that restaurant
+	rest, err := h.RestaurantUseCase.GetRestaurantBySlug(c.Request.Context(), slug)
+	if err != nil || rest == nil {
+		dto.WriteError(c, domain.ErrRestaurantNotFound)
+		return
+	}
+	// Allow if user is the manager of the restaurant OR has OWNER role
+	role := c.GetString("role")
+	if rest.ManagerID != userId && role != string(domain.RoleOwner) {
+		dto.WriteError(c, domain.ErrForbidden)
+		return
+	}
 
 	var menuDto dto.MenuRequest
 	if err := c.ShouldBindJSON(&menuDto); err != nil {
@@ -38,6 +53,7 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 	}
 
 	menu := dto.RequestToMenu(&menuDto)
+	menu.UpdatedBy = userId // attribute creator
 	if err := h.UseCase.CreateMenu(menu); err != nil {
 		dto.WriteError(c, err)
 		return

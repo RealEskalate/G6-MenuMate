@@ -29,6 +29,7 @@ var domainErrorCode = map[error]string{
     domain.ErrInvalidCredentials:       "invalid_credentials",
     domain.ErrInvalidInput:             "invalid_input",
     domain.ErrUnauthorized:             "unauthorized",
+    domain.ErrForbidden:                "forbidden",
     domain.ErrNotFound:                 "not_found",
     domain.ErrUserNotFound:             "user_not_found",
     domain.ErrRestaurantNotFound:       "restaurant_not_found",
@@ -99,6 +100,8 @@ func statusFromDomainError(err error) int {
         return http.StatusGone
     case domain.ErrUnauthorized:
         return http.StatusUnauthorized
+    case domain.ErrForbidden:
+        return http.StatusForbidden
     case domain.ErrInvalidCredentials, domain.ErrInvalidInput:
         return http.StatusBadRequest
     case domain.ErrEmailAlreadyInUse, domain.ErrUsernameAlreadyInUse, domain.ErrPhoneAlreadyInUse:
