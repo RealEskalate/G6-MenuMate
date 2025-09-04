@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import logo from "../../../public/logo.png";
 import Roles from "../../Types/role";
 
 function NavBar({ role }: Roles) {
@@ -37,13 +36,8 @@ function NavBar({ role }: Roles) {
   const links = role === "CUSTOMER" ? customerLinks : restaurantLinks;
 
   return (
-<<<<<<< HEAD
-    <nav className="  w-full bg-white/95 backdrop-blur-md border-b border-gray-200 z-50">
-      <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-=======
     <nav className="w-full bg-white/95 backdrop-blur-md border-b border-gray-100 z-50">
       <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between">
->>>>>>> a40b108dc33d2b88911e3b83a1ec36dec369366a
         {/* Logo */}
         <Link href="/">
           <Image src="/logo.png" alt="Logo" width={100} height={100} />

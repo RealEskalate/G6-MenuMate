@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button"; 
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { registerUser } from "@/lib/api";   
+import { useRouter } from "next/navigation";
+
 // import { a } from "framer-motion/client";
 
 const schema = z
@@ -43,6 +45,7 @@ interface SignupFormProps {
 }
 
 export default function SignupForm({ role }: SignupFormProps) {
+   const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -85,13 +88,18 @@ export default function SignupForm({ role }: SignupFormProps) {
       };
       const response = await registerUser(payload);
       console.log("✅ Registered:", response);
+      router.push("/auth/signin");
+
     } catch (err) {
       console.error("❌ Signup failed:", err);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-2 w-full max-w-md"
+    >
       {/* Username */}
       <div>
         <Input
@@ -99,6 +107,7 @@ export default function SignupForm({ role }: SignupFormProps) {
           required
           placeholder="Choose a username"
           {...register("username")}
+          
         />
         {errors.username && (
           <p className="text-red-500 text-sm">{errors.username.message}</p>
@@ -178,7 +187,7 @@ export default function SignupForm({ role }: SignupFormProps) {
 
       {/* Terms */}
       <div className="flex items-start space-x-2">
-       <Controller
+        <Controller
           name="agree"
           control={control}
           render={({ field }) => (
