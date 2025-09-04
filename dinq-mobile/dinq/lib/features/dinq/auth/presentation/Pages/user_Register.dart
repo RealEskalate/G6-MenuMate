@@ -158,296 +158,279 @@ class _UserRegisterState extends State<UserRegister>
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => AuthBloc(
-        authRepository: AuthRepositoryImpl(
-          apiClient: ApiClient(baseUrl: ApiEndpoints.baseUrl),
-        ),
-      ),
-      child: BlocListener<AuthBloc, AuthState>(
-        listener: (context, state) {
-          print('AuthBloc state changed: $state');
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        print('AuthBloc state changed: $state');
 
-          if (state is AuthRegistered) {
-            print('Registration successful for user: ${state.user.username}');
+        if (state is AuthRegistered) {
+          print('Registration successful for user: ${state.user.username}');
 
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Registration successful! Please login to continue.',
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Registration successful! Please login to continue.',
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+
+          Future.delayed(const Duration(seconds: 3), () {
+            print('Navigating to Login page');
+            _navigateToLoginPage();
+          });
+        } else if (state is AuthError) {
+          print('Authentication error: ${state.message}');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        } else if (state is AuthLoading) {
+          print('Registration in progress...');
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 40),
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: const Text(
+                      "Create account",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                        fontFamily: 'Roboto',
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
                 ),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 3),
-              ),
-            );
-
-            Future.delayed(const Duration(seconds: 3), () {
-              print('Navigating to Login page');
-              _navigateToLoginPage();
-            });
-          } else if (state is AuthError) {
-            print('Authentication error: ${state.message}');
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-                duration: const Duration(seconds: 4),
-              ),
-            );
-          } else if (state is AuthLoading) {
-            print('Registration in progress...');
-          }
-        },
-        child: Scaffold(
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 40),
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: const Text(
-                        "Create account",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 28,
-                          fontFamily: 'Roboto',
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
+                const SizedBox(height: 40),
+                AnimatedTextField(
+                  animation: CurvedAnimation(
+                    parent: _controller,
+                    curve: const Interval(0.4, 0.7, curve: Curves.easeInOut),
                   ),
-                  const SizedBox(height: 40),
-                  AnimatedTextField(
-                    animation: CurvedAnimation(
-                      parent: _controller,
-                      curve: const Interval(0.4, 0.7, curve: Curves.easeInOut),
-                    ),
-                    child: LoginTextfields(
-                      controller: _usernameController,
-                      labeltext: "Username",
-                      hintText: "Enter your username",
-                      errorText: _usernameError,
-                      onChanged: (value) {
-                        setState(() {
-                          _usernameError = _validateUsername(value);
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  AnimatedTextField(
-                    animation: CurvedAnimation(
-                      parent: _controller,
-                      curve: const Interval(
-                        0.45,
-                        0.75,
-                        curve: Curves.easeInOut,
-                      ),
-                    ),
-                    child: LoginTextfields(
-                      controller: _emailController,
-                      labeltext: "Email",
-                      hintText: "Enter your email",
-                      keyboardType: TextInputType.emailAddress,
-                      errorText: _emailError,
-                      onChanged: (value) {
-                        setState(() {
-                          _emailError = _validateEmail(value);
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  AnimatedTextField(
-                    animation: CurvedAnimation(
-                      parent: _controller,
-                      curve: const Interval(0.5, 0.8, curve: Curves.easeInOut),
-                    ),
-                    child: LoginTextfields(
-                      controller: _passwordController,
-                      labeltext: "Password",
-                      hintText: "*********",
-                      isPassword: true,
-                      errorText: _passwordError,
-                      onChanged: (value) {
-                        setState(() {
-                          _passwordError = _validatePassword(value);
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  AnimatedTextField(
-                    animation: CurvedAnimation(
-                      parent: _controller,
-                      curve: const Interval(
-                        0.55,
-                        0.85,
-                        curve: Curves.easeInOut,
-                      ),
-                    ),
-                    child: LoginTextfields(
-                      controller: _confirmPasswordController,
-                      labeltext: "Confirm Password",
-                      hintText: "*********",
-                      isPassword: true,
-                      errorText: _confirmPasswordError,
-                      onChanged: (value) {
-                        setState(() {
-                          _confirmPasswordError = _validateConfirmPassword(
-                            value,
-                          );
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  BlocBuilder<AuthBloc, AuthState>(
-                    builder: (context, state) {
-                      return ScaleTransition(
-                        scale: _scaleAnimation,
-                        child: FadeTransition(
-                          opacity: _fadeAnimation,
-                          child: state is AuthLoading
-                              ? const CircularProgressIndicator()
-                              : GestureDetector(
-                                  onTap: _registerUser,
-                                  child: const LoginButton(
-                                    buttonname: "Register",
-                                  ),
-                                ),
-                        ),
-                      );
+                  child: LoginTextfields(
+                    controller: _usernameController,
+                    labeltext: "Username",
+                    hintText: "Enter your username",
+                    errorText: _usernameError,
+                    onChanged: (value) {
+                      setState(() {
+                        _usernameError = _validateUsername(value);
+                      });
                     },
                   ),
-                  const SizedBox(height: 30),
-                  FadeTransition(
-                    opacity: CurvedAnimation(
-                      parent: _controller,
-                      curve: const Interval(0.7, 1.0, curve: Curves.easeIn),
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Already have an account?",
-                            style: TextStyle(
-                              color: AppColors.secondaryColor,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginPage(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              "Login",
-                              style: TextStyle(
-                                color: AppColors.primaryColor,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                ),
+                const SizedBox(height: 20),
+                AnimatedTextField(
+                  animation: CurvedAnimation(
+                    parent: _controller,
+                    curve: const Interval(0.45, 0.75, curve: Curves.easeInOut),
                   ),
-                  const SizedBox(height: 40),
-                  FadeTransition(
-                    opacity: CurvedAnimation(
-                      parent: _controller,
-                      curve: const Interval(0.75, 1.0, curve: Curves.easeIn),
-                    ),
+                  child: LoginTextfields(
+                    controller: _emailController,
+                    labeltext: "Email",
+                    hintText: "Enter your email",
+                    keyboardType: TextInputType.emailAddress,
+                    errorText: _emailError,
+                    onChanged: (value) {
+                      setState(() {
+                        _emailError = _validateEmail(value);
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+                AnimatedTextField(
+                  animation: CurvedAnimation(
+                    parent: _controller,
+                    curve: const Interval(0.5, 0.8, curve: Curves.easeInOut),
+                  ),
+                  child: LoginTextfields(
+                    controller: _passwordController,
+                    labeltext: "Password",
+                    hintText: "*********",
+                    isPassword: true,
+                    errorText: _passwordError,
+                    onChanged: (value) {
+                      setState(() {
+                        _passwordError = _validatePassword(value);
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+                AnimatedTextField(
+                  animation: CurvedAnimation(
+                    parent: _controller,
+                    curve: const Interval(0.55, 0.85, curve: Curves.easeInOut),
+                  ),
+                  child: LoginTextfields(
+                    controller: _confirmPasswordController,
+                    labeltext: "Confirm Password",
+                    hintText: "*********",
+                    isPassword: true,
+                    errorText: _confirmPasswordError,
+                    onChanged: (value) {
+                      setState(() {
+                        _confirmPasswordError = _validateConfirmPassword(value);
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 30),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    return ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: state is AuthLoading
+                            ? const CircularProgressIndicator()
+                            : GestureDetector(
+                                onTap: _registerUser,
+                                child: const LoginButton(
+                                  buttonname: "Register",
+                                ),
+                              ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 30),
+                FadeTransition(
+                  opacity: CurvedAnimation(
+                    parent: _controller,
+                    curve: const Interval(0.7, 1.0, curve: Curves.easeIn),
+                  ),
+                  child: Center(
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(
-                          child: Divider(
-                            color: AppColors.secondaryColor.withOpacity(0.5),
-                            thickness: 1,
+                        Text(
+                          "Already have an account?",
+                          style: TextStyle(
+                            color: AppColors.secondaryColor,
+                            fontFamily: 'Inter',
+                            fontWeight: FontWeight.normal,
                           ),
                         ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        const SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                            );
+                          },
                           child: Text(
-                            "or",
+                            "Login",
                             style: TextStyle(
-                              fontWeight: FontWeight.normal,
-                              color: AppColors.secondaryColor,
-                              fontFamily: 'Roboto',
+                              color: AppColors.primaryColor,
+                              fontFamily: 'Inter',
+                              fontWeight: FontWeight.bold,
                             ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Divider(
-                            color: AppColors.secondaryColor.withOpacity(0.5),
-                            thickness: 1,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  ScaleTransition(
-                    scale: CurvedAnimation(
-                      parent: _controller,
-                      curve: const Interval(0.8, 1.0, curve: Curves.elasticOut),
-                    ),
-                    child: FadeTransition(
-                      opacity: CurvedAnimation(
-                        parent: _controller,
-                        curve: const Interval(0.8, 1.0, curve: Curves.easeIn),
+                ),
+                const SizedBox(height: 40),
+                FadeTransition(
+                  opacity: CurvedAnimation(
+                    parent: _controller,
+                    curve: const Interval(0.75, 1.0, curve: Curves.easeIn),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Divider(
+                          color: AppColors.secondaryColor.withOpacity(0.5),
+                          thickness: 1,
+                        ),
                       ),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () {},
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            side: BorderSide(color: Colors.grey.shade300),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(
+                          "or",
+                          style: TextStyle(
+                            fontWeight: FontWeight.normal,
+                            color: AppColors.secondaryColor,
+                            fontFamily: 'Roboto',
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Divider(
+                          color: AppColors.secondaryColor.withOpacity(0.5),
+                          thickness: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                ScaleTransition(
+                  scale: CurvedAnimation(
+                    parent: _controller,
+                    curve: const Interval(0.8, 1.0, curve: Curves.elasticOut),
+                  ),
+                  child: FadeTransition(
+                    opacity: CurvedAnimation(
+                      parent: _controller,
+                      curve: const Interval(0.8, 1.0, curve: Curves.easeIn),
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () {},
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            Icon(
+                              Icons.g_mobiledata,
+                              size: 24,
+                              color: Colors.green,
                             ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              Icon(
-                                Icons.g_mobiledata,
-                                size: 24,
-                                color: Colors.green,
+                            SizedBox(width: 12),
+                            Text(
+                              "Sign up with Google",
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontWeight: FontWeight.normal,
+                                fontFamily: 'Inter',
                               ),
-                              SizedBox(width: 12),
-                              Text(
-                                "Sign up with Google",
-                                style: TextStyle(
-                                  color: Colors.black54,
-                                  fontWeight: FontWeight.normal,
-                                  fontFamily: 'Inter',
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
-                ],
-              ),
+                ),
+                const SizedBox(height: 40),
+              ],
             ),
           ),
         ),

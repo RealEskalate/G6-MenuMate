@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dinq/core/network/api_client.dart';
 import 'package:dinq/core/network/api_endpoints.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/Domain/repository/Customer_reg_repo.dart';
+import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart';
 import 'package:dinq/features/dinq/auth/data/repository/auth_repository_impl.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/manger_registration.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/user_Register.dart';
