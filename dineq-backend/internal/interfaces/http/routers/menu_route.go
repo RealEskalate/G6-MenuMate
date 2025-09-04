@@ -26,7 +26,12 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 	menuRepo := repositories.NewMenuRepository(db, env.MenuCollection)
 	menuUsecase := usecase.NewMenuUseCase(menuRepo, *qrService, ctxTimeout)
 
-	menuHandler := handler.NewMenuHandler(menuUsecase, qrUsecase, notifUc)
+	restaurantRepo := repositories.NewRestaurantRepo(db, env.RestaurantCollection)
+	
+	cloudinaryStorage := services.NewCloudinaryStorage(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinarySecret)
+	restaurantUsecase := usecase.NewRestaurantUsecase(restaurantRepo, ctxTimeout, cloudinaryStorage)
+
+	menuHandler := handler.NewMenuHandler(menuUsecase, qrUsecase, restaurantUsecase, notifUc)
 
 	protected := group.Group("/menus")
 	protected.Use(middleware.AuthMiddleware(*env))
