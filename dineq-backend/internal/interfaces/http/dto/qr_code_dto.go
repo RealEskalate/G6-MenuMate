@@ -11,6 +11,7 @@ type QRCodeRequest struct {
 	Format        string               `json:"format"` // png, jpg, svg
 	Size          int                  `json:"size"`   // size in pixels
 	IncludeLabel  bool                 `json:"include_label"`
+	Quality       int                  `json:"quality,omitempty"`
 	Customization *QRCodeCustomization `json:"customization,omitempty"`
 }
 
@@ -19,6 +20,25 @@ type QRCodeCustomization struct {
 	BackgroundColor string `json:"background_color"`
 	ForegroundColor string `json:"foreground_color"`
 	Logo            string `json:"logo,omitempty"`
+	LogoSizePercent float64 `json:"logo_size_percent,omitempty"`
+	GradientFrom    string  `json:"gradient_from,omitempty"`
+	GradientTo      string  `json:"gradient_to,omitempty"`
+	GradientDirection string `json:"gradient_direction,omitempty"`
+	Margin          int     `json:"margin,omitempty"`
+	ErrorCorrection string  `json:"error_correction,omitempty"`
+	LabelText       string  `json:"label_text,omitempty"`
+	LabelColor      string  `json:"label_color,omitempty"`
+	LabelFontSize   int     `json:"label_font_size,omitempty"`
+	LabelFontURL    string  `json:"label_font_url,omitempty"`
+	LogoBackground bool    `json:"logo_background,omitempty"`
+	LogoBackgroundColor string `json:"logo_background_color,omitempty"`
+	LogoBackgroundPadding int `json:"logo_background_padding,omitempty"`
+	LogoTintGradient bool `json:"logo_tint_gradient,omitempty"`
+	LogoOpacity int `json:"logo_opacity,omitempty"`
+	LogoBlendMode string `json:"logo_blend_mode,omitempty"`
+	LogoTintStrength int `json:"logo_tint_strength,omitempty"`
+	LogoAutoRemoveWhite bool `json:"logo_auto_remove_white,omitempty"`
+	LogoWhiteThreshold int `json:"logo_white_threshold,omitempty"`
 }
 
 // QRCodeResponse represents a QR code generation response
@@ -30,6 +50,7 @@ type QRCodeResponse struct {
 	IsActive      bool      `json:"is_active"`
 	ExpiresAt     time.Time `json:"expires_at"`
 	CreatedAt     time.Time `json:"created_at"`
+	LabelFontApplied bool   `json:"label_font_applied,omitempty"`
 }
 
 func DTOToQRCodeRequest(req *QRCodeRequest) *domain.QRCodeRequest {
@@ -40,6 +61,7 @@ func DTOToQRCodeRequest(req *QRCodeRequest) *domain.QRCodeRequest {
 		Format:        req.Format,
 		Size:          req.Size,
 		IncludeLabel:  req.IncludeLabel,
+		Quality:       req.Quality,
 		Customization: DTOToQRCodeCustomization(req.Customization),
 	}
 }
@@ -52,6 +74,25 @@ func DTOToQRCodeCustomization(cust *QRCodeCustomization) *domain.QRCodeCustomiza
 		BackgroundColor: cust.BackgroundColor,
 		ForegroundColor: cust.ForegroundColor,
 		Logo:            cust.Logo,
+		LogoSizePercent: cust.LogoSizePercent,
+		GradientFrom:    cust.GradientFrom,
+		GradientTo:      cust.GradientTo,
+		GradientDirection: cust.GradientDirection,
+		Margin:          cust.Margin,
+		ErrorCorrection: cust.ErrorCorrection,
+		LabelText:       cust.LabelText,
+		LabelColor:      cust.LabelColor,
+		LabelFontSize:   cust.LabelFontSize,
+		LabelFontURL:    cust.LabelFontURL,
+		LogoBackground: cust.LogoBackground,
+		LogoBackgroundColor: cust.LogoBackgroundColor,
+		LogoBackgroundPadding: cust.LogoBackgroundPadding,
+		LogoTintGradient: cust.LogoTintGradient,
+		LogoOpacity: cust.LogoOpacity,
+		LogoBlendMode: cust.LogoBlendMode,
+		LogoTintStrength: cust.LogoTintStrength,
+		LogoAutoRemoveWhite: cust.LogoAutoRemoveWhite,
+		LogoWhiteThreshold: cust.LogoWhiteThreshold,
 	}
 }
 
