@@ -19,23 +19,28 @@ func NewMenuHandler(uc domain.IMenuUseCase, qc domain.IQRCodeUseCase, rc domain.
 	return &MenuHandler{UseCase: uc, QrUseCase: qc, RestaurantUseCase: rc, NotificationUseCase: nc}
 }
 
+// ensureOwnership validates that the authenticated user (manager or owner) can act on the restaurant slug.
+// Returns false if response already written with error.
+func (h *MenuHandler) ensureOwnership(c *gin.Context, slug string, userID string) bool {
+	rest, err := h.RestaurantUseCase.GetRestaurantBySlug(c.Request.Context(), slug)
+	if err != nil || rest == nil {
+		dto.WriteError(c, domain.ErrRestaurantNotFound)
+		return false
+	}
+	role := c.GetString("role")
+	if rest.ManagerID != userID && role != string(domain.RoleOwner) {
+		dto.WriteError(c, domain.ErrForbidden)
+		return false
+	}
+	return true
+}
+
 // CreateMenu handles the creation of a new menu
 func (h *MenuHandler) CreateMenu(c *gin.Context) {
 	slug := c.Param("restaurant_slug")
 	userId := c.GetString("user_id")
 
-	// Ownership check: restaurant must exist and the requesting user must be manager/owner of that restaurant
-	rest, err := h.RestaurantUseCase.GetRestaurantBySlug(c.Request.Context(), slug)
-	if err != nil || rest == nil {
-		dto.WriteError(c, domain.ErrRestaurantNotFound)
-		return
-	}
-	// Allow if user is the manager of the restaurant OR has OWNER role
-	role := c.GetString("role")
-	if rest.ManagerID != userId && role != string(domain.RoleOwner) {
-		dto.WriteError(c, domain.ErrForbidden)
-		return
-	}
+	if !h.ensureOwnership(c, slug, userId) { return }
 
 	var menuDto dto.MenuRequest
 	if err := c.ShouldBindJSON(&menuDto); err != nil {
@@ -79,6 +84,8 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 	slug := c.Param("restaurant_slug")
 	menuID := c.Param("id")
 
+	if !h.ensureOwnership(c, slug, userId) { return }
+
 	var menuDto dto.MenuRequest
 	if err := c.ShouldBindJSON(&menuDto); err != nil {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
@@ -102,7 +109,9 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 func (h *MenuHandler) PublishMenu(c *gin.Context) {
 	_ = c.Param("restaurant_slug")
 	userID := c.GetString("user_id")
+	slug := c.Param("restaurant_slug")
 	menuID := c.Param("id")
+	if !h.ensureOwnership(c, slug, userID) { return }
 
 	if err := h.UseCase.PublishMenu(menuID, userID); err != nil {
 		dto.WriteError(c, err)
@@ -140,8 +149,10 @@ func (h *MenuHandler) GenerateQRCode(c *gin.Context) {
 
 // DeleteMenu marks a menu as deleted
 func (h *MenuHandler) DeleteMenu(c *gin.Context) {
-	_ = c.Param("restaurant_slug")
+	slug := c.Param("restaurant_slug")
+	userID := c.GetString("user_id")
 	menuID := c.Param("id")
+	if !h.ensureOwnership(c, slug, userID) { return }
 
 	if err := h.UseCase.DeleteMenu(menuID); err != nil {
 		dto.WriteError(c, err)
