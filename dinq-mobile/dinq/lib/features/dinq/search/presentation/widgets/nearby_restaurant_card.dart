@@ -11,7 +11,7 @@ class NearbyRestaurantCard extends StatelessWidget {
   final VoidCallback? onViewMenu;
 
   const NearbyRestaurantCard({
-    Key? key,
+    super.key,
     required this.imageUrl,
     required this.name,
     required this.cuisine,
@@ -19,7 +19,7 @@ class NearbyRestaurantCard extends StatelessWidget {
     required this.rating,
     required this.reviews,
     this.onViewMenu,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

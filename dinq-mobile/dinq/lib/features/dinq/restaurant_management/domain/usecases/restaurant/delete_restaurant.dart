@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import '../../../../../core/error/failures.dart';
-import '../repositories/restaurant_repository.dart';
+import '../../../../../../core/error/failures.dart';
+import '../../repositories/restaurant_repository.dart';
 
 class DeleteRestaurant {
   final RestaurantRepository repository;

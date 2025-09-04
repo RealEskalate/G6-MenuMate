@@ -64,4 +64,15 @@ class TabModel extends Tab {
   bool get stringify => true;
 
   Tab toEntity() => this;
+
+  factory TabModel.fromEntity(Tab entity) => TabModel(
+    id: entity.id,
+    menuId: entity.menuId,
+    name: entity.name,
+    nameAm: entity.nameAm,
+    categories: entity.categories
+        .map((e) => CategoryModel.fromEntity(e))
+        .toList(),
+    isDeleted: entity.isDeleted,
+  );
 }

@@ -36,7 +36,6 @@ class RestaurantModel extends Restaurant {
     'isActive': isActive,
   };
 
-
   factory RestaurantModel.fromJson(String data) {
     return RestaurantModel.fromMap(json.decode(data) as Map<String, dynamic>);
   }
@@ -69,4 +68,15 @@ class RestaurantModel extends Restaurant {
   bool get stringify => true;
 
   Restaurant toEntity() => this;
+
+  factory RestaurantModel.fromEntity(Restaurant entity) => RestaurantModel(
+    id: entity.id,
+    name: entity.name,
+    description: entity.description,
+    address: entity.address,
+    phone: entity.phone,
+    email: entity.email,
+    image: entity.image,
+    isActive: entity.isActive,
+  );
 }

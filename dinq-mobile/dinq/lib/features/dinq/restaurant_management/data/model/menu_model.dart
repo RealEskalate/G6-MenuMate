@@ -33,11 +33,9 @@ class MenuModel extends Menu {
     'viewCount': viewCount,
   };
 
-
   factory MenuModel.fromJson(String data) {
     return MenuModel.fromMap(json.decode(data) as Map<String, dynamic>);
   }
-
 
   String toJson() => json.encode(toMap());
 
@@ -61,4 +59,12 @@ class MenuModel extends Menu {
   bool get stringify => true;
 
   Menu toEntity() => this;
+
+  factory MenuModel.fromEntity(Menu entity) => MenuModel(
+    id: entity.id,
+    restaurantId: entity.restaurantId,
+    isPublished: entity.isPublished,
+    tabs: entity.tabs.map((e) => TabModel.fromEntity(e)).toList(),
+    viewCount: entity.viewCount,
+  );
 }

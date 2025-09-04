@@ -24,14 +24,14 @@ class LoadMenu extends RestaurantEvent {
   List<Object?> get props => [restaurantId];
 }
 
-class LoadCategories extends RestaurantEvent {
-  final String tabId;
+// class LoadCategories extends RestaurantEvent {
+//   final String tabId;
 
-  const LoadCategories(this.tabId);
+//   const LoadCategories(this.tabId);
 
-  @override
-  List<Object?> get props => [tabId];
-}
+//   @override
+//   List<Object?> get props => [tabId];
+// }
 
 class LoadReviews extends RestaurantEvent {
   final String itemId;

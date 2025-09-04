@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
+import '../../../../core/util/theme.dart';
 
 class TipRow extends StatelessWidget {
   final IconData icon;
   final String text;
-  const TipRow({required this.icon, required this.text, Key? key})
-    : super(key: key);
+  const TipRow({required this.icon, required this.text, super.key});
 
   @override
   Widget build(BuildContext context) {

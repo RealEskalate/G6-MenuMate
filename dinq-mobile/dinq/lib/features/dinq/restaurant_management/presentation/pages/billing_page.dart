@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class BillingPage extends StatelessWidget {
-  const BillingPage({Key? key}) : super(key: key);
+  const BillingPage({super.key});
 
   @override
   Widget build(BuildContext context) {

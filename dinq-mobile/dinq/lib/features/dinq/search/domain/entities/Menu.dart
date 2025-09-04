@@ -89,7 +89,7 @@ class Item {
     this.description,
     this.images,
     required this.price,
-    this.currency = "ETB",
+    this.currency = 'ETB',
     this.isAvailable = true,
     this.allergies,
     this.userImages,

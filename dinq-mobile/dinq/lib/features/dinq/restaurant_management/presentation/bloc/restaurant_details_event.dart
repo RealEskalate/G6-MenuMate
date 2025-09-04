@@ -1,5 +1,6 @@
-import 'package:equatable/equatable.dart';
 import 'dart:io';
+
+import 'package:equatable/equatable.dart';
 
 abstract class RestaurantDetailsEvent extends Equatable {
   const RestaurantDetailsEvent();

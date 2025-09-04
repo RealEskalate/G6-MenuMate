@@ -1,4 +1,4 @@
-import 'package:dinq/core/util/theme.dart';
+import '../../../../../core/util/theme.dart';
 import 'package:flutter/material.dart';
 
 class MenuItemCard extends StatelessWidget {
@@ -7,7 +7,7 @@ class MenuItemCard extends StatelessWidget {
   final String price;
   final String description;
 
-  const MenuItemCard({
+  const MenuItemCard({super.key, 
     required this.imageUrl,
     required this.name,
     required this.price,

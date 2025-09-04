@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import '../../../../../core/error/failures.dart';
-import '../entities/review.dart';
-import '../repositories/restaurant_repository.dart';
+import '../../../../../../core/error/failures.dart';
+import '../../entities/review.dart';
+import '../../repositories/restaurant_repository.dart';
 
 class GetReviews {
   final RestaurantRepository repository;

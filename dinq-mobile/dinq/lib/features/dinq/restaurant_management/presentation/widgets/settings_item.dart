@@ -8,13 +8,13 @@ class SettingsItem extends StatelessWidget {
   final Color? iconColor;
 
   const SettingsItem({
-    Key? key,
+    super.key,
     required this.title,
     this.leadingIcon,
     this.trailing,
     required this.onTap,
     this.iconColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

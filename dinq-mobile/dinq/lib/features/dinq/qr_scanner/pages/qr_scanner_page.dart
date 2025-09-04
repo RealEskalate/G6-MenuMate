@@ -14,7 +14,7 @@ import '../widgets/tip_row.dart';
 // import 'package:dinq/core/error/failures.dart';
 
 class QrScannerPage extends StatefulWidget {
-  const QrScannerPage({Key? key}) : super(key: key);
+  const QrScannerPage({super.key});
 
   @override
   State<QrScannerPage> createState() => _QrScannerPageState();

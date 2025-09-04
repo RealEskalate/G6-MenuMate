@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 
 class RestaurantDetailsPage extends StatefulWidget {
-  const RestaurantDetailsPage({Key? key}) : super(key: key);
+  const RestaurantDetailsPage({super.key});
 
   @override
   State<RestaurantDetailsPage> createState() => _RestaurantDetailsPageState();

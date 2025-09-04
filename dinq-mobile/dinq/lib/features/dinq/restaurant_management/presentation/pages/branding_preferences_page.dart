@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class BrandingPreferencesPage extends StatefulWidget {
-  const BrandingPreferencesPage({Key? key}) : super(key: key);
+  const BrandingPreferencesPage({super.key});
 
   @override
   State<BrandingPreferencesPage> createState() => _BrandingPreferencesPageState();
@@ -183,7 +183,6 @@ class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
               },
             ),
             ElevatedButton(
-              child: const Text('Select'),
               onPressed: () {
                 onColorChanged(pickerColor);
                 Navigator.of(context).pop();
@@ -192,6 +191,7 @@ class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
               ),
+              child: const Text('Select'),
             ),
           ],
         );

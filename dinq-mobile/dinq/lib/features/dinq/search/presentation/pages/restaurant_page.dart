@@ -1,6 +1,6 @@
-import 'package:dinq/features/dinq/search/domain/entities/Restaurant.dart'
+import '../../domain/entities/Restaurant.dart'
     as models;
-import 'package:dinq/features/dinq/search/presentation/widgets/bottom_navbar.dart';
+import '../widgets/bottom_navbar.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../search/domain/entities/menu.dart' as models;
@@ -15,8 +15,7 @@ class _FavoritesStore {
 class RestaurantPage extends StatefulWidget {
   final String restaurantId;
 
-  const RestaurantPage({Key? key, required this.restaurantId})
-    : super(key: key);
+  const RestaurantPage({super.key, required this.restaurantId});
 
   @override
   State<RestaurantPage> createState() => _RestaurantPageState();
@@ -80,9 +79,9 @@ class _RestaurantPageState extends State<RestaurantPage>
     // When creating a Restaurant for UI display:
     models.Restaurant(
       id: widget.restaurantId,
-      name: "Addis Red Sea",
+      name: 'Addis Red Sea',
       bannerUrl:
-          "https://plus.unsplash.com/premium_photo-1661883237884-263e8de8869b?q=80&w=889&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+          'https://plus.unsplash.com/premium_photo-1661883237884-263e8de8869b?q=80&w=889&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
       verificationStatus:
           models.VerificationStatus.verified, // required, pick any
       contact: models.Contact(
@@ -215,13 +214,13 @@ class _RestaurantPageState extends State<RestaurantPage>
               ),
 
               // Name + subtitle (bottom-left)
-              Positioned(
+              const Positioned(
                 left: 16,
                 bottom: 16,
                 right: 16,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
                       'Addis Red Sea',
                       style: TextStyle(
@@ -242,7 +241,7 @@ class _RestaurantPageState extends State<RestaurantPage>
             ],
           ),
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         // Floating info card overlapping the banner bottom
         Transform.translate(
           offset: const Offset(0, -20),
@@ -298,16 +297,16 @@ class _RestaurantPageState extends State<RestaurantPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: const [
+            const Row(
+              children: [
                 Icon(Icons.location_on, color: Colors.orange, size: 16),
                 SizedBox(width: 6),
                 Expanded(child: Text('Bole Atlas, Addis Ababa')),
               ],
             ),
             const SizedBox(height: 8),
-            Row(
-              children: const [
+            const Row(
+              children: [
                 Icon(Icons.access_time, color: Colors.orange, size: 16),
                 SizedBox(width: 6),
                 Expanded(child: Text('Open: 11:00 AM - 10:00 PM')),
@@ -352,10 +351,10 @@ class _RestaurantPageState extends State<RestaurantPage>
       child: Container(
         width: 40,
         height: 40,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
           shape: BoxShape.circle,
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
               color: Colors.black12,
               blurRadius: 6,
@@ -416,7 +415,7 @@ class _RestaurantPageState extends State<RestaurantPage>
                   ),
                 ),
               ),
-            ...category.items.map((item) => _buildMenuItem(item)).toList(),
+            ...category.items.map((item) => _buildMenuItem(item)),
           ],
         );
       },

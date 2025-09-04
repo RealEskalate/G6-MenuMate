@@ -5,7 +5,7 @@ import '../../../../../core/util/theme.dart';
 import '../widgets/bottom_navbar.dart';
 
 class AddReviewPage extends StatefulWidget {
-  const AddReviewPage({Key? key}) : super(key: key);
+  const AddReviewPage({super.key});
 
   @override
   State<AddReviewPage> createState() => _AddReviewPageState();
@@ -14,7 +14,7 @@ class AddReviewPage extends StatefulWidget {
 class _AddReviewPageState extends State<AddReviewPage> {
   int _rating = 0;
   final TextEditingController _controller = TextEditingController();
-  int _maxLength = 500;
+  final int _maxLength = 500;
   final List<File> _photos = [];
   final ImagePicker _picker = ImagePicker();
 
@@ -269,7 +269,7 @@ class _AddReviewPageState extends State<AddReviewPage> {
                             });
                           },
                           child: Container(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
                               boxShadow: [
