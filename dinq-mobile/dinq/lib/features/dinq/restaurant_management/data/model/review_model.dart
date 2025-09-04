@@ -1,7 +1,7 @@
 import 'dart:convert';
 
+import '../../../user/data/model/user_model.dart';
 import '../../domain/entities/review.dart';
-import '../model/user_model.dart';
 
 class ReviewModel extends Review {
   const ReviewModel({
@@ -25,7 +25,7 @@ class ReviewModel extends Review {
     return ReviewModel(
       id: data['id'] ?? '',
       itemId: data['itemId'] ?? data['item_id'] ?? '',
-      user: UserModel.fromMap(userData),
+      user: UserModel.fromMap(userData).toEntity(),
       rating: (data['rating'] as num?)?.toDouble() ?? 0.0,
       comment: (data['comment'] ?? data['message'] ?? '') as String,
       images: (data['images'] as List<dynamic>?)
