@@ -84,7 +84,6 @@ func (r *ReactionRepo) GetUserReaction(ctx context.Context, itemID, userID strin
 		{Key: "userId", Value: userID},
 		// {Key: "isDeleted", Value: false},
 	}
-	fmt.Println("[DEBUG][repo] GetUserReaction filter:", filter)
 	type reactionDB struct {
 		ID        bson.ObjectID `bson:"_id"`
 		ReviewID  string        `bson:"reviewId,omitempty"`
@@ -97,7 +96,6 @@ func (r *ReactionRepo) GetUserReaction(ctx context.Context, itemID, userID strin
 	}
 	var dbRec reactionDB
 	err := coll.FindOne(ctx, filter).Decode(&dbRec)
-	fmt.Println("[DEBUG][repo] GetUserReaction dbRec:", dbRec)
 	if err == mongoIn.ErrNoDocuments {
 		return nil, nil
 	}
@@ -119,9 +117,7 @@ func (r *ReactionRepo) GetUserReaction(ctx context.Context, itemID, userID strin
 
 func (r *ReactionRepo) InsertReaction(ctx context.Context, reaction *domain.Reaction) error {
 	coll := r.db.Collection(r.ReactionCol)
-	fmt.Println("[DEBUG][repo] InsertReaction input reaction:", reaction)
 	doc := mapper.ToBsonReaction(reaction)
-	fmt.Println("[DEBUG][repo] InsertReaction doc:", doc)
 	if reaction.ID == "" {
 		delete(doc, "_id")
 	}
@@ -152,7 +148,6 @@ func (r *ReactionRepo) InsertReaction(ctx context.Context, reaction *domain.Reac
 		return fmt.Errorf("unknown _id type: %T", result.InsertedID)
 	}
 	err = coll.FindOne(ctx, filter).Decode(&dbRec)
-	fmt.Println("[DEBUG][repo] InsertReaction dbRec:", dbRec)
 	if err != nil {
 		return err
 	}
@@ -174,8 +169,6 @@ func (r *ReactionRepo) UpdateReaction(ctx context.Context, reaction *domain.Reac
 		{Key: "userId", Value: reaction.UserID},
 		{Key: "reviewId", Value: reaction.ReviewID},
 	}
-	fmt.Println("[DEBUG][repo] UpdateReaction filter:", filter)
-	fmt.Println("[DEBUG][repo] UpdateReaction input reaction:", reaction)
 	update := bson.D{
 		{Key: "$set", Value: bson.D{
 			{Key: "type", Value: reaction.Type},
@@ -183,7 +176,6 @@ func (r *ReactionRepo) UpdateReaction(ctx context.Context, reaction *domain.Reac
 			{Key: "updatedAt", Value: reaction.UpdatedAt},
 		}},
 	}
-	fmt.Println("[DEBUG][repo] UpdateReaction update:", update)
 	_, err := coll.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
@@ -201,7 +193,6 @@ func (r *ReactionRepo) UpdateReaction(ctx context.Context, reaction *domain.Reac
 	}
 	var dbRec reactionDB
 	err = coll.FindOne(ctx, filter).Decode(&dbRec)
-	fmt.Println("[DEBUG][repo] UpdateReaction dbRec:", dbRec)
 	if err != nil {
 		return err
 	}

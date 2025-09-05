@@ -186,6 +186,7 @@ func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
 		c.JSON(http.StatusPermanentRedirect, gin.H{"redirect_to": old.Slug})
 		return
 	}
+	// r.AverageRating = 
 	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
 }
 
