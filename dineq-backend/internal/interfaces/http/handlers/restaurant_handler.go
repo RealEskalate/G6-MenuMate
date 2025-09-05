@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -83,6 +84,18 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 	if about := c.PostForm("about"); about != "" {
 		r.About = &about
 	}
+	r.DefaultLanguage = c.DefaultPostForm("default_language", "English")
+	r.VerificationStatus = domain.VerificationStatus(c.DefaultPostForm("verification_status", string(domain.VerificationPending)))
+	r.DefaultCurrency = c.DefaultPostForm("default_currency", "ETB")
+	r.PrimaryColor = c.DefaultPostForm("primary_color", "#89643E")
+	r.AccentColor = c.DefaultPostForm("accent_color", "#DD3424")
+	VatStr := c.DefaultPostForm("default_vat", "15")
+	if vat, err := strconv.ParseFloat(VatStr, 64); err == nil {
+		r.DefaultVat = vat
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid default_vat"})
+		return
+	}
 
 	// Optional coordinates
 	latStr, lngStr := c.PostForm("lat"), c.PostForm("lng")
@@ -98,7 +111,27 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 			Coordinates: [2]float64{lng, lat}, // GeoJSON expects [lng, lat]
 		}
 	}
+	if tags := collectTags(c); len(tags) > 0 {
+		r.Tags = tags
+	}
 
+	if scheduleStr := c.PostForm("schedule"); scheduleStr != "" {
+		var schedules []domain.Schedule
+		if err := json.Unmarshal([]byte(scheduleStr), &schedules); err != nil {
+			dto.WriteValidationError(c, "schedule", "invalid schedule format", "invalid_schedule", err)
+			return
+		}
+		r.Schedule = schedules
+	}
+
+	if specialsStr := c.PostForm("special_days"); specialsStr != "" {
+		var specials []domain.SpecialDay
+		if err := json.Unmarshal([]byte(specialsStr), &specials); err != nil {
+			dto.WriteValidationError(c, "special_days", "invalid special_days format", "invalid_special_days", err)
+			return
+		}
+		r.SpecialDays = specials
+	}
 	// Read optional files
 	files := make(map[string][]byte)
 	for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
@@ -136,6 +169,28 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, dto.ToRestaurantResponse(r))
+}
+
+// GetRestaurant retrieves a restaurant by its slug.
+func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
+	slug := c.Param("slug")
+	r, err := h.RestaurantUsecase.GetRestaurantBySlug(c.Request.Context(), slug)
+	if err != nil {
+		if err == domain.ErrRestaurantDeleted {
+			// Use standardized error
+			dto.WriteError(c, domain.ErrRestaurantDeleted)
+			return
+		}
+		old, oldErr := h.RestaurantUsecase.GetRestaurantByOldSlug(c.Request.Context(), slug)
+		if oldErr != nil {
+			dto.WriteError(c, err)
+			return
+		}
+		c.Header("Location", "/api/v1/restaurants/"+old.Slug)
+		c.JSON(http.StatusPermanentRedirect, gin.H{"redirect_to": old.Slug})
+		return
+	}
+	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
 }
 
 // GetRestaurant retrieves a restaurant by its slug.
@@ -248,102 +303,105 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 	}
 
 	files := make(map[string][]byte)
-	contentType := c.ContentType()
 
-	if contentType == "application/json" {
-		var input dto.RestaurantResponse
-		if err := c.ShouldBindJSON(&input); err != nil {
-			dto.WriteValidationError(c, "payload", "invalid JSON body", "invalid_json", err)
+	if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+		dto.WriteValidationError(c, "form", "failed to parse form", "multipart_parse_failed", err)
+		return
+	}
+
+	// Merge mutable fields from multipart form
+	if name := c.PostForm("name"); name != "" && name != existing.RestaurantName {
+		updateSlug(existing, name)
+	}
+	if phone := c.PostForm("phone"); phone != "" {
+		existing.RestaurantPhone = phone
+	}
+	if about := c.PostForm("about"); about != "" {
+		existing.About = &about
+	}
+	if status := c.PostForm("verification_status"); status != "" {
+		existing.VerificationStatus = domain.VerificationStatus(status)
+	}
+	if lang := c.PostForm("default_language"); lang != "" {
+		existing.DefaultLanguage = lang
+	}
+	if currency := c.PostForm("default_currency"); currency != "" {
+		existing.DefaultCurrency = currency
+	}
+	if primaryColor := c.PostForm("primary_color"); primaryColor != "" {
+		existing.PrimaryColor = primaryColor
+	}
+	if accentColor := c.PostForm("accent_color"); accentColor != "" {
+		existing.AccentColor = accentColor
+	}
+	if taxId := c.PostForm("tax_id"); taxId != "" {
+		existing.TaxId = taxId
+	}
+	if vatstr := c.PostForm("default_vat"); vatstr != "" {
+		vat, err := strconv.ParseFloat(vatstr, 64)
+		if err != nil {
+			dto.WriteValidationError(c, "default_vat", "vat value not a number", "Bad request", err)
+		}
+		existing.DefaultVat = vat
+	}
+	// tags update (supports csv)
+	if tags := collectTags(c); len(tags) > 0 {
+		existing.Tags = tags
+	}
+
+	// Update coordinates if provided
+	latStr := c.PostForm("lat")
+	lngStr := c.PostForm("lng")
+	fmt.Println("Updated coordinates:", latStr, lngStr)
+	if latStr != "" && lngStr != "" {
+		lat, err1 := strconv.ParseFloat(latStr, 64)
+		lng, err2 := strconv.ParseFloat(lngStr, 64)
+		if err1 == nil && err2 == nil {
+			existing.Location.Coordinates = [2]float64{lng, lat} // GeoJSON expects [lng, lat]
+		}
+	}
+	if scheduleStr := c.PostForm("schedule"); scheduleStr != "" {
+		var schedules []domain.Schedule
+		if err := json.Unmarshal([]byte(scheduleStr), &schedules); err != nil {
+			dto.WriteValidationError(c, "schedule", "invalid schedule format", "invalid_schedule", err)
 			return
 		}
+		existing.Schedule = schedules
+	}
 
-		// Merge mutable fields from JSON
-		if input.Name != "" && input.Name != existing.RestaurantName {
-			updateSlug(existing, input.Name)
-		}
-		if input.Phone != "" {
-			existing.RestaurantPhone = input.Phone
-		}
-		if input.About != nil {
-			existing.About = input.About
-		}
-		if input.VerificationStatus != "" {
-			existing.VerificationStatus = domain.VerificationStatus(input.VerificationStatus)
-		}
-
-		// Update coordinates if provided
-		if len(input.Location.Coordinates) == 2 {
-			existing.Location.Coordinates = [2]float64{
-				input.Location.Coordinates[0], // longitude
-				input.Location.Coordinates[1], // latitude
-			}
-		}
-
-	} else if c.Request.MultipartForm != nil || contentType == "multipart/form-data" {
-		if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
-			dto.WriteValidationError(c, "form", "failed to parse form", "multipart_parse_failed", err)
+	if specialsStr := c.PostForm("special_days"); specialsStr != "" {
+		var specials []domain.SpecialDay
+		if err := json.Unmarshal([]byte(specialsStr), &specials); err != nil {
+			dto.WriteValidationError(c, "special_days", "invalid special_days format", "invalid_special_days", err)
 			return
 		}
+		existing.SpecialDays = specials
+	}
 
-		// Merge mutable fields from multipart form
-		if name := c.PostForm("name"); name != "" && name != existing.RestaurantName {
-			updateSlug(existing, name)
-		}
-		if phone := c.PostForm("phone"); phone != "" {
-			existing.RestaurantPhone = phone
-		}
-		if about := c.PostForm("about"); about != "" {
-			existing.About = &about
-		}
-		if status := c.PostForm("verification_status"); status != "" {
-			existing.VerificationStatus = domain.VerificationStatus(status)
-		}
-		// tags update (supports csv)
-		if tags := collectTags(c); len(tags) > 0 {
-			existing.Tags = tags
-		}
-
-		// Update coordinates if provided
-		latStr := c.PostForm("lat")
-		lngStr := c.PostForm("lng")
-		fmt.Println("Updated coordinates:", latStr, lngStr)
-		if latStr != "" && lngStr != "" {
-			lat, err1 := strconv.ParseFloat(latStr, 64)
-			lng, err2 := strconv.ParseFloat(lngStr, 64)
-			if err1 == nil && err2 == nil {
-				existing.Location.Coordinates = [2]float64{lng, lat} // GeoJSON expects [lng, lat]
-			}
-		}
-
-		// Read files from multipart form
-		for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
-			fileHeader, err := c.FormFile(field)
-			if err != nil {
-				if err != http.ErrMissingFile {
-					dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
-					return
-				}
-				continue
-			}
-
-			file, err := fileHeader.Open()
-			if err != nil {
-				dto.WriteValidationError(c, field, fmt.Sprintf("failed to open %s", field), "file_open_failed", err)
-				return
-			}
-			defer file.Close()
-
-			data, err := io.ReadAll(file)
-			if err != nil {
+	// Read files from multipart form
+	for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
+		fileHeader, err := c.FormFile(field)
+		if err != nil {
+			if err != http.ErrMissingFile {
 				dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
 				return
 			}
-			files[field] = data
+			continue
 		}
 
-	} else {
-		dto.WriteValidationError(c, "content_type", "unsupported content type", "unsupported_content_type", nil)
-		return
+		file, err := fileHeader.Open()
+		if err != nil {
+			dto.WriteValidationError(c, field, fmt.Sprintf("failed to open %s", field), "file_open_failed", err)
+			return
+		}
+		defer file.Close()
+
+		data, err := io.ReadAll(file)
+		if err != nil {
+			dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
+			return
+		}
+		files[field] = data
 	}
 
 	existing.ManagerID = manager
