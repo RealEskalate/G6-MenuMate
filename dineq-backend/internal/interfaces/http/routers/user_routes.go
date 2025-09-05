@@ -36,5 +36,8 @@ func NewUserRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 
 	group.PATCH("/users/update-profile", middleware.AuthMiddleware(*env), userController.UpdateProfile)
 	group.PATCH("/users/change-password", middleware.AuthMiddleware(*env), userController.ChangePassword)
+	group.GET("/me", middleware.AuthMiddleware(*env), userController.Me)
+	group.GET("/users/:id", userController.GetPublicUser)
+	group.GET("/users/avatar-options", userController.GetAvatarOptions)
 
 }

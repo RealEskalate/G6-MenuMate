@@ -35,8 +35,13 @@ type Env struct {
 	UserCollection string `mapstructure:"USER_COLLECTION"`
 
 	// Cookie / Security settings
-	CookieSecure bool   `mapstructure:"COOKIE_SECURE"`
-	CookieDomain string `mapstructure:"COOKIE_DOMAIN"`
+	CookieSecure    bool   `mapstructure:"COOKIE_SECURE"`
+	CookieDomain    string `mapstructure:"COOKIE_DOMAIN"`
+	FrontendBaseURL string `mapstructure:"FRONTEND_BASE_URL"`
+
+	// CORS configuration
+	CORSAllowedOriginsRaw string   `mapstructure:"CORS_ALLOWED_ORIGINS"`
+	CORSAllowedOrigins    []string `mapstructure:"-"`
 
 	// user refresh token collection
 	RefreshTokenCollection string `mapstructure:"REFRESH_TOKEN_COLLECTION"`
@@ -89,6 +94,10 @@ type Env struct {
 	SearchEngineID string `mapstructure:"SEARCH_ENGINE_ID"`
 	SearchAPIKey   string `mapstructure:"SEARCH_ENGINE_API_KEY"`
 
+	// Additional image provider API keys
+	UnsplashAPIKey string `mapstructure:"UNSPLASH_API_KEY"`
+	PexelsAPIKey   string `mapstructure:"PEXELS_API_KEY"`
+
 	// Cloudinary Config
 	CloudinaryAPIKey string `mapstructure:"CLD_API_KEY"`
 	CloudinarySecret string `mapstructure:"CLD_SECRET"`
@@ -108,7 +117,7 @@ type Env struct {
 	MenuCollection string `mapstructure:"MENU_COLLECTION"`
 	// qr code collection
 	QRCodeCollection string `mapstructure:"QR_CODE_COLLECTION"`
-	ItemCollection    string `mapstructure:"ITEM_COLLECTION"`
+	ItemCollection   string `mapstructure:"ITEM_COLLECTION"`
 }
 
 // Viper can be made injectable
@@ -162,6 +171,8 @@ func NewEnv() (*Env, error) {
 	env.RapidAPIContentType = os.Getenv("RAPIDAPI_CONTENT_TYPE")
 	env.SearchEngineID = os.Getenv("SEARCH_ENGINE_ID")
 	env.SearchAPIKey = os.Getenv("SEARCH_ENGINE_API_KEY")
+	env.UnsplashAPIKey = os.Getenv("UNSPLASH_API_KEY")
+	env.PexelsAPIKey = os.Getenv("PEXELS_API_KEY")
 	env.CloudinaryAPIKey = os.Getenv("CLD_API_KEY")
 	env.CloudinarySecret = os.Getenv("CLD_SECRET")
 	env.CloudinaryName = os.Getenv("CLD_NAME")
@@ -172,11 +183,22 @@ func NewEnv() (*Env, error) {
 	env.VeryfiUsername = os.Getenv("VERIFY_USERNAME")
 	env.NotificationCollection = os.Getenv("NOTIFICATION_COLLECTION")
 	env.MenuCollection = os.Getenv("MENU_COLLECTION")
-	env.CookieSecure = strings.ToLower(os.Getenv("COOKIE_SECURE")) == "true"
-	env.CookieDomain = os.Getenv("COOKIE_DOMAIN")
-	env.MenuCollection = os.Getenv("MENU_COLLECTION")
 	env.QRCodeCollection = os.Getenv("QR_CODE_COLLECTION")
 	env.ItemCollection = os.Getenv("ITEM_COLLECTION")
+	env.CookieSecure = strings.ToLower(os.Getenv("COOKIE_SECURE")) == "true"
+	env.CookieDomain = os.Getenv("COOKIE_DOMAIN")
+	env.CORSAllowedOriginsRaw = os.Getenv("CORS_ALLOWED_ORIGINS")
+	if env.CORSAllowedOriginsRaw == "" {
+		// default allow all for dev convenience
+		env.CORSAllowedOrigins = []string{"*"}
+	} else {
+		parts := strings.Split(env.CORSAllowedOriginsRaw, ",")
+		for _, p := range parts {
+			trim := strings.TrimSpace(p)
+			if trim != "" { env.CORSAllowedOrigins = append(env.CORSAllowedOrigins, trim) }
+		}
+		if len(env.CORSAllowedOrigins) == 0 { env.CORSAllowedOrigins = []string{"*"} }
+	}
 
 	if env.AppEnv == "development" {
 		log.Println("The App is running in development env")

@@ -9,6 +9,7 @@ import (
 
 type MenuDB struct {
 	ID           bson.ObjectID `bson:"_id,omitempty"`
+	Name         string        `bson:"name"`
 	RestaurantID string        `bson:"restaurantId"`
 	Slug         string        `bson:"slug"`
 	Version      int           `bson:"version"`
@@ -17,6 +18,7 @@ type MenuDB struct {
 	Items        []ItemDB      `bson:"items"`
 	CreatedAt    time.Time     `bson:"createdAt"`
 	UpdatedAt    time.Time     `bson:"updatedAt"`
+	CreatedBy    string        `bson:"createdBy"`
 	UpdatedBy    string        `bson:"updatedBy"`
 	IsDeleted    bool          `bson:"isDeleted"`
 	DeletedAt    *time.Time    `bson:"deletedAt,omitempty"`
@@ -39,6 +41,7 @@ func NewMenuDBFromDomain(menu *domain.Menu) *MenuDB {
 
 	return &MenuDB{
 		ID:           menuId,
+		Name:         menu.Name,
 		RestaurantID: menu.RestaurantID,
 		Slug:         menu.Slug,
 		Version:      1, // start at version 1
@@ -47,6 +50,7 @@ func NewMenuDBFromDomain(menu *domain.Menu) *MenuDB {
 		Items:        items,
 		CreatedAt:    now,
 		UpdatedAt:    now,
+		CreatedBy:    menu.CreatedBy,
 		UpdatedBy:    menu.UpdatedBy,
 		IsDeleted:    false,
 		ViewCount:    0,
@@ -66,11 +70,13 @@ func MergeMenuUpdate(updated *domain.Menu) *MenuDB {
 	return &MenuDB{
 		RestaurantID: updated.RestaurantID,
 		Slug:         updated.Slug,
+		Name:         updated.Name,
 		IsPublished:  updated.IsPublished,
 		PublishedAt:  updated.PublishedAt,
-		Items:       items,
+		Items:        items,
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
+		CreatedBy:    updated.CreatedBy,
 		UpdatedBy:    updated.UpdatedBy,
 		IsDeleted:    updated.IsDeleted,
 		ViewCount:    updated.ViewCount,
@@ -78,8 +84,6 @@ func MergeMenuUpdate(updated *domain.Menu) *MenuDB {
 		Version:      updated.Version + 1,
 	}
 }
-
-
 
 // ---------- Conversion ----------
 
@@ -91,6 +95,7 @@ func ToDomainMenu(menu *MenuDB) *domain.Menu {
 
 	return &domain.Menu{
 		ID:           menu.ID.Hex(),
+		Name:         menu.Name,
 		RestaurantID: menu.RestaurantID,
 		Slug:         menu.Slug,
 		Version:      menu.Version,
@@ -99,6 +104,7 @@ func ToDomainMenu(menu *MenuDB) *domain.Menu {
 		Items:        items,
 		CreatedAt:    menu.CreatedAt,
 		UpdatedAt:    menu.UpdatedAt,
+		CreatedBy:    menu.CreatedBy,
 		UpdatedBy:    menu.UpdatedBy,
 		IsDeleted:    menu.IsDeleted,
 		ViewCount:    menu.ViewCount,

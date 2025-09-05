@@ -70,7 +70,7 @@ Return your response **strictly in the following JSON format** and **don't use m
 	return resp.Text(), nil
 }
 
-func (c *GeminiConfig) ParseGeneratedContent(content string, output string) error {
+func (c *GeminiConfig) ParseGeneratedContent(content string, output interface{}) error {
 	// Remove ```json``` and ``` at the start and end of the content.
 	content = strings.TrimPrefix(content, "```json")
 	content = strings.TrimSuffix(content, "```")

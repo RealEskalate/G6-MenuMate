@@ -17,6 +17,35 @@ type RestaurantRepo struct {
 	restaurantCol string
 }
 
+// ListRestaurantsByManager returns all restaurants managed by a given user.
+func (repo *RestaurantRepo) ListRestaurantsByManager(ctx context.Context, managerId string) ([]*domain.Restaurant, error) {
+	fmt.Printf("[DEBUG] Querying restaurants for managerId: %s\n", managerId)
+	managerOID, err := bson.ObjectIDFromHex(managerId)
+	if err != nil {
+		fmt.Printf("[DEBUG] Invalid ObjectID for managerId: %s\n", managerId)
+		return nil, err
+	}
+	filter := bson.M{"isDeleted": false, "$or": []bson.M{
+		{"managerId": managerOID},
+		{"ownerId": managerOID},
+	}}
+	fmt.Printf("[DEBUG] MongoDB filter: %+v\n", filter)
+	cursor, err := repo.db.Collection(repo.restaurantCol).Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	var models []mapper.RestaurantModel
+	if err := cursor.All(ctx, &models); err != nil {
+		return nil, err
+	}
+	result := make([]*domain.Restaurant, len(models))
+	for i, m := range models {
+		result[i] = m.ToDomain()
+	}
+	return result, nil
+}
+
 func NewRestaurantRepo(database mongo.Database, restaurantCol string) domain.IRestaurantRepo {
 	return &RestaurantRepo{
 		db:            database,
