@@ -20,6 +20,7 @@ import (
 // RestaurantHandler handles HTTP requests related to restaurants.
 type RestaurantHandler struct {
 	RestaurantUsecase domain.IRestaurantUsecase
+	UserUsecase       domain.IUserUsecase
 }
 
 // GetRestaurantsByManager returns the restaurant managed by a user (owner/manager).
@@ -57,7 +58,6 @@ func IsValidObjectID(id string) bool {
 // CreateRestaurant handles the creation of a new restaurant, supporting both JSON and multipart form data.
 func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 	manager := c.GetString("user_id")
-
 	if manager == "" || !IsValidObjectID(manager) {
 		dto.WriteValidationError(c, "manager_id", "invalid or missing manager_id", "invalid_manager_id", nil)
 		return
@@ -116,21 +116,22 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 	}
 
 	if scheduleStr := c.PostForm("schedule"); scheduleStr != "" {
-		var schedules []domain.Schedule
+		var schedules []dto.ScheduleDTO
 		if err := json.Unmarshal([]byte(scheduleStr), &schedules); err != nil {
+			fmt.Println("Schedule :", scheduleStr, "\n", schedules)
 			dto.WriteValidationError(c, "schedule", "invalid schedule format", "invalid_schedule", err)
 			return
 		}
-		r.Schedule = schedules
+		r.Schedule = dto.ToDomainSchedule(schedules)
 	}
 
 	if specialsStr := c.PostForm("special_days"); specialsStr != "" {
-		var specials []domain.SpecialDay
+		var specials []dto.SpecialDayDTO
 		if err := json.Unmarshal([]byte(specialsStr), &specials); err != nil {
 			dto.WriteValidationError(c, "special_days", "invalid special_days format", "invalid_special_days", err)
 			return
 		}
-		r.SpecialDays = specials
+		r.SpecialDays = dto.ToDomainSpecialDay(specials)
 	}
 	// Read optional files
 	files := make(map[string][]byte)
