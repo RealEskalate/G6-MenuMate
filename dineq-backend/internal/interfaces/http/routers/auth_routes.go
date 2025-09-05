@@ -77,6 +77,9 @@ func NewAuthRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database) 
 		GoogleClientID:       env.GoogleClientID,
 		GoogleClientSecret:   env.GoogleClientSecret,
 		GoogleRedirectURL:    env.GoogleRedirectURL,
+		CookieSecure:         env.CookieSecure,
+		CookieDomain:         env.CookieDomain,
+		FrontendBaseURL:      env.FrontendBaseURL,
 	}
 
 	auth := api.Group("/auth/")

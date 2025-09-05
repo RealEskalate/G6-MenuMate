@@ -23,12 +23,12 @@ type IPasswordResetRepository interface {
 	UpdateResetToken(ctx context.Context, token *PasswordResetToken) error
 
 	SaveResetSession(ctx context.Context, session *PasswordResetSession) error
-    GetResetSession(ctx context.Context, sessionToken string) (*PasswordResetSession, error)
-    DeleteResetSession(ctx context.Context, sessionToken string) error
+	GetResetSession(ctx context.Context, sessionToken string) (*PasswordResetSession, error)
+	DeleteResetSession(ctx context.Context, sessionToken string) error
 }
 
 type PasswordResetSession struct {
-    UserID    string
-    Token     string // random session token
-    ExpiresAt time.Time
+	UserID    string
+	Token     string // random session token
+	ExpiresAt time.Time
 }

@@ -26,6 +26,6 @@ func (s *GomailEmailService) SendEmail(ctx context.Context, to, subject, body st
 	m.SetHeader("To", m.FormatAddress(to, "Recipient"))
 	m.SetHeader("Subject", subject)
 	m.SetBody("text/html", body)
-    fmt.Println("Sending email to:", to, "From:", s.from) // For debugging; remove in production
+	fmt.Println("Sending email to:", to, "From:", s.from) // For debugging; remove in production
 	return s.dialer.DialAndSend(m)
 }

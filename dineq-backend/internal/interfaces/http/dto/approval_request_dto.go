@@ -10,13 +10,13 @@ import (
 // ApprovalRequestDTO represents the data transfer object for an ApprovalRequest
 type ApprovalRequestDTO struct {
 	ID          string    `json:"id"`
-	EntityType  string    `json:"entityType"`
-	EntityID    string    `json:"entityId"`
+	EntityType  string    `json:"entity_type"`
+	EntityID    string    `json:"entity_id"`
 	Status      string    `json:"status"`
-	RequestedBy string    `json:"requestedBy"`
-	ReviewedBy  string    `json:"reviewedBy,omitempty"`
-	CreatedAt   time.Time `json:"createdAt"`
-	ReviewedAt  time.Time `json:"reviewedAt,omitempty"`
+	RequestedBy string    `json:"requested_by"`
+	ReviewedBy  string    `json:"reviewed_by,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
+	ReviewedAt  time.Time `json:"reviewed_at,omitempty"`
 	Comments    string    `json:"comments,omitempty"`
 }
 

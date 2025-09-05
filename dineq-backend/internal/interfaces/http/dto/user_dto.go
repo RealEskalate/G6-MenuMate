@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"mime/multipart"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -110,9 +111,10 @@ func ToUserResponseList(users []*domain.User) []UserResponse {
 // / 	USER UPDATE REQUEST
 // user update profile request
 type UserUpdateProfileRequest struct {
-	Bio       string `form:"bio" validate:"omitempty,max=500"`
-	FirstName string `form:"first_name" validate:"omitempty,alpha,min=2,max=50"`
-	LastName  string `form:"last_name" validate:"omitempty,alpha,min=2,max=50"`
+	Bio          string                `form:"bio" validate:"omitempty,max=500"`
+	FirstName    string                `form:"first_name" validate:"omitempty,alpha,min=2,max=50"`
+	LastName     string                `form:"last_name" validate:"omitempty,alpha,min=2,max=50"`
+	ProfileImage *multipart.FileHeader `form:"profile_image" validate:"omitempty"`
 }
 
 // change password request
