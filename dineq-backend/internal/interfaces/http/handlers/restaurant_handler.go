@@ -21,40 +21,21 @@ type RestaurantHandler struct {
 	RestaurantUsecase domain.IRestaurantUsecase
 }
 
-// GetMyRestaurants returns all restaurants managed by the authenticated user (owner/manager).
-func (h *RestaurantHandler) GetMyRestaurants(c *gin.Context) {
-	userId := c.GetString("user_id")
-	fmt.Printf("[DEBUG] /api/v1/restaurants/me called by userId: %s\n", userId)
-	if userId == "" || !IsValidObjectID(userId) {
-		dto.WriteValidationError(c, "user_id", "invalid or missing user_id in token", "invalid_user_id", nil)
-		return
-	}
-	restaurants, err := h.RestaurantUsecase.ListRestaurantsByManager(c.Request.Context(), userId)
-	if err != nil {
-		dto.WriteError(c, err)
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"userId": userId,
-		"restaurants": dto.ToRestaurantResponseList(restaurants),
-	})
-}
-
-// GetRestaurantsByManager returns all restaurants managed by a user (owner/manager).
+// GetRestaurantsByManager returns the restaurant managed by a user (owner/manager).
 func (h *RestaurantHandler) GetRestaurantsByManager(c *gin.Context) {
 	userId := c.Param("userId")
 	if userId == "" || !IsValidObjectID(userId) {
 		dto.WriteValidationError(c, "userId", "invalid or missing userId", "invalid_user_id", nil)
 		return
 	}
-	restaurants, err := h.RestaurantUsecase.ListRestaurantsByManager(c.Request.Context(), userId)
+	restaurants, err := h.RestaurantUsecase.GetRestaurantByManagerId(c.Request.Context(), userId)
 	if err != nil {
 		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"userId": userId,
-		"restaurants": dto.ToRestaurantResponseList(restaurants),
+		"userId":      userId,
+		"restaurants": dto.ToRestaurantResponse(restaurants),
 	})
 }
 
@@ -130,24 +111,19 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 			continue
 		}
 
-			file, err := fileHeader.Open()
-			if err != nil {
-				dto.WriteValidationError(c, field, fmt.Sprintf("failed to open %s", field), "file_open_failed", err)
-				return
-			}
-			defer file.Close()
-
-			data, err := io.ReadAll(file)
-			if err != nil {
-				dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
-				return
-			}
-			files[field] = data
+		file, err := fileHeader.Open()
+		if err != nil {
+			dto.WriteValidationError(c, field, fmt.Sprintf("failed to open %s", field), "file_open_failed", err)
+			return
 		}
+		defer file.Close()
 
-	} else {
-		dto.WriteValidationError(c, "content_type", "unsupported content type", "unsupported_content_type", nil)
-		return
+		data, err := io.ReadAll(file)
+		if err != nil {
+			dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
+			return
+		}
+		files[field] = data
 	}
 
 	// generate slug if not yet set
