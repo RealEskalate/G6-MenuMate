@@ -86,7 +86,7 @@ func (h *ItemHandler) UpdateItem(c *gin.Context) {
 // AddReview adds a review to an item
 func (h *ItemHandler) AddReview(c *gin.Context) {
 	id := c.Param("id")
-	var review dto.ReviewDTO
+	var review dto.ReviewResponse
 	if err := c.ShouldBindJSON(&review); err != nil {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
