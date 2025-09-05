@@ -31,10 +31,7 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 	pub := group.Group("/restaurants")
 	{
 		pub.GET("", restaurantHandler.GetUniqueRestaurants)
-		//different path for slug and name to avoid conflict
-		pub.GET("/slug/:slug", restaurantHandler.GetRestaurantBySlug)
-		pub.GET("/name/:name", restaurantHandler.GetRestaurantByName)
-		pub.GET("/:slug/branches", restaurantHandler.GetBranches)
+		pub.GET("/search", restaurantHandler.SearchRestaurants)
 		pub.GET("/nearby", restaurantHandler.GetNearby)
 	}
 

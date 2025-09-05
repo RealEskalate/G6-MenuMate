@@ -48,7 +48,7 @@ type IRestaurantRepo interface {
 	ListAllBranches(ctx context.Context, slug string, page, pageSize int) ([]*Restaurant, int64, error)
 	ListUniqueRestaurants(ctx context.Context, page, pageSize int) ([]*Restaurant, int64, error)
 	FindNearby(ctx context.Context, lat, lng float64, maxDistance int, page, pageSize int) ([]*Restaurant, int64, error)
-	GetByRestaurantName(ctx context.Context, Name string) (*Restaurant, error)
+	ListRestaurantsByName(ctx context.Context, name string, page, pageSize int) ([]*Restaurant, int64, error)
 	GetByManagerId(ctx context.Context, manager string) (*Restaurant, error)
 }
 
@@ -61,6 +61,6 @@ type IRestaurantUsecase interface {
 	ListBranchesBySlug(ctx context.Context, slug string, page, pageSize int) ([]*Restaurant, int64, error)
 	ListUniqueRestaurants(ctx context.Context, page, pageSize int) ([]*Restaurant, int64, error)
 	FindNearby(ctx context.Context, lng, lat float64, maxDistance int, page, pageSize int) ([]*Restaurant, int64, error)
-	GetRestaurantByName(ctx context.Context, name string) (*Restaurant, error)
+	GetRestaurantByName(ctx context.Context, name string, page, pageSize int) ([]*Restaurant, int64, error)
 	GetRestaurantByManagerId(ctx context.Context, manager string) (*Restaurant, error)
 }

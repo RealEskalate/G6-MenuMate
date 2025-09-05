@@ -273,29 +273,64 @@ func (repo *RestaurantRepo) FindNearby(ctx context.Context, lat, lng float64, ma
 
 }
 
-func (repo *RestaurantRepo) GetByRestaurantName(ctx context.Context, name string) (*domain.Restaurant, error) {
+// func (repo *RestaurantRepo) GetByRestaurantName(ctx context.Context, name string) (*domain.Restaurant, error) {
+// 	filter := bson.M{"name": bson.M{
+// 		"$regex":   name, // partial match
+// 		"$options": "i",  // case-insensitive
+// 	}, "isDeleted": false}
+// 	var model mapper.RestaurantModel
+
+// 	err := repo.db.Collection(repo.restaurantCol).Find(ctx, filter).Decode(&model)
+// 	if err != nil {
+// 		if err == mongo.ErrNoDocuments() {
+// 			// Check if it exists but marked deleted to return 410 scenario
+// 			deletedFilter := bson.M{"name": name, "isDeleted": true} // END:
+// 			var deleted mapper.RestaurantModel
+// 			derr := repo.db.Collection(repo.restaurantCol).FindOne(ctx, deletedFilter).Decode(&deleted)
+// 			if derr == nil { // exists but deleted
+// 				return nil, domain.ErrRestaurantDeleted
+// 			}
+// 			return nil, domain.ErrRestaurantNotFound
+// 		}
+// 		return nil, err
+// 	}
+
+// 	return model.ToDomain(), nil
+// }
+
+func (repo *RestaurantRepo) ListRestaurantsByName(ctx context.Context, name string, page, pageSize int) ([]*domain.Restaurant, int64, error) {
+	restCol := repo.db.Collection(repo.restaurantCol)
 	filter := bson.M{"name": bson.M{
 		"$regex":   name, // partial match
 		"$options": "i",  // case-insensitive
 	}, "isDeleted": false}
-	var model mapper.RestaurantModel
 
-	err := repo.db.Collection(repo.restaurantCol).FindOne(ctx, filter).Decode(&model)
+	total, err := restCol.CountDocuments(ctx, filter)
 	if err != nil {
-		if err == mongo.ErrNoDocuments() {
-			// Check if it exists but marked deleted to return 410 scenario
-			deletedFilter := bson.M{"name": name, "isDeleted": true} // END:
-			var deleted mapper.RestaurantModel
-			derr := repo.db.Collection(repo.restaurantCol).FindOne(ctx, deletedFilter).Decode(&deleted)
-			if derr == nil { // exists but deleted
-				return nil, domain.ErrRestaurantDeleted
-			}
-			return nil, domain.ErrRestaurantNotFound
-		}
-		return nil, err
+		return nil, 0, err
 	}
 
-	return model.ToDomain(), nil
+	opts := options.Find().
+		SetSkip(int64((page - 1) * pageSize)).
+		SetLimit(int64(pageSize)).
+		SetSort(bson.D{{Key: "createdAt", Value: -1}}) // END:
+
+	cursor, err := restCol.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var models []mapper.RestaurantModel
+	if err := cursor.All(ctx, &models); err != nil {
+		return nil, 0, err
+	}
+
+	result := make([]*domain.Restaurant, len(models))
+	for i, m := range models {
+		result[i] = m.ToDomain()
+	}
+	return result, total, nil
 }
 
 func (repo *RestaurantRepo) GetByManagerId(ctx context.Context, manager string) (*domain.Restaurant, error) {
