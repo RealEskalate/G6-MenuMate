@@ -14,7 +14,7 @@ abstract class RestaurantRemoteDataSource {
   });
   Future<RestaurantModel> getRestaurantBySlug(String slug);
   Future<RestaurantModel> updateRestaurant(
-    FormData restaurant,
+    Map<String, dynamic> restaurant,
     String slug,
   );
   Future<void> deleteRestaurant(String restaurantId);

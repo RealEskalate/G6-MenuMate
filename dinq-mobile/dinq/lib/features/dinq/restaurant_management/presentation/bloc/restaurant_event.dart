@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class RestaurantEvent extends Equatable {
@@ -69,13 +70,13 @@ class CreateRestaurantEvent extends RestaurantEvent {
 }
 
 class UpdateRestaurantEvent extends RestaurantEvent {
-  final dynamic restaurantModel;
+  final dynamic restaurant;
   final String slug;
 
-  const UpdateRestaurantEvent(this.restaurantModel, this.slug);
+  const UpdateRestaurantEvent(this.restaurant, this.slug);
 
   @override
-  List<Object?> get props => [restaurantModel, slug];
+  List<Object?> get props => [restaurant, slug];
 }
 
 class DeleteRestaurantEvent extends RestaurantEvent {

@@ -32,38 +32,38 @@ class RestaurantDebugPage extends StatelessWidget {
                   bloc.add(const LoadRestaurantBySlug('pizza-hut')),
               child: const Text('Load Restaurant by Slug (pizza-hut)'),
             ),
-            ElevatedButton(
-              onPressed: () {
-                final restaurant = const RestaurantModel(
-                  id: 'debug-id',
-                  name: 'Debug Resto',
-                  description: 'desc',
-                  address: 'addr',
-                  phone: '000',
-                  email: 'a@b.com',
-                  image: '',
-                  isActive: true,
-                );
-                bloc.add(CreateRestaurantEvent(restaurant));
-              },
-              child: const Text('Create Restaurant (debug)'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                final restaurant = const RestaurantModel(
-                  id: 'debug-id',
-                  name: 'Debug Resto Updated',
-                  description: 'desc',
-                  address: 'addr',
-                  phone: '111',
-                  email: 'a@b.com',
-                  image: '',
-                  isActive: true,
-                );
-                bloc.add(UpdateRestaurantEvent(restaurant, 'debug-slug'));
-              },
-              child: const Text('Update Restaurant (debug)'),
-            ),
+            // ElevatedButton(
+            //   onPressed: () {
+            //     final restaurant = const RestaurantModel(
+            //       id: 'debug-id',
+            //       name: 'Debug Resto',
+            //       description: 'desc',
+            //       address: 'addr',
+            //       phone: '000',
+            //       email: 'a@b.com',
+            //       image: '',
+            //       isActive: true,
+            //     );
+            //     bloc.add(CreateRestaurantEvent(restaurant));
+            //   },
+            //   child: const Text('Create Restaurant (debug)'),
+            // ),
+            // ElevatedButton(
+            //   onPressed: () {
+            //     final restaurant = const RestaurantModel(
+            //       id: 'debug-id',
+            //       name: 'Debug Resto Updated',
+            //       description: 'desc',
+            //       address: 'addr',
+            //       phone: '111',
+            //       email: 'a@b.com',
+            //       image: '',
+            //       isActive: true,
+            //     );
+            //     bloc.add(UpdateRestaurantEvent(restaurant, 'debug-slug'));
+            //   },
+            //   child: const Text('Update Restaurant (debug)'),
+            // ),
             ElevatedButton(
               onPressed: () =>
                   bloc.add(const DeleteRestaurantEvent('debug-id')),

@@ -16,7 +16,7 @@ abstract class RestaurantRepository {
   });
   Future<Either<Failure, Restaurant>> getRestaurantBySlug(String slug);
   Future<Either<Failure, Restaurant>> updateRestaurant(
-    Restaurant restaurant,
+    Map<String, dynamic> restaurant,
     String slug,
   );
   Future<Either<Failure, void>> deleteRestaurant(String restaurantId);

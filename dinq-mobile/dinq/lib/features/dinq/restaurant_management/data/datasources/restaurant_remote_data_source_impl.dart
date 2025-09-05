@@ -133,7 +133,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<RestaurantModel> updateRestaurant(
-    FormData restaurant,
+    Map<String, dynamic> restaurant,
     String slug,
   ) async {
     try {
