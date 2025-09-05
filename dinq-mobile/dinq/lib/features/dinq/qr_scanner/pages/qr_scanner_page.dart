@@ -163,10 +163,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-<<<<<<< HEAD
-=======
-
->>>>>>> mobile-merge-UI
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -281,10 +277,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
               text: 'Capture the entire QR Code in frame',
             ),
             const SizedBox(height: 12),
-<<<<<<< HEAD
-=======
-
->>>>>>> mobile-merge-UI
           ],
         ),
       ),

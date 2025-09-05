@@ -95,7 +95,7 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
 
   @override
   Future<Either<Failure, Restaurant>> updateRestaurant(
-    Restaurant restaurant,
+    Map<String, dynamic> restaurant,
     String slug,
   ) async {
     final connected = await network.isConnected;
@@ -103,7 +103,7 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
     if (connected) {
       try {
         final updatedModel = await remoteDataSource.updateRestaurant(
-          RestaurantModel.fromEntity(restaurant),
+          restaurant,
           slug,
         );
         return Right(updatedModel.toEntity());

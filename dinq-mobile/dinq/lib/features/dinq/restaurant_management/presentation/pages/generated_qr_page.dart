@@ -95,6 +95,7 @@ class _GeneratedQrPageState extends State<GeneratedQrPage> {
             ),
           ),
           const SizedBox(height: 40),
+          
           // Download button with dropdown
           Center(
             child: SizedBox(

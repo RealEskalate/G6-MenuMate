@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/usecases/get_user_images.dart';
@@ -17,15 +18,11 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
   final GetMenu getMenu;
   final DeleteReview getCategories;
   final GetReviews getReviews;
-// <<<<<<< HEAD:dinq-mobile/dinq/lib/features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart
   final GetUserImages getUserImages;
   final GetRestaurantBySlug getRestaurantBySlug;
   final CreateRestaurant createRestaurant;
   final UpdateRestaurant updateRestaurant;
   final DeleteRestaurant deleteRestaurant;
-
-  // final GetUserImages getUserImages;
-// >>>>>>> m-feature/restaurant-menu:dinq-mobile/dinq/lib/features/restaurant_management/presentation/bloc/restaurant_bloc.dart
 
   RestaurantBloc({
     required this.getRestaurants,
@@ -80,7 +77,7 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     Emitter<RestaurantState> emit,
   ) async {
     emit(const RestaurantLoading());
-    final result = await updateRestaurant(event.restaurantModel, event.slug);
+    final result = await updateRestaurant(event.restaurant as Map<String, dynamic>, event.slug);
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
       (restaurant) => emit(

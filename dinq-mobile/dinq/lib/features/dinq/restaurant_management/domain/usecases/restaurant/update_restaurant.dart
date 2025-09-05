@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import '../../../../../../core/error/failures.dart';
 import '../../entities/restaurant.dart';
 import '../../repositories/restaurant_repository.dart';
@@ -9,7 +10,7 @@ class UpdateRestaurant {
   UpdateRestaurant(this.repository);
 
   Future<Either<Failure, Restaurant>> call(
-    Restaurant restaurant,
+    Map<String, dynamic> restaurant,
     String slug,
   ) async {
     return await repository.updateRestaurant(restaurant, slug);
