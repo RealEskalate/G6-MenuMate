@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Menu } from "@/store/menuSlice";
-import SafeImage from "@/components/common/SafeImage";
+// import SafeImage from "@/components/common/SafeImage";
 
 interface MenuCardProps {
   menu: Menu;

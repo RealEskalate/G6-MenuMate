@@ -20,18 +20,7 @@ const nextConfig = {
         hostname: "example.com", // keep your existing
       },
     ],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-        pathname: "/**", // allow all cloudinary paths
-      },
-      {
-        protocol: "https",
-        hostname: "ui-avatars.com",
-        pathname: "/**", // allow all ui-avatars paths
-      },
-    ],
+    
   },
 }
 
