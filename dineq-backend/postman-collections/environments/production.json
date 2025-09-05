@@ -4,7 +4,7 @@
   "values": [
     {
       "key": "base_url",
-      "value": "https://g6-menumate.onrender.com/api/v1",
+      "value": "https://g6-menumate-1.onrender.com/api/v1",
       "description": "Base URL for the MenuMate API in production",
       "enabled": true
     },
@@ -48,6 +48,18 @@
       "key": "restaurant_slug",
       "value": "",
       "description": "Current restaurant slug for testing",
+      "enabled": true
+    },
+    {
+      "key": "menu_slug",
+      "value": "",
+      "description": "Current menu slug captured after menu creation (avoid persisting real data)",
+      "enabled": true
+    },
+    {
+      "key": "item_id",
+      "value": "",
+      "description": "Recently created menu item ID (temporary)",
       "enabled": true
     },
     {

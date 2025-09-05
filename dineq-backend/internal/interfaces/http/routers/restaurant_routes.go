@@ -42,6 +42,7 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 		admin.POST("", restaurantHandler.CreateRestaurant)
 		admin.PUT("/:slug", restaurantHandler.UpdateRestaurant)
 		admin.DELETE("/:id", restaurantHandler.DeleteRestaurant)
+	admin.GET("/me", restaurantHandler.GetMyRestaurants)
 	}
 
 }
