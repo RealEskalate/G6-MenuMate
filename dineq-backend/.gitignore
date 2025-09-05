@@ -12,5 +12,5 @@ qr.go
 qrser.go
 modern-company-logo-design-vector.jpg
 email.go
-
-
+qr_generator_services.go
+.gitignore
