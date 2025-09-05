@@ -74,3 +74,11 @@ type IReviewUsecase interface {
     // Get average rating for a restaurant (from its items' averages)
     GetAverageRatingByRestaurant(ctx context.Context, restaurantID string) (float64, error)
 }
+type Reaction struct {
+	ID        string
+	ReviewID  string
+	UserID    string
+	Type      string
+	CreatedAt time.Time
+	IsDeleted bool
+}
