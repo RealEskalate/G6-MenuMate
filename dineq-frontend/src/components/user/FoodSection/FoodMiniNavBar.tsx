@@ -75,4 +75,68 @@ export default function FoodDetails() {
       </div>
     </div>
   );
-}
+// }
+// "use client";
+// import { useState } from "react";
+// import Description from "./Description";
+// import FoodTip from "./HowToEat";
+// import ReviewForm from "./WriteReview";
+// import Review from "./Review";
+
+// interface FoodItem {
+//   description: string;
+//   how_to_eat: string;
+//   allergies: string[];
+//   nutritional_info: {
+//     calories: number;
+//     protein: number;
+//     carbs: number;
+//     fat: number;
+//   };
+// }
+
+// export default function FoodDetails({ item }: { item: FoodItem }) {
+//   const [activeTab, setActiveTab] = useState<
+//     "description" | "howtoeat" | "reviews" | "writeReview"
+//   >("description");
+
+//   const tabs = [
+//     { key: "description", label: "Description" },
+//     { key: "howtoeat", label: "How to Eat" },
+//     { key: "reviews", label: "Reviews" },
+//     { key: "writeReview", label: "Write a Review" },
+//   ];
+
+//   return (
+//     <div className="mt-6">
+//       {/* Tabs */}
+//       <div className="flex gap-6 border-b">
+//         {tabs.map((tab) => (
+//           <button
+//             key={tab.key}
+//             className={`pb-2 capitalize transition ${
+//               activeTab === tab.key
+//                 ? "text-orange-600 border-b-2 border-orange-600"
+//                 : "text-gray-500 hover:text-orange-500"
+//             }`}
+//             onClick={() => setActiveTab(tab.key as any)}
+//           >
+//             {tab.label}
+//           </button>
+//         ))}
+//       </div>
+
+//       {/* Tab Content */}
+//       <div className="mt-4">
+//         {activeTab === "description" && (
+//           <Description description={item.description} allergies={item.allergies} />
+//         )}
+//         {activeTab === "howtoeat" && (
+//           <FoodTip howToEat={item.how_to_eat} nutritional={item.nutritional_info} />
+//         )}
+//         {activeTab === "reviews" && <Review />}
+//         {activeTab === "writeReview" && <ReviewForm />}
+//       </div>
+//     </div>
+//   );
+// }

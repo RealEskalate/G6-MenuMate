@@ -53,3 +53,29 @@ export default function FoodTip({ howToEat, chefTip }: FoodTipProps) {
     </div>
   );
 }
+// interface FoodTipProps {
+//   howToEat: string;
+//   nutritional: {
+//     calories: number;
+//     protein: number;
+//     carbs: number;
+//     fat: number;
+//   };
+// }
+
+// export default function FoodTip({ howToEat, nutritional }: FoodTipProps) {
+//   return (
+//     <div className="border rounded-xl shadow-sm p-4">
+//       <h2 className="text-2xl font-semibold mb-3">How to Eat</h2>
+//       <p className="text-gray-700 mb-4">{howToEat}</p>
+
+//       <h2 className="text-2xl font-semibold mb-3">Nutritional Info</h2>
+//       <ul className="text-gray-700 space-y-1">
+//         <li>Calories: {nutritional.calories}</li>
+//         <li>Protein: {nutritional.protein}g</li>
+//         <li>Carbs: {nutritional.carbs}g</li>
+//         <li>Fat: {nutritional.fat}g</li>
+//       </ul>
+//     </div>
+//   );
+// }

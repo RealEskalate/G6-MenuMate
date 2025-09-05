@@ -31,10 +31,38 @@ const Description = () => {
         
 
         </div>
-        <div > </div>
+        
 
     </div>
   )
 }
 
-export default Description
+
+// export default Description
+
+// import React from "react";
+// import Tags from "@/components/common/Tags";
+
+// export default function Description({
+//   description,
+//   allergies,
+// }: {
+//   description: string;
+//   allergies: string[];
+// }) {
+//   return (
+//     <div className="border rounded-xl shadow-sm p-4 mb-3">
+//       <h2 className="text-2xl font-semibold mb-3">Description</h2>
+//       <p className="mb-4">{description}</p>
+
+//       <h2 className="text-2xl font-semibold mb-3">Allergies</h2>
+//       <ul className="flex flex-wrap gap-2 text-gray-700">
+//         {allergies.map((allergy, index) => (
+//           <li key={index}>
+//             <Tags>{allergy}</Tags>
+//           </li>
+//         ))}
+//       </ul>
+//     </div>
+//   );
+// }
