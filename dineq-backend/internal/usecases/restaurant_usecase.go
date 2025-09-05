@@ -16,11 +16,6 @@ type RestaurantUsecase struct {
 	ctxtimeout     time.Duration
 }
 
-func (s *RestaurantUsecase) ListRestaurantsByManager(ctx context.Context, managerId string) ([]*domain.Restaurant, error) {
-	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
-	defer cancel()
-	return s.Repo.ListRestaurantsByManager(c, managerId)
-}
 func NewRestaurantUsecase(r domain.IRestaurantRepo, timeout time.Duration, storage services.StorageService) domain.IRestaurantUsecase {
 	return &RestaurantUsecase{
 		Repo:           r,
