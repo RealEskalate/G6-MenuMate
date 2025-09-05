@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -34,6 +35,9 @@ type Env struct {
 	// user collection
 	UserCollection string `mapstructure:"USER_COLLECTION"`
 
+	// review collection
+	ReviewCollection string 	`mapstructure:"REVIEW_COLLECTION"`
+
 	// Cookie / Security settings
 	CookieSecure    bool   `mapstructure:"COOKIE_SECURE"`
 	CookieDomain    string `mapstructure:"COOKIE_DOMAIN"`
@@ -45,6 +49,8 @@ type Env struct {
 
 	// user refresh token collection
 	RefreshTokenCollection string `mapstructure:"REFRESH_TOKEN_COLLECTION"`
+	// reaction collection
+	ReactionCollection	string `mapstructure:"REACTION_COLLECTION"`
 
 	// restaurant collection
 	RestaurantCollection string `mapstructure:"RESTAURANT_COLLECTION"`
@@ -128,18 +134,23 @@ type Env struct {
 // Viper can be made injectable
 func NewEnv() (*Env, error) {
 	// Load .env file if present
-	_ = godotenv.Load()
-
+	if err := godotenv.Load(); err != nil {
+		log.Println("Error loading .env file:", err)
+	}
+	fmt.Println("DB_URI:", os.Getenv("DB_URI"))
 	env := &Env{}
 	env.Port = os.Getenv("PORT")
 	env.AppEnv = os.Getenv("APP_ENV")
 	env.DB_Uri = os.Getenv("DB_URI")
 	env.DB_Name = os.Getenv("DB_NAME")
+	fmt.Printf("DB_NAME as bytes: %q\n", env.DB_Name)
 	env.RTS = os.Getenv("REFRESH_TOKEN_SECRET")
 	env.ATS = os.Getenv("ACCESS_TOKEN_SECRET")
 	env.UserCollection = os.Getenv("USER_COLLECTION")
 	env.RefreshTokenCollection = os.Getenv("REFRESH_TOKEN_COLLECTION")
 	env.RestaurantCollection = os.Getenv("RESTAURANT_COLLECTION")
+	env.ReviewCollection = os.Getenv("REVIEW_COLLECTION")
+	env.ReactionCollection = os.Getenv("REACTION_COLLECTION")
 	env.PasswordResetCollection = os.Getenv("PASSWORD_RESET_TOKEN_COLLECTION")
 	env.PasswordResetExpiry, _ = strconv.Atoi(os.Getenv("PASSWORD_RESET_TOKEN_EXPIRE_MINUTES"))
 	env.RefTEHours, _ = strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXPIRE_HOURS"))

@@ -1,8 +1,6 @@
 package mapper
 
 import (
-	"fmt"
-
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -41,7 +39,6 @@ type RestaurantModel struct {
 func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
 	managerOID, err := bson.ObjectIDFromHex(r.ManagerID)
 	if err != nil {
-		fmt.Printf("[DEBUG] Invalid ObjectID for ManagerID during creation: %s\n", r.ManagerID)
 		return err
 	}
 
