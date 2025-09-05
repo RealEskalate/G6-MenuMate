@@ -141,32 +141,28 @@ func (h *MenuHandler) PublishMenu(c *gin.Context) {
 
 // GenerateQRCode generates a QR code for a menu
 func (h *MenuHandler) GenerateQRCode(c *gin.Context) {
-	restaurantID := c.Param("restaurant_slug")
-	menuID := c.Param("id")
+  restaurantID := c.Param("restaurant_slug")
+  menuID := c.Param("id")
 
-	var req dto.QRConfig
-	if err := c.ShouldBindJSON(&req); err != nil {
-		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
-		return
-	}
+  var req dto.QRCodeRequest
+  if err := c.ShouldBindJSON(&req); err != nil {
+    dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
+    return
+  }
 
-	domainReq := dto.QRConfigToDomain(&req)
-	if validate.Struct(domainReq) != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: validate.Struct(domainReq).Error()})
-		return
-	}
+  qrCodeRequest := dto.DTOToQRCodeRequest(&req)
 
-	qrCode, err := h.UseCase.GenerateQRCode(restaurantID, menuID, domainReq)
-	if err != nil {
-		dto.WriteError(c, err)
-		return
-	}
-	if err := h.QrUseCase.CreateQRCode(qrCode); err != nil {
-		dto.WriteError(c, err)
-		return
-	}
+  qrCode, err := h.UseCase.GenerateQRCode(restaurantID, menuID, qrCodeRequest)
+  if err != nil {
+    dto.WriteError(c, err)
+    return
+  }
+  if err := h.QrUseCase.CreateQRCode(qrCode); err != nil {
+    dto.WriteError(c, err)
+    return
+  }
 
-	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgCreated, Data: gin.H{"qr_code": dto.DomainToQRCodeResponse(qrCode)}})
+  c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgCreated, Data: gin.H{"qr_code": dto.DomainToQRCodeResponse(qrCode)}})
 }
 
 // DeleteMenu marks a menu as deleted
