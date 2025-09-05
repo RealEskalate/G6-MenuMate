@@ -9,6 +9,7 @@ import (
 // ReviewRequest is used for creating or updating a review
 type ReviewRequest struct {
     ItemID      string  `json:"item_id" validate:"required"`
+    RestaurantID      string  `json:"restaurant_id" validate:"required"`
     Picture     string  `json:"picture,omitempty" validate:"omitempty,url"`
     Description string  `json:"description" validate:"required,max=500"`
     Rating      float64 `json:"rating" validate:"required,min=1,max=5"`
@@ -18,6 +19,7 @@ type ReviewRequest struct {
 type ReviewResponse struct {
     ID           string    `json:"id"`
     ItemID       string    `json:"item_id"`
+    RestaurantID       string    `json:"restaurant_id"`
     UserID       string    `json:"user_id"`
     Picture      string    `json:"picture,omitempty"`
     Description  string    `json:"description"`
@@ -35,6 +37,7 @@ type ReviewResponse struct {
 func ToDomainReview(req ReviewRequest, userID string) *domain.Review {
     return &domain.Review{
         ItemID:      req.ItemID,
+        RestaurantID:      req.RestaurantID,
         UserID:      userID,
         Picture:     req.Picture,
         Description: req.Description,
@@ -54,6 +57,7 @@ func ToReviewResponse(r *domain.Review, user *domain.User) ReviewResponse {
     return ReviewResponse{
         ID:           r.ID,
         ItemID:       r.ItemID,
+        RestaurantID: r.RestaurantID,
         UserID:       r.UserID,
         Picture:      r.Picture,
         Description:  r.Description,
