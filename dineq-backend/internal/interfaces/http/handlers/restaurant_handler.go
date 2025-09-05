@@ -20,6 +20,43 @@ type RestaurantHandler struct {
 	RestaurantUsecase domain.IRestaurantUsecase
 }
 
+// GetMyRestaurants returns all restaurants managed by the authenticated user (owner/manager).
+func (h *RestaurantHandler) GetMyRestaurants(c *gin.Context) {
+	userId := c.GetString("user_id")
+	fmt.Printf("[DEBUG] /api/v1/restaurants/me called by userId: %s\n", userId)
+	if userId == "" || !IsValidObjectID(userId) {
+		dto.WriteValidationError(c, "user_id", "invalid or missing user_id in token", "invalid_user_id", nil)
+		return
+	}
+	restaurants, err := h.RestaurantUsecase.ListRestaurantsByManager(c.Request.Context(), userId)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"userId": userId,
+		"restaurants": dto.ToRestaurantResponseList(restaurants),
+	})
+}
+
+// GetRestaurantsByManager returns all restaurants managed by a user (owner/manager).
+func (h *RestaurantHandler) GetRestaurantsByManager(c *gin.Context) {
+	userId := c.Param("userId")
+	if userId == "" || !IsValidObjectID(userId) {
+		dto.WriteValidationError(c, "userId", "invalid or missing userId", "invalid_user_id", nil)
+		return
+	}
+	restaurants, err := h.RestaurantUsecase.ListRestaurantsByManager(c.Request.Context(), userId)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"userId": userId,
+		"restaurants": dto.ToRestaurantResponseList(restaurants),
+	})
+}
+
 // NewRestaurantHandler creates a new RestaurantHandler instance.
 func NewRestaurantHandler(u domain.IRestaurantUsecase) *RestaurantHandler {
 	return &RestaurantHandler{RestaurantUsecase: u}
