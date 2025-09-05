@@ -25,9 +25,13 @@ type RestaurantResponse struct {
 }
 
 func ToRestaurantResponse(r *domain.Restaurant) *RestaurantResponse {
-	var location LocationDTO
+	if r == nil {
+		return nil
+	}
+
+	var location *LocationDTO
 	if r.Location != nil {
-		location = LocationDTO{
+		location = &LocationDTO{
 			Coordinates: r.Location.Coordinates,
 		}
 	}
@@ -43,7 +47,7 @@ func ToRestaurantResponse(r *domain.Restaurant) *RestaurantResponse {
 		VerificationStatus: string(r.VerificationStatus),
 		VerificationDocs:   r.VerificationDocs,
 		CoverImage:         r.CoverImage,
-		Location:           &location, // safe even if nil
+		Location:           location,
 		AverageRating:      r.AverageRating,
 		ViewCount:          r.ViewCount,
 		CreatedAt:          r.CreatedAt,

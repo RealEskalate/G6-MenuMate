@@ -31,7 +31,8 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 	pub := group.Group("/restaurants")
 	{
 		pub.GET("", restaurantHandler.GetUniqueRestaurants)
-		pub.GET("/:slug", restaurantHandler.GetRestaurant)
+		pub.GET("/slug/:slug", restaurantHandler.GetRestaurantBySlug)
+		pub.GET("/name/:name", restaurantHandler.GetRestaurantByName)
 		pub.GET("/:slug/branches", restaurantHandler.GetBranches)
 		pub.GET("/nearby", restaurantHandler.GetNearby)
 	}
@@ -41,6 +42,7 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 	admin.Use(middleware.AuthMiddleware(*env))
 	{
 		admin.POST("", restaurantHandler.CreateRestaurant)
+		admin.GET("/myrestaurant", restaurantHandler.GetRestaurantByManagerId)
 		admin.PUT("/:slug", restaurantHandler.UpdateRestaurant)
 		admin.DELETE("/:id", restaurantHandler.DeleteRestaurant)
 	}

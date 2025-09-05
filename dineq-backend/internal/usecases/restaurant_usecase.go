@@ -122,3 +122,14 @@ func (s *RestaurantUsecase) FindNearby(ctx context.Context, lat, lng float64, ma
 	}
 	return s.Repo.FindNearby(c, lat, lng, maxDistance, page, pageSize)
 }
+func (s *RestaurantUsecase) GetRestaurantByName(ctx context.Context, name string) (*domain.Restaurant, error) {
+	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
+	defer cancel()
+	return s.Repo.GetByRestaurantName(c, name)
+}
+
+func (s *RestaurantUsecase) GetRestaurantByManagerId(ctx context.Context, manager string) (*domain.Restaurant, error) {
+	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
+	defer cancel()
+	return s.Repo.GetByManagerId(c, manager)
+}
