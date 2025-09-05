@@ -25,8 +25,15 @@ func NewOCRJobRepository(db mongo.Database, ocrCl string) domain.IOCRJobReposito
 // create ocr
 func (r *OCRRepository) Create(ctx context.Context, job *domain.OCRJob) error {
 	dbocr := mapper.FromDomainOCRJob(job)
-	dbocr.CreatedAt = time.Now()
-	dbocr.UpdatedAt = time.Now()
+	if dbocr.CreatedAt.IsZero() {
+		dbocr.CreatedAt = time.Now()
+	}
+	if dbocr.UpdatedAt.IsZero() {
+		dbocr.UpdatedAt = time.Now()
+	}
+	if dbocr.Status == "" {
+		dbocr.Status = string(domain.OCRProcessing)
+	}
 	res, err := r.db.Collection(r.ocrCl).InsertOne(ctx, dbocr)
 	if err != nil {
 		return err
@@ -48,7 +55,8 @@ func (r *OCRRepository) Update(ctx context.Context, id string, job *domain.OCRJo
 	if err != nil {
 		return err
 	}
-	_, err = r.db.Collection(r.ocrCl).UpdateOne(ctx, oid, dbocr)
+	update := bson.M{"$set": dbocr}
+	_, err = r.db.Collection(r.ocrCl).UpdateOne(ctx, bson.M{"_id": oid}, update)
 	return err
 }
 
@@ -59,7 +67,7 @@ func (r *OCRRepository) GetByID(ctx context.Context, id string) (*domain.OCRJob,
 		return nil, err
 	}
 	var dbocr mapper.OCRJobDB
-	err = r.db.Collection(r.ocrCl).FindOne(ctx, oid).Decode(&dbocr)
+	err = r.db.Collection(r.ocrCl).FindOne(ctx, bson.M{"_id": oid}).Decode(&dbocr)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +80,7 @@ func (r *OCRRepository) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	_, err = r.db.Collection(r.ocrCl).DeleteOne(ctx, oid)
+	_, err = r.db.Collection(r.ocrCl).DeleteOne(ctx, bson.M{"_id": oid})
 	return err
 }
 
@@ -88,13 +96,13 @@ func (r *OCRRepository) UpdateStatus(ctx context.Context, id, status string) err
 			"updatedAt": time.Now(),
 		},
 	}
-	_, err = r.db.Collection(r.ocrCl).UpdateOne(ctx, oid, update)
+	_, err = r.db.Collection(r.ocrCl).UpdateOne(ctx, bson.M{"_id": oid}, update)
 	return err
 }
 
 // get pending jobs
 func (r *OCRRepository) GetPendingJobs(ctx context.Context) ([]*domain.OCRJob, error) {
-	filter := bson.M{"status": "pending"}
+	filter := bson.M{"status": string(domain.OCRProcessing)}
 	cursor, err := r.db.Collection(r.ocrCl).Find(ctx, filter)
 	if err != nil {
 		return nil, err

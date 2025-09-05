@@ -20,19 +20,19 @@ func NewItemHandler(uc domain.IItemUseCase) *ItemHandler {
 func (h *ItemHandler) CreateItem(c *gin.Context) {
 	var itemDto dto.ItemRequest
 	if err := c.ShouldBindJSON(&itemDto); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
 
 	if err := validate.Struct(&itemDto); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidInput.Error(), "invalid_input", err)
 		return
 	}
 
 	item := dto.RequestToItem(&itemDto)
 	item.MenuSlug = c.Param("menu_slug")
 	if err := h.UseCase.CreateItem(item); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: "Failed to create item", Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 
@@ -44,7 +44,7 @@ func (h *ItemHandler) GetItemByID(c *gin.Context) {
 	id := c.Param("id")
 	item, err := h.UseCase.GetItemByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, dto.ErrorResponse{Message: domain.ErrCodeNotFound.Error(), Error: err.Error()})
+		dto.WriteError(c, domain.ErrNotFound)
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgRetrieved, Data: gin.H{"item": item}})
@@ -56,7 +56,7 @@ func (h *ItemHandler) GetItems(c *gin.Context) {
 
 	items, err := h.UseCase.GetItems(menuSlug)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: "Failed to retrieve items", Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgRetrieved, Data: gin.H{"items": dto.ItemToResponseList(items)}})
@@ -67,17 +67,17 @@ func (h *ItemHandler) UpdateItem(c *gin.Context) {
 	id := c.Param("id")
 	var itemDto dto.ItemRequest
 	if err := c.Bind(&itemDto); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
 
 	if err := validate.Struct(&itemDto); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidInput.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidInput.Error(), "invalid_input", err)
 		return
 	}
 	item := dto.RequestToItem(&itemDto)
 	if err := h.UseCase.UpdateItem(id, item); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: "Failed to update item", Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgUpdated, Data: gin.H{"item": item}})
@@ -88,11 +88,11 @@ func (h *ItemHandler) AddReview(c *gin.Context) {
 	id := c.Param("id")
 	var review dto.ReviewDTO
 	if err := c.ShouldBindJSON(&review); err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
 	if err := h.UseCase.AddReview(id, review.UserID); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: "Failed to add review", Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: "Review added successfully"})
@@ -102,7 +102,7 @@ func (h *ItemHandler) AddReview(c *gin.Context) {
 func (h *ItemHandler) DeleteItem(c *gin.Context) {
 	id := c.Param("id")
 	if err := h.UseCase.DeleteItem(id); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: "Failed to delete item", Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusNoContent, nil)
