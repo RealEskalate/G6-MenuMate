@@ -1,44 +1,103 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/store";
+import { clearMenuItems } from "@/store/menuSlice";
+
+// --- Types from OCR response ---
+interface NutritionalInfo {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+interface MenuItem {
+  name: string;
+  name_am?: string;
+  image: File | null | string;
+  price: number | string;
+  currency?: string;
+  ingredients: string[];
+  description: string;
+  description_am?: string;
+  tab_tags?: string[];
+  tab_tags_am?: string[];
+  allergies?: string;
+  allergies_am?: string;
+  nutritional_info?: NutritionalInfo;
+  preparation_time?: number;
+  instructions: string;
+  instructions_am?: string;
+  voice?: string | null;
+}
+
+interface Section {
+  name: string;
+  items: MenuItem[];
+}
 
 const ManualMenu = () => {
+  const dispatch = useDispatch();
+  const ocrMenuItems = useSelector(
+    (state: RootState) => state.menu?.menuItems ?? []
+  );
+  console.log("OCR Menu Items from Redux:", ocrMenuItems);
+
+  const [initialized, setInitialized] = useState(false);
   const [menuName, setMenuName] = useState("Untitled menu");
   const [language, setLanguage] = useState("Amharic");
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
-  type MenuItem = {
-    name: string;
-    image: File | null;
-    price: string;
-    ingredients: string[];
-    description: string;
-    instructions: string;
-    voice: File | null;
-  };
-
-  type Section = {
-    name: string;
-    items: MenuItem[];
-  };
-
   const [sections, setSections] = useState<Section[]>([
-    {
-      name: "Starters",
-      items: [
-        {
-          name: "",
-          image: null,
-          price: "",
-          ingredients: ["Ingredient 1"],
-          description: "",
-          instructions: "",
-          voice: null,
-        },
-      ],
-    },
+    { name: "Starters", items: [] },
   ]);
+  const [expandedItems, setExpandedItems] = useState<{
+    [key: string]: boolean;
+  }>({});
 
+  // ✅ Hydrate from Redux once, then clear store
+  useEffect(() => {
+    if (!initialized && ocrMenuItems.length > 0) {
+      const mappedItems: MenuItem[] = ocrMenuItems.map((item: any) => ({
+        name: item.name ?? "",
+        name_am: item.name_am ?? "",
+        image: null, // replace OCR string with File later if needed
+        price: item.price ?? "",
+        currency: item.currency ?? "",
+        ingredients: item.ingredients ?? [],
+        description: item.description ?? "",
+        description_am: item.description_am ?? "",
+        tab_tags: item.tab_tags ?? [],
+        tab_tags_am: item.tab_tags_am ?? [],
+        allergies: item.allergies ?? "",
+        allergies_am: item.allergies_am ?? "",
+        nutritional_info: item.nutritional_info ?? {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+        },
+        preparation_time: item.preparation_time ?? 0,
+        instructions: item.how_to_eat ?? "",
+        instructions_am: item.how_to_eat_am ?? "",
+        voice: item.voice ?? null,
+      }));
+
+      setSections([
+        {
+          name: "Imported from OCR",
+          items: mappedItems,
+        },
+      ]);
+
+      setInitialized(true);
+      dispatch(clearMenuItems()); // 🧹 clear store so no duplication
+    }
+  }, [ocrMenuItems, initialized, dispatch]);
+
+  // --- Handlers ---
   const addSection = () => {
     setSections([...sections, { name: "", items: [] }]);
   };
@@ -47,91 +106,79 @@ const ManualMenu = () => {
     const newSections = [...sections];
     newSections[sectionIndex].items.push({
       name: "",
+      name_am: "",
       image: null,
       price: "",
-      ingredients: ["Ingredient 1"],
+      currency: "",
+      ingredients: [""],
       description: "",
+      description_am: "",
+      tab_tags: [],
+      tab_tags_am: [],
+      allergies: "",
+      allergies_am: "",
+      nutritional_info: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+      preparation_time: 0,
       instructions: "",
+      instructions_am: "",
       voice: null,
     });
     setSections(newSections);
   };
 
-  const addIngredient = (sectionIndex: number, itemIndex: number) => {
-    const newSections = [...sections];
-    newSections[sectionIndex].items[itemIndex].ingredients.push("");
-    setSections(newSections);
-  };
-
-  const handleSectionNameChange = (sectionIndex: number, value: string) => {
-    const newSections = [...sections];
-    newSections[sectionIndex].name = value;
-    setSections(newSections);
-  };
-
-  const handleItemNameChange = (
+  const updateItem = (
     sectionIndex: number,
     itemIndex: number,
-    value: string
+    field: keyof MenuItem,
+    value: any
   ) => {
     const newSections = [...sections];
-    newSections[sectionIndex].items[itemIndex].name = value;
+    (newSections[sectionIndex].items[itemIndex] as any)[field] = value;
     setSections(newSections);
   };
 
-  const handlePriceChange = (
+  const updateNutritionalInfo = (
     sectionIndex: number,
     itemIndex: number,
-    value: string
+    subField: keyof NutritionalInfo,
+    value: number
   ) => {
     const newSections = [...sections];
-    newSections[sectionIndex].items[itemIndex].price = value;
+    const item = newSections[sectionIndex].items[itemIndex];
+    item.nutritional_info = {
+      ...item.nutritional_info,
+      [subField]: value,
+    };
     setSections(newSections);
   };
 
-  const handleIngredientChange = (
+  const addArrayItem = (
     sectionIndex: number,
     itemIndex: number,
-    ingIndex: number,
+    field: "ingredients" | "tab_tags" | "tab_tags_am",
     value: string
   ) => {
-    const newSections = [...sections];
-    newSections[sectionIndex].items[itemIndex].ingredients[ingIndex] = value;
-    setSections(newSections);
-  };
-
-  const handleDescriptionChange = (
-    sectionIndex: number,
-    itemIndex: number,
-    value: string
-  ) => {
-    const newSections = [...sections];
-    newSections[sectionIndex].items[itemIndex].description = value;
-    setSections(newSections);
-  };
-
-  const handleInstructionsChange = (
-    sectionIndex: number,
-    itemIndex: number,
-    value: string
-  ) => {
-    const newSections = [...sections];
-    newSections[sectionIndex].items[itemIndex].instructions = value;
-    setSections(newSections);
-  };
-
-  const handleImageDrop = (
-    e: React.DragEvent<HTMLDivElement>,
-    sectionIndex: number,
-    itemIndex: number
-  ) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type.startsWith("image/")) {
+    if (value.trim()) {
       const newSections = [...sections];
-      newSections[sectionIndex].items[itemIndex].image = file;
+      (newSections[sectionIndex].items[itemIndex][field] as string[]).push(
+        value.trim()
+      );
       setSections(newSections);
     }
+  };
+
+  const removeArrayItem = (
+    sectionIndex: number,
+    itemIndex: number,
+    field: "ingredients" | "tab_tags" | "tab_tags_am",
+    arrayIndex: number
+  ) => {
+    const newSections = [...sections];
+    (newSections[sectionIndex].items[itemIndex][field] as string[]).splice(
+      arrayIndex,
+      1
+    );
+    setSections(newSections);
   };
 
   const handleImageSelect = (
@@ -139,39 +186,9 @@ const ManualMenu = () => {
     sectionIndex: number,
     itemIndex: number
   ) => {
-    const files = e.target.files;
-    const file = files && files[0];
-    if (file && file.type.startsWith("image/")) {
-      const newSections = [...sections];
-      newSections[sectionIndex].items[itemIndex].image = file;
-      setSections(newSections);
-    }
-  };
-
-  const handleVoiceDrop = (
-    e: React.DragEvent<HTMLDivElement>,
-    sectionIndex: number,
-    itemIndex: number
-  ) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && file.type === "audio/mpeg" && file.size <= 10 * 1024 * 1024) {
-      const newSections = [...sections];
-      newSections[sectionIndex].items[itemIndex].voice = file;
-      setSections(newSections);
-    }
-  };
-
-  const handleVoiceSelect = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    sectionIndex: number,
-    itemIndex: number
-  ) => {
-    const file = e.target.files && e.target.files[0];
-    if (file && file.type === "audio/mpeg" && file.size <= 10 * 1024 * 1024) {
-      const newSections = [...sections];
-      newSections[sectionIndex].items[itemIndex].voice = file;
-      setSections(newSections);
+    const file = e.target.files?.[0];
+    if (file) {
+      updateItem(sectionIndex, itemIndex, "image", file);
     }
   };
 
@@ -186,74 +203,60 @@ const ManualMenu = () => {
     setTags(tags.filter((_, i) => i !== index));
   };
 
-  const preventDefault = (e: { preventDefault: () => void }) => {
-    e.preventDefault();
+  const toggleItemExpand = (sectionIndex: number, itemIndex: number) => {
+    const key = `${sectionIndex}-${itemIndex}`;
+    setExpandedItems((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // --- Render ---
   return (
     <div className="flex-1 p-6 bg-white">
-      <h1 className="text-2xl font-bold mb-6">Add menu Manually</h1>
+      <h1 className="text-2xl font-bold mb-6">Manual Menu Editor</h1>
 
+      {/* Basic Details */}
       <div className="border border-orange-300 rounded-lg p-6 mb-6">
         <h2 className="text-lg font-semibold mb-4">Basic Details</h2>
         <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Menu name</label>
-            <input
-              type="text"
-              value={menuName}
-              onChange={(e) => setMenuName(e.target.value)}
-              className="w-full border border-gray-300 rounded p-2"
-              placeholder="Untitled menu"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block text-sm font-medium mb-1">Language</label>
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="w-full border border-gray-300 rounded p-2"
-            >
-              <option>Amharic</option>
-              {/* Add more languages as needed */}
-            </select>
-          </div>
-        </div>
-        <div>
-          <button
-            onClick={() => setNewTag("")} // Show input on click if needed, but for simplicity, always show
-            className="bg-gray-200 text-gray-700 px-4 py-2 rounded flex items-center"
+          <input
+            type="text"
+            value={menuName}
+            onChange={(e) => setMenuName(e.target.value)}
+            className="flex-1 border border-gray-300 rounded p-2"
+            placeholder="Menu name"
+          />
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="flex-1 border border-gray-300 rounded p-2"
           >
-            <span className="mr-2">📎</span> Add Tag
+            <option>Amharic</option>
+            <option>English</option>
+          </select>
+        </div>
+
+        {/* Tags */}
+        <div>
+          <input
+            type="text"
+            value={newTag}
+            onChange={(e) => setNewTag(e.target.value)}
+            className="border border-gray-300 rounded p-2 mr-2"
+            placeholder="Enter tag"
+          />
+          <button
+            onClick={handleAddTag}
+            className="bg-orange-500 text-white px-4 py-2 rounded"
+          >
+            Add Tag
           </button>
-          {newTag !== null && (
-            <div className="mt-2">
-              <input
-                type="text"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                className="border border-gray-300 rounded p-2 mr-2"
-                placeholder="Enter tag"
-              />
-              <button
-                onClick={handleAddTag}
-                className="bg-orange-500 text-white px-4 py-2 rounded"
-              >
-                Add
-              </button>
-            </div>
-          )}
           <div className="flex flex-wrap gap-2 mt-2">
-            {tags.map((tag, index) => (
+            {tags.map((tag, i) => (
               <span
-                key={index}
+                key={i}
                 className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full flex items-center"
               >
                 {tag}
-                <button
-                  onClick={() => removeTag(index)}
-                  className="ml-2 text-orange-700"
-                >
+                <button onClick={() => removeTag(i)} className="ml-2">
                   ×
                 </button>
               </span>
@@ -262,213 +265,406 @@ const ManualMenu = () => {
         </div>
       </div>
 
-      {sections.map((section, sectionIndex) => (
+      {/* Sections + Items */}
+      {sections.map((section, sIndex) => (
         <div
-          key={sectionIndex}
+          key={sIndex}
           className="border border-orange-300 rounded-lg p-6 mb-6"
         >
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">
-              Section {sectionIndex + 1}
-            </h2>
-            <button className="text-orange-500 flex items-center">
-              <span className="mr-1">✨</span> AI Assistant
-            </button>
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">
-              Section name
-            </label>
+          <h2 className="text-lg font-semibold mb-4">
+            Section {sIndex + 1}:{" "}
             <input
               type="text"
               value={section.name}
-              onChange={(e) =>
-                handleSectionNameChange(sectionIndex, e.target.value)
-              }
-              className="w-full border border-gray-300 rounded p-2"
-              placeholder="Starters"
+              onChange={(e) => {
+                const newSections = [...sections];
+                newSections[sIndex].name = e.target.value;
+                setSections(newSections);
+              }}
+              className="border-b border-gray-300 focus:outline-none"
             />
-          </div>
+          </h2>
 
-          {section.items.map((item, itemIndex) => (
-            <div
-              key={itemIndex}
-              className="mb-6 border-b border-gray-200 pb-6 last:border-b-0"
-            >
-              <h3 className="text-md font-medium mb-2">Item {itemIndex + 1}</h3>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  Item name
-                </label>
-                <input
-                  type="text"
-                  value={item.name}
-                  onChange={(e) =>
-                    handleItemNameChange(
-                      sectionIndex,
-                      itemIndex,
-                      e.target.value
-                    )
-                  }
-                  className="w-full border border-gray-300 rounded p-2"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  Food image
-                </label>
+          {section.items.map((item, iIndex) => {
+            const key = `${sIndex}-${iIndex}`;
+            const isExpanded = expandedItems[key] || false;
+            return (
+              <div key={iIndex} className="mb-6 border-b pb-6">
                 <div
-                  className="border border-dashed border-gray-300 rounded p-4 text-center"
-                  onDrop={(e) => handleImageDrop(e, sectionIndex, itemIndex)}
-                  onDragOver={preventDefault}
+                  className="flex justify-between items-center cursor-pointer"
+                  onClick={() => toggleItemExpand(sIndex, iIndex)}
                 >
-                  {item.image ? (
-                    <p>&quot;{item.image.name}</p>
-                  ) : (
-                    <>
-                      <div className="text-gray-500 mb-2">📷</div>
-                      <p className="text-gray-500">Drag and drop food image</p>
-                      <p className="text-gray-500">OR</p>
-                      <label className="bg-orange-500 text-white px-4 py-2 rounded cursor-pointer inline-block">
-                        Choose from Gallery
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) =>
-                            handleImageSelect(e, sectionIndex, itemIndex)
-                          }
-                          className="hidden"
-                        />
-                      </label>
-                    </>
-                  )}
+                  <h3 className="font-medium mb-2">
+                    Item {iIndex + 1}: {item.name || "Untitled"}
+                  </h3>
+                  <span>{isExpanded ? "▲" : "▼"}</span>
                 </div>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  ETB Price
-                </label>
-                <input
-                  type="text"
-                  value={item.price}
-                  onChange={(e) =>
-                    handlePriceChange(sectionIndex, itemIndex, e.target.value)
-                  }
-                  className="w-full border border-gray-300 rounded p-2"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  Ingredients
-                </label>
-                {item.ingredients.map((ing, ingIndex) => (
-                  <input
-                    key={ingIndex}
-                    type="text"
-                    value={ing}
-                    onChange={(e) =>
-                      handleIngredientChange(
-                        sectionIndex,
-                        itemIndex,
-                        ingIndex,
-                        e.target.value
-                      )
-                    }
-                    className="w-full border border-gray-300 rounded p-2 mb-2"
-                    placeholder={`Ingredient ${ingIndex + 1}`}
-                  />
-                ))}
-                <button
-                  onClick={() => addIngredient(sectionIndex, itemIndex)}
-                  className="text-orange-500 flex items-center"
-                >
-                  <span className="mr-1">⊕</span> Add Ingredient
-                </button>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  Description (max 100 chars)
-                </label>
-                <textarea
-                  value={item.description}
-                  onChange={(e) =>
-                    handleDescriptionChange(
-                      sectionIndex,
-                      itemIndex,
-                      e.target.value
-                    )
-                  }
-                  maxLength={100}
-                  className="w-full border border-gray-300 rounded p-2"
-                  rows={3}
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  How to eat
-                </label>
-                <textarea
-                  value={item.instructions}
-                  onChange={(e) =>
-                    handleInstructionsChange(
-                      sectionIndex,
-                      itemIndex,
-                      e.target.value
-                    )
-                  }
-                  maxLength={100}
-                  className="w-full border border-gray-300 rounded p-2"
-                  rows={3}
-                  placeholder="Instructions (max 100 chars)"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">
-                  Voice Explanation
-                </label>
-                <div
-                  className="border border-dashed border-gray-300 rounded p-4 text-center"
-                  onDrop={(e) => handleVoiceDrop(e, sectionIndex, itemIndex)}
-                  onDragOver={preventDefault}
-                >
-                  {item.voice ? (
-                    <p>{item.voice.name}</p>
-                  ) : (
-                    <>
-                      <div className="text-gray-500 mb-2">☁️</div>
-                      <p className="text-gray-500">
-                        Drag and drop your file or click to browse
-                      </p>
-                      <p className="text-blue-500">mp3 up to 10MB</p>
+
+                {isExpanded && (
+                  <div className="mt-4">
+                    {/* Basic Fields */}
+                    <input
+                      type="text"
+                      value={item.name}
+                      placeholder="Item name"
+                      onChange={(e) =>
+                        updateItem(sIndex, iIndex, "name", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+                    <input
+                      type="text"
+                      value={item.name_am}
+                      placeholder="Item name (Amharic)"
+                      onChange={(e) =>
+                        updateItem(sIndex, iIndex, "name_am", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+                    <input
+                      type="text"
+                      value={item.price as string}
+                      placeholder="Price"
+                      onChange={(e) =>
+                        updateItem(sIndex, iIndex, "price", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+                    <input
+                      type="text"
+                      value={item.currency}
+                      placeholder="Currency"
+                      onChange={(e) =>
+                        updateItem(sIndex, iIndex, "currency", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+                    <textarea
+                      value={item.description}
+                      placeholder="Description"
+                      onChange={(e) =>
+                        updateItem(
+                          sIndex,
+                          iIndex,
+                          "description",
+                          e.target.value
+                        )
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+                    <textarea
+                      value={item.description_am}
+                      placeholder="Description (Amharic)"
+                      onChange={(e) =>
+                        updateItem(
+                          sIndex,
+                          iIndex,
+                          "description_am",
+                          e.target.value
+                        )
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+                    <input
+                      type="text"
+                      value={item.allergies}
+                      placeholder="Allergies"
+                      onChange={(e) =>
+                        updateItem(sIndex, iIndex, "allergies", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+                    <input
+                      type="text"
+                      value={item.allergies_am}
+                      placeholder="Allergies (Amharic)"
+                      onChange={(e) =>
+                        updateItem(
+                          sIndex,
+                          iIndex,
+                          "allergies_am",
+                          e.target.value
+                        )
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+                    <input
+                      type="number"
+                      value={item.preparation_time}
+                      placeholder="Preparation Time (minutes)"
+                      onChange={(e) =>
+                        updateItem(
+                          sIndex,
+                          iIndex,
+                          "preparation_time",
+                          Number(e.target.value)
+                        )
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+                    <textarea
+                      value={item.instructions}
+                      placeholder="Instructions / How to Eat"
+                      onChange={(e) =>
+                        updateItem(
+                          sIndex,
+                          iIndex,
+                          "instructions",
+                          e.target.value
+                        )
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+                    <textarea
+                      value={item.instructions_am}
+                      placeholder="Instructions (Amharic)"
+                      onChange={(e) =>
+                        updateItem(
+                          sIndex,
+                          iIndex,
+                          "instructions_am",
+                          e.target.value
+                        )
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+                    <input
+                      type="text"
+                      value={item.voice || ""}
+                      placeholder="Voice URL"
+                      onChange={(e) =>
+                        updateItem(sIndex, iIndex, "voice", e.target.value)
+                      }
+                      className="w-full border border-gray-300 rounded p-2 mb-2"
+                    />
+
+                    {/* Nutritional Info */}
+                    <div className="grid grid-cols-4 gap-2 mb-2">
                       <input
-                        type="file"
-                        accept=".mp3"
+                        type="number"
+                        placeholder="Calories"
+                        value={item.nutritional_info?.calories ?? ""}
                         onChange={(e) =>
-                          handleVoiceSelect(e, sectionIndex, itemIndex)
+                          updateNutritionalInfo(
+                            sIndex,
+                            iIndex,
+                            "calories",
+                            Number(e.target.value)
+                          )
                         }
-                        className="hidden"
+                        className="border border-gray-300 rounded p-2"
                       />
-                    </>
-                  )}
-                </div>
+                      <input
+                        type="number"
+                        placeholder="Protein (g)"
+                        value={item.nutritional_info?.protein ?? ""}
+                        onChange={(e) =>
+                          updateNutritionalInfo(
+                            sIndex,
+                            iIndex,
+                            "protein",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="border border-gray-300 rounded p-2"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Carbs (g)"
+                        value={item.nutritional_info?.carbs ?? ""}
+                        onChange={(e) =>
+                          updateNutritionalInfo(
+                            sIndex,
+                            iIndex,
+                            "carbs",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="border border-gray-300 rounded p-2"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Fat (g)"
+                        value={item.nutritional_info?.fat ?? ""}
+                        onChange={(e) =>
+                          updateNutritionalInfo(
+                            sIndex,
+                            iIndex,
+                            "fat",
+                            Number(e.target.value)
+                          )
+                        }
+                        className="border border-gray-300 rounded p-2"
+                      />
+                    </div>
+
+                    {/* Ingredients */}
+                    <div className="mb-2">
+                      <h4 className="font-medium mb-1">Ingredients</h4>
+                      {item.ingredients.map((ing, ingIndex) => (
+                        <div key={ingIndex} className="flex mb-1">
+                          <input
+                            type="text"
+                            value={ing}
+                            onChange={(e) => {
+                              const newSections = [...sections];
+                              newSections[sIndex].items[iIndex].ingredients[
+                                ingIndex
+                              ] = e.target.value;
+                              setSections(newSections);
+                            }}
+                            className="flex-1 border border-gray-300 rounded p-2 mr-2"
+                          />
+                          <button
+                            onClick={() =>
+                              removeArrayItem(
+                                sIndex,
+                                iIndex,
+                                "ingredients",
+                                ingIndex
+                              )
+                            }
+                            className="text-red-500"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex">
+                        <input
+                          type="text"
+                          placeholder="Add ingredient"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              addArrayItem(
+                                sIndex,
+                                iIndex,
+                                "ingredients",
+                                e.currentTarget.value
+                              );
+                              e.currentTarget.value = "";
+                            }
+                          }}
+                          className="flex-1 border border-gray-300 rounded p-2"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Tab Tags */}
+                    <div className="mb-2">
+                      <h4 className="font-medium mb-1">Tab Tags</h4>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {item.tab_tags?.map((tag, tagIndex) => (
+                          <span
+                            key={tagIndex}
+                            className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full flex items-center"
+                          >
+                            {tag}
+                            <button
+                              onClick={() =>
+                                removeArrayItem(
+                                  sIndex,
+                                  iIndex,
+                                  "tab_tags",
+                                  tagIndex
+                                )
+                              }
+                              className="ml-2"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Add tab tag"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            addArrayItem(
+                              sIndex,
+                              iIndex,
+                              "tab_tags",
+                              e.currentTarget.value
+                            );
+                            e.currentTarget.value = "";
+                          }
+                        }}
+                        className="w-full border border-gray-300 rounded p-2"
+                      />
+                    </div>
+
+                    {/* Tab Tags Amharic */}
+                    <div className="mb-2">
+                      <h4 className="font-medium mb-1">Tab Tags (Amharic)</h4>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {item.tab_tags_am?.map((tag, tagIndex) => (
+                          <span
+                            key={tagIndex}
+                            className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full flex items-center"
+                          >
+                            {tag}
+                            <button
+                              onClick={() =>
+                                removeArrayItem(
+                                  sIndex,
+                                  iIndex,
+                                  "tab_tags_am",
+                                  tagIndex
+                                )
+                              }
+                              className="ml-2"
+                            >
+                              ×
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Add tab tag (Amharic)"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            addArrayItem(
+                              sIndex,
+                              iIndex,
+                              "tab_tags_am",
+                              e.currentTarget.value
+                            );
+                            e.currentTarget.value = "";
+                          }
+                        }}
+                        className="w-full border border-gray-300 rounded p-2"
+                      />
+                    </div>
+
+                    {/* Image Upload */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageSelect(e, sIndex, iIndex)}
+                      className="mb-2"
+                    />
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           <button
-            onClick={() => addItem(sectionIndex)}
-            className="bg-orange-100 text-orange-500 px-4 py-2 rounded flex items-center"
+            onClick={() => addItem(sIndex)}
+            className="bg-orange-100 text-orange-500 px-4 py-2 rounded"
           >
-            <span className="mr-1">⊕</span> Add Item
+            + Add Item
           </button>
         </div>
       ))}
 
       <button
         onClick={addSection}
-        className="bg-orange-500 text-white px-4 py-2 rounded flex items-center"
+        className="bg-orange-500 text-white px-4 py-2 rounded"
       >
-        <span className="mr-1">⊕</span> Add Section
+        + Add Section
       </button>
     </div>
   );
