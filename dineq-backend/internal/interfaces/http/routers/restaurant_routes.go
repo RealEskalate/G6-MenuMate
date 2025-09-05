@@ -31,8 +31,8 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 	pub := group.Group("/restaurants")
 	{
 		pub.GET("", restaurantHandler.GetUniqueRestaurants)
-		pub.GET("/:slug", restaurantHandler.GetRestaurant)
-		pub.GET("/:slug/branches", restaurantHandler.GetBranches)
+		pub.GET("/search", restaurantHandler.SearchRestaurants)
+		pub.GET("/nearby", restaurantHandler.GetNearby)
 	}
 
 	// Protected endpoints (auth required)
@@ -40,9 +40,10 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 	admin.Use(middleware.AuthMiddleware(*env))
 	{
 		admin.POST("", restaurantHandler.CreateRestaurant)
+		admin.GET("/myrestaurant", restaurantHandler.GetRestaurantByManagerId)
 		admin.PUT("/:slug", restaurantHandler.UpdateRestaurant)
 		admin.DELETE("/:id", restaurantHandler.DeleteRestaurant)
-	admin.GET("/me", restaurantHandler.GetMyRestaurants)
+
 	}
 
 }

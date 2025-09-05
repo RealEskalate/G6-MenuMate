@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
@@ -27,6 +28,10 @@ type Collection interface {
 	Find(ctx context.Context, filter any, opts ...options.Lister[options.FindOptions]) (Cursor, error)
 	CountDocuments(ctx context.Context, filter any, opts ...options.Lister[options.CountOptions]) (int64, error)
 	Aggregate(ctx context.Context, pipeline any) (Cursor, error)
+
+	//New: strongly typed pipeline
+	AggregatePipeline(ctx context.Context, pipeline []bson.D, opts ...options.Lister[options.AggregateOptions]) (Cursor, error)
+
 	UpdateOne(ctx context.Context, filter, update any, opts ...options.Lister[options.UpdateOneOptions]) (*mongo.UpdateResult, error)
 	UpdateMany(ctx context.Context, filter, update any, opts ...options.Lister[options.UpdateManyOptions]) (*mongo.UpdateResult, error)
 }
@@ -189,6 +194,11 @@ func (mc *mongoCollection) CountDocuments(ctx context.Context, filter any, opts 
 
 func (mc *mongoCollection) Aggregate(ctx context.Context, pipeline any) (Cursor, error) {
 	cursor, err := mc.coll.Aggregate(ctx, pipeline)
+	return &mongoCursor{mc: cursor}, err
+}
+
+func (mc *mongoCollection) AggregatePipeline(ctx context.Context, pipeline []bson.D, opts ...options.Lister[options.AggregateOptions]) (Cursor, error) {
+	cursor, err := mc.coll.Aggregate(ctx, pipeline, opts...)
 	return &mongoCursor{mc: cursor}, err
 }
 
