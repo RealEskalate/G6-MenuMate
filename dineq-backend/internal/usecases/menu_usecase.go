@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -11,13 +12,14 @@ import (
 )
 
 type MenuUseCase struct {
-	menuRepo   domain.IMenuRepository
-	qrService  services.QRService
-	ctxTimeout time.Duration
+	menuRepo    domain.IMenuRepository
+	qrService   services.QRGeneratorService
+	strgService services.StorageService
+	ctxTimeout  time.Duration
 }
 
-func NewMenuUseCase(menuRepo domain.IMenuRepository, qrService services.QRService, ctxTimeout time.Duration) domain.IMenuUseCase {
-	return &MenuUseCase{menuRepo: menuRepo, qrService: qrService, ctxTimeout: ctxTimeout}
+func NewMenuUseCase(menuRepo domain.IMenuRepository, qrService services.QRGeneratorService, strgService services.StorageService, ctxTimeout time.Duration) domain.IMenuUseCase {
+	return &MenuUseCase{menuRepo: menuRepo, qrService: qrService, strgService: strgService, ctxTimeout: ctxTimeout}
 }
 
 func (uc *MenuUseCase) CreateMenu(menu *domain.Menu) error {
@@ -37,13 +39,17 @@ func (uc *MenuUseCase) CreateMenu(menu *domain.Menu) error {
 	baseSlug := utils.GenerateSlug(name)
 	// append 6-char uuid segment for uniqueness
 	uidPart := utils.GenerateUUID()
-	if len(uidPart) > 8 { uidPart = uidPart[:8] }
+	if len(uidPart) > 8 {
+		uidPart = uidPart[:8]
+	}
 	menu.Slug = baseSlug + "-" + uidPart
 
 	// Ensure each item has slug + menu slug
 	for i := range menu.Items {
 		base := strings.TrimSpace(menu.Items[i].Name)
-		if base == "" { base = strings.TrimSpace(menu.Items[i].NameAm) }
+		if base == "" {
+			base = strings.TrimSpace(menu.Items[i].NameAm)
+		}
 		if menu.Items[i].Slug == "" && base != "" {
 			menu.Items[i].Slug = utils.GenerateSlug(base)
 		}
@@ -63,7 +69,9 @@ func (uc *MenuUseCase) UpdateMenu(id string, userId string, menu *domain.Menu) e
 	}
 
 	// Only allowed fields: Name, Items (merge semantics, do not drop unspecified items)
-	if strings.TrimSpace(menu.Name) != "" { existing.Name = menu.Name }
+	if strings.TrimSpace(menu.Name) != "" {
+		existing.Name = menu.Name
+	}
 
 	if len(menu.Items) > 0 {
 		// Build indices: by ID, slug, and lowercase name
@@ -72,23 +80,39 @@ func (uc *MenuUseCase) UpdateMenu(id string, userId string, menu *domain.Menu) e
 		nameIndex := make(map[string]*domain.Item, len(existing.Items))
 		for i := range existing.Items {
 			it := &existing.Items[i]
-			if it.ID != "" { idIndex[it.ID] = it }
-			if it.Slug != "" { slugIndex[it.Slug] = it }
-			if it.Name != "" { nameIndex[strings.ToLower(it.Name)] = it }
+			if it.ID != "" {
+				idIndex[it.ID] = it
+			}
+			if it.Slug != "" {
+				slugIndex[it.Slug] = it
+			}
+			if it.Name != "" {
+				nameIndex[strings.ToLower(it.Name)] = it
+			}
 		}
 		for i := range menu.Items {
 			in := &menu.Items[i]
 			base := strings.TrimSpace(in.Name)
-			if base == "" { base = strings.TrimSpace(in.NameAm) }
+			if base == "" {
+				base = strings.TrimSpace(in.NameAm)
+			}
 			var target *domain.Item
 			if in.ID != "" { // try ID first
-				if ex, ok := idIndex[in.ID]; ok { target = ex } else { return domain.ErrMenuItemNotFound }
+				if ex, ok := idIndex[in.ID]; ok {
+					target = ex
+				} else {
+					return domain.ErrMenuItemNotFound
+				}
 			}
 			if target == nil && in.Slug != "" { // fallback slug
-				if ex, ok := slugIndex[in.Slug]; ok { target = ex }
+				if ex, ok := slugIndex[in.Slug]; ok {
+					target = ex
+				}
 			}
 			if target == nil && base != "" { // fallback name (best-effort)
-				if ex, ok := nameIndex[strings.ToLower(base)]; ok { target = ex }
+				if ex, ok := nameIndex[strings.ToLower(base)]; ok {
+					target = ex
+				}
 			}
 			if target != nil { // update existing
 				target.Name = in.Name
@@ -111,9 +135,13 @@ func (uc *MenuUseCase) UpdateMenu(id string, userId string, menu *domain.Menu) e
 				target.HowToEatAm = in.HowToEatAm
 				target.UpdatedAt = time.Now()
 				// If ID update did not provide slug but existing has none & we have base name, generate
-				if target.Slug == "" && base != "" { target.Slug = utils.GenerateSlug(base) }
+				if target.Slug == "" && base != "" {
+					target.Slug = utils.GenerateSlug(base)
+				}
 			} else { // create new item
-				if base != "" && in.Slug == "" { in.Slug = utils.GenerateSlug(base) }
+				if base != "" && in.Slug == "" {
+					in.Slug = utils.GenerateSlug(base)
+				}
 				in.MenuSlug = existing.Slug
 				in.CreatedAt = time.Now()
 				in.UpdatedAt = time.Now()
@@ -121,7 +149,11 @@ func (uc *MenuUseCase) UpdateMenu(id string, userId string, menu *domain.Menu) e
 				existing.Items = append(existing.Items, *in)
 			}
 		}
-		for i := range existing.Items { if existing.Items[i].MenuSlug == "" { existing.Items[i].MenuSlug = existing.Slug } }
+		for i := range existing.Items {
+			if existing.Items[i].MenuSlug == "" {
+				existing.Items[i].MenuSlug = existing.Slug
+			}
+		}
 	}
 
 	existing.UpdatedAt = time.Now()
@@ -150,7 +182,7 @@ func (uc *MenuUseCase) GetByRestaurantID(id string) ([]*domain.Menu, error) {
 	return uc.menuRepo.GetByRestaurantID(ctx, id)
 }
 
-func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *domain.QRCodeRequest) (*domain.QRCode, error) {
+func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *domain.QRConfig) (*domain.QRCode, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	defer cancel()
 
@@ -164,21 +196,33 @@ func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *d
 		return nil, domain.ErrMenuNotPublished
 	}
 
-	res, err := uc.qrService.GenerateQRCode(restaurantId, req)
+	img, err := uc.qrService.GenerateGradientQRWithLogo(req)
 	if err != nil {
 		return nil, err
 	}
 
+	buf, err := uc.qrService.SaveImageAsUserFormat(img, req.Format)
+	if err != nil {
+		return nil, err
+	}
+
+	// Upload the bytes to storage
+	res, _, err := uc.strgService.UploadFile(ctx, restaurantId, buf.Bytes(), "qr-codes")
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("QR code generated at:", res)
+
+	// fmt.Println("QR code generated at:", res)
 	qrCode := &domain.QRCode{
-		ID:            res.QRCodeID,
-		ImageURL:      res.ImageURL,
-		PublicMenuURL: res.PublicMenuURL,
-		DownloadURL:   res.DownloadURL,
+		ImageURL:      res,
+		PublicMenuURL: "http://localhost:8080/menu/the-italian-corner-742a0969",
+		DownloadURL:   res + "?download=true",
 		MenuID:        menu.ID,
 		RestaurantID:  restaurantId,
-		IsActive:      res.IsActive,
-		CreatedAt:     res.CreatedAt,
-		ExpiresAt:     res.ExpiresAt,
+		IsActive:      true,
+		CreatedAt:     time.Now(),
+		ExpiresAt:     time.Now().AddDate(5, 0, 0),
 	}
 	return qrCode, nil
 }

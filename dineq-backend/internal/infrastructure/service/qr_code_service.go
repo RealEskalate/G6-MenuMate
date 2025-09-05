@@ -49,7 +49,9 @@ func NewQRService() *QRService {
 func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeRequest) (*dto.QRCodeResponse, error) {
 	qrCodeID := uuid.New().String()
 	frontendURL := os.Getenv("FRONTEND_URL")
-	if frontendURL == "" { frontendURL = qs.baseURL }
+	if frontendURL == "" {
+		frontendURL = qs.baseURL
+	}
 	publicMenuURL := fmt.Sprintf("%s/menu/%s", strings.TrimRight(frontendURL, "/"), restaurantID)
 	if request.Size <= 0 {
 		request.Size = 256
@@ -60,7 +62,9 @@ func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeR
 	if request.Format != "png" && request.Format != "jpg" && request.Format != "jpeg" && request.Format != "gif" {
 		request.Format = "png"
 	}
-	if request.Quality <= 0 || request.Quality > 100 { request.Quality = 90 }
+	if request.Quality <= 0 || request.Quality > 100 {
+		request.Quality = 90
+	}
 
 	filename := fmt.Sprintf("%s.%s", qrCodeID, request.Format)
 
@@ -111,7 +115,9 @@ func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeR
 		m := request.Customization.Margin
 		bg := image.NewNRGBA(image.Rect(0, 0, img.Bounds().Dx()+2*m, img.Bounds().Dy()+2*m))
 		var fillCol color.Color = color.White
-		if c, err := parseHexColor(request.Customization.BackgroundColor); err == nil { fillCol = c }
+		if c, err := parseHexColor(request.Customization.BackgroundColor); err == nil {
+			fillCol = c
+		}
 		draw.Draw(bg, bg.Bounds(), &image.Uniform{C: fillCol}, image.Point{}, draw.Src)
 		draw.Draw(bg, img.Bounds().Add(image.Pt(m, m)), img, image.Point{}, draw.Src)
 		img = bg
@@ -133,7 +139,9 @@ func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeR
 			log.Printf("Logo loaded: %dx%d", logoImg.Bounds().Dx(), logoImg.Bounds().Dy())
 			// Configurable logo size (default: 25% of QR code size)
 			logoSizePercent := 0.25
-			if request.Customization.LogoSizePercent > 0 { logoSizePercent = request.Customization.LogoSizePercent }
+			if request.Customization.LogoSizePercent > 0 {
+				logoSizePercent = request.Customization.LogoSizePercent
+			}
 			// Safety caps by error correction level (approx recommended)
 			// H: up to ~30% data restoration => allow <=0.30, M: <=0.20, L: <=0.15
 			maxAllowed := 0.25
@@ -147,8 +155,12 @@ func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeR
 			default:
 				maxAllowed = 0.22
 			}
-			if logoSizePercent > maxAllowed { logoSizePercent = maxAllowed }
-			if logoSizePercent < 0.05 { logoSizePercent = 0.05 }
+			if logoSizePercent > maxAllowed {
+				logoSizePercent = maxAllowed
+			}
+			if logoSizePercent < 0.05 {
+				logoSizePercent = 0.05
+			}
 			// Additionally limit absolute pixel size so modules around finder patterns remain
 			maxSide := int(float64(request.Size) * logoSizePercent)
 			// Ensure at least 6 modules clearance (rough) from each edge of logo to outer code edge
@@ -158,8 +170,12 @@ func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeR
 				moduleSize := request.Size / qrModules
 				minClearance := moduleSize * 6
 				maxLogical := request.Size - 2*minClearance
-				if maxLogical < maxSide { maxSide = maxLogical }
-				if maxSide < moduleSize*8 { maxSide = moduleSize * 8 } // keep logo legible but not tiny
+				if maxLogical < maxSide {
+					maxSide = maxLogical
+				}
+				if maxSide < moduleSize*8 {
+					maxSide = moduleSize * 8
+				} // keep logo legible but not tiny
 			}
 
 			// Resize logo with high-quality scaling
@@ -192,10 +208,14 @@ func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeR
 	labelFontApplied := false
 	if request.IncludeLabel || (request.Customization != nil && request.Customization.LabelText != "") {
 		label := "Scan Me"
-		if request.Customization != nil && request.Customization.LabelText != "" { label = request.Customization.LabelText }
+		if request.Customization != nil && request.Customization.LabelText != "" {
+			label = request.Customization.LabelText
+		}
 		var labelColor color.Color = color.Black
 		if request.Customization != nil && request.Customization.LabelColor != "" {
-			if c, err := parseHexColor(request.Customization.LabelColor); err == nil { labelColor = c }
+			if c, err := parseHexColor(request.Customization.LabelColor); err == nil {
+				labelColor = c
+			}
 		}
 		var fontFace font.Face
 		if request.Customization != nil && request.Customization.LabelFontURL != "" {
@@ -229,9 +249,11 @@ func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeR
 		textWidth := d.MeasureString(label).Ceil()
 		log.Printf("[qr-label] text='%s' requested_font_size=%d measured_width=%d lineHeight=%d ascent=%d descent=%d", label, request.Customization.LabelFontSize, textWidth, lineHeight, ascent, descent)
 		x := (newImg.Bounds().Dx() - textWidth) / 2
-		baseline := img.Bounds().Dy() + ascent + (padding/2)
+		baseline := img.Bounds().Dy() + ascent + (padding / 2)
 		// Ensure baseline not exceeding bounds
-		if baseline > newImg.Bounds().Dy()-descent { baseline = newImg.Bounds().Dy() - descent }
+		if baseline > newImg.Bounds().Dy()-descent {
+			baseline = newImg.Bounds().Dy() - descent
+		}
 		d.Dot = fixed.Point26_6{X: fixed.I(x), Y: fixed.I(baseline)}
 		d.DrawString(label)
 		img = newImg
@@ -241,20 +263,32 @@ func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeR
 	// Encode QR (with optional label/logo) into memory buffer
 	switch request.Format {
 	case "jpg", "jpeg":
-		if err := jpeg.Encode(&encodedBuf, img, &jpeg.Options{Quality: request.Quality}); err != nil { return nil, fmt.Errorf("jpeg encode: %w", err) }
+		if err := jpeg.Encode(&encodedBuf, img, &jpeg.Options{Quality: request.Quality}); err != nil {
+			return nil, fmt.Errorf("jpeg encode: %w", err)
+		}
 	case "gif":
-		if err := gif.Encode(&encodedBuf, img, nil); err != nil { return nil, fmt.Errorf("gif encode: %w", err) }
+		if err := gif.Encode(&encodedBuf, img, nil); err != nil {
+			return nil, fmt.Errorf("gif encode: %w", err)
+		}
 	default:
-		if err := png.Encode(&encodedBuf, img); err != nil { return nil, fmt.Errorf("png encode: %w", err) }
+		if err := png.Encode(&encodedBuf, img); err != nil {
+			return nil, fmt.Errorf("png encode: %w", err)
+		}
 	}
 
 	cloudName := os.Getenv("CLOUDINARY_CLOUD_NAME")
 	apiKey := os.Getenv("CLOUDINARY_API_KEY")
 	apiSecret := os.Getenv("CLOUDINARY_API_SECRET")
 
-	if cloudName == "" { cloudName = os.Getenv("CLD_NAME") }
-	if apiKey == "" { apiKey = os.Getenv("CLD_API_KEY") }
-	if apiSecret == "" { apiSecret = os.Getenv("CLD_SECRET") }
+	if cloudName == "" {
+		cloudName = os.Getenv("CLD_NAME")
+	}
+	if apiKey == "" {
+		apiKey = os.Getenv("CLD_API_KEY")
+	}
+	if apiSecret == "" {
+		apiSecret = os.Getenv("CLD_SECRET")
+	}
 	if cloudName == "" || apiKey == "" || apiSecret == "" {
 		if raw := os.Getenv("CLOUDINARY_URL"); raw != "" {
 			parts := strings.SplitN(raw, "@", 2)
@@ -270,10 +304,14 @@ func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeR
 			}
 		}
 	}
-	if cloudName == "" || apiKey == "" || apiSecret == "" { return nil, fmt.Errorf("cloudinary env vars missing") }
+	if cloudName == "" || apiKey == "" || apiSecret == "" {
+		return nil, fmt.Errorf("cloudinary env vars missing")
+	}
 	storage := NewCloudinaryStorage(cloudName, apiKey, apiSecret)
 	url, _, err := storage.UploadFile(context.Background(), filename, encodedBuf.Bytes(), "qr_codes")
-	if err != nil { return nil, fmt.Errorf("cloudinary upload failed: %w", err) }
+	if err != nil {
+		return nil, fmt.Errorf("cloudinary upload failed: %w", err)
+	}
 	resp := &dto.QRCodeResponse{
 		QRCodeID:         qrCodeID,
 		ImageURL:         url,
@@ -293,16 +331,24 @@ func (qs *QRService) GetQRCodePath(filename string) string {
 
 func parseHexColor(s string) (color.Color, error) {
 	s = strings.TrimSpace(s)
-	if s == "" { return nil, errors.New("empty color") }
-	s = strings.TrimPrefix(s, "#")
-	if len(s) != 6 && len(s) != 8 { return nil, errors.New("invalid length") }
-	var r, g, b, a uint8 = 0,0,0,255
-	if len(s) == 6 {
-		if _, err := fmt.Sscanf(s, "%02x%02x%02x", &r,&g,&b); err != nil { return nil, err }
-	} else {
-		if _, err := fmt.Sscanf(s, "%02x%02x%02x%02x", &r,&g,&b,&a); err != nil { return nil, err }
+	if s == "" {
+		return nil, errors.New("empty color")
 	}
-	return color.NRGBA{R:r,G:g,B:b,A:a}, nil
+	s = strings.TrimPrefix(s, "#")
+	if len(s) != 6 && len(s) != 8 {
+		return nil, errors.New("invalid length")
+	}
+	var r, g, b, a uint8 = 0, 0, 0, 255
+	if len(s) == 6 {
+		if _, err := fmt.Sscanf(s, "%02x%02x%02x", &r, &g, &b); err != nil {
+			return nil, err
+		}
+	} else {
+		if _, err := fmt.Sscanf(s, "%02x%02x%02x%02x", &r, &g, &b, &a); err != nil {
+			return nil, err
+		}
+	}
+	return color.NRGBA{R: r, G: g, B: b, A: a}, nil
 }
 
 func fetchLogoImage(path string) (image.Image, error) {
@@ -373,9 +419,9 @@ func applyGradientColoring(src image.Image, bg, from, to color.Color, vertical b
 			if isDark {
 				var t float64
 				if vertical {
-					t = float64(y-b.Min.Y)/float64(b.Dy()-1)
+					t = float64(y-b.Min.Y) / float64(b.Dy()-1)
 				} else {
-					t = float64(x-b.Min.X)/float64(b.Dx()-1)
+					t = float64(x-b.Min.X) / float64(b.Dx()-1)
 				}
 				cr := lerp(fr, tr, t)
 				cg := lerp(fg, tg, t)
@@ -399,8 +445,12 @@ func lerp(a, b uint8, t float64) uint8 { return uint8(float64(a) + (float64(b)-f
 
 // loadRemoteFont fetches a TTF font and returns a font.Face scaled to desired size (default 16 if size invalid)
 func loadRemoteFont(url string, sizePx int) (font.Face, error) {
-	if sizePx <= 0 { sizePx = 16 }
-	if sizePx > 300 { sizePx = 300 }
+	if sizePx <= 0 {
+		sizePx = 16
+	}
+	if sizePx > 300 {
+		sizePx = 300
+	}
 	fetch := func(u string) ([]byte, error) {
 		// Rewrite common GitHub "github.com/.../raw/..." URLs to raw.githubusercontent.com which actually serves file bytes
 		if strings.HasPrefix(u, "https://github.com/") && strings.Contains(u, "/raw/") {
@@ -415,23 +465,35 @@ func loadRemoteFont(url string, sizePx int) (font.Face, error) {
 		if strings.HasPrefix(strings.ToLower(u), "http://") || strings.HasPrefix(strings.ToLower(u), "https://") {
 			client := &http.Client{Timeout: 10 * time.Second}
 			req, err := http.NewRequest("GET", u, nil)
-			if err != nil { return nil, err }
+			if err != nil {
+				return nil, err
+			}
 			req.Header.Set("User-Agent", "MenuMate-QR-FontLoader/1.0")
 			req.Header.Set("Accept", "*/*")
 			resp, err := client.Do(req)
-			if err != nil { return nil, err }
+			if err != nil {
+				return nil, err
+			}
 			defer resp.Body.Close()
-			if resp.StatusCode != http.StatusOK { return nil, fmt.Errorf("font fetch: %s", resp.Status) }
+			if resp.StatusCode != http.StatusOK {
+				return nil, fmt.Errorf("font fetch: %s", resp.Status)
+			}
 			return io.ReadAll(resp.Body)
 		}
 		return os.ReadFile(u)
 	}
 	data, err := fetch(url)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	tt, err := truetype.Parse(data)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 
-	mkFace := func(sz float64) font.Face { return truetype.NewFace(tt, &truetype.Options{Size: sz, DPI: 72, Hinting: font.HintingFull}) }
+	mkFace := func(sz float64) font.Face {
+		return truetype.NewFace(tt, &truetype.Options{Size: sz, DPI: 72, Hinting: font.HintingFull})
+	}
 	target := float64(sizePx)
 	current := target
 	var face font.Face
@@ -440,17 +502,25 @@ func loadRemoteFont(url string, sizePx int) (font.Face, error) {
 		face = mkFace(current)
 		metrics = face.Metrics()
 		h := float64(metrics.Height.Ceil())
-		if h == 0 { break }
+		if h == 0 {
+			break
+		}
 		diff := target - h
-		if diff < 0 { diff = -diff }
+		if diff < 0 {
+			diff = -diff
+		}
 		if diff <= 1.0 { // acceptable
 			break
 		}
 		scale := target / h
 		// dampen scaling to avoid overshoot
 		current = current * (0.6 + 0.4*scale)
-		if current < 4 { current = 4 }
-		if current > 320 { current = 320 }
+		if current < 4 {
+			current = 4
+		}
+		if current > 320 {
+			current = 320
+		}
 	}
 	log.Printf("[qr-font] loaded font '%s' requested_px=%d final_point_size=%.2f metrics: ascent=%d descent=%d height=%d cap=%d", url, sizePx, current, metrics.Ascent.Ceil(), metrics.Descent.Ceil(), metrics.Height.Ceil(), metrics.CapHeight.Ceil())
 	return face, nil

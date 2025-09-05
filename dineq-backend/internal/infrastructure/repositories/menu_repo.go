@@ -140,7 +140,9 @@ func (r *MenuRepository) Update(ctx context.Context, id string, menu *domain.Men
 	// Publish state
 	if menu.IsPublished {
 		setFields["isPublished"] = true
-		if !menu.PublishedAt.IsZero() { setFields["publishedAt"] = menu.PublishedAt }
+		if !menu.PublishedAt.IsZero() {
+			setFields["publishedAt"] = menu.PublishedAt
+		}
 	}
 
 	// If items slice provided, map to DB representations (regenerating slugs left to upstream if desired)
