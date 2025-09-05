@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Image from "next/image";
+
 
 import { Input } from "@/components/ui/input";   
 import { Button } from "@/components/ui/button"; 
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { registerUser } from "@/lib/api";   
+import { useRouter } from "next/navigation";
+
 // import { a } from "framer-motion/client";
 
 const schema = z
@@ -43,27 +45,25 @@ interface SignupFormProps {
 }
 
 export default function SignupForm({ role }: SignupFormProps) {
+   const router = useRouter();
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    watch, // Added for debugging
+    watch,
     control,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      role, // ✅ coming from props (e.g., "CUSTOMER" or "CHEF")
+      role,
     },
   });
 
-  // Debug: Log form values in real-time
   const formValues = watch();
   React.useEffect(() => {
     console.log("Current form values:", formValues);
-    console.log("Agree checkbox value:", formValues.agree);
   }, [formValues]);
 
-  // Debug: Log form errors
   React.useEffect(() => {
     if (Object.keys(errors).length > 0) {
       console.log("Form errors:", errors);
@@ -71,8 +71,6 @@ export default function SignupForm({ role }: SignupFormProps) {
   }, [errors]);
 
   const onSubmit = async (data: FormData) => {
-    console.log("Form submitted with data:", data);
-    console.log("Form errors on submit:", errors); // Added for debugging
     try {
       const payload = {
         username: data.username,
@@ -85,13 +83,18 @@ export default function SignupForm({ role }: SignupFormProps) {
       };
       const response = await registerUser(payload);
       console.log("✅ Registered:", response);
+      router.push("/auth/signin");
+
     } catch (err) {
       console.error("❌ Signup failed:", err);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="space-y-2 w-full max-w-md"
+    >
       {/* Username */}
       <div>
         <Input
@@ -99,6 +102,7 @@ export default function SignupForm({ role }: SignupFormProps) {
           required
           placeholder="Choose a username"
           {...register("username")}
+          
         />
         {errors.username && (
           <p className="text-red-500 text-sm">{errors.username.message}</p>
@@ -178,7 +182,7 @@ export default function SignupForm({ role }: SignupFormProps) {
 
       {/* Terms */}
       <div className="flex items-start space-x-2">
-       <Controller
+        <Controller
           name="agree"
           control={control}
           render={({ field }) => (
@@ -218,27 +222,8 @@ export default function SignupForm({ role }: SignupFormProps) {
         </Link>
       </p>
 
-      {/* Divider */}
-      <div className="flex items-center my-4">
-        <hr className="flex-grow border-gray-300" />
-        <span className="mx-2 text-gray-500 text-sm">OR</span>
-        <hr className="flex-grow border-gray-300" />
-      </div>
-
-      {/* Google Sign-in */}
-      <Button
-        variant="outline"
-        className="w-full flex items-center justify-center gap-2"
-      >
-        <Image
-          src="/icons/google.png"
-          width={100}
-          height={120}
-          alt="Google"
-          className="w-5 h-5"
-        />
-        Sign in with Google
-      </Button>
-    </form>
+      
+      </form>
+   
   );
 }

@@ -29,7 +29,7 @@ export default function SettingsLayout({
         {tabs.map((tab) => {
           const active =
             (tab.href === "/restaurant/dashboard/settings" &&
-              pathname === "/restaurant/dashboard/settings/proile") ||
+              pathname === "/restaurant/dashboard/settings/profile") ||
             (tab.href !== "/restaurant/dashboard/settings" &&
               pathname.startsWith(tab.href));
 

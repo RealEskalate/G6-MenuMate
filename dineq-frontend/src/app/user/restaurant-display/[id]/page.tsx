@@ -1,75 +1,89 @@
-<<<<<<< HEAD
-=======
+"use client";
 
->>>>>>> a40b108dc33d2b88911e3b83a1ec36dec369366a
-import { notFound } from "next/navigation";
-import Image from "next/image";
 import { FaHeart } from "react-icons/fa";
-import { MapPin, Phone } from "lucide-react";
-import restaurants from "@/data/RestaurantData"; // Correctly import the data
+import { Phone } from "lucide-react";
+import SafeImage from "@/components/common/SafeImage";
+import NavBar from "@/components/common/NavBar";
+import { useParams } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store/store";
+import { useEffect, useMemo } from "react";
+import { fetchRestaurantById, ApiRestaurant } from "@/store/restaurantsSlice";
+import { RestaurantDetailSkeleton } from "@/components/common/LoadingSkeletons";
 
-interface Props {
-  params: {
-    id: string;
-  };
-}
+export default function SingleRestaurant() {
+  const params = useParams<{ id: string }>();
+  const id = useMemo(() => String(params?.id || ""), [params]);
+  const dispatch = useDispatch<AppDispatch>();
 
-export default function SingleRestaurant({ params }: Props) {
-  // Looking up restaurant by id from static data
+  const { currentRestaurant, currentLoading, currentError } = useSelector(
+    (state: RootState) => state.restaurants
+  );
 
-  // The .find() method should work correctly if the data is imported.
-  const restaurant = restaurants.find((r) => r.id === params.id);
+  useEffect(() => {
+    if (id) {
+      dispatch(fetchRestaurantById(id));
+    }
+  }, [dispatch, id]);
 
-  if (!restaurant) {
-    // If the restaurant is not found, render a 404 page.
-    return notFound();
-  }
+  const restaurant: ApiRestaurant | null = currentRestaurant;
 
   return (
-    <div className="flex flex-col items-center p-4 sm:p-6 md:p-8">
-      {/* Header Image */}
-      <div className="w-full max-w-5xl h-40 sm:h-52 md:h-64 relative rounded-lg overflow-hidden shadow-lg">
-        <Image
-          src={restaurant.logoImage}
-          alt={restaurant.name}
-          fill
-          className="object-cover"
-        />
-      </div>
+    <>
+      <NavBar role="CUSTOMER" />
 
-      {/* Restaurant Info */}
-      <div className="w-full max-w-5xl bg-gray-100 p-5 rounded-lg mt-5 shadow-md">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div className="flex flex-col mb-4 md:mb-0">
-            <h1 className="text-3xl font-bold">{restaurant.name}</h1>
-            <p className="text-yellow-500 text-lg">
-              ⭐️ {restaurant.averageRating}
-            </p>
-            <p className="mt-2 text-gray-700">{restaurant.about}</p>
+      {!id ? (
+        <div className="flex justify-center p-8">Invalid restaurant id.</div>
+      ) : currentLoading ? (
+        <RestaurantDetailSkeleton />
+      ) : currentError ? (
+        <div className="flex justify-center p-8 text-red-600">{currentError}</div>
+      ) : !restaurant ? (
+        <div className="flex justify-center p-8">Restaurant not found.</div>
+      ) : (
+        <div className="flex flex-col items-center px-4 sm:px-6 md:px-8 pb-8">
+          {/* Header Image */}
+          <div className="w-full max-w-5xl h-40 sm:h-52 md:h-64 relative rounded-lg overflow-hidden shadow-lg mt-4">
+            <SafeImage
+              src={restaurant.logo_image ?? "/Background.png"}
+              alt={restaurant.name}
+              fill
+              className="object-cover"
+            />
           </div>
 
-          <button
-            type="button"
-            className="flex items-center justify-center gap-2 px-6 py-3 text-white rounded-full transition-colors duration-200"
-            style={{ backgroundColor: "var(--color-primary)" }}
-          >
-            <FaHeart className="w-5 h-5" />
-            Save
-          </button>
-        </div>
+          {/* Restaurant Info */}
+          <div className="w-full max-w-5xl bg-gray-100 p-5 rounded-lg mt-5 shadow-md">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+              <div className="flex flex-col mb-4 md:mb-0">
+                <h1 className="text-3xl font-bold">{restaurant.name}</h1>
+                <p className="text-yellow-500 text-lg">
+                  ⭐ {restaurant.average_rating ?? 0}
+                </p>
+                <p className="mt-2 text-gray-700">{restaurant.about}</p>
+              </div>
 
-        {/* Extra Details */}
-        <div className="mt-6 space-y-3">
-          <p className="flex items-center gap-3 text-lg text-gray-600">
-            <MapPin className="w-6 h-6 text-red-500" />
-            {restaurant.location || "Location not available"}
-          </p>
-          <p className="flex items-center gap-3 text-lg text-gray-600">
-            <Phone className="w-6 h-6 text-green-500" />
-            {restaurant.contact.phone}
-          </p>
+              <button
+                type="button"
+                className="flex items-center justify-center gap-2 px-6 py-3 text-white rounded-full transition-colors duration-200"
+                style={{ backgroundColor: "var(--color-primary)" }}
+              >
+                <FaHeart className="w-5 h-5" />
+                Save
+              </button>
+            </div>
+
+            {/* Extra Details */}
+            <div className="mt-6 space-y-3">
+              
+              <p className="flex items-center gap-3 text-lg text-gray-600">
+                <Phone className="w-6 h-6 text-green-500" />
+                {restaurant.phone ?? "Phone not available"}
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }

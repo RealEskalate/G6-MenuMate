@@ -46,9 +46,9 @@ export default function LoginPage() {
       const session = await getSession();
 
       if (session?.user.role === "CUSTOMER") {
-        router.push("/user/restaurant-display");
+        router.push("/user");
       }  else {
-        router.push("/restaurant/dashboard");
+        router.push("/restaurant/dashboard/menu");
       }
     } else {
       console.log("Sign-in error:", res.error);
@@ -116,7 +116,7 @@ export default function LoginPage() {
           )}
 
           <div className="text-right mb-4">
-            <Link href="" className="text-sm text-orange-500 hover:underline">
+            <Link href="/auth/forgot-password" className="text-sm text-orange-500 hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -133,7 +133,7 @@ export default function LoginPage() {
           <p className="text-sm mt-4 text-center">
             Don’t have an account?{" "}
             <Link
-              href="/user-routes/whoareyou"
+              href="/auth/whoareyou"
               className="text-orange-500 font-medium hover:underline"
             >
               Register

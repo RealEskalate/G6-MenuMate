@@ -73,8 +73,6 @@ function QrManager() {
               <a href="dashboard/qr-manager/customize">
                 <button className="flex items-center rounded-lg bg-orange-500 hover:shadow-orange-500 transition text-white px-3 py-2">
                   <Image
-                    width={110}
-                    height={105}
                     src="/icons/edit.png"
                     alt="Edit"
                     className="w-4 h-4 mr-2"

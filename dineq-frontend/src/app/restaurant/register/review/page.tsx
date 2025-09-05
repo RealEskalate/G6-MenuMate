@@ -10,7 +10,8 @@ import { useSession } from "next-auth/react";
 export default function ReviewPage() {
   const router = useRouter();
   const { data, resetData } = useRegister();
-  const { data: session } = useSession(); 
+  const session = useSession()?.data;
+
 
   const basicInfo = {
     Name: data.name,
@@ -59,9 +60,9 @@ export default function ReviewPage() {
         formData.append("verification_docs", data.businessLicense.file);
       }
 
-      if ((data as any).coverImage?.file) {
-        formData.append("cover_image", (data as any).coverImage.file);
-      }
+      // if ((data as any).coverImage?.file) {
+      //   formData.append("cover_image", (data as any).coverImage.file);
+      // }
 
       const res = await fetch(
         "https://g6-menumate.onrender.com/v1/restaurants",
@@ -84,8 +85,8 @@ export default function ReviewPage() {
 
       resetData();
       router.push("/restaurant/success");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError((err as Error).message || "❌ Submission failed");
     } finally {
       setLoading(false);
     }

@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import logo from "../../../public/logo.png";
 import Roles from "../../Types/role";
 
 function NavBar({ role }: Roles) {
@@ -22,8 +21,8 @@ function NavBar({ role }: Roles) {
       : "px-4 py-2 text-gray-700 hover:text-[var(--color-primary)]";
 
   const customerLinks = [
-    { name: "Home", href: "/" },
-    { name: "Restaurants", href: "/customer/restaurants" },
+    // { name: "Home", href: "/" },
+    { name: "Restaurants", href: "/user" },
     { name: "Scan", href: "/customer/scan" },
     { name: "Favorites", href: "/customer/favorites" },
     { name: "Profile", href: "/customer/profile" },
@@ -38,7 +37,7 @@ function NavBar({ role }: Roles) {
 
   return (
     <nav className="w-full bg-white/95 backdrop-blur-md border-b border-gray-100 z-50">
-      <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between">
+      <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link href="/">
           <Image src="/logo.png" alt="Logo" width={100} height={100} />
