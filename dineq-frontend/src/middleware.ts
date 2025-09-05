@@ -45,7 +45,7 @@ export default withAuth(
 
     if (
       pathname.startsWith("/restaurant") &&
-      (role !== "OWNER" && role !== "MANAGER" && role !== "STAFF" && role !== "ADMIN")
+      (role !== "OWNER" && role !== "MANAGER" && role !== "STAFF")
     ) {
       return NextResponse.redirect(new URL(redirectUrl, request.url));
     }
@@ -78,4 +78,3 @@ export default withAuth(
 export const config = {
   matcher: ["/restaurant/:path*", "/user/:path*",],
 };
-
