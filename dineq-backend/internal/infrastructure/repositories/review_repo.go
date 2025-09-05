@@ -3,12 +3,15 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
+	// "github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database/mapper"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+
+	// "go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	mongo_options "go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -236,46 +239,14 @@ func (r *ReviewRepository) AverageRatingByItem(ctx context.Context, itemID strin
     return avg, nil
 }
 
-// Calculate and update average rating for a restaurant (from its items' averages)
 func (r *ReviewRepository) AverageRatingByRestaurant(ctx context.Context, restaurantID string) (float64, error) {
-    // 1. Find all item IDs for this restaurant from the menus collection
-    menuCursor, err := r.DB.Collection("menus").Find(ctx, bson.M{"restaurantId": restaurantID})
-    if err != nil {
-        return 0, err
-    }
-    defer menuCursor.Close(ctx)
-
-    itemIDs := []string{}
-    menuIndex := 0
-    for menuCursor.Next(ctx) {
-        var menu struct {
-            Items []struct {
-                ID primitive.ObjectID `bson:"_id"`
-            } `bson:"items"`
-        }
-        if err := menuCursor.Decode(&menu); err != nil {
-            fmt.Printf("[DEBUG] Error decoding menu: %v\n", err)
-            continue
-        }
-        fmt.Printf("[DEBUG] Menu #%d items: %+v\n", menuIndex, menu.Items)
-        menuIndex++
-        for _, item := range menu.Items {
-            itemIDs = append(itemIDs, item.ID.Hex()) // Convert ObjectID to string
-        }
-    }
-    fmt.Printf("[DEBUG] All collected itemIDs for restaurantID %s: %+v\n", restaurantID, itemIDs)
-    if len(itemIDs) == 0 {
-        return 0, nil
-    }
-
-    // 2. Aggregate reviews for those items
     pipeline := []bson.M{
         {"$match": bson.M{
-            "itemId": bson.M{"$in": itemIDs},
+            "restaurantId":    restaurantID,
             "isDeleted": false,
         }},
         {"$group": bson.M{
-            "_id": nil,
+            "_id": "$restaurantId",
             "avg": bson.M{"$avg": "$rating"},
         }},
     }
@@ -297,8 +268,8 @@ func (r *ReviewRepository) AverageRatingByRestaurant(ctx context.Context, restau
         avg = result.Avg
     }
 
-    // 3. Update the restaurant's averageRating field
-    _, err = r.DB.Collection("restaurants").UpdateOne(
+    // Update the menu's averageRating field
+    _, err = r.DB.Collection(os.Getenv("RESTAURANT_COLLECTION")).UpdateOne(
         ctx,
         bson.M{"_id": restaurantID},
         bson.M{"$set": bson.M{"averageRating": avg}},
