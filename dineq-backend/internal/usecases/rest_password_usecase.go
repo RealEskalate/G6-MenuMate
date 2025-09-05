@@ -2,8 +2,13 @@ package usecase
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"math/rand"
+	"strings"
 	"time"
 
+	utils "github.com/RealEskalate/G6-MenuMate/Utils"
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
 	"github.com/google/uuid"
@@ -16,14 +21,16 @@ type PasswordResetUsecase struct {
 	EmailService      domain.IEmailService
 	PasswordResetRepo domain.IPasswordResetRepository
 	PasswordExpiry    time.Duration
+	ResetURL          string
 }
 
-func NewPasswordResetUsecase(repo domain.IPasswordResetRepository, userRepo domain.IUserRepository, emailService domain.IEmailService, expiry time.Duration) domain.IPasswordResetUsecase {
+func NewPasswordResetUsecase(repo domain.IPasswordResetRepository, userRepo domain.IUserRepository, emailService domain.IEmailService, expiry time.Duration, ResetURL string) domain.IPasswordResetUsecase {
 	return &PasswordResetUsecase{
 		PasswordResetRepo: repo,
 		UserRepo:          userRepo,
 		EmailService:      emailService,
 		PasswordExpiry:    expiry,
+		ResetURL:          ResetURL,
 	}
 }
 
@@ -35,86 +42,165 @@ func (u *PasswordResetUsecase) MarkAsUsed(token *domain.PasswordResetToken) erro
 	return u.PasswordResetRepo.MarkAsUsed(context.Background(), token)
 }
 
-func (u *PasswordResetUsecase) RequestReset(email string) error {
+func (u *PasswordResetUsecase) RequestReset(email, platform string) error {
 	user, err := u.UserRepo.GetUserByEmail(context.Background(), email)
 	if err != nil {
 		return err
 	}
 
-	var token string
-	// Check if a reset token already exists for the user
-	existingToken, err := u.PasswordResetRepo.FindByEmail(context.Background(), user.Email)
+	// Enforce valid platform
+	if platform != string(domain.PlatformWeb) && platform != string(domain.PlatformMobile) {
+		return errors.New("invalid reset platform")
+	}
+
+	var method string
+	if platform == string(domain.PlatformMobile) {
+		method = "otp" // mobile users get OTP
+	} else {
+		method = "link" // web users get reset link
+	}
+
+	var plainToken string
+	var expiry time.Duration
+
+	if method == "otp" {
+		plainToken = fmt.Sprintf("%06d", rand.Intn(1000000)) // 6-digit OTP
+		expiry = 5 * time.Minute
+	} else {
+		plainToken = uuid.NewString() // reset link token
+		expiry = u.PasswordExpiry
+	}
+
+	hashedToken, _ := security.HashToken(plainToken)
+	// Create new reset token (skip update logic here for simplicity)
+	resetToken := &domain.PasswordResetToken{
+		Email:     user.Email,
+		TokenHash: hashedToken,
+		Method:    method,
+		ExpiresAt: time.Now().Add(expiry),
+		Used:      false,
+		RateLimit: 1,
+		CreatedAt: time.Now(),
+	}
+
+	// Check if user already has a reset token
+	existingToken, err := u.PasswordResetRepo.FindByEmail(context.Background(), email)
 	if err == nil && existingToken != nil {
-		if !existingToken.Used && existingToken.ExpiresAt.After(time.Now()) {
-			return domain.ErrPasswordResetTokenExists
+
+		if time.Now().Before(existingToken.ExpiresAt) {
+			return domain.ErrOTPStillValid
 		}
+
+		// Check if the user has reached the maximum attempts
 		if existingToken.RateLimit >= 5 {
 			if time.Since(existingToken.CreatedAt) < 24*time.Hour {
-				return domain.ErrPasswordResetRateLimitExceeded
+				return domain.ErrOTPMaxAttempts
 			}
+			// Reset attempts after 24 hours
 			existingToken.RateLimit = 0
 		}
-
-		// Update the existing token
-		existingToken.TokenHash, _ = security.HashToken(uuid.NewString())
-		existingToken.ExpiresAt = time.Now().Add(u.PasswordExpiry)
+		// Update existing token
+		existingToken.TokenHash = hashedToken
+		existingToken.Method = method
+		existingToken.ExpiresAt = time.Now().Add(expiry)
 		existingToken.Used = false
-		existingToken.RateLimit++
-
-		token = existingToken.TokenHash
+		existingToken.RateLimit += 1
+		existingToken.CreatedAt = time.Now()
 		if err := u.PasswordResetRepo.UpdateResetToken(context.Background(), existingToken); err != nil {
 			return err
 		}
 	} else {
-		// Generate a new reset token
-		plainToken := uuid.NewString()
-		hashedToken, _ := security.HashToken(plainToken)
-
-		token = plainToken
-
-		// Store token
-		resetToken := &domain.PasswordResetToken{
-			Email:     user.Email,
-			TokenHash: hashedToken,
-			ExpiresAt: time.Now().Add(u.PasswordExpiry),
-			Used:      false,
-			RateLimit: 1,
-			CreatedAt: time.Now(),
-		}
+		// Save new token
 		if err := u.PasswordResetRepo.SaveResetToken(context.Background(), resetToken); err != nil {
 			return err
 		}
 	}
 
-	// Send email
-	body := `<h1 style="color: #333; font-family: Arial, sans-serif;">Password Reset Request</h1>
-<p style="font-family: Arial, sans-serif; color: #555;">Dear ` + user.FirstName + " " + user.LastName + `,</p>
-<p style="font-family: Arial, sans-serif; color: #555;">Use the following token to reset your password for the Blog Platform:</p>
-<p style="font-family: Arial, sans-serif; color: #1a73e8; font-weight: bold;">` + token + `</p>
-<p style="font-family: Arial, sans-serif; color: #555;">This token expires in ` + u.PasswordExpiry.String() + `. If you did not request this, please ignore this email.</p>
-<p style="font-family: Arial, sans-serif; color: #555;">Best regards,</p>
-<p style="font-family: Arial, sans-serif; color: #555;">The Blog Platform Team</p>`
-	return u.EmailService.SendEmail(context.Background(), user.Email, "Password Reset Request", body)
-}
+	// Build email body
+	var body string
+	var name string
+	if user.FirstName != "" && user.LastName != "" {
+		name = user.FirstName + " " + user.LastName
+	} else if user.FirstName != "" {
+		name = user.FirstName
+	} else if user.Username != "" {
+		name = user.Username
+	} else {
+		name = strings.Split(user.Email, "@")[0]
+	}
 
-func (u *PasswordResetUsecase) ResetPassword(email, token, newPassword string) error {
-	// Validate token
-	resetToken, err := u.PasswordResetRepo.FindByEmail(context.Background(), email)
+	if method == "otp" {
+		var data = struct {
+			Title   string
+			Name    string
+			Message string
+			OTP     string
+			Expiry  string
+		}{Title: "Password Reset", Name: name, Message: "You requested to reset your password. Use the OTP below to proceed.", OTP: plainToken, Expiry: u.PasswordExpiry.String()}
+		body, err = utils.RenderTemplate("otp.html", data)
+	} else {
+		resetURL := fmt.Sprintf("%s?email=%s&token=%s", u.ResetURL, user.Email, plainToken)
+		var data = struct {
+			Name     string
+			ResetURL string
+			Expiry   string
+		}{Name: name, ResetURL: resetURL, Expiry: u.PasswordExpiry.String()}
+		fmt.Println("Reset URL:", resetURL) // For debugging; remove in production
+		body, err = utils.RenderTemplate("reset_link.html", data)
+	}
 	if err != nil {
 		return err
 	}
 
-	// Check if token is expired or already used
-	if resetToken.Used || resetToken.ExpiresAt.Before(time.Now()) {
-		return domain.ErrTokenInvalidOrExpired
+	return u.EmailService.SendEmail(context.Background(), user.Email, "Password Reset", body)
+}
+
+func (u *PasswordResetUsecase) VerifyResetToken(email, token string) (string, error) {
+	ctx := context.Background()
+
+	// Get token record
+	resetToken, err := u.PasswordResetRepo.FindByEmail(ctx, email)
+	if err != nil {
+		return "", err
 	}
-	// validate db token with provided token
-	if resetToken.TokenHash != token {
+
+	// Check if expired or used
+	if resetToken.Used || resetToken.ExpiresAt.Before(time.Now()) {
+		return "", domain.ErrTokenInvalidOrExpired
+	}
+
+	// Compare submitted token with hashed token
+	if match, err := security.ValidateTokenHash(resetToken.TokenHash, token); err != nil || !match {
+		return "", domain.ErrTokenInvalidOrExpired
+	}
+
+	// Generate temporary session token for password reset
+	sessionToken := uuid.NewString()
+	session := &domain.PasswordResetSession{
+		UserID:    resetToken.Email,
+		Token:     sessionToken,
+		ExpiresAt: time.Now().Add(15 * time.Minute), // short-lived
+	}
+
+	// Save session to DB
+	if err := u.PasswordResetRepo.SaveResetSession(ctx, session); err != nil {
+		return "", err
+	}
+
+	return sessionToken, nil
+}
+
+func (u *PasswordResetUsecase) ResetPasswordWithSession(sessionToken, newPassword string) error {
+	ctx := context.Background()
+
+	// Get session
+	session, err := u.PasswordResetRepo.GetResetSession(ctx, sessionToken)
+	if err != nil || session.ExpiresAt.Before(time.Now()) {
 		return domain.ErrTokenInvalidOrExpired
 	}
 
 	// Get user
-	user, err := u.UserRepo.GetUserByEmail(context.Background(), resetToken.Email)
+	user, err := u.UserRepo.GetUserByEmail(ctx, session.UserID)
 	if err != nil {
 		return err
 	}
@@ -127,16 +213,22 @@ func (u *PasswordResetUsecase) ResetPassword(email, token, newPassword string) e
 	user.Password = string(hashedPassword)
 
 	// Update user
-	if err := u.UserRepo.UpdateUser(context.Background(), user.ID, user); err != nil {
+	if err := u.UserRepo.UpdateUser(ctx, user.ID, user); err != nil {
 		return err
 	}
 
-	// Mark token as used
-	resetToken.Used = true
-	if err := u.PasswordResetRepo.MarkAsUsed(context.Background(), resetToken); err != nil {
-		return err
+	// Mark original reset token as used
+	resetToken, _ := u.PasswordResetRepo.FindByEmail(ctx, user.Email)
+	if resetToken != nil {
+		resetToken.Used = true
+		u.PasswordResetRepo.MarkAsUsed(ctx, resetToken)
 	}
 
-	// Delete token
-	return u.PasswordResetRepo.DeleteResetToken(context.Background(), token)
+	// delete password reset
+	if resetToken != nil {
+		u.PasswordResetRepo.DeleteResetToken(ctx, resetToken.Email)
+	}
+
+	// Delete session
+	return u.PasswordResetRepo.DeleteResetSession(ctx, sessionToken)
 }
