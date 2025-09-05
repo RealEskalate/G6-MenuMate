@@ -1,3 +1,6 @@
+import 'package:dartz/dartz.dart';
+
+import '../../../../../../core/error/failures.dart';
 import '../../repositories/user_repository.dart';
 
 class LoginUserUseCase {
@@ -5,7 +8,7 @@ class LoginUserUseCase {
 
   LoginUserUseCase(this.repository);
 
-  Future<Map<String, dynamic>> call({
+  Future<Either<Failure, Map<String, dynamic>>> call({
     required String identifier,
     required String password,
   }) {

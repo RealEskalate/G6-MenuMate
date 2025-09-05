@@ -1,3 +1,6 @@
+import 'package:dartz/dartz.dart';
+
+import '../../../../../../core/error/failures.dart';
 import '../../repositories/user_repository.dart';
 
 class VerifyOtpUseCase {
@@ -5,6 +8,8 @@ class VerifyOtpUseCase {
 
   VerifyOtpUseCase(this.repository);
 
-  Future<void> call({required String otp, required String identifier}) =>
-      repository.verifyOtp(otp: otp, identifier: identifier);
+  Future<Either<Failure, Unit>> call({
+    required String otp,
+    required String identifier,
+  }) => repository.verifyOtp(otp: otp, identifier: identifier);
 }

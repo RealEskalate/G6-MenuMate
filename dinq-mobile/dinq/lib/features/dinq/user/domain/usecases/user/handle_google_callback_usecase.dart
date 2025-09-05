@@ -1,3 +1,6 @@
+import 'package:dartz/dartz.dart';
+
+import '../../../../../../core/error/failures.dart';
 import '../../repositories/user_repository.dart';
 
 class HandleGoogleCallbackUseCase {
@@ -5,7 +8,10 @@ class HandleGoogleCallbackUseCase {
 
   HandleGoogleCallbackUseCase(this.repository);
 
-  Future<Map<String, dynamic>> call({required String code, String? state}) {
+  Future<Either<Failure, Map<String, dynamic>>> call({
+    required String code,
+    String? state,
+  }) {
     return repository.handleGoogleOAuthCallback(code: code, state: state);
   }
 }

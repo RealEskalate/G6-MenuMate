@@ -1,17 +1,27 @@
+import 'package:dartz/dartz.dart';
+
 import '../../../../../core/error/exceptions.dart';
+import '../../../../../core/error/failures.dart';
 import '../../../../../core/network/network_info.dart';
+import '../../domain/entities/user.dart';
+import '../model/user_model.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../datasources/user_remote_data_source.dart';
-import '../model/user_model.dart';
+import '../datasources/user_local_data_source.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final UserRemoteDataSource remoteDataSource;
   final NetworkInfo network;
+  final UserLocalDataSource localDataSource;
 
-  UserRepositoryImpl({required this.remoteDataSource, required this.network});
+  UserRepositoryImpl({
+    required this.remoteDataSource,
+    required this.network,
+    required this.localDataSource,
+  });
 
   @override
-  Future<Map<String, dynamic>> registerUser({
+  Future<Either<Failure, User>> registerUser({
     required String username,
     required String email,
     required String password,
@@ -23,30 +33,48 @@ class UserRepositoryImpl implements UserRepository {
     final connected = await network.isConnected;
     if (connected) {
       try {
-        final userModel = UserModel(
-          id: '',
+        final res = await remoteDataSource.registerUser(
           username: username,
           email: email,
-          firstName: firstName ?? '',
-          lastName: lastName ?? '',
-          role: role ?? '',
-          status: 'ACTIVE',
+          password: password,
           authProvider: authProvider,
-          isVerified: false,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
+          firstName: firstName,
+          lastName: lastName,
+          role: role,
         );
-        final res = await remoteDataSource.registerUser(userModel, password);
-        return res;
+        // res expected to contain 'user' and 'tokens'
+        try {
+          final tokens = <String, String>{
+            'access_token': (res['tokens']?['access_token'] ?? '').toString(),
+            'refresh_token': (res['tokens']?['refresh_token'] ?? '').toString(),
+          };
+          if (tokens['access_token']!.isNotEmpty &&
+              tokens['refresh_token']!.isNotEmpty) {
+            await localDataSource.cacheTokens(
+              accessToken: tokens['access_token']!,
+              refreshToken: tokens['refresh_token']!,
+            );
+          }
+        } catch (_) {}
+
+        // parse user entity from response
+        final userMap = (res['user'] ?? {}) as Map<String, dynamic>;
+        final userModel = UserModel.fromMap(userMap);
+        return Right(userModel.toEntity());
       } catch (e) {
-        throw e;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
+    } else {
+      return const Left(
+        NetworkFailure(
+          'No internet connection available. Please check your network settings and try again.',
+        ),
+      );
     }
-    throw NetworkException('No internet connection available.');
   }
 
   @override
-  Future<Map<String, dynamic>> loginUser({
+  Future<Either<Failure, Map<String, dynamic>>> loginUser({
     required String identifier,
     required String password,
   }) async {
@@ -54,73 +82,108 @@ class UserRepositoryImpl implements UserRepository {
     if (connected) {
       try {
         final res = await remoteDataSource.loginUser(identifier, password);
-        return res;
+        try {
+          final access = res['tokens']?['access_token']?.toString() ?? '';
+          final refresh = res['tokens']?['refresh_token']?.toString() ?? '';
+          if (access.isNotEmpty && refresh.isNotEmpty) {
+            await localDataSource.cacheTokens(
+              accessToken: access,
+              refreshToken: refresh,
+            );
+          }
+        } catch (_) {}
+        return Right(res);
       } catch (e) {
-        throw e;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
     }
-    throw NetworkException('No internet connection available.');
+    return const Left(
+      NetworkFailure(
+        'No internet connection available. Please check your network settings and try again.',
+      ),
+    );
   }
 
   @override
-  Future<String> getGoogleLoginRedirectUrl() async {
+  Future<Either<Failure, String>> getGoogleLoginRedirectUrl() async {
     final connected = await network.isConnected;
     if (connected) {
       try {
-        return await remoteDataSource.getGoogleLoginRedirectUrl();
+        final res = await remoteDataSource.getGoogleLoginRedirectUrl();
+        return Right(res);
       } catch (e) {
-        rethrow;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
     }
-    throw NetworkException('No internet connection available.');
+    return const Left(
+      NetworkFailure(
+        'No internet connection available. Please check your network settings and try again.',
+      ),
+    );
   }
 
   @override
-  Future<Map<String, dynamic>> handleGoogleOAuthCallback({
+  Future<Either<Failure, Map<String, dynamic>>> handleGoogleOAuthCallback({
     required String code,
     String? state,
   }) async {
     final connected = await network.isConnected;
     if (connected) {
       try {
-        return await remoteDataSource.handleGoogleCallback(code, state);
+        final res = await remoteDataSource.handleGoogleCallback(code, state);
+        return Right(res);
       } catch (e) {
-        rethrow;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
     }
-    throw NetworkException('No internet connection available.');
+    return const Left(
+      NetworkFailure(
+        'No internet connection available. Please check your network settings and try again.',
+      ),
+    );
   }
 
   @override
-  Future<void> forgotPassword({required String email}) async {
+  Future<Either<Failure, Unit>> forgotPassword({required String email}) async {
     final connected = await network.isConnected;
     if (connected) {
       try {
         await remoteDataSource.forgotPassword(email);
-        return;
+        return const Right(unit);
       } catch (e) {
-        rethrow;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
     }
-    throw NetworkException('No internet connection available.');
+    return const Left(
+      NetworkFailure(
+        'No internet connection available. Please check your network settings and try again.',
+      ),
+    );
   }
 
   @override
-  Future<void> logout() async {
+  Future<Either<Failure, Unit>> logout() async {
     final connected = await network.isConnected;
     if (connected) {
       try {
         await remoteDataSource.logout();
-        return;
+        try {
+          await localDataSource.clearTokens();
+        } catch (_) {}
+        return const Right(unit);
       } catch (e) {
-        rethrow;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
     }
-    throw NetworkException('No internet connection available.');
+    return const Left(
+      NetworkFailure(
+        'No internet connection available. Please check your network settings and try again.',
+      ),
+    );
   }
 
   @override
-  Future<void> resetPassword({
+  Future<Either<Failure, Unit>> resetPassword({
     required String token,
     required String newPassword,
   }) async {
@@ -128,31 +191,40 @@ class UserRepositoryImpl implements UserRepository {
     if (connected) {
       try {
         await remoteDataSource.resetPassword(token, newPassword);
-        return;
+        return const Right(unit);
       } catch (e) {
-        rethrow;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
     }
-    throw NetworkException('No internet connection available.');
+    return const Left(
+      NetworkFailure(
+        'No internet connection available. Please check your network settings and try again.',
+      ),
+    );
   }
 
   @override
-  Future<Map<String, dynamic>> updateProfile(
+  Future<Either<Failure, Map<String, dynamic>>> updateProfile(
     Map<String, dynamic> updates,
   ) async {
     final connected = await network.isConnected;
     if (connected) {
       try {
-        return await remoteDataSource.updateProfile(updates);
+        final res = await remoteDataSource.updateProfile(updates);
+        return Right(res);
       } catch (e) {
-        rethrow;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
     }
-    throw NetworkException('No internet connection available.');
+    return const Left(
+      NetworkFailure(
+        'No internet connection available. Please check your network settings and try again.',
+      ),
+    );
   }
 
   @override
-  Future<void> changePassword({
+  Future<Either<Failure, Unit>> changePassword({
     required String currentPassword,
     required String newPassword,
   }) async {
@@ -160,44 +232,56 @@ class UserRepositoryImpl implements UserRepository {
     if (connected) {
       try {
         await remoteDataSource.changePassword(currentPassword, newPassword);
-        return;
+        return const Right(unit);
       } catch (e) {
-        rethrow;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
     }
-    throw NetworkException('No internet connection available.');
+    return const Left(
+      NetworkFailure(
+        'No internet connection available. Please check your network settings and try again.',
+      ),
+    );
   }
 
   @override
-  Future<void> verifyEmail({required String otp}) async {
+  Future<Either<Failure, Unit>> verifyEmail({required String otp}) async {
     final connected = await network.isConnected;
     if (connected) {
       try {
         await remoteDataSource.verifyEmail(otp);
-        return;
+        return const Right(unit);
       } catch (e) {
-        rethrow;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
     }
-    throw NetworkException('No internet connection available.');
+    return const Left(
+      NetworkFailure(
+        'No internet connection available. Please check your network settings and try again.',
+      ),
+    );
   }
 
   @override
-  Future<void> resendOtp({required String email}) async {
+  Future<Either<Failure, Unit>> resendOtp({required String email}) async {
     final connected = await network.isConnected;
     if (connected) {
       try {
         await remoteDataSource.resendOtp(email);
-        return;
+        return const Right(unit);
       } catch (e) {
-        rethrow;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
     }
-    throw NetworkException('No internet connection available.');
+    return const Left(
+      NetworkFailure(
+        'No internet connection available. Please check your network settings and try again.',
+      ),
+    );
   }
 
   @override
-  Future<void> verifyOtp({
+  Future<Either<Failure, Unit>> verifyOtp({
     required String otp,
     required String identifier,
   }) async {
@@ -205,11 +289,15 @@ class UserRepositoryImpl implements UserRepository {
     if (connected) {
       try {
         await remoteDataSource.verifyOtp(otp, identifier);
-        return;
+        return const Right(unit);
       } catch (e) {
-        rethrow;
+        return Left(ExceptionMapper.toFailure(e as Exception));
       }
     }
-    throw NetworkException('No internet connection available.');
+    return const Left(
+      NetworkFailure(
+        'No internet connection available. Please check your network settings and try again.',
+      ),
+    );
   }
 }

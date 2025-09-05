@@ -1,3 +1,6 @@
+import 'package:dartz/dartz.dart';
+
+import '../../../../../../core/error/failures.dart';
 import '../../repositories/user_repository.dart';
 
 class GetGoogleRedirectUseCase {
@@ -5,5 +8,6 @@ class GetGoogleRedirectUseCase {
 
   GetGoogleRedirectUseCase(this.repository);
 
-  Future<String> call() => repository.getGoogleLoginRedirectUrl();
+  Future<Either<Failure, String>> call() =>
+      repository.getGoogleLoginRedirectUrl();
 }

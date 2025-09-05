@@ -1,3 +1,6 @@
+import 'package:dartz/dartz.dart';
+
+import '../../../../../../core/error/failures.dart';
 import '../../repositories/user_repository.dart';
 
 class ChangePasswordUseCase {
@@ -5,7 +8,7 @@ class ChangePasswordUseCase {
 
   ChangePasswordUseCase(this.repository);
 
-  Future<void> call({
+  Future<Either<Failure, Unit>> call({
     required String currentPassword,
     required String newPassword,
   }) {

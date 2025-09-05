@@ -1,7 +1,13 @@
-import '../model/user_model.dart';
-
 abstract class UserRemoteDataSource {
-  Future<Map<String, dynamic>> registerUser(UserModel user, String password);
+  Future<Map<String, dynamic>> registerUser({
+    required String username,
+    required String email,
+    required String password,
+    required String authProvider,
+    String? firstName,
+    String? lastName,
+    String? role,
+  });
   Future<Map<String, dynamic>> loginUser(String identifier, String password);
   Future<String> getGoogleLoginRedirectUrl();
   Future<Map<String, dynamic>> handleGoogleCallback(String code, String? state);

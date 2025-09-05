@@ -1,5 +1,10 @@
+import 'package:dartz/dartz.dart';
+
+import '../../../../../core/error/failures.dart';
+import '../entities/user.dart';
+
 abstract class UserRepository {
-  Future<Map<String, dynamic>> registerUser({
+  Future<Either<Failure, User>> registerUser({
     required String username,
     required String email,
     required String password,
@@ -9,37 +14,42 @@ abstract class UserRepository {
     String? role,
   });
 
-  Future<Map<String, dynamic>> loginUser({
+  Future<Either<Failure, Map<String, dynamic>>> loginUser({
     required String identifier,
     required String password,
   });
 
-  Future<String> getGoogleLoginRedirectUrl();
+  Future<Either<Failure, String>> getGoogleLoginRedirectUrl();
 
-  Future<Map<String, dynamic>> handleGoogleOAuthCallback({
+  Future<Either<Failure, Map<String, dynamic>>> handleGoogleOAuthCallback({
     required String code,
     String? state,
   });
 
-  Future<void> forgotPassword({required String email});
+  Future<Either<Failure, Unit>> forgotPassword({required String email});
 
-  Future<void> logout();
+  Future<Either<Failure, Unit>> logout();
 
-  Future<void> resetPassword({
+  Future<Either<Failure, Unit>> resetPassword({
     required String token,
     required String newPassword,
   });
 
-  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> updates);
+  Future<Either<Failure, Map<String, dynamic>>> updateProfile(
+    Map<String, dynamic> updates,
+  );
 
-  Future<void> changePassword({
+  Future<Either<Failure, Unit>> changePassword({
     required String currentPassword,
     required String newPassword,
   });
 
-  Future<void> verifyEmail({required String otp});
+  Future<Either<Failure, Unit>> verifyEmail({required String otp});
 
-  Future<void> resendOtp({required String email});
+  Future<Either<Failure, Unit>> resendOtp({required String email});
 
-  Future<void> verifyOtp({required String otp, required String identifier});
+  Future<Either<Failure, Unit>> verifyOtp({
+    required String otp,
+    required String identifier,
+  });
 }
