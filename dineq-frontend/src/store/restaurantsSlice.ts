@@ -178,4 +178,4 @@ const restaurantsSlice = createSlice({
 });
 
 export default restaurantsSlice.reducer;
-Define the types needed, or import them if available elsewhere
+

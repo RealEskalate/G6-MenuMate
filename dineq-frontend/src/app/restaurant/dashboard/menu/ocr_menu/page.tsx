@@ -3,25 +3,21 @@
 import Image from "next/image";
 import React, { useState } from "react";
 import { useSession } from "next-auth/react";
-import { uploadMenuOCR, getOCRStatus } from "@/lib/api"; // import the API function
+import { uploadMenuOCR, getOCRStatus } from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { useDispatch, useSelector } from "react-redux";
-import { setMenuItems } from "@/store/menuSlice";
-import { RootState } from "@/store";
+import { useMenuContext } from "@/context/MenuOcrContext"; // ⬅️ Import the new context hook
 
 const AddMenuWithOCR = () => {
   const { data: session } = useSession();
   const router = useRouter();
-  const dispatch = useDispatch();
+  const { setMenuItems } = useMenuContext(); // ⬅️ Use the context's setter function
+
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [menuData, setMenuData] = useState<any | null>(null);
   const [editedItems, setEditedItems] = useState<any[]>([]);
   const [currentStep, setCurrentStep] = useState(1);
-  const ocrMenuItems = useSelector(
-    (state: RootState) => state.menu?.menuItems ?? []
-  );
 
   const handleUpload = async () => {
     if (!file || !session?.accessToken) return;
@@ -33,8 +29,6 @@ const AddMenuWithOCR = () => {
     try {
       // Step 1: Upload file
       const result = await uploadMenuOCR(file, session.accessToken);
-      // console.log("✅ OCR Upload Response:", result);
-
       const jobId = result.data.job_id;
       setCurrentStep(2);
 
@@ -49,7 +43,6 @@ const AddMenuWithOCR = () => {
           if (statusRes.data.status === "completed") {
             clearInterval(interval);
             const ocrResults = statusRes.data.results;
-            // console.log(ocrResults);
             setMenuData(ocrResults);
             setEditedItems(ocrResults?.menu_items || []);
             setCurrentStep(3);
@@ -81,7 +74,8 @@ const AddMenuWithOCR = () => {
   };
 
   const handleSave = () => {
-    dispatch(setMenuItems(editedItems));
+    // ⬅️ Use the context setter instead of Redux dispatch
+    setMenuItems(editedItems);
     router.push("/restaurant/dashboard/menu/manual_menu");
   };
 
@@ -225,8 +219,8 @@ const AddMenuWithOCR = () => {
               <Image
                 src={URL.createObjectURL(file)}
                 alt="Uploaded menu"
-                width={400} // or any size you prefer
-                height={0} // or remove height entirely
+                width={400}
+                height={0}
                 style={{ height: "auto" }}
                 className="object-contain mx-auto rounded max-h-72"
               />
