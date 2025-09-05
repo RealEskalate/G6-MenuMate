@@ -98,16 +98,32 @@ func (repo *RestaurantRepo) Update(ctx context.Context, r *domain.Restaurant) er
 	}
 
 	set := bson.M{
-		"name":               model.Name,
-		"phone":              model.Phone,
+		"slug":               model.Slug,
+		"previousSlugs":      model.PreviousSlugs,
+		"restaurantName":     model.Name,
+		"managerId":          model.ManagerID,
+		"restaurantPhone":    model.Phone,
+		"location":           model.Location,
 		"about":              model.About,
-		"logoImage":          model.LogoImage, // BEGIN:
+		"logoImage":          model.LogoImage,
+		"tags":               model.Tags,
 		"verificationStatus": model.VerificationStatus,
 		"verificationDocs":   model.VerificationDocs,
+		"schedule":           model.Schedule,    // ✅ now persisted
+		"specialDays":        model.SpecialDays, // ✅ now persisted
+		"primaryColor":       model.PrimaryColor,
+		"accentColor":        model.AccentColor,
+		"defaultCurrency":    model.DefaultCurrency,
+		"defaultLanguage":    model.DefaultLanguage,
+		"defaultVat":         model.DefaultVat,
+		"taxId":              model.TaxId,
 		"coverImage":         model.CoverImage,
+		"averageRating":      model.AverageRating,
+		"viewCount":          model.ViewCount,
 		"updatedAt":          model.UpdatedAt,
-		"location":           model.Location,
+		"isDeleted":          model.IsDeleted,
 	}
+
 	// If slug changed, push old slug to previous_slugs and set new slug
 	if r.Slug != "" { // domain object carries current slug
 		set["slug"] = model.Slug
