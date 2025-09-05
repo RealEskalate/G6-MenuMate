@@ -7,14 +7,13 @@ class RestaurantDetailsPage extends StatefulWidget {
 
   @override
   State<RestaurantDetailsPage> createState() => _RestaurantDetailsPageState();
-
 }
 
 class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   final ImagePicker _picker = ImagePicker();
   File? _logoImage;
   File? _bannerImage;
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,10 +67,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border),
             label: 'Favorites',
@@ -80,10 +76,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             icon: Icon(Icons.analytics_outlined),
             label: 'Analytics',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menu',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
@@ -106,10 +99,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         TextFormField(
           initialValue: initialValue,
           decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             hintText: 'Enter $label',
           ),
         ),
@@ -152,10 +146,12 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
   Widget _buildImageUpload({bool isWide = false, bool isLogo = true}) {
     File? image = isLogo ? _logoImage : _bannerImage;
-    
+
     return GestureDetector(
       onTap: () async {
-        final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+        final XFile? pickedFile = await _picker.pickImage(
+          source: ImageSource.gallery,
+        );
         if (pickedFile != null) {
           setState(() {
             if (isLogo) {
@@ -173,10 +169,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           border: Border.all(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(8),
           image: image != null
-              ? DecorationImage(
-                  image: FileImage(image),
-                  fit: BoxFit.cover,
-                )
+              ? DecorationImage(image: FileImage(image), fit: BoxFit.cover)
               : null,
         ),
         child: image == null
@@ -214,16 +207,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.map,
-              size: 32,
-              color: Colors.grey.shade600,
-            ),
+            Icon(Icons.map, size: 32, color: Colors.grey.shade600),
             const SizedBox(height: 8),
-            Text(
-              'Map Preview',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
+            Text('Map Preview', style: TextStyle(color: Colors.grey.shade600)),
           ],
         ),
       ),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -48,6 +49,8 @@ class DemoRestaurantPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final slugController = TextEditingController(text: 'demo-slug');
     final idController = TextEditingController(text: '');
+    final nameController = TextEditingController(text: 'Demo Restaurant');
+    final phoneController = TextEditingController(text: '+251900000000');
     final jsonController = TextEditingController(
       text: jsonEncode({
         'name': 'Demo Restaurant',
@@ -68,6 +71,21 @@ class DemoRestaurantPage extends StatelessWidget {
               decoration: const InputDecoration(
                 labelText: 'Slug (for GET/PUT)',
               ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Name (for Create - form data)',
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: phoneController,
+              decoration: const InputDecoration(
+                labelText: 'Phone (for Create - form data)',
+              ),
+              keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 8),
             TextField(
@@ -94,11 +112,12 @@ class DemoRestaurantPage extends StatelessWidget {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    final body =
-                        jsonDecode(jsonController.text) as Map<String, dynamic>;
-                    final model = RestaurantModel.fromMap(body);
+                    final body = FormData.fromMap({
+                      'name': nameController.text.trim(),
+                      'phone': phoneController.text.trim(),
+                    });
                     context.read<RestaurantBloc>().add(
-                      CreateRestaurantEvent(model),
+                      CreateRestaurantEvent(body),
                     );
                   },
                   child: const Text('Create'),
@@ -147,7 +166,9 @@ class DemoRestaurantPage extends StatelessWidget {
                   if (state is RestaurantsLoaded)
                     return Text('Restaurants: ${state.restaurants.length}');
                   if (state is RestaurantLoaded)
-                    return Text('Restaurant: ${state.restaurant.name}');
+                    return Text(
+                      'Restaurant: ${state.restaurant.restaurantName}',
+                    );
                   if (state is RestaurantActionSuccess)
                     return Text(state.message);
                   if (state is MenuLoaded)

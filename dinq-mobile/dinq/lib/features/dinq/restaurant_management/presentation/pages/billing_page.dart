@@ -51,10 +51,7 @@ class BillingPage extends StatelessWidget {
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Explore',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Explore'),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border),
             label: 'Favorites',
@@ -63,10 +60,7 @@ class BillingPage extends StatelessWidget {
             icon: Icon(Icons.analytics_outlined),
             label: 'Analytics',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menu',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
@@ -81,10 +75,7 @@ class BillingPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
-        ),
+        Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
         const SizedBox(height: 8),
         Container(
           width: double.infinity,
@@ -93,10 +84,7 @@ class BillingPage extends StatelessWidget {
             border: Border.all(color: Colors.grey.shade300),
             borderRadius: BorderRadius.circular(4),
           ),
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 16),
-          ),
+          child: Text(value, style: const TextStyle(fontSize: 16)),
         ),
       ],
     );

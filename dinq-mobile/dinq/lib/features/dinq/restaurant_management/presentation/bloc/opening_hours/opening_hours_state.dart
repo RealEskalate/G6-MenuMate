@@ -6,11 +6,7 @@ class SpecialDay {
   final String title;
   final String status;
 
-  SpecialDay({
-    required this.date,
-    required this.title,
-    required this.status,
-  });
+  SpecialDay({required this.date, required this.title, required this.status});
 }
 
 abstract class OpeningHoursState extends Equatable {
@@ -52,7 +48,12 @@ class OpeningHoursLoaded extends OpeningHoursState {
   }
 
   @override
-  List<Object?> get props => [openingTimes, closingTimes, specialDays, hasChanges];
+  List<Object?> get props => [
+    openingTimes,
+    closingTimes,
+    specialDays,
+    hasChanges,
+  ];
 }
 
 class OpeningHoursSaving extends OpeningHoursState {}

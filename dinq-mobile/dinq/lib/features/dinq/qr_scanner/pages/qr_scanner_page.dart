@@ -69,7 +69,9 @@ class _QrScannerPageState extends State<QrScannerPage> {
         if (!mounted) return;
         Navigator.pushNamed(context, '/menu_page', arguments: 'test-branch-id');
       } else {
-        _showFailure(const NotFoundFailure('No menu published for this branch.'));
+        _showFailure(
+          const NotFoundFailure('No menu published for this branch.'),
+        );
       }
     } catch (e) {
       print('Error processing image: $e');
@@ -123,7 +125,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -238,7 +239,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
               text: 'Capture the entire QR Code in frame',
             ),
             const SizedBox(height: 12),
-            
           ],
         ),
       ),

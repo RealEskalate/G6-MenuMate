@@ -5,17 +5,30 @@ import 'tab.dart';
 class Menu extends Equatable {
   final String id;
   final String restaurantId;
+  final String? name;
+  final String? slug;
+  final int? version;
   final bool isPublished;
   final List<Tab> tabs;
   final int viewCount;
+  final bool? isDeleted;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final double? averageRating;
 
   const Menu({
     required this.id,
     required this.restaurantId,
+    this.name,
+    this.slug,
+    this.version,
     required this.isPublished,
     required this.tabs,
-    
     required this.viewCount,
+    this.isDeleted,
+    this.createdAt,
+    this.updatedAt,
+    this.averageRating,
   });
 
   @override

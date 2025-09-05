@@ -434,7 +434,6 @@ void main() {
         expect(result, equals(tReviewModel));
       });
 
-      
       test('should handle DateTime updates in copyWith', () {
         // Arrange
         final newDate = DateTime.parse('2024-02-01T10:00:00Z');

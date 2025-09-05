@@ -4,5 +4,10 @@ import 'package:dinq/features/dinq/restaurant_management/domain/repositories/res
 import 'package:dio/dio.dart';
 import 'package:mockito/annotations.dart';
 
-@GenerateMocks([RestaurantRepository, RestaurantRemoteDataSource, NetworkInfo, Dio])
+@GenerateMocks([
+  RestaurantRepository,
+  RestaurantRemoteDataSource,
+  NetworkInfo,
+  Dio,
+])
 void main() {}

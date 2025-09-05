@@ -19,7 +19,6 @@ class Tab extends Equatable {
     required this.isDeleted,
   });
 
-
   @override
   List<Object?> get props {
     return [id];

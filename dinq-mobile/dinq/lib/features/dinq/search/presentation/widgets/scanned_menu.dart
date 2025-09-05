@@ -7,7 +7,8 @@ class MenuItemCard extends StatelessWidget {
   final String price;
   final String description;
 
-  const MenuItemCard({super.key, 
+  const MenuItemCard({
+    super.key,
     required this.imageUrl,
     required this.name,
     required this.price,
@@ -22,11 +23,7 @@ class MenuItemCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 3,
-            offset: Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.black12, blurRadius: 3, offset: Offset(0, 2)),
         ],
       ),
       child: ListTile(
@@ -46,7 +43,10 @@ class MenuItemCard extends StatelessWidget {
             Expanded(
               child: Text(
                 name,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),

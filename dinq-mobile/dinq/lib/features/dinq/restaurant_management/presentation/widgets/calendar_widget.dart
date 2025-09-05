@@ -66,7 +66,10 @@ class _CalendarWidgetState extends State<CalendarWidget> {
           onPressed: () {
             setState(() {
               _displayedMonth = DateTime(
-                  _displayedMonth.year, _displayedMonth.month - 1, 1);
+                _displayedMonth.year,
+                _displayedMonth.month - 1,
+                1,
+              );
             });
           },
         ),
@@ -88,7 +91,10 @@ class _CalendarWidgetState extends State<CalendarWidget> {
           onPressed: () {
             setState(() {
               _displayedMonth = DateTime(
-                  _displayedMonth.year, _displayedMonth.month + 1, 1);
+                _displayedMonth.year,
+                _displayedMonth.month + 1,
+                1,
+              );
             });
           },
         ),
@@ -111,33 +117,51 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: weekdays
-          .map((day) => Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Center(
-                    child: Text(
-                      day,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
+          .map(
+            (day) => Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Center(
+                  child: Text(
+                    day,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
                     ),
                   ),
                 ),
-              ))
+              ),
+            ),
+          )
           .toList(),
     );
   }
 
   Widget _buildDaysGrid() {
-    final daysInMonth = DateTime(_displayedMonth.year, _displayedMonth.month + 1, 0).day;
-    final firstDayOfMonth = DateTime(_displayedMonth.year, _displayedMonth.month, 1);
+    final daysInMonth = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month + 1,
+      0,
+    ).day;
+    final firstDayOfMonth = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month,
+      1,
+    );
     final firstWeekdayOfMonth = firstDayOfMonth.weekday % 7; // 0 for Sunday
 
     // Previous month days
     final previousMonthDays = firstWeekdayOfMonth;
-    final previousMonth = DateTime(_displayedMonth.year, _displayedMonth.month - 1, 1);
-    final daysInPreviousMonth = DateTime(_displayedMonth.year, _displayedMonth.month, 0).day;
+    final previousMonth = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month - 1,
+      1,
+    );
+    final daysInPreviousMonth = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month,
+      0,
+    ).day;
 
     // Next month days
     final totalCells = 42; // 6 rows of 7 days
@@ -148,38 +172,48 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     // Add previous month days
     for (int i = 0; i < previousMonthDays; i++) {
       final day = daysInPreviousMonth - previousMonthDays + i + 1;
-      dayWidgets.add(_buildDayCell(
-        day,
-        DateTime(previousMonth.year, previousMonth.month, day),
-        isCurrentMonth: false,
-      ));
+      dayWidgets.add(
+        _buildDayCell(
+          day,
+          DateTime(previousMonth.year, previousMonth.month, day),
+          isCurrentMonth: false,
+        ),
+      );
     }
 
     // Add current month days
     for (int i = 1; i <= daysInMonth; i++) {
       final date = DateTime(_displayedMonth.year, _displayedMonth.month, i);
-      dayWidgets.add(_buildDayCell(
-        i,
-        date,
-        isCurrentMonth: true,
-        isSelected: _isSameDay(date, _selectedDate),
-      ));
+      dayWidgets.add(
+        _buildDayCell(
+          i,
+          date,
+          isCurrentMonth: true,
+          isSelected: _isSameDay(date, _selectedDate),
+        ),
+      );
     }
 
     // Add next month days
-    final nextMonth = DateTime(_displayedMonth.year, _displayedMonth.month + 1, 1);
+    final nextMonth = DateTime(
+      _displayedMonth.year,
+      _displayedMonth.month + 1,
+      1,
+    );
     for (int i = 1; i <= nextMonthDays; i++) {
-      dayWidgets.add(_buildDayCell(
-        i,
-        DateTime(nextMonth.year, nextMonth.month, i),
-        isCurrentMonth: false,
-      ));
+      dayWidgets.add(
+        _buildDayCell(
+          i,
+          DateTime(nextMonth.year, nextMonth.month, i),
+          isCurrentMonth: false,
+        ),
+      );
     }
 
     // Get screen width to make calendar responsive
     final screenWidth = MediaQuery.of(context).size.width;
     final cellSize = (screenWidth - 32) / 7; // 32 for padding
-    
+
     return GridView.count(
       crossAxisCount: 7,
       shrinkWrap: true,
@@ -191,7 +225,9 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     );
   }
 
-  Widget _buildDayCell(int day, DateTime date, {
+  Widget _buildDayCell(
+    int day,
+    DateTime date, {
     bool isCurrentMonth = true,
     bool isSelected = false,
   }) {
@@ -223,9 +259,11 @@ class _CalendarWidgetState extends State<CalendarWidget> {
               color: !isCurrentMonth
                   ? Colors.grey.shade400
                   : isSelected
-                      ? Colors.white
-                      : Colors.black,
-              fontWeight: isToday || isSelected ? FontWeight.bold : FontWeight.normal,
+                  ? Colors.white
+                  : Colors.black,
+              fontWeight: isToday || isSelected
+                  ? FontWeight.bold
+                  : FontWeight.normal,
             ),
           ),
         ),
@@ -239,8 +277,18 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
   String _getMonthName(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return months[month - 1];
   }
