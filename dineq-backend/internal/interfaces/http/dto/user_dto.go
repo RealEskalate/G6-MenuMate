@@ -15,15 +15,15 @@ type Preference struct {
 
 type UserRequest struct {
 	ID           string      `json:"id" validate:"omitempty"`
-	Username     string      `json:"username" validate:"required,alphanum,min=3,max=50"`
-	Email        string      `json:"email" validate:"required_without=PhoneNumber,omitempty,email"`
-	PhoneNumber  string      `json:"phone_number" validate:"required_without=Email,omitempty,e164"`
-	Password     string      `json:"password" validate:"required_without=AuthProvider,min=6,max=100"`
-	FirstName    string      `json:"first_name" validate:"required_without=FullName,omitempty,alpha,min=2,max=50"`
-	LastName     string      `json:"last_name" validate:"required_without=FullName,omitempty,alpha,min=2,max=50"`
+	Username     string      `json:"username" validate:"omitempty,alphanum,min=3,max=50"`
+	Email        string      `json:"email" validate:"omitempty,email"`
+	PhoneNumber  string      `json:"phone_number" validate:"omitempty,e164"`
+	Password     string      `json:"password" validate:"omitempty,min=6,max=100"`
+	FirstName    string      `json:"first_name" validate:"omitempty,alpha,min=2,max=50"`
+	LastName     string      `json:"last_name" validate:"omitempty,alpha,min=2,max=50"`
 	FullName     string      `json:"full_name" validate:"omitempty,min=2,max=100"`
 	Role         string      `json:"role" validate:"omitempty,oneof=OWNER MANAGER STAFF CUSTOMER ADMIN"`
-	AuthProvider string      `json:"auth_provider" validate:"required,oneof=EMAIL GOOGLE PHONE"`
+	AuthProvider string      `json:"auth_provider" validate:"omitempty,oneof=EMAIL GOOGLE PHONE"`
 	Status       string      `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE SUSPENDED"`
 	ProfileImage string      `json:"profile_image" validate:"omitempty,url"`
 	IsVerified   bool        `json:"is_verified" validate:"omitempty"`
@@ -111,9 +111,9 @@ func ToUserResponseList(users []*domain.User) []UserResponse {
 // / 	USER UPDATE REQUEST
 // user update profile request
 type UserUpdateProfileRequest struct {
-	Bio       string `form:"bio" validate:"omitempty,max=500"`
-	FirstName string `form:"first_name" validate:"omitempty,alpha,min=2,max=50"`
-	LastName  string `form:"last_name" validate:"omitempty,alpha,min=2,max=50"`
+	Bio          string                `form:"bio" validate:"omitempty,max=500"`
+	FirstName    string                `form:"first_name" validate:"omitempty,alpha,min=2,max=50"`
+	LastName     string                `form:"last_name" validate:"omitempty,alpha,min=2,max=50"`
 	ProfileImage *multipart.FileHeader `form:"profile_image" validate:"omitempty"`
 }
 

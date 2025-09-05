@@ -124,6 +124,11 @@ type Env struct {
 	// qr code collection
 	QRCodeCollection string `mapstructure:"QR_CODE_COLLECTION"`
 	ItemCollection   string `mapstructure:"ITEM_COLLECTION"`
+	QRCodeContent    string `mapstructure:"QR_CODE_CONTENT"`
+
+	// reset password session expiry
+	PasswordResetSessionExpiry     int    `mapstructure:"PASSWORD_RESET_SESSION_EXPIRE_MINUTES"` // in minutes
+	PasswordResetSessionCollection string `mapstructure:"PASSWORD_RESET_SESSION_COLLECTION"`
 }
 
 // Viper can be made injectable
@@ -206,10 +211,17 @@ func NewEnv() (*Env, error) {
 		parts := strings.Split(env.CORSAllowedOriginsRaw, ",")
 		for _, p := range parts {
 			trim := strings.TrimSpace(p)
-			if trim != "" { env.CORSAllowedOrigins = append(env.CORSAllowedOrigins, trim) }
+			if trim != "" {
+				env.CORSAllowedOrigins = append(env.CORSAllowedOrigins, trim)
+			}
 		}
-		if len(env.CORSAllowedOrigins) == 0 { env.CORSAllowedOrigins = []string{"*"} }
+		if len(env.CORSAllowedOrigins) == 0 {
+			env.CORSAllowedOrigins = []string{"*"}
+		}
 	}
+	env.QRCodeContent = os.Getenv("QR_CODE_CONTENT")
+	env.PasswordResetSessionExpiry, _ = strconv.Atoi(os.Getenv("PASSWORD_RESET_SESSION_EXPIRE_MINUTES"))
+	env.PasswordResetSessionCollection = os.Getenv("PASSWORD_RESET_SESSION_COLLECTION")
 
 	if env.AppEnv == "development" {
 		log.Println("The App is running in development env")

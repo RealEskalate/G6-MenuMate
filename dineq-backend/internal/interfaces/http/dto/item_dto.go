@@ -18,31 +18,31 @@ type NutritionalInfoDTO struct {
 
 // ItemRequest represents data needed to create/update an item
 type ItemRequest struct {
-	ID              string   `json:"id,omitempty"`
-	Name            string   `json:"name" validate:"required_without=name_am,omitempty"`
-	NameAm          string   `json:"name_am" validate:"required_without=name,omitempty"`
-	Slug            string   `json:"slug,omitempty"`
-	MenuSlug        string   `json:"menu_slug,omitempty"`
-	Description     string   `json:"description,omitempty"`
-	DescriptionAm   string   `json:"description_am,omitempty"`
-	Image           []string `json:"image,omitempty"`
-	Price           float64  `json:"price" validate:"required,gt=0"`
-	Currency        string   `json:"currency" validate:"required"`
-	Allergies       FlexibleAllergies `json:"allergies,omitempty"`
-	AllergiesAm     string   `json:"allergies_am,omitempty"`
-	UserImages      []string `json:"user_images,omitempty"`
-	TabTags         []string `json:"tab_tags,omitempty"`
-	TabTagsAm       []string `json:"tab_tags_am,omitempty"`
-	Calories        int      `json:"calories,omitempty" validate:"gte=0"` // backward compatibility (flattened)
-	Protein         int      `json:"protein,omitempty" validate:"gte=0"`
-	Carbs           int      `json:"carbs,omitempty" validate:"gte=0"`
-	Fat             int      `json:"fat,omitempty" validate:"gte=0"`
+	ID              string              `json:"id,omitempty"`
+	Name            string              `json:"name" validate:"required_without=name_am,omitempty"`
+	NameAm          string              `json:"name_am" validate:"required_without=name,omitempty"`
+	Slug            string              `json:"slug,omitempty"`
+	MenuSlug        string              `json:"menu_slug,omitempty"`
+	Description     string              `json:"description,omitempty"`
+	DescriptionAm   string              `json:"description_am,omitempty"`
+	Image           []string            `json:"image,omitempty"`
+	Price           float64             `json:"price" validate:"required,gt=0"`
+	Currency        string              `json:"currency" validate:"required"`
+	Allergies       FlexibleAllergies   `json:"allergies,omitempty"`
+	AllergiesAm     string              `json:"allergies_am,omitempty"`
+	UserImages      []string            `json:"user_images,omitempty"`
+	TabTags         []string            `json:"tab_tags,omitempty"`
+	TabTagsAm       []string            `json:"tab_tags_am,omitempty"`
+	Calories        int                 `json:"calories,omitempty" validate:"gte=0"` // backward compatibility (flattened)
+	Protein         int                 `json:"protein,omitempty" validate:"gte=0"`
+	Carbs           int                 `json:"carbs,omitempty" validate:"gte=0"`
+	Fat             int                 `json:"fat,omitempty" validate:"gte=0"`
 	NutritionalInfo *NutritionalInfoDTO `json:"nutritional_info,omitempty"`
-	Ingredients     []string `json:"ingredients,omitempty"`
-	IngredientsAm   []string `json:"ingredients_am,omitempty"`
-	PreparationTime int      `json:"preparation_time,omitempty" validate:"gte=0"`
-	HowToEat        string   `json:"how_to_eat,omitempty"`
-	HowToEatAm      string   `json:"how_to_eat_am,omitempty"`
+	Ingredients     []string            `json:"ingredients,omitempty"`
+	IngredientsAm   []string            `json:"ingredients_am,omitempty"`
+	PreparationTime int                 `json:"preparation_time,omitempty" validate:"gte=0"`
+	HowToEat        string              `json:"how_to_eat,omitempty"`
+	HowToEatAm      string              `json:"how_to_eat_am,omitempty"`
 }
 
 // ItemResponse represents the outward facing item payload
@@ -214,10 +214,10 @@ func RequestToItem(r *ItemRequest) *domain.Item {
 		return nil
 	}
 	var nutri *domain.NutritionalInfo
-	
-	if r != nil && r.NutritionalInfo != nil {
+
+	if r.NutritionalInfo != nil {
 		nutri = &domain.NutritionalInfo{Calories: r.NutritionalInfo.Calories, Protein: r.NutritionalInfo.Protein, Carbs: r.NutritionalInfo.Carbs, Fat: r.NutritionalInfo.Fat}
-	} else if r != nil && (r.Calories != 0 || r.Protein != 0 || r.Carbs != 0 || r.Fat != 0) {
+	} else if r.Calories != 0 || r.Protein != 0 || r.Carbs != 0 || r.Fat != 0 {
 		nutri = &domain.NutritionalInfo{Calories: r.Calories, Protein: r.Protein, Carbs: r.Carbs, Fat: r.Fat}
 	}
 	return &domain.Item{

@@ -118,7 +118,9 @@ func MergeItemUpdate(updated *domain.Item) *ItemDB {
 }
 
 func ToItemDBForUpdate(it *domain.Item) *ItemDB {
-	if it == nil { return nil }
+	if it == nil {
+		return nil
+	}
 	createdAt := it.CreatedAt
 	if createdAt.IsZero() {
 		createdAt = time.Now().UTC()
