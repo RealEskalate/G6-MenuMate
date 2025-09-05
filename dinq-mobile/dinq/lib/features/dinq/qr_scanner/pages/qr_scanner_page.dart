@@ -1,17 +1,17 @@
 // ignore_for_file: avoid_print
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-// import 'package:qr_code_tools/qr_code_tools.dart';
-import 'package:qr_code_tools/qr_code_tools.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../../core/util/theme.dart';
 import '../widgets/tip_row.dart';
-// import 'package:dinq/core/error/failures.dart';
 
 class QrScannerPage extends StatefulWidget {
   const QrScannerPage({super.key});
@@ -26,6 +26,21 @@ class _QrScannerPageState extends State<QrScannerPage> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
+      // Request permissions
+      if (source == ImageSource.camera) {
+        var status = await Permission.camera.request();
+        if (!status.isGranted) {
+          _showFailure(const ServerFailure('Camera permission denied'));
+          return;
+        }
+      } else {
+        var status = await Permission.photos.request();
+        if (!status.isGranted) {
+          _showFailure(const ServerFailure('Gallery permission denied'));
+          return;
+        }
+      }
+
       final pickedFile = await _picker.pickImage(source: source);
       print('Picked file: \\${pickedFile?.path}');
       if (pickedFile != null) {
@@ -44,7 +59,30 @@ class _QrScannerPageState extends State<QrScannerPage> {
     try {
       print('Processing image: \\${imageFile.path}');
       // Extract QR code from image
-      String? qrContent = await QrCodeToolsPlugin.decodeFrom(imageFile.path);
+      final controller = MobileScannerController();
+      List<Barcode> capturedBarcodes = [];
+      late StreamSubscription<BarcodeCapture> subscription;
+
+      Completer<void> completer = Completer();
+
+      subscription = controller.barcodes.listen((barcodeCapture) {
+        capturedBarcodes.addAll(barcodeCapture.barcodes);
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      });
+
+      bool success = await controller.analyzeImage(imageFile.path);
+      if (success) {
+        await completer.future;
+      }
+      await subscription.cancel();
+      controller.dispose();
+
+      String? qrContent;
+      if (capturedBarcodes.isNotEmpty) {
+        qrContent = capturedBarcodes.first.rawValue;
+      }
       print('QR content: $qrContent');
       if (qrContent == null) {
         _showFailure(const NotFoundFailure('No QR code found in image.'));
@@ -60,14 +98,14 @@ class _QrScannerPageState extends State<QrScannerPage> {
       }
 
       // Send GET request to backend
-      final result = await checkMenuExists(branchId);
-      if (result is ServerFailure) {
-        _showFailure(result);
-      } else if (result is NotFoundFailure) {
-        _showFailure(result);
-      } else if (result == true) {
+      final menuResult = await checkMenuExists(branchId);
+      if (menuResult is ServerFailure) {
+        _showFailure(menuResult);
+      } else if (menuResult is NotFoundFailure) {
+        _showFailure(menuResult);
+      } else if (menuResult == true) {
         if (!mounted) return;
-        Navigator.pushNamed(context, '/menu_page', arguments: 'test-branch-id');
+        Navigator.pushNamed(context, '/scanned-menu', arguments: branchId);
       } else {
         _showFailure(
           const NotFoundFailure('No menu published for this branch.'),
@@ -125,6 +163,10 @@ class _QrScannerPageState extends State<QrScannerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+<<<<<<< HEAD
+=======
+
+>>>>>>> mobile-merge-UI
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -239,6 +281,10 @@ class _QrScannerPageState extends State<QrScannerPage> {
               text: 'Capture the entire QR Code in frame',
             ),
             const SizedBox(height: 12),
+<<<<<<< HEAD
+=======
+
+>>>>>>> mobile-merge-UI
           ],
         ),
       ),

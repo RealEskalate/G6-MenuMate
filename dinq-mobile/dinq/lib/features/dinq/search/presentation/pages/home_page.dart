@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
+import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../widgets/bottom_navbar.dart';
 import '../widgets/nearby_restaurant_card.dart';
 import '../widgets/popular_dish_card.dart';
@@ -12,9 +14,9 @@ class HomePage extends StatelessWidget {
     if (tab == BottomNavTab.explore) {
       // Already on home/explore, do nothing
     } else if (tab == BottomNavTab.favorites) {
-      Navigator.pushReplacementNamed(context, '/favorites');
+      Navigator.pushReplacementNamed(context, AppRoute.favorites);
     } else if (tab == BottomNavTab.profile) {
-      Navigator.pushReplacementNamed(context, '/profile');
+      Navigator.pushReplacementNamed(context, AppRoute.profile);
     }
   }
 
@@ -34,7 +36,6 @@ class HomePage extends StatelessWidget {
       isAvailable: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-
       averageRating: 4.8,
     );
 
@@ -52,7 +53,6 @@ class HomePage extends StatelessWidget {
       isAvailable: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
-
       averageRating: 4.6,
     );
 
@@ -135,7 +135,7 @@ class HomePage extends StatelessWidget {
                   onViewMenu: () {
                     Navigator.pushNamed(
                       context,
-                      '/restaurant',
+                      AppRoute.restaurant,
                       arguments: {'restaurantId': 'bella-italia'},
                     );
                   },
@@ -151,7 +151,7 @@ class HomePage extends StatelessWidget {
                   onViewMenu: () {
                     Navigator.pushNamed(
                       context,
-                      '/restaurant',
+                      AppRoute.restaurant,
                       arguments: {'restaurantId': 'sakura-sushi'},
                     );
                   },
@@ -167,7 +167,7 @@ class HomePage extends StatelessWidget {
                   onViewMenu: () {
                     Navigator.pushNamed(
                       context,
-                      '/restaurant',
+                      AppRoute.restaurant,
                       arguments: {'restaurantId': 'burger-haven'},
                     );
                   },
@@ -180,13 +180,14 @@ class HomePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
-                  height: 170,
+                  height: 220,
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
                         const SizedBox(width: 4),
                         PopularDishCard(
+                          rating: 4,
                           imageUrl: margheritaPizza.images![0],
                           name: margheritaPizza.name,
                           restaurant: 'Bella Italia',
@@ -194,12 +195,13 @@ class HomePage extends StatelessWidget {
                           onTap: () {
                             Navigator.pushNamed(
                               context,
-                              '/item-detail',
+                              AppRoute.itemDetail,
                               arguments: {'item': margheritaPizza},
                             );
                           },
                         ),
                         PopularDishCard(
+                          rating: 4,
                           imageUrl: salmonSashimi.images![0],
                           name: salmonSashimi.name,
                           restaurant: 'Sakura Sushi',
@@ -207,12 +209,13 @@ class HomePage extends StatelessWidget {
                           onTap: () {
                             Navigator.pushNamed(
                               context,
-                              '/item-detail',
+                              AppRoute.itemDetail,
                               arguments: {'item': salmonSashimi},
                             );
                           },
                         ),
                         PopularDishCard(
+                          rating: 4,  
                           imageUrl: cheeseburger.images![0],
                           name: cheeseburger.name,
                           restaurant: 'Burger Haven',
@@ -220,7 +223,7 @@ class HomePage extends StatelessWidget {
                           onTap: () {
                             Navigator.pushNamed(
                               context,
-                              '/item-detail',
+                              AppRoute.itemDetail,
                               arguments: {'item': cheeseburger},
                             );
                           },
@@ -240,7 +243,7 @@ class HomePage extends StatelessWidget {
                 backgroundColor: AppColors.primaryColor,
                 onPressed: () {
                   // TODO: Implement QR scan
-                  Navigator.pushNamed(context, '/scanned-menu');
+                  Navigator.pushNamed(context, AppRoute.qrcode);
                 },
                 child: const Icon(
                   Icons.qr_code_scanner,
@@ -252,9 +255,9 @@ class HomePage extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavBar(
-        selectedTab: BottomNavTab.explore,
-        onTabSelected: (tab) => _onTabSelected(context, tab),
+      bottomNavigationBar: const OwnerNavBar(
+        isRestaurantOwner: true,
+        currentIndex: 0,
       ),
     );
   }
