@@ -32,6 +32,7 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 		NewOCRJobRoutes(env, api, db, notificationUseCase)
 		NewNotificationRoutes(env, api, db, notifySvc, notificationUseCase)
 		NewRestaurantRoutes(env, api, db)
+		NewReactionRoutes(env, api, db)
 		NewMenuRoutes(env, api, db, notificationUseCase)
 		NewQRCodeRoutes(env, api, db, notificationUseCase)
 		NewItemRoutes(env, api, db, notifySvc)
