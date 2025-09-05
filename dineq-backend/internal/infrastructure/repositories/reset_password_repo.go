@@ -11,8 +11,8 @@ import (
 )
 
 type PasswordResetRepository struct {
-	DB         mongo.Database
-	Collection string
+	DB                     mongo.Database
+	Collection             string
 	ResetSessionCollection string
 }
 
@@ -113,4 +113,3 @@ func (r *PasswordResetRepository) DeleteResetSession(ctx context.Context, sessio
 	}
 	return nil
 }
-

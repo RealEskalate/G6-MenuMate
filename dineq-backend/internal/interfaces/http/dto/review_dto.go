@@ -10,29 +10,29 @@ import (
 // ReviewDTO represents the data transfer object for a Review
 type ReviewDTO struct {
 	ID           string    `json:"id"`
-	ItemID       string    `json:"itemId"`
-	UserID       string    `json:"user"`
+	ItemID       string    `json:"item_id"`
+	UserID       string    `json:"user_id"`
 	Picture      string    `json:"picture,omitempty"`
 	Description  string    `json:"description"`
 	Rating       float64   `json:"rating"`
-	ReactionIDs  []string  `json:"reactionIds"`
-	LikeCount    int       `json:"likeCount"`
-	DislikeCount int       `json:"dislikeCount"`
-	IsApproved   bool      `json:"isApproved"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
-	IsDeleted    bool      `json:"isDeleted"`
-	FlagCount    int       `json:"flagCount"`
+	ReactionIDs  []string  `json:"reaction_ids"`
+	LikeCount    int       `json:"like_count"`
+	DislikeCount int       `json:"dislike_count"`
+	IsApproved   bool      `json:"is_approved"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+	IsDeleted    bool      `json:"is_deleted"`
+	FlagCount    int       `json:"flag_count"`
 }
 
 // ReactionDTO represents the data transfer object for a Reaction
 type ReactionDTO struct {
 	ID        string    `json:"id"`
-	ReviewID  string    `json:"reviewId"`
-	UserID    string    `json:"userId"`
+	ReviewID  string    `json:"review_id"`
+	UserID    string    `json:"user_id"`
 	Type      string    `json:"type"` // e.g., "LIKE", "DISLIKE"
-	CreatedAt time.Time `json:"createdAt"`
-	IsDeleted bool      `json:"isDeleted"`
+	CreatedAt time.Time `json:"created_at"`
+	IsDeleted bool      `json:"is_deleted"`
 }
 
 // Validate checks the ReviewDTO for required fields

@@ -39,7 +39,6 @@ func PasswordResetTokenToDomain(token *PasswordResetTokenDB) *domain.PasswordRes
 	}
 }
 
-
 // PasswordResetSessionFromDomain converts a domain PasswordResetSession to a DB model
 func PasswordResetSessionFromDomain(session *domain.PasswordResetSession) *PasswordResetSessionDB {
 	return &PasswordResetSessionDB{

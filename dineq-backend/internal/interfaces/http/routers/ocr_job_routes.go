@@ -18,10 +18,25 @@ import (
 )
 
 func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database, notifUc domain.INotificationUseCase) {
-
-	// context time out
+	// base context & timeout for service initialization (long-running OCR/AI may exceed; see TODO below)
 	ctxTimeout := time.Duration(env.CtxTSeconds) * time.Second
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), ctxTimeout)
+	defer cancel()
+	// TODO: Consider a separate, larger timeout specifically for long OCR+AI pipeline stages if env.CtxTSeconds is small.
+
+	// Basic credential presence checks (log warnings, continue in degraded mode)
+	if env.VeryfiClientID == "" || env.VeryfiClientSecret == "" || env.VeryfiAPIKey == "" || env.VeryfiUsername == "" {
+		logger.Log.Warn().Msg("veryfi credentials incomplete; OCR extraction may fail")
+	}
+	if env.CloudinaryName == "" || env.CloudinaryAPIKey == "" || env.CloudinarySecret == "" {
+		logger.Log.Warn().Msg("cloudinary credentials incomplete; uploads may fail")
+	}
+	if env.GeminiAPIKey == "" {
+		logger.Log.Warn().Msg("gemini api key missing; AI enhancements disabled")
+	}
+	if env.SearchAPIKey == "" || env.SearchEngineID == "" {
+		logger.Log.Warn().Msg("image search credentials missing; photo enrichment disabled")
+	}
 
 	ocrOption := veryfi.Options{
 		ClientID:     env.VeryfiClientID,
@@ -41,42 +56,42 @@ func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 	// image search services
 	imgService, err := services.NewImageSearchService(env.SearchEngineID, env.SearchAPIKey)
 	if err != nil {
-		logger.Log.Fatal().Err(err).Msg("Failed to initialize Image Search Service")
+		logger.Log.Error().Err(err).Msg("failed to initialize image search service; OCR upload will proceed without image enrichment")
+		imgService = nil // graceful degrade
 	}
 
 	// Aiservices
 	aiService, err := services.NewAIService(ctx, env.GeminiAPIKey, env.GeminiModelName, imgService)
 	if err != nil {
-		logger.Log.Fatal().Err(err).Msg("Failed to initialize AI Service")
+		logger.Log.Error().Err(err).Msg("failed to initialize AI service; OCR results will lack AI enhancements")
+		aiService = nil // graceful degrade
 	}
 
-	// // Worker
-	// pollInterval := 5 * time.Second
-	// ocrWorker := services.NewWorker(ctx, ocrJobRepo, ocrService, aiService, imgService, pushService, pollInterval)
-	// go ocrWorker.Start()
-
 	// qr services
-	qrService := services.NewQRGenerator("qr_code_output.png")
+	qrServices := services.NewQRGenerator(env.QRCodeContent)
 
-	// menu repo
+	// repositories
 	menuRepo := repositories.NewMenuRepository(db, env.MenuCollection)
-	menuUsecase := usecase.NewMenuUseCase(menuRepo, *qrService, cloudinaryStorage, ctxTimeout)
-
-	// repositories and usecases
 	ocrJobRepo := repositories.NewOCRJobRepository(db, env.OCRJobCollection)
+
+	// use cases
+	menuUsecase := usecase.NewMenuUseCase(menuRepo, *qrServices, cloudinaryStorage, ctxTimeout)
 	ocrJobUsecase := usecase.NewOCRJobUseCase(ocrJobRepo, menuRepo, ocrService, aiService, ctxTimeout)
 
-	// ocr Handler
+	// Worker (disabled)
+	// TODO: Re-enable background worker for OCR job polling & retries.
+	// TODO: Add notification dispatch integration guarded by feature flag.
+
+	// OCR Handler
 	ocrJobHandler := handler.NewOCRJobHandler(ocrJobUsecase, menuUsecase, cloudinaryStorage, notifUc)
 
-	// Backward compatibility / transition routes for previously documented /ocr-jobs paths
-	legacy := group.Group("/ocr-jobs")
-	legacy.Use(middleware.AuthMiddleware(*env))
+	// Single canonical OCR route group (legacy /ocr-jobs removed)
+	protected := group.Group("/ocr")
+	protected.Use(middleware.AuthMiddleware(*env))
 	{
-		// Allow POST to either base or /upload for flexibility
-		legacy.POST("", ocrJobHandler.UploadMenu)
-		legacy.POST("/upload", ocrJobHandler.UploadMenu)
-		legacy.GET("/:id", ocrJobHandler.GetOCRJobByID)
-		legacy.DELETE("/:id", ocrJobHandler.DeleteOCRJob)
+		protected.POST("/upload", ocrJobHandler.UploadMenu)
+		protected.GET("/:id", ocrJobHandler.GetOCRJobByID) // endpoint returns JSON for job
+		protected.DELETE("/:id", ocrJobHandler.DeleteOCRJob)
+		protected.POST("/:id/retry", ocrJobHandler.RetryOCRJob)
 	}
 }

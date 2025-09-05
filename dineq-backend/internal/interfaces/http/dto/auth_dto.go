@@ -20,21 +20,22 @@ type RefreshTokenResponse struct {
 }
 
 type ForgotPasswordRequest struct {
-	Email string `json:"email" validate:"required,email"`
+	Email    string `json:"email" validate:"required,email"`
 	Platform string `json:"platform" validate:"required,oneof=web mobile"`
-
 }
 
 type PasswordResetSession struct {
-    UserID    string
-    Token     string // random session token
-    ExpiresAt time.Time
+	UserID    string
+	Token     string // random session token
+	ExpiresAt time.Time
 }
- // VerifyResetTokenRequest
+
+// VerifyResetTokenRequest
 type VerifyResetTokenRequest struct {
 	Email string `json:"email" validate:"required,email"`
 	Token string `json:"token" validate:"required"`
 }
+
 // verify reset token and allow password reset
 type SetNewPasswordRequest struct {
 	SessionToken string `json:"session_token" validate:"required"`
@@ -42,7 +43,7 @@ type SetNewPasswordRequest struct {
 }
 
 type ChangeRoleRequest struct {
-	UserID string `json:"userId" validate:"required"`
+	UserID string `json:"user_id" validate:"required"`
 	Role   string `json:"role" validate:"required,oneof=admin user superadmin"`
 }
 

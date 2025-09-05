@@ -6,22 +6,40 @@ import (
 )
 
 type Menu struct {
-	ID             string
-	RestaurantID   string
-	Slug           string
-	Version        int
-	IsPublished    bool
-	PublishedAt    time.Time
-	Items          []Item
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	UpdatedBy      string
-	IsDeleted      bool
-	ViewCount      int
-	DeletedAt      *time.Time
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	RestaurantID string    `json:"restaurant_id"`
+	Slug         string    `json:"slug"`
+	Version      int       `json:"version"`
+	IsPublished  bool      `json:"is_published"`
+	PublishedAt  time.Time `json:"published_at"`
+	Tabs         []Tab     `json:"tabs"`
+	Items        []Item
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
+	CreatedBy    string     `json:"created_by"`
+	UpdatedBy    string     `json:"updated_by"`
+	IsDeleted    bool       `json:"is_deleted"`
+	DeletedAt    *time.Time `json:"deleted_at,omitempty"`
+	ViewCount    int        `json:"view_count"`
 }
 
+type Tab struct {
+	ID         string     `json:"id"`
+	MenuID     string     `json:"menu_id"`
+	Name       string     `json:"name"`
+	NameAm     string     `json:"name_am"`
+	Categories []Category `json:"categories"`
+	IsDeleted  bool       `json:"is_deleted"`
+}
 
+type Category struct {
+	ID     string `json:"id"`
+	TabID  string `json:"tab_id"`
+	Name   string `json:"name"`
+	NameAm string `json:"name_am"`
+	Items  []Item `json:"items"`
+}
 
 type IMenuUseCase interface {
 	CreateMenu(menu *Menu) error

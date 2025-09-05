@@ -8,33 +8,38 @@ import (
 )
 
 type ItemDB struct {
-	ID              bson.ObjectID `bson:"_id,omitempty"`
-	Name            string        `bson:"name"`
-	NameAm          string        `bson:"nameAm"`
-	Slug            string        `bson:"slug"`
-	MenuSlug       string        `bson:"menuSlug"`
-	Description     string        `bson:"description"`
-	DescriptionAm   string        `bson:"descriptionAm"`
-	Image           []string      `bson:"image"`
-	Price           float64       `bson:"price"`
-	TabTags         []string      `bson:"tabTags"`
-	CategoryTags    []string      `bson:"categoryTags"`
-	Currency        string        `bson:"currency"`
-	Allergies       []string      `bson:"allergies"`
-	UserImages      []string      `bson:"userImages"`
-	Calories        int           `bson:"calories"`
-	Ingredients     []string      `bson:"ingredients"`
-	IngredientsAm   []string      `bson:"ingredientsAm"`
-	PreparationTime int           `bson:"preparationTime"`
-	HowToEat        any           `bson:"howToEat"`
-	HowToEatAm      any           `bson:"howToEatAm"`
-	CreatedAt       time.Time     `bson:"createdAt"`
-	UpdatedAt       time.Time     `bson:"updatedAt"`
-	IsDeleted       bool          `bson:"isDeleted"`
-	ViewCount       int           `bson:"viewCount"`
-	AverageRating   float64       `bson:"averageRating"`
-	ReviewIDs       []string      `bson:"reviewIds"`
-	DeletedAt       *time.Time    `bson:"deletedAt,omitempty"`
+	ID              bson.ObjectID           `bson:"_id,omitempty"`
+	Name            string                  `bson:"name"`
+	NameAm          string                  `bson:"nameAm"`
+	Slug            string                  `bson:"slug"`
+	MenuSlug        string                  `bson:"menuSlug"`
+	Description     string                  `bson:"description"`
+	DescriptionAm   string                  `bson:"descriptionAm"`
+	Image           []string                `bson:"image"`
+	Price           float64                 `bson:"price"`
+	Currency        string                  `bson:"currency"`
+	Allergies       []string                `bson:"allergies"`
+	AllergiesAm     string                  `bson:"allergiesAm"`
+	UserImages      []string                `bson:"userImages"`
+	Calories        int                     `bson:"calories"`
+	Protein         int                     `bson:"protein"`
+	Carbs           int                     `bson:"carbs"`
+	Fat             int                     `bson:"fat"`
+	NutritionalInfo *domain.NutritionalInfo `bson:"nutritionalInfo,omitempty"`
+	TabTags         []string                `bson:"tabTags"`
+	TabTagsAm       []string                `bson:"tabTagsAm"`
+	Ingredients     []string                `bson:"ingredients"`
+	IngredientsAm   []string                `bson:"ingredientsAm"`
+	PreparationTime int                     `bson:"preparationTime"`
+	HowToEat        string                  `bson:"howToEat"`
+	HowToEatAm      string                  `bson:"howToEatAm"`
+	CreatedAt       time.Time               `bson:"createdAt"`
+	UpdatedAt       time.Time               `bson:"updatedAt"`
+	IsDeleted       bool                    `bson:"isDeleted"`
+	ViewCount       int                     `bson:"viewCount"`
+	AverageRating   float64                 `bson:"averageRating"`
+	ReviewIDs       []string                `bson:"reviewIds"`
+	DeletedAt       *time.Time              `bson:"deletedAt,omitempty"`
 }
 
 // ---------- Creation ----------
@@ -49,17 +54,22 @@ func NewItemDBFromDomain(item *domain.Item) *ItemDB {
 		Name:            item.Name,
 		NameAm:          item.NameAm,
 		Slug:            item.Slug,
-		MenuSlug:       item.MenuSlug,
+		MenuSlug:        item.MenuSlug,
 		Description:     item.Description,
 		DescriptionAm:   item.DescriptionAm,
 		Image:           item.Image,
 		Price:           item.Price,
-		TabTags:         item.TabTags,
-		CategoryTags:    item.CategoryTags,
 		Currency:        item.Currency,
 		Allergies:       item.Allergies,
+		AllergiesAm:     item.AllergiesAm,
 		UserImages:      item.UserImages,
 		Calories:        item.Calories,
+		Protein:         item.Protein,
+		Carbs:           item.Carbs,
+		Fat:             item.Fat,
+		NutritionalInfo: item.NutritionalInfo,
+		TabTags:         item.TabTags,
+		TabTagsAm:       item.TabTagsAm,
 		Ingredients:     item.Ingredients,
 		IngredientsAm:   item.IngredientsAm,
 		PreparationTime: item.PreparationTime,
@@ -83,13 +93,12 @@ func MergeItemUpdate(updated *domain.Item) *ItemDB {
 		Name:            updated.Name,
 		NameAm:          updated.NameAm,
 		Slug:            updated.Slug,
-		MenuSlug:       updated.MenuSlug,
+		MenuSlug:        updated.MenuSlug,
 		Description:     updated.Description,
 		DescriptionAm:   updated.DescriptionAm,
 		Image:           updated.Image,
 		Price:           updated.Price,
 		TabTags:         updated.TabTags,
-		CategoryTags:    updated.CategoryTags,
 		Currency:        updated.Currency,
 		Allergies:       updated.Allergies,
 		UserImages:      updated.UserImages,
@@ -105,10 +114,55 @@ func MergeItemUpdate(updated *domain.Item) *ItemDB {
 		ViewCount:       updated.ViewCount,
 		AverageRating:   updated.AverageRating,
 		ReviewIDs:       updated.ReviewIds,
-		DeletedAt:       updated.DeletedAt,
 	}
 }
 
+func ToItemDBForUpdate(it *domain.Item) *ItemDB {
+	if it == nil {
+		return nil
+	}
+	createdAt := it.CreatedAt
+	if createdAt.IsZero() {
+		createdAt = time.Now().UTC()
+	}
+	updatedAt := it.UpdatedAt
+	if updatedAt.IsZero() { // only set now if not already provided
+		updatedAt = time.Now().UTC()
+	}
+	return &ItemDB{
+		ID:              idempotentID(it.ID),
+		Name:            it.Name,
+		NameAm:          it.NameAm,
+		Slug:            it.Slug,
+		MenuSlug:        it.MenuSlug,
+		Description:     it.Description,
+		DescriptionAm:   it.DescriptionAm,
+		Image:           it.Image,
+		Price:           it.Price,
+		Currency:        it.Currency,
+		Allergies:       it.Allergies,
+		AllergiesAm:     it.AllergiesAm,
+		UserImages:      it.UserImages,
+		Calories:        it.Calories,
+		Protein:         it.Protein,
+		Carbs:           it.Carbs,
+		Fat:             it.Fat,
+		NutritionalInfo: it.NutritionalInfo,
+		TabTags:         it.TabTags,
+		TabTagsAm:       it.TabTagsAm,
+		Ingredients:     it.Ingredients,
+		IngredientsAm:   it.IngredientsAm,
+		PreparationTime: it.PreparationTime,
+		HowToEat:        it.HowToEat,
+		HowToEatAm:      it.HowToEatAm,
+		CreatedAt:       createdAt,
+		UpdatedAt:       updatedAt,
+		IsDeleted:       it.IsDeleted,
+		ViewCount:       it.ViewCount,
+		AverageRating:   it.AverageRating,
+		ReviewIDs:       it.ReviewIds,
+	}
+}
 
 // ---------- Conversion ----------
 
@@ -124,10 +178,15 @@ func ToDomainItem(item *ItemDB) *domain.Item {
 		Price:           item.Price,
 		Currency:        item.Currency,
 		TabTags:         item.TabTags,
-		CategoryTags:    item.CategoryTags,
 		Allergies:       item.Allergies,
+		AllergiesAm:     item.AllergiesAm,
 		UserImages:      item.UserImages,
 		Calories:        item.Calories,
+		Protein:         item.Protein,
+		Carbs:           item.Carbs,
+		Fat:             item.Fat,
+		NutritionalInfo: item.NutritionalInfo,
+		TabTagsAm:       item.TabTagsAm,
 		Ingredients:     item.Ingredients,
 		IngredientsAm:   item.IngredientsAm,
 		PreparationTime: item.PreparationTime,
@@ -139,7 +198,6 @@ func ToDomainItem(item *ItemDB) *domain.Item {
 		ViewCount:       item.ViewCount,
 		AverageRating:   item.AverageRating,
 		ReviewIds:       item.ReviewIDs,
-		DeletedAt:       item.DeletedAt,
 	}
 }
 

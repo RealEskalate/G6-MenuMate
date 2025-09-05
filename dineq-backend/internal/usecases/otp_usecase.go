@@ -44,15 +44,12 @@ func (otpuc *OTPUsecase) RequestOTP(email string) error {
 		return err
 	}
 
-
-
-
 	var data = struct {
-    Title   string
-    Name    string
-    Message string
-    OTP     string
-    Expiry  int
+		Title   string
+		Name    string
+		Message string
+		OTP     string
+		Expiry  int
 	}{Title: "Email Verification", Name: "User", Message: "Use the OTP below to verify your email address.", OTP: code, Expiry: int(otpuc.otpExpiration.Minutes())}
 	body, err := utils.RenderTemplate("otp.html", data)
 	if err != nil {
