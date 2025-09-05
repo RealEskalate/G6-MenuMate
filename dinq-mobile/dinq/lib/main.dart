@@ -1,18 +1,20 @@
-import 'dart:convert';
-
-import 'package:dio/dio.dart';
+// main.dart - CORRECTED
+import 'package:dinq/features/dinq/auth/presentation/Pages/email_verfiction.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/verify_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'injection_container.dart' as di;
+import 'core/injection.dart' as di;
+// import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import 'core/routing/app_route.dart';
+import 'core/temp/app_config.dart';
 import 'core/util/theme.dart';
-import 'features/dinq/restaurant_management/data/model/restaurant_model.dart';
+import 'features/dinq/auth/presentation/Pages/onboarding_first.dart';
 import 'features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
-import 'features/dinq/restaurant_management/presentation/bloc/restaurant_event.dart';
-import 'features/dinq/restaurant_management/presentation/bloc/restaurant_state.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  ConfigPresets.developmentDemo();
   await di.init();
   runApp(const MyApp());
 }
@@ -22,167 +24,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MenuMate - API Demo',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: AppColors.primaryColor,
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryColor),
-        scaffoldBackgroundColor: Colors.grey[100],
-        appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.primaryColor,
-          foregroundColor: Colors.white,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<RestaurantBloc>(
+          create: (context) => di.sl<RestaurantBloc>(),
         ),
-      ),
-      home: BlocProvider<RestaurantBloc>(
-        create: (_) => di.sl<RestaurantBloc>(),
-        child: const DemoRestaurantPage(),
-      ),
-    );
-  }
-}
-
-class DemoRestaurantPage extends StatelessWidget {
-  const DemoRestaurantPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final slugController = TextEditingController(text: 'demo-slug');
-    final idController = TextEditingController(text: '');
-    final nameController = TextEditingController(text: 'Demo Restaurant');
-    final phoneController = TextEditingController(text: '+251900000000');
-    final jsonController = TextEditingController(
-      text: jsonEncode({
-        'name': 'Demo Restaurant',
-        'slug': 'demo-slug',
-        'description': 'Created from demo page',
-      }),
-    );
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Restaurant API Demo (Bloc)')),
-      body: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: slugController,
-              decoration: const InputDecoration(
-                labelText: 'Slug (for GET/PUT)',
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name (for Create - form data)',
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Phone (for Create - form data)',
-              ),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: idController,
-              decoration: const InputDecoration(labelText: 'ID (for DELETE)'),
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: TextField(
-                controller: jsonController,
-                decoration: const InputDecoration(
-                  labelText: 'JSON body (create/update)',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: null,
-                expands: true,
-                keyboardType: TextInputType.multiline,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    final body = FormData.fromMap({
-                      'name': nameController.text.trim(),
-                      'phone': phoneController.text.trim(),
-                    });
-                    context.read<RestaurantBloc>().add(
-                      CreateRestaurantEvent(body),
-                    );
-                  },
-                  child: const Text('Create'),
-                ),
-                ElevatedButton(
-                  onPressed: () => context.read<RestaurantBloc>().add(
-                    const LoadRestaurants(page: 1, pageSize: 20),
-                  ),
-                  child: const Text('List'),
-                ),
-                ElevatedButton(
-                  onPressed: () => context.read<RestaurantBloc>().add(
-                    LoadRestaurantBySlug(slugController.text.trim()),
-                  ),
-                  child: const Text('Get by Slug'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    final model = RestaurantModel.fromMap(
-                      jsonDecode(jsonController.text) as Map<String, dynamic>,
-                    );
-                    context.read<RestaurantBloc>().add(
-                      UpdateRestaurantEvent(model, slugController.text.trim()),
-                    );
-                  },
-                  child: const Text('Update'),
-                ),
-                ElevatedButton(
-                  onPressed: () => context.read<RestaurantBloc>().add(
-                    DeleteRestaurantEvent(idController.text.trim()),
-                  ),
-                  child: const Text('Delete'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text('Response:'),
-            const SizedBox(height: 6),
-            Expanded(
-              child: BlocBuilder<RestaurantBloc, RestaurantState>(
-                builder: (context, state) {
-                  if (state is RestaurantLoading)
-                    return const Center(child: CircularProgressIndicator());
-                  if (state is RestaurantError)
-                    return Text('Error: ${state.message}');
-                  if (state is RestaurantsLoaded)
-                    return Text('Restaurants: ${state.restaurants.length}');
-                  if (state is RestaurantLoaded)
-                    return Text(
-                      'Restaurant: ${state.restaurant.restaurantName}',
-                    );
-                  if (state is RestaurantActionSuccess)
-                    return Text(state.message);
-                  if (state is MenuLoaded)
-                    return Text('Menu: ${state.menu.id}');
-                  if (state is ReviewsLoaded)
-                    return Text('Reviews: ${state.reviews.length}');
-                  if (state is UserImagesLoaded)
-                    return Text('Images: ${state.images.length}');
-                  return const Text('Idle');
-                },
-              ),
-            ),
-          ],
-        ),
+      ],
+      child: MaterialApp(
+        initialRoute: AppRoute.explore,
+        onGenerateRoute: AppRoute.onGenerateRoute,
+        debugShowCheckedModeBanner: false,
+        theme: appTheme,
       ),
     );
   }

@@ -28,6 +28,7 @@ class _RestaurantPageState extends State<RestaurantPage>
   bool _isLoading = true;
   static final Set<String> _favoriteRestaurantIds = {}; // For UI only
 
+
   void _toggleFavorite() {
     setState(() {
       if (_FavoritesStore.restaurantIds.contains(widget.restaurantId)) {
@@ -529,3 +530,4 @@ class _RestaurantPageState extends State<RestaurantPage>
     );
   }
 }
+

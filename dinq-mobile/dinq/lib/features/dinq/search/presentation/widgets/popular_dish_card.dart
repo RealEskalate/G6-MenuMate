@@ -6,6 +6,7 @@ class PopularDishCard extends StatelessWidget {
   final String name;
   final String restaurant;
   final String price;
+  final double rating;
   final VoidCallback? onTap;
 
   const PopularDishCard({
@@ -14,6 +15,7 @@ class PopularDishCard extends StatelessWidget {
     required this.name,
     required this.restaurant,
     required this.price,
+    required this.rating,
     this.onTap,
   });
 
@@ -23,6 +25,7 @@ class PopularDishCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: 140,
+        height: 200, // 🔥 Fixed height for consistency
         margin: const EdgeInsets.only(right: 14),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -45,7 +48,7 @@ class PopularDishCard extends StatelessWidget {
               ),
               child: Image.network(
                 imageUrl,
-                height: 70,
+                height: 100, // 🔥 Fixed image height
                 width: 140,
                 fit: BoxFit.cover,
               ),
@@ -82,16 +85,20 @@ class PopularDishCard extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.add,
-                          color: Colors.white,
-                          size: 18,
-                        ),
+                      Row(
+                        children: [
+                          const Icon(Icons.star,
+                              color: Colors.orange, size: 15),
+                          const SizedBox(width: 2),
+                          Text(
+                            rating.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
