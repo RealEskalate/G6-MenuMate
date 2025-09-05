@@ -17,7 +17,7 @@ type ReactionDTO struct {
 // ReactionStatsDTO represents the aggregated stats and user's reaction in snake_case.
 type ReactionStatsDTO struct {
     ItemID string            `json:"item_id"`
-    Counts map[string]int64  `json:"counts"`
-    Total  int64             `json:"total"`
+    LikeCounts int64         `json:"like_count"`
+    DislikeCounts int64      `json:"dislike_count"`
     Me     *string           `json:"me,omitempty"`
 }
