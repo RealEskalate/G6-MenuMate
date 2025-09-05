@@ -18,7 +18,7 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 	// context time out
 	ctxTimeout := time.Duration(env.CtxTSeconds) * time.Second
 
-	qrService := services.NewQRGenerator(env.QRCodeContent)
+	qrService := services.NewQRService()
 
 	qrRepo := repositories.NewQRCodeRepository(db, env.QRCodeCollection)
 	qrUsecase := usecase.NewQRCodeUseCase(qrRepo, ctxTimeout)
@@ -31,7 +31,7 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 	)
 
 	menuRepo := repositories.NewMenuRepository(db, env.MenuCollection)
-	menuUsecase := usecase.NewMenuUseCase(menuRepo, *qrService, cloudinaryStorage, ctxTimeout)
+	menuUsecase := usecase.NewMenuUseCase(menuRepo, *qrService, ctxTimeout)
 
 	restaurantRepo := repositories.NewRestaurantRepo(db, env.RestaurantCollection)
 
