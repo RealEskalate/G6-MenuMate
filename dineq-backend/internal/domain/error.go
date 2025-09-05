@@ -18,6 +18,7 @@ var (
 	ErrTokenExpired                   = errors.New("token expired")
 	ErrInvalidInput                   = errors.New("invalid input")
 	ErrInvalidUserId      = errors.New("invalid user id")
+	ErrInvalidReviewId      = errors.New("invalid review id")
 	ErrUnauthorized                   = errors.New("User not authenticated or authorized")
 	ErrInvalidFile                    = errors.New("invalid file format")
 	ErrOTPNotFound                    = errors.New("OTP not found")
