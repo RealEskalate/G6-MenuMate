@@ -1,27 +1,75 @@
 "use client";
 
-// import { Fullscreen } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
+import { useSession } from "next-auth/react";
+import { uploadMenuOCR ,getOCRStatus} from "@/lib/api"; // import the API function
 
 const AddMenuWithOCR = () => {
+  const { data: session } = useSession();
   const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+    const [progress, setProgress] = useState<number | null>(null);
+    const [menuData, setMenuData] = useState<any | null>(null);
 
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    const droppedFile = event.dataTransfer.files[0];
-    if (
-      droppedFile &&
-      ["image/jpeg", "image/png", "image/heic"].includes(droppedFile.type)
-    ) {
-      setFile(droppedFile);
+  const handleUpload = async () => {
+    if (!file || !session?.accessToken) return;
+
+    setLoading(true);
+    setProgress(null);
+    setMenuData(null);
+
+    try {
+      // Step 1: Upload file
+      const result = await uploadMenuOCR(file, session.accessToken);
+      console.log("✅ OCR Upload Response:", result);
+
+      const jobId = result.data.job_id;
+
+      // Step 2: Poll OCR status
+      const interval = setInterval(async () => {
+        try {
+          const statusRes = await getOCRStatus(jobId, session.accessToken);
+          console.log("📡 OCR Status:", statusRes);
+
+          setProgress(statusRes.data.progress);
+
+          if (statusRes.data.status === "completed") {
+            clearInterval(interval);
+            setMenuData(statusRes.data.results); // extracted_text & menu_items
+            setLoading(false);
+          }
+
+          if (statusRes.data.status === "failed") {
+            clearInterval(interval);
+            setLoading(false);
+            console.error("❌ OCR job failed");
+          }
+        } catch (err) {
+          clearInterval(interval);
+          setLoading(false);
+          console.error("❌ Error polling OCR:", err);
+        }
+      }, 3000); // poll every 3 seconds
+    } catch (err) {
+      console.error("❌ Error uploading menu:", err);
+      setLoading(false);
     }
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
   };
-
+const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+  event.preventDefault();
+  const droppedFile = event.dataTransfer.files[0];
+  if (
+    droppedFile &&
+    ["image/jpeg", "image/png", "image/heic"].includes(droppedFile.type)
+  ) {
+    setFile(droppedFile);
+  }
+};
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files && event.target.files[0];
     if (
@@ -31,6 +79,8 @@ const AddMenuWithOCR = () => {
       setFile(selectedFile);
     }
   };
+
+ 
 
   return (
     <>
@@ -99,7 +149,8 @@ const AddMenuWithOCR = () => {
               src={URL.createObjectURL(file)}
               alt="Uploaded menu"
               width={400} // or any size you prefer
-              height={300}
+              height={0} // or remove height entirely
+              style={{ height: "auto" }}
               className="object-contain mx-auto rounded max-h-72"
             />
           ) : (
@@ -134,10 +185,43 @@ const AddMenuWithOCR = () => {
           <button className="px-5 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors">
             ← Back
           </button>
-          <button className="px-5 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors">
-            Next →
+          <button
+            className="px-5 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors"
+            onClick={handleUpload}
+            disabled={loading}
+          >
+            {loading ? "Uploading..." : "Next →"}
           </button>
         </div>
+        {loading && (
+          <div className="mt-4 text-center">
+            <p className="font-semibold">Processing OCR...</p>
+            {progress !== null && <p>Progress: {progress}%</p>}
+          </div>
+        )}
+
+        {menuData && (
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg text-left">
+            <h3 className="font-bold text-lg mb-2">Extracted Menu</h3>
+            <p className="whitespace-pre-wrap text-gray-700 mb-4">
+              {menuData.extracted_text}
+            </p>
+            <ul className="space-y-2">
+              {menuData.menu_items.map((item: any, idx: number) => (
+                <li
+                  key={idx}
+                  className="p-2 border rounded-lg bg-white shadow-sm"
+                >
+                  <p className="font-semibold">{item.name}</p>
+                  <p className="text-sm text-gray-600">{item.description}</p>
+                  <p className="text-orange-500 font-bold">
+                    {item.price} {item.currency}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </>
   );

@@ -109,19 +109,12 @@ export const options: NextAuthOptions = {
       }
       return session;
     },
-
-    // Role-based redirect after sign-in
-    async signIn({ user }) {
-      if (!user) return false;
-      const role = user.role;
-      if (role === "CUSTOMER") return "/user";
-      if (typeof role === "string" && ["OWNER", "MANAGER", "STAFF", "ADMIN"].includes(role)) return "/restaurant/dashboard/menu";
-      return "/auth/signin";
-    },
-
-    // Keep redirect callback simple
-    redirect({ url, baseUrl }) {
-      if (url.startsWith(baseUrl)) return url;
+  
+    async redirect({ url, baseUrl }) {
+      // If it’s an internal callback, just go to the dashboard
+      if (url.startsWith(baseUrl)) {
+        return `${baseUrl}`;
+      }
       return baseUrl;
     },
   },

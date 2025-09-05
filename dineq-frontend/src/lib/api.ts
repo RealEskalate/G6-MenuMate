@@ -50,3 +50,72 @@ export async function forgotPassword(
 
   return res.json();
 }
+
+export interface OCRUploadData {
+  estimated_completion_time: string;
+  job_id: string;
+  status: "processing" | "completed" | "failed";
+}
+
+export interface OCRUploadResponse {
+  data: OCRUploadData;
+  success: boolean;
+}
+
+
+export async function uploadMenuOCR(
+  file: File,
+  accessToken: string
+): Promise<OCRUploadResponse> {
+  console.log("📤 Uploading file to OCR API:", file);
+
+  const formData = new FormData();
+  formData.append("menuImage", file);
+
+  const res = await fetch(`${BASE_URL}/ocr/upload`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    throw new Error(`❌ Upload failed: ${res.status} ${res.statusText}`);
+  }
+
+  return res.json();
+}
+
+export interface OCRStatusResponse {
+  data: {
+    job_id: string;
+    status: "processing" | "completed" | "failed";
+    progress: number;
+    results?: {
+      extracted_text: string;
+      menu_items: any[];
+    };
+  };
+  success: boolean;
+}
+
+export async function getOCRStatus(
+  jobId: string,
+  accessToken: string
+): Promise<OCRStatusResponse> {
+  const res = await fetch(`${BASE_URL}/ocr/${jobId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`❌ Failed to get OCR status: ${res.status}`);
+  }
+
+  return res.json();
+}
+
+
