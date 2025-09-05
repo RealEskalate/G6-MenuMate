@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"net/http"
-	"strings"
-	"strconv"
 	"encoding/json"
+	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
