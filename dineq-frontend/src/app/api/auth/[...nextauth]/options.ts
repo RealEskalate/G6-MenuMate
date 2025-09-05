@@ -157,7 +157,7 @@ export const options: NextAuthOptions = {
     async redirect({ url, baseUrl }) {
       // If it’s an internal callback, just go to the dashboard
       if (url.startsWith(baseUrl)) {
-        return `${baseUrl} `;
+        return `${baseUrl}`;
       }
       return baseUrl;
     },
