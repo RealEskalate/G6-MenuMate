@@ -9,6 +9,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// helper to send standardized error responses
+func reviewError(c *gin.Context, status int, code, message string, field string, internal error) {
+	resp := dto.ErrorResponse{Message: message, Code: code}
+	if field != "" {
+		resp.Field = field
+	}
+	if internal != nil {
+		resp.Error = internal.Error()
+	}
+	c.JSON(status, resp)
+}
+
 type ReviewHandler struct {
 	uc domain.IReviewUsecase
 }
@@ -21,31 +33,31 @@ func NewReviewHandler(uc domain.IReviewUsecase) *ReviewHandler {
 func (h *ReviewHandler) CreateReview(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		reviewError(c, http.StatusUnauthorized, "unauthorized", "Unauthorized", "", nil)
 		return
 	}
 
 	var req dto.ReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request", "details": err.Error()})
+		reviewError(c, http.StatusBadRequest, "invalid_request", "Invalid request", "", err)
 		return
 	}
 
 	if req.Rating < 1 || req.Rating > 5 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "rating must be in the range 1 to 5"})
+		reviewError(c, http.StatusBadRequest, "rating_out_of_range", "rating must be in the range 1 to 5", "rating", nil)
 		return
 	}
 
 	review := dto.ToDomainReview(req, userID)
 	if err := h.uc.CreateReview(c.Request.Context(), review); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		reviewError(c, http.StatusInternalServerError, "create_review_failed", "Failed to create review", "", err)
 		return
 	}
 
 	// Use the updated review.ID directly
 	createdReview, err := h.uc.GetReviewByID(c.Request.Context(), review.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch created review"})
+		reviewError(c, http.StatusInternalServerError, "fetch_review_failed", "Failed to fetch created review", "", err)
 		return
 	}
 
@@ -60,7 +72,7 @@ func (h *ReviewHandler) GetReviewByID(c *gin.Context) {
 	id := c.Param("id")
 	review, err := h.uc.GetReviewByID(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Review not found"})
+		reviewError(c, http.StatusNotFound, "review_not_found", "Review not found", "id", err)
 		return
 	}
 	c.JSON(http.StatusOK, dto.ToReviewResponse(review, nil))
@@ -74,7 +86,7 @@ func (h *ReviewHandler) ListReviewsByItem(c *gin.Context) {
 
 	reviews, total, err := h.uc.ListReviewsByItem(c.Request.Context(), itemID, page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		reviewError(c, http.StatusInternalServerError, "list_reviews_failed", "Failed to list reviews", "", err)
 		return
 	}
 
@@ -90,33 +102,33 @@ func (h *ReviewHandler) ListReviewsByItem(c *gin.Context) {
 func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		reviewError(c, http.StatusUnauthorized, "unauthorized", "Unauthorized", "", nil)
 		return
 	}
 	id := c.Param("id")
 	if id == "" {
-		c.JSON(400, gin.H{"error": "review id is required"})
+		reviewError(c, http.StatusBadRequest, "missing_review_id", "review id is required", "id", nil)
 		return
 	}
 
 	var req dto.ReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request", "details": err.Error()})
+		reviewError(c, http.StatusBadRequest, "invalid_request", "Invalid request", "", err)
 		return
 	}
 
 	if req.Rating < 1 || req.Rating > 5 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "rating must be in the range 1 to 5"})
+		reviewError(c, http.StatusBadRequest, "rating_out_of_range", "rating must be in the range 1 to 5", "rating", nil)
 		return
 	}
 	review := dto.ToDomainReview(req, userID)
 	updatedReview, err := h.uc.UpdateReview(c.Request.Context(), id, userID, review)
 	if err != nil {
 		if err == domain.ErrUserNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Review not found or permission denied"})
+			reviewError(c, http.StatusNotFound, "review_not_found_or_forbidden", "Review not found or permission denied", "id", err)
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		reviewError(c, http.StatusInternalServerError, "update_review_failed", "Failed to update review", "", err)
 		return
 	}
 
@@ -137,19 +149,17 @@ func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 func (h *ReviewHandler) DeleteReview(c *gin.Context) {
 	userID := c.GetString("user_id")
 	if userID == "" {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		reviewError(c, http.StatusUnauthorized, "unauthorized", "Unauthorized", "", nil)
 		return
 	}
 	id := c.Param("id")
 
 	if err := h.uc.DeleteReview(c.Request.Context(), id, userID); err != nil {
-		// Check if the error is because the review was not found (or already deleted).
-		if err == domain.ErrUserNotFound { // Changed to check for ErrUserNotFound
-			c.JSON(http.StatusNotFound, gin.H{"error": "Review not found or permission denied"})
+		if err == domain.ErrUserNotFound {
+			reviewError(c, http.StatusNotFound, "review_not_found_or_forbidden", "Review not found or permission denied", "id", err)
 			return
 		}
-		// For any other type of error, return a 500.
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		reviewError(c, http.StatusInternalServerError, "delete_review_failed", "Failed to delete review", "", err)
 		return
 	}
 
@@ -161,7 +171,7 @@ func (h *ReviewHandler) GetAverageRatingByItem(c *gin.Context) {
 	itemID := c.Param("item_id")
 	avg, err := h.uc.GetAverageRatingByItem(c.Request.Context(), itemID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		reviewError(c, http.StatusInternalServerError, "get_item_average_failed", "Failed to get item average rating", "item_id", err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"average_rating": avg})
@@ -172,7 +182,7 @@ func (h *ReviewHandler) GetAverageRatingByRestaurant(c *gin.Context) {
 	restaurantID := c.Param("restaurant_id")
 	avg, err := h.uc.GetAverageRatingByRestaurant(c.Request.Context(), restaurantID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		reviewError(c, http.StatusInternalServerError, "get_restaurant_average_failed", "Failed to get restaurant average rating", "restaurant_id", err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"average_rating": avg})

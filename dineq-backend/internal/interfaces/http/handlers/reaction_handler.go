@@ -5,12 +5,20 @@ import (
 	"net/http"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
-	// "github.com/RealEskalate/G6-MenuMate"
-
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
 	"github.com/gin-gonic/gin"
-	// "go.uber.org/zap"
 )
+
+func reactionError(c *gin.Context, status int, code, message string, field string, internal error) {
+	resp := dto.ErrorResponse{Message: message, Code: code}
+	if field != "" {
+		resp.Field = field
+	}
+	if internal != nil {
+		resp.Error = internal.Error()
+	}
+	c.JSON(status, resp)
+}
 
 // ReactionHandler aggregates all reaction related handlers.
 type ReactionHandler struct {
@@ -32,17 +40,17 @@ func (ctrl *ReactionHandler) SaveReaction(c *gin.Context) {
 		ReviewID *string `json:"review_id"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		reactionError(c, http.StatusBadRequest, "invalid_request", "invalid request", "", err)
 		return
 	}
 	fmt.Println("[DEBUG] type: ", req.Type)
 	allowedTypes := map[string]bool{"LIKE": true, "DISLIKE": true}
 	if req.Type == nil || !allowedTypes[*req.Type] {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid reaction type"})
+		reactionError(c, http.StatusBadRequest, "invalid_reaction_type", "Invalid reaction type", "type", nil)
 		return
 	}
 	if req.ReviewID != nil && len(*req.ReviewID) > 100 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ReviewID too long"})
+		reactionError(c, http.StatusBadRequest, "review_id_too_long", "ReviewID too long", "review_id", nil)
 		return
 	}
 
@@ -52,11 +60,11 @@ func (ctrl *ReactionHandler) SaveReaction(c *gin.Context) {
 	}
 	reaction, err := ctrl.reactionUC.SaveReaction(c.Request.Context(), itemID, userID, reviewID, domain.ReactionType(*req.Type))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save reaction"})
+		reactionError(c, http.StatusInternalServerError, "save_reaction_failed", "failed to save reaction", "", err)
 		return
 	}
 	if reaction == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "reaction not found"})
+		reactionError(c, http.StatusNotFound, "reaction_not_found", "reaction not found", "", nil)
 		return
 	}
 
@@ -85,7 +93,7 @@ func (ctrl *ReactionHandler) GetReactionStats(c *gin.Context) {
 	like_count, dislike_count, me, err := ctrl.reactionUC.GetReactionStats(c.Request.Context(), itemID, userID)
 	if err != nil {
 		fmt.Println("[DEBUG] GetReactionStats error:", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to get reaction stats"})
+		reactionError(c, http.StatusInternalServerError, "get_reaction_stats_failed", "failed to get reaction stats", "", err)
 		return
 	}
 	var meStr *string
