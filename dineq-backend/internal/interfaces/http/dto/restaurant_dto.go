@@ -109,6 +109,32 @@ func ToRestaurantResponse(r *domain.Restaurant) *RestaurantResponse {
 	}
 }
 
+func ToDomainSchedule(s []ScheduleDTO) []domain.Schedule {
+	var schedule []domain.Schedule
+	for _, sd := range s {
+		schedule = append(schedule, domain.Schedule{
+			Day:       sd.Day,
+			IsOpen:    sd.IsOpen,
+			StartTime: sd.StartTime,
+			EndTime:   sd.EndTime,
+		})
+	}
+	return schedule
+}
+
+func ToDomainSpecialDay(sd []SpecialDayDTO) []domain.SpecialDay {
+	var specialDays []domain.SpecialDay
+	for _, s := range sd {
+		specialDays = append(specialDays, domain.SpecialDay{
+			Date:      s.Date,
+			IsOpen:    s.IsOpen,
+			StartTime: s.StartTime,
+			EndTime:   s.EndTime,
+		})
+	}
+	return specialDays
+}
+
 func ToDomainRestaurant(r *RestaurantResponse) *domain.Restaurant {
 	if r == nil {
 		return nil
