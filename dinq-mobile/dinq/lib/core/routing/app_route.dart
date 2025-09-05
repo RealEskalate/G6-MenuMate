@@ -15,6 +15,7 @@ import '../../features/dinq/restaurant_management/presentation/pages/generated_q
 import '../../features/dinq/restaurant_management/presentation/pages/legal_info_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/menus_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/opening_hours_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/qr_customization_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_details_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_profile_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/settings_page.dart';
@@ -45,6 +46,7 @@ class AppRoute {
   static const String billing = '/billing';
   static const String qrcode = '/qrcode';
   static const String setting = '/settings';
+  static const String qrcustom = '/qrcustom';
 
   // Menu management routes
   static const String menus = '/menus';
@@ -106,6 +108,8 @@ class AppRoute {
         return MaterialPageRoute(builder: (_) => const QrScannerPage());
       case setting:
         return MaterialPageRoute(builder: (_) => const SettingsPage());
+      case qrcustom:
+        return MaterialPageRoute(builder: (_) => const QrCustomizationPage());
 
       // Menu management routes
       case menus:

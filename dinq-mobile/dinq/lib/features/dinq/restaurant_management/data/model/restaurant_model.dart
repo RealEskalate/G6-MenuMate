@@ -19,7 +19,7 @@ class RestaurantModel extends Restaurant {
     required super.averageRating,
     required super.viewCount,
     required super.createdAt,
-    required super.updatedAt,
+    required super.updatedAt, required String name, required String description, required String email,
   });
 
   factory RestaurantModel.fromMap(Map<String, dynamic> data) {

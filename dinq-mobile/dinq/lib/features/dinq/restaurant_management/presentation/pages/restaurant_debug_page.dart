@@ -34,15 +34,11 @@ class RestaurantDebugPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                final restaurant = const RestaurantModel(
+                final restaurant = RestaurantModel(
                   id: 'debug-id',
                   name: 'Debug Resto',
                   description: 'desc',
-                  address: 'addr',
-                  phone: '000',
                   email: 'a@b.com',
-                  image: '',
-                  isActive: true,
                 );
                 bloc.add(CreateRestaurantEvent(restaurant));
               },
@@ -50,15 +46,8 @@ class RestaurantDebugPage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                final restaurant = const RestaurantModel(
-                  id: 'debug-id',
-                  name: 'Debug Resto Updated',
-                  description: 'desc',
-                  address: 'addr',
-                  phone: '111',
-                  email: 'a@b.com',
-                  image: '',
-                  isActive: true,
+                final restaurant = RestaurantModel(
+                  
                 );
                 bloc.add(UpdateRestaurantEvent(restaurant, 'debug-slug'));
               },
