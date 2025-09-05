@@ -2,6 +2,9 @@ package handler
 
 import (
 	"net/http"
+	"strings"
+	"strconv"
+	"encoding/json"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
@@ -41,20 +44,50 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 	if !h.ensureOwnership(c, slug, userId) { return }
 
 	var menuDto dto.MenuRequest
-	if err := c.ShouldBindJSON(&menuDto); err != nil {
-		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
-		return
+	contentType := c.ContentType()
+	if strings.HasPrefix(contentType, "multipart/form-data") {
+		if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
+			dto.WriteValidationError(c, "form", "failed to parse multipart form", "multipart_parse_failed", err)
+			return
+		}
+		menuDto.Name = c.PostForm("name")
+		menuDto.RestaurantID = slug
+		menuDto.Version, _ = strconv.Atoi(c.PostForm("version"))
+		menuDto.IsPublished = c.PostForm("is_published") == "true"
+		// Handle images for menu items
+		formItems := c.PostFormArray("items")
+		for _, itemJson := range formItems {
+			var item dto.ItemRequest
+			if err := json.Unmarshal([]byte(itemJson), &item); err == nil {
+				// Read image files for each item
+				imageHeaders := c.Request.MultipartForm.File[item.Name+"_image"]
+				for _, fh := range imageHeaders {
+					file, err := fh.Open()
+					if err == nil {
+						// You should upload the image and get a URL here
+						// For now, just append the filename
+						item.Image = append(item.Image, fh.Filename)
+						file.Close()
+					}
+				}
+				menuDto.Items = append(menuDto.Items, item)
+			}
+		}
+	} else {
+		if err := c.ShouldBindJSON(&menuDto); err != nil {
+			dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
+			return
+		}
+		// Normalize possible OCR field alias
+		if len(menuDto.Items) == 0 && len(menuDto.MenuItems) > 0 {
+			menuDto.Items = menuDto.MenuItems
+		}
+		menuDto.RestaurantID = slug
 	}
-	// Normalize possible OCR field alias
-	if len(menuDto.Items) == 0 && len(menuDto.MenuItems) > 0 {
-		menuDto.Items = menuDto.MenuItems
-	}
-	menuDto.RestaurantID = slug
 	if err := validate.Struct(menuDto); err != nil {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
-
 	menu := dto.RequestToMenu(&menuDto)
 	menu.CreatedBy = userId
 	menu.UpdatedBy = userId // attribute creator
