@@ -8,6 +8,7 @@ import (
 type Review struct {
     ID          string    //`bson:"_id,omitempty" json:"id"`
     ItemID      string    //`bson:"itemId" json:"item_id"`
+    RestaurantID      string    //`bson:"restaurantId" json:"restaurant_id"`
     UserID      string    //`bson:"userId" json:"user_id"`
     Picture     string    //`bson:"picture,omitempty" json:"picture,omitempty"`
     Description string    //`bson:"description" json:"description"`
