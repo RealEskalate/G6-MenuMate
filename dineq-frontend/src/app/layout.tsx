@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Playfair_Display, Poppins } from "next/font/google";
-import ReduxProvider from "@/store/ReduxProvider";
-
+import { Providers } from "./providers";
 
 // Headings font
 const playfair = Playfair_Display({
@@ -31,9 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${playfair.variable} ${poppins.variable}`}>
       <body className="font-body">
-        <ReduxProvider>
-          {children}
-        </ReduxProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

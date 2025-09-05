@@ -43,7 +43,7 @@ function NavBar({ role }: Roles) {
       {role === "CUSTOMER" && (
         <div className="hidden md:flex ml-4">
           <Link href="/" className={linkClasses("/")}>Home</Link>
-          <Link href="/customer/restaurants" className={linkClasses("/customer/restaurants")}>Restaurants</Link>
+          <Link href="/user" className={linkClasses("/user")}>Restaurants</Link>
           <Link href="/customer/scan" className={linkClasses("/customer/scan")}>Scan</Link>
           <Link href="/customer/favorites" className={linkClasses("/customer/favorites")}>Favorites</Link>
           <Link href="/customer/profile" className={linkClasses("/customer/profile")}>Profile</Link>

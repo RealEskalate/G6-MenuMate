@@ -1,6 +1,7 @@
 "use client";
 import FoodHeader from '@/components/user/FoodSection/FoodHeader'
 import FoodMiniNavBar from '@/components/user/FoodSection/FoodMiniNavBar'
+
 import React from 'react'
 const FoodCard = () => {
   return (

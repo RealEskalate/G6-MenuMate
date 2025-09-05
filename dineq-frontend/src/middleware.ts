@@ -45,7 +45,7 @@ export default withAuth(
 
     if (
       pathname.startsWith("/restaurant") &&
-      (role !== "OWNER" && role !== "MANAGER" && role !== "STAFF")
+      (role !== "OWNER" && role !== "MANAGER" && role !== "STAFF" && role !== "ADMIN")
     ) {
       return NextResponse.redirect(new URL(redirectUrl, request.url));
     }

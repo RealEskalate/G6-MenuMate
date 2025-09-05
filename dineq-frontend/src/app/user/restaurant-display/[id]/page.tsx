@@ -1,5 +1,4 @@
 "use client";
-
 import { FaHeart } from "react-icons/fa";
 import { Phone } from "lucide-react";
 import SafeImage from "@/components/common/SafeImage";
@@ -7,13 +6,14 @@ import NavBar from "@/components/common/NavBar";
 import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { fetchRestaurantById, ApiRestaurant } from "@/store/restaurantsSlice";
 import { RestaurantDetailSkeleton } from "@/components/common/LoadingSkeletons";
+import MenuSection from "@/components/user/MenuSection";
 
 export default function SingleRestaurant() {
   const params = useParams<{ id: string }>();
-  const id = useMemo(() => String(params?.id || ""), [params]);
+  const id = params?.id || "";
   const dispatch = useDispatch<AppDispatch>();
 
   const { currentRestaurant, currentLoading, currentError } = useSelector(
@@ -39,7 +39,7 @@ export default function SingleRestaurant() {
       ) : currentError ? (
         <div className="flex justify-center p-8 text-red-600">{currentError}</div>
       ) : !restaurant ? (
-        <div className="flex justify-center p-8">Restaurant not found.</div>
+        <RestaurantDetailSkeleton />
       ) : (
         <div className="flex flex-col items-center px-4 sm:px-6 md:px-8 pb-8">
           {/* Header Image */}
@@ -75,12 +75,17 @@ export default function SingleRestaurant() {
 
             {/* Extra Details */}
             <div className="mt-6 space-y-3">
-              
               <p className="flex items-center gap-3 text-lg text-gray-600">
                 <Phone className="w-6 h-6 text-green-500" />
                 {restaurant.phone ?? "Phone not available"}
               </p>
             </div>
+          </div>
+
+          {/* Menu Section */}
+          <div className="w-full max-w-5xl mt-8">
+            {/* Pass the restaurant slug to MenuSection for fetching menus */}
+            <MenuSection restaurantSlug={restaurant.slug} />
           </div>
         </div>
       )}
