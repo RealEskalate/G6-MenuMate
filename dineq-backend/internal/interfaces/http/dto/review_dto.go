@@ -19,7 +19,7 @@ type ReviewRequest struct {
 type ReviewResponse struct {
     ID           string    `json:"id"`
     ItemID       string    `json:"item_id"`
-    RestaurantID       string    `json:"restaurant_id"`
+    RestaurantID string    `json:"restaurant_id"`
     UserID       string    `json:"user_id"`
     Picture      string    `json:"picture,omitempty"`
     Description  string    `json:"description"`
