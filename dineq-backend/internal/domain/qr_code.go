@@ -39,6 +39,7 @@ type QRCodeRequest struct {
 	Format        string
 	Size          int
 	IncludeLabel  bool
+	Quality       int // optional JPEG quality 1-100
 	Customization *QRCodeCustomization
 }
 
@@ -48,4 +49,12 @@ type QRCodeCustomization struct {
 	ForegroundColor string
 	Logo            string
 	LogoSizePercent float64
+	GradientFrom     string
+	GradientTo       string
+	GradientDirection string // horizontal or vertical
+	Margin           int
+	LabelText        string
+	LabelColor       string
+	LabelFontSize    int
+	LabelFontURL     string 
 }

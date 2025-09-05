@@ -30,9 +30,10 @@ type RestaurantModel struct {
 
 // Parse converts domain.Restaurant → RestaurantModel
 func (m *RestaurantModel) Parse(r *domain.Restaurant) error {
+	fmt.Printf("[DEBUG] Creating restaurant with ManagerID: %s\n", r.ManagerID)
 	managerOID, err := bson.ObjectIDFromHex(r.ManagerID)
-	fmt.Println("manager", r.ManagerID)
 	if err != nil {
+		fmt.Printf("[DEBUG] Invalid ObjectID for ManagerID during creation: %s\n", r.ManagerID)
 		return err
 	}
 

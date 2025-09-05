@@ -9,17 +9,17 @@ import (
 
 type NotificationDTO struct {
 	ID        string    `json:"id"`
-	UserID    string    `json:"userId"`
+	UserID    string    `json:"user_id"`
 	Message   string    `json:"message"`
 	Type      string    `json:"type"`
-	IsRead    bool      `json:"isRead"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	IsRead    bool      `json:"is_read"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 func (n *NotificationDTO) Validate() error {
 	if n.UserID == "" {
-		return errors.New("userId is required")
+		return errors.New("user_id is required")
 	}
 	if n.Message == "" {
 		return errors.New("message is required")

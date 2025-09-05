@@ -26,12 +26,12 @@ type StructuredData struct {
 
 type AIParseResult struct {
 	ID              string         `json:"id"`
-	OCRJobID        string         `json:"ocrJobId"`
-	RawText         string         `json:"rawText"`
-	StructuredData  StructuredData `json:"structuredData"`
-	ConfidenceScore float64        `json:"confidenceScore"`
-	CreatedAt       time.Time      `json:"createdAt"`
-	UpdatedAt       time.Time      `json:"updatedAt"`
+	OCRJobID        string         `json:"ocr_job_id"`
+	RawText         string         `json:"raw_text"`
+	StructuredData  StructuredData `json:"structured_data"`
+	ConfidenceScore float64        `json:"confidence_score"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"updated_at"`
 }
 
 type IAIParseResultUseCase interface {

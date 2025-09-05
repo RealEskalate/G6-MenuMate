@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+	"fmt"
 
 	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
 )
@@ -15,6 +16,10 @@ func InitApp() (*Application, error) {
 	env, err := NewEnv()
 	if err != nil {
 		return nil, err
+	}
+
+	if env.DB_Uri == "" {
+		return nil, fmt.Errorf("DB_URI not set (checked DB_URI / DB_URL); please set a valid MongoDB URI, e.g. mongodb://localhost:27017 or mongodb+srv://<host>")
 	}
 
 	mongoClient, err := mongo.NewClient(env.DB_Uri)
