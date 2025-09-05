@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -117,17 +118,18 @@ type Env struct {
 func NewEnv() (*Env, error) {
 	// Load .env file if present
 	_ = godotenv.Load()
-
 	env := &Env{}
 	env.Port = os.Getenv("PORT")
 	env.AppEnv = os.Getenv("APP_ENV")
 	env.DB_Uri = os.Getenv("DB_URI")
 	env.DB_Name = os.Getenv("DB_NAME")
+	fmt.Printf("DB_NAME as bytes: %q\n", env.DB_Name)
 	env.RTS = os.Getenv("REFRESH_TOKEN_SECRET")
 	env.ATS = os.Getenv("ACCESS_TOKEN_SECRET")
 	env.UserCollection = os.Getenv("USER_COLLECTION")
 	env.RefreshTokenCollection = os.Getenv("REFRESH_TOKEN_COLLECTION")
 	env.RestaurantCollection = os.Getenv("RESTAURANT_COLLECTION")
+	env.ReactionCollection = os.Getenv("REACTION_COLLECTION")
 	env.PasswordResetCollection = os.Getenv("PASSWORD_RESET_TOKEN_COLLECTION")
 	env.PasswordResetExpiry, _ = strconv.Atoi(os.Getenv("PASSWORD_RESET_TOKEN_EXPIRE_MINUTES"))
 	env.RefTEHours, _ = strconv.Atoi(os.Getenv("REFRESH_TOKEN_EXPIRE_HOURS"))
