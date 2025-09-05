@@ -30,7 +30,6 @@ export default function SingleRestaurant() {
 
   return (
     <>
-      <NavBar role="CUSTOMER" />
 
       {!id ? (
         <div className="flex justify-center p-8">Invalid restaurant id.</div>

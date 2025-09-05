@@ -1,71 +1,92 @@
-// import React, { useState, useEffect } from 'react'
-// import Image from 'next/image'
+"use client";
 
-// const ImageSelector = ({ isOpen, onClose, onSelect, gender = 'male', number = 30 }) => {
-//   const [tab, setTab] = useState('avatar')
-//   const [avatars, setAvatars] = useState([])
+import * as React from "react";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@/components/ui/toggle-group"; // from shadcn
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-//   useEffect(() => {
-//     if (tab === 'avatar') {
-//       fetch(`https://g6-menumate-1.onrender.com/api/v1/users/avatar-options?number=${number}&gender=${gender}`)
-//         .then(res => res.json())
-//         .then(data => setAvatars(data.data.avatars))
-//         .catch(err => console.error('Avatar fetch error:', err))
-//     }
-//   }, [tab, gender, number])
+type Avatar = {
+  id: number;
+  url: string;
+  gender: "male" | "female";
+};
 
-//   const handleAvatarSelect = (url) => {
-//     onSelect(url)
-//     onClose()
-//   }
+export default function AvatarSelector({
+  avatars,
+}: {
+  avatars: Avatar[];
+}) {
+  const [gender, setGender] = React.useState<"male" | "female">("male");
+  const [page, setPage] = React.useState(0); // each page = 10 avatars
 
-//   const handleFileUpload = (e) => {
-//     const file = e.target.files[0]
-//     if (file) {
-//       const reader = new FileReader()
-//       reader.onload = () => {
-//         onSelect(reader.result)
-//         onClose()
-//       }
-//       reader.readAsDataURL(file)
-//     }
-//   }
+  const filtered = avatars.filter((a) => a.gender === gender);
+  const visible = filtered.slice(page * 10, page * 10 + 10);
 
-//   if (!isOpen) return null
+  const handleMore = () => setPage((p) => p + 1);
+  const handleBack = () => setPage((p) => p - 1);
 
-//   return (
-//     <div className="modal-overlay">
-//       <div className="modal">
-//         <h2>Choose Your Profile Image</h2>
-//         <div className="tabs">
-//           <button onClick={() => setTab('avatar')} className={tab === 'avatar' ? 'active' : ''}>Choose Avatar</button>
-//           <button onClick={() => setTab('upload')} className={tab === 'upload' ? 'active' : ''}>Upload File</button>
-//         </div>
+  return (
+    <Dialog open>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Select Avatar</DialogTitle>
+        </DialogHeader>
 
-//         {tab === 'avatar' && (
-//           <div className="avatar-grid">
-//             {avatars.map((avatar) => (
-//               <Image
-//                 key={avatar.id}
-//                 src={avatar.url}
-//                 alt={`Avatar ${avatar.id}`}
-//                 onClick={() => handleAvatarSelect(avatar.url)}
-//                 className="avatar-option"
-//               />
-//             ))}
-//           </div>
-//         )}
+        {/* Gender toggle (acts like radio) */}
+        <ToggleGroup
+          type="single"
+          value={gender}
+          onValueChange={(val) => {
+            if (val === "male" || val === "female") {
+              setGender(val);
+              setPage(0); // reset paging when switching
+            }
+          }}
+          className="flex gap-2 mb-4"
+        >
+          <ToggleGroupItem value="male" className="px-4 py-2">
+            Male
+          </ToggleGroupItem>
+          <ToggleGroupItem value="female" className="px-4 py-2">
+            Female
+          </ToggleGroupItem>
+        </ToggleGroup>
 
-//         {tab === 'upload' && (
-//           <div className="upload-section">
-//             <input type="file" accept="image/*" onChange={handleFileUpload} />
-//           </div>
-//         )}
+        {/* Avatar grid */}
+        <div className="grid grid-cols-5 gap-3">
+          {visible.map((avatar) => (
+            <button
+              key={avatar.id}
+              className="rounded-full border-2 border-transparent hover:border-primary focus:border-primary"
+            >
+              <Image
+                src={avatar.url}
+                alt={`Avatar ${avatar.id}`}
+                width={64}
+                height={64}
+                className="rounded-full"
+              />
+            </button>
+          ))}
+        </div>
 
-//         <button onClick={onClose} className="close-btn">Cancel</button>
-//       </div>
-//     </div>
-//   )
-// }
-
-// export default ImageSelector
+        {/* Pagination buttons */}
+        <div className="flex justify-between mt-4">
+          <Button onClick={handleBack} disabled={page === 0}>
+            Go Back
+          </Button>
+          <Button
+            onClick={handleMore}
+            disabled={(page + 1) * 10 >= filtered.length}
+          >
+            More
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
