@@ -38,7 +38,9 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 	slug := c.Param("restaurant_slug")
 	userId := c.GetString("user_id")
 
-	if !h.ensureOwnership(c, slug, userId) { return }
+	if !h.ensureOwnership(c, slug, userId) {
+		return
+	}
 
 	var menuDto dto.MenuRequest
 	if err := c.ShouldBindJSON(&menuDto); err != nil {
@@ -82,7 +84,9 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 	slug := c.Param("restaurant_slug")
 	menuID := c.Param("id")
 
-	if !h.ensureOwnership(c, slug, userId) { return }
+	if !h.ensureOwnership(c, slug, userId) {
+		return
+	}
 
 	var menuDto dto.MenuRequest
 	if err := c.ShouldBindJSON(&menuDto); err != nil {
@@ -95,7 +99,9 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 		return
 	}
 	// Normalize OCR alias
-	if len(menuDto.Items) == 0 && len(menuDto.MenuItems) > 0 { menuDto.Items = menuDto.MenuItems }
+	if len(menuDto.Items) == 0 && len(menuDto.MenuItems) > 0 {
+		menuDto.Items = menuDto.MenuItems
+	}
 	menu := dto.RequestToMenu(&menuDto)
 	if err := h.UseCase.UpdateMenu(menuID, userId, menu); err != nil {
 		dto.WriteError(c, err)
@@ -117,7 +123,9 @@ func (h *MenuHandler) PublishMenu(c *gin.Context) {
 	userID := c.GetString("user_id")
 	slug := c.Param("restaurant_slug")
 	menuID := c.Param("id")
-	if !h.ensureOwnership(c, slug, userID) { return }
+	if !h.ensureOwnership(c, slug, userID) {
+		return
+	}
 
 	if err := h.UseCase.PublishMenu(menuID, userID); err != nil {
 		dto.WriteError(c, err)
@@ -136,15 +144,19 @@ func (h *MenuHandler) GenerateQRCode(c *gin.Context) {
 	restaurantID := c.Param("restaurant_slug")
 	menuID := c.Param("id")
 
-	var req dto.QRCodeRequest
+	var req dto.QRConfig
 	if err := c.ShouldBindJSON(&req); err != nil {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
 
-	qrCodeRequest := dto.DTOToQRCodeRequest(&req)
+	domainReq := dto.QRConfigToDomain(&req)
+	if validate.Struct(domainReq) != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: validate.Struct(domainReq).Error()})
+		return
+	}
 
-	qrCode, err := h.UseCase.GenerateQRCode(restaurantID, menuID, qrCodeRequest)
+	qrCode, err := h.UseCase.GenerateQRCode(restaurantID, menuID, domainReq)
 	if err != nil {
 		dto.WriteError(c, err)
 		return
@@ -162,7 +174,9 @@ func (h *MenuHandler) DeleteMenu(c *gin.Context) {
 	slug := c.Param("restaurant_slug")
 	userID := c.GetString("user_id")
 	menuID := c.Param("id")
-	if !h.ensureOwnership(c, slug, userID) { return }
+	if !h.ensureOwnership(c, slug, userID) {
+		return
+	}
 
 	if err := h.UseCase.DeleteMenu(menuID); err != nil {
 		dto.WriteError(c, err)

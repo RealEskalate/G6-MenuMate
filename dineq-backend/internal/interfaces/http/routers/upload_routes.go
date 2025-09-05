@@ -12,14 +12,14 @@ import (
 
 // NewUploadRoutes registers image upload endpoints (Cloudinary-backed)
 func NewUploadRoutes(env *bootstrap.Env, group *gin.RouterGroup) {
-    _ = time.Second // placeholder if future timeouts needed
-    storage := services.NewCloudinaryStorage(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinarySecret)
-    h := handler.NewImageUploadHandler(storage)
+	_ = time.Second // placeholder if future timeouts needed
+	storage := services.NewCloudinaryStorage(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinarySecret)
+	h := handler.NewImageUploadHandler(storage)
 
-    uploads := group.Group("/uploads")
-    uploads.Use(middleware.AuthMiddleware(*env))
-    {
-        uploads.POST("/logo", h.UploadLogo)
-        uploads.POST("/image", h.UploadImage)
-    }
+	uploads := group.Group("/uploads")
+	uploads.Use(middleware.AuthMiddleware(*env))
+	{
+		uploads.POST("/logo", h.UploadLogo)
+		uploads.POST("/image", h.UploadImage)
+	}
 }
