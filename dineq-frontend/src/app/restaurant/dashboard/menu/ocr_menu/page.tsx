@@ -3,14 +3,25 @@
 import Image from "next/image";
 import React, { useState } from "react";
 import { useSession } from "next-auth/react";
-import { uploadMenuOCR ,getOCRStatus} from "@/lib/api"; // import the API function
+import { uploadMenuOCR, getOCRStatus } from "@/lib/api"; // import the API function
+import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
+import { setMenuItems } from "@/store/menuSlice";
+import { RootState } from "@/store";
 
 const AddMenuWithOCR = () => {
   const { data: session } = useSession();
+  const router = useRouter();
+  const dispatch = useDispatch();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-    const [progress, setProgress] = useState<number | null>(null);
-    const [menuData, setMenuData] = useState<any | null>(null);
+  const [progress, setProgress] = useState<number | null>(null);
+  const [menuData, setMenuData] = useState<any | null>(null);
+  const [editedItems, setEditedItems] = useState<any[]>([]);
+  const [currentStep, setCurrentStep] = useState(1);
+  const ocrMenuItems = useSelector(
+    (state: RootState) => state.menu?.menuItems ?? []
+  );
 
   const handleUpload = async () => {
     if (!file || !session?.accessToken) return;
@@ -22,9 +33,10 @@ const AddMenuWithOCR = () => {
     try {
       // Step 1: Upload file
       const result = await uploadMenuOCR(file, session.accessToken);
-      console.log("✅ OCR Upload Response:", result);
+      // console.log("✅ OCR Upload Response:", result);
 
       const jobId = result.data.job_id;
+      setCurrentStep(2);
 
       // Step 2: Poll OCR status
       const interval = setInterval(async () => {
@@ -36,7 +48,12 @@ const AddMenuWithOCR = () => {
 
           if (statusRes.data.status === "completed") {
             clearInterval(interval);
-            setMenuData(statusRes.data.results); // extracted_text & menu_items
+            const ocrResults = statusRes.data.results;
+            // console.log(ocrResults);
+            setMenuData(ocrResults);
+            setEditedItems(ocrResults?.menu_items || []);
+            setCurrentStep(3);
+            console.log("✅ OCR job completed:", ocrResults);
             setLoading(false);
           }
 
@@ -57,19 +74,32 @@ const AddMenuWithOCR = () => {
     }
   };
 
+  const handleItemChange = (index: number, field: string, value: any) => {
+    const newItems = [...editedItems];
+    newItems[index][field] = value;
+    setEditedItems(newItems);
+  };
+
+  const handleSave = () => {
+    dispatch(setMenuItems(editedItems));
+    router.push("/restaurant/dashboard/menu/manual_menu");
+  };
+
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
   };
-const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-  event.preventDefault();
-  const droppedFile = event.dataTransfer.files[0];
-  if (
-    droppedFile &&
-    ["image/jpeg", "image/png", "image/heic"].includes(droppedFile.type)
-  ) {
-    setFile(droppedFile);
-  }
-};
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const droppedFile = event.dataTransfer.files[0];
+    if (
+      droppedFile &&
+      ["image/jpeg", "image/png", "image/heic"].includes(droppedFile.type)
+    ) {
+      setFile(droppedFile);
+    }
+  };
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files && event.target.files[0];
     if (
@@ -80,8 +110,6 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     }
   };
 
- 
-
   return (
     <>
       <div className="flex justify-between items-center mb-3 bg-white p-4 rounded-2xl shadow-[0_4px_12px_#ffead4] font-bold text-2xl">
@@ -91,10 +119,22 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
         <div className="relative flex justify-between mb-8">
           <div className="absolute top-4 left-0 w-full h-px bg-gray-200 z-0"></div>
           <div className="relative z-10 w-36 text-center">
-            <div className="mx-auto flex items-center justify-center w-8 h-8 rounded-full bg-orange-500 text-white font-bold text-base mb-1">
+            <div
+              className={`mx-auto flex items-center justify-center w-8 h-8 rounded-full ${
+                currentStep >= 1
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-600"
+              } font-bold text-base mb-1`}
+            >
               1
             </div>
-            <div className="text-sm font-semibold text-orange-500 mb-1">
+            <div
+              className={`text-sm ${
+                currentStep >= 1
+                  ? "font-semibold text-orange-500"
+                  : "font-bold text-gray-800"
+              } mb-1`}
+            >
               Upload Menu Photo
             </div>
             <p className="text-xs text-gray-500">
@@ -102,10 +142,22 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
             </p>
           </div>
           <div className="relative z-10 w-36 text-center">
-            <div className="mx-auto flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-600 font-bold text-base mb-1">
+            <div
+              className={`mx-auto flex items-center justify-center w-8 h-8 rounded-full ${
+                currentStep >= 2
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-600"
+              } font-bold text-base mb-1`}
+            >
               2
             </div>
-            <div className="text-sm font-bold text-gray-800 mb-1">
+            <div
+              className={`text-sm ${
+                currentStep >= 2
+                  ? "font-semibold text-orange-500"
+                  : "font-bold text-gray-800"
+              } mb-1`}
+            >
               OCR Processing
             </div>
             <p className="text-xs text-gray-500">
@@ -113,10 +165,22 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
             </p>
           </div>
           <div className="relative z-10 w-36 text-center">
-            <div className="mx-auto flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-600 font-bold text-base mb-1">
+            <div
+              className={`mx-auto flex items-center justify-center w-8 h-8 rounded-full ${
+                currentStep >= 3
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-600"
+              } font-bold text-base mb-1`}
+            >
               3
             </div>
-            <div className="text-sm font-bold text-gray-800 mb-1">
+            <div
+              className={`text-sm ${
+                currentStep >= 3
+                  ? "font-semibold text-orange-500"
+                  : "font-bold text-gray-800"
+              } mb-1`}
+            >
               Review & Edit
             </div>
             <p className="text-xs text-gray-500">
@@ -124,10 +188,22 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
             </p>
           </div>
           <div className="relative z-10 w-36 text-center">
-            <div className="mx-auto flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-600 font-bold text-base mb-1">
+            <div
+              className={`mx-auto flex items-center justify-center w-8 h-8 rounded-full ${
+                currentStep >= 4
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-600"
+              } font-bold text-base mb-1`}
+            >
               4
             </div>
-            <div className="text-sm font-bold text-gray-800 mb-1">
+            <div
+              className={`text-sm ${
+                currentStep >= 4
+                  ? "font-semibold text-orange-500"
+                  : "font-bold text-gray-800"
+              } mb-1`}
+            >
               Save & Share
             </div>
             <p className="text-xs text-gray-500">
@@ -135,63 +211,74 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
             </p>
           </div>
         </div>
-        <div
-          className="border-2 border-dashed border-gray-300 p-10 mb-5 cursor-pointer hover:border-orange-300 transition-colors bg-gray-50 rounded-lg"
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onClick={() => {
-            const input = document.getElementById("fileInput");
-            if (input) input.click();
-          }}
-        >
-          {file ? (
-            <Image
-              src={URL.createObjectURL(file)}
-              alt="Uploaded menu"
-              width={400} // or any size you prefer
-              height={0} // or remove height entirely
-              style={{ height: "auto" }}
-              className="object-contain mx-auto rounded max-h-72"
-            />
-          ) : (
-            <>
-              <p className="mb-2 text-xl text-gray-700 font-semibold">
-                Drag & Drop Menu Photo
-              </p>
-              <p className="mb-4 text-gray-600">or</p>
-              <button
-                className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors"
-                onClick={() => {
-                  const input = document.getElementById("fileInput");
-                  if (input) input.click();
-                }}
-              >
-                Choose File
-              </button>
-              <input
-                id="fileInput"
-                type="file"
-                accept="image/jpeg,image/png,image/heic"
-                className="hidden"
-                onChange={handleFileSelect}
+        {currentStep < 3 && (
+          <div
+            className="border-2 border-dashed border-gray-300 p-10 mb-5 cursor-pointer hover:border-orange-300 transition-colors bg-gray-50 rounded-lg"
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onClick={() => {
+              const input = document.getElementById("fileInput");
+              if (input) input.click();
+            }}
+          >
+            {file ? (
+              <Image
+                src={URL.createObjectURL(file)}
+                alt="Uploaded menu"
+                width={400} // or any size you prefer
+                height={0} // or remove height entirely
+                style={{ height: "auto" }}
+                className="object-contain mx-auto rounded max-h-72"
               />
-              <p className="text-xs text-gray-400 mt-4">
-                Supported formats: JPG, PNG, HEIC
-              </p>
-            </>
-          )}
-        </div>
+            ) : (
+              <>
+                <p className="mb-2 text-xl text-gray-700 font-semibold">
+                  Drag & Drop Menu Photo
+                </p>
+                <p className="mb-4 text-gray-600">or</p>
+                <button
+                  className="bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                  onClick={() => {
+                    const input = document.getElementById("fileInput");
+                    if (input) input.click();
+                  }}
+                >
+                  Choose File
+                </button>
+                <input
+                  id="fileInput"
+                  type="file"
+                  accept="image/jpeg,image/png,image/heic"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                <p className="text-xs text-gray-400 mt-4">
+                  Supported formats: JPG, PNG, HEIC
+                </p>
+              </>
+            )}
+          </div>
+        )}
         <div className="flex justify-between">
           <button className="px-5 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors">
             ← Back
           </button>
-          <button
-            className="px-5 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors"
-            onClick={handleUpload}
-            disabled={loading}
-          >
-            {loading ? "Uploading..." : "Next →"}
-          </button>
+          {currentStep < 3 ? (
+            <button
+              className="px-5 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors"
+              onClick={handleUpload}
+              disabled={loading}
+            >
+              {loading ? "Uploading..." : "Next →"}
+            </button>
+          ) : (
+            <button
+              className="px-5 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-500 transition-colors"
+              onClick={handleSave}
+            >
+              Save →
+            </button>
+          )}
         </div>
         {loading && (
           <div className="mt-4 text-center">
@@ -203,20 +290,49 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
         {menuData && (
           <div className="mt-6 p-4 bg-gray-50 rounded-lg text-left">
             <h3 className="font-bold text-lg mb-2">Extracted Menu</h3>
-            <p className="whitespace-pre-wrap text-gray-700 mb-4">
-              {menuData.extracted_text}
-            </p>
             <ul className="space-y-2">
-              {menuData.menu_items.map((item: any, idx: number) => (
+              {editedItems.map((item: any, idx: number) => (
                 <li
                   key={idx}
                   className="p-2 border rounded-lg bg-white shadow-sm"
                 >
-                  <p className="font-semibold">{item.name}</p>
-                  <p className="text-sm text-gray-600">{item.description}</p>
-                  <p className="text-orange-500 font-bold">
-                    {item.price} {item.currency}
-                  </p>
+                  <input
+                    className="font-semibold w-full mb-1"
+                    value={item.name}
+                    onChange={(e) =>
+                      handleItemChange(idx, "name", e.target.value)
+                    }
+                  />
+                  <input
+                    className="font-semibold w-full mb-1 text-gray-500"
+                    value={item.name_am}
+                    onChange={(e) =>
+                      handleItemChange(idx, "name_am", e.target.value)
+                    }
+                  />
+                  <textarea
+                    className="text-sm text-gray-600 w-full mb-1"
+                    value={item.description}
+                    onChange={(e) =>
+                      handleItemChange(idx, "description", e.target.value)
+                    }
+                  />
+                  <textarea
+                    className="text-sm text-gray-600 w-full mb-1"
+                    value={item.description_am}
+                    onChange={(e) =>
+                      handleItemChange(idx, "description_am", e.target.value)
+                    }
+                  />
+                  <input
+                    type="number"
+                    className="text-orange-500 font-bold w-full"
+                    value={item.price}
+                    onChange={(e) =>
+                      handleItemChange(idx, "price", parseFloat(e.target.value))
+                    }
+                  />
+                  <p className="text-orange-500 font-bold">{item.currency}</p>
                 </li>
               ))}
             </ul>
