@@ -28,12 +28,12 @@ type StructuredDataDTO struct {
 
 type AIParseResultDTO struct {
 	ID              string            `json:"id"`
-	OCRJobID        string            `json:"ocrJobId"`
-	RawText         string            `json:"rawText"`
-	StructuredData  StructuredDataDTO `json:"structuredData"`
-	ConfidenceScore float64           `json:"confidenceScore"`
-	CreatedAt       time.Time         `json:"createdAt"`
-	UpdatedAt       time.Time         `json:"updatedAt"`
+	OCRJobID        string            `json:"ocr_job_id"`
+	RawText         string            `json:"raw_text"`
+	StructuredData  StructuredDataDTO `json:"structured_data"`
+	ConfidenceScore float64           `json:"confidence_score"`
+	CreatedAt       time.Time         `json:"created_at"`
+	UpdatedAt       time.Time         `json:"updated_at"`
 }
 
 type MenuItemDTO struct {

@@ -17,7 +17,8 @@ type Restaurant struct {
 	LogoImage          *string
 	Tags               []string
 	VerificationStatus VerificationStatus
-	VerificationDocs   string
+	VerificationDocs   *string
+	CoverImage         *string
 	AverageRating      float64
 	ViewCount          int64
 	CreatedAt          time.Time
@@ -35,7 +36,6 @@ type Address struct {
 	Longitude  *float64
 }
 
-
 type VerificationStatus string
 
 const (
@@ -52,14 +52,16 @@ type IRestaurantRepo interface {
 	Delete(ctx context.Context, id string, manager string) error
 	ListAllBranches(ctx context.Context, slug string, page, pageSize int) ([]*Restaurant, int64, error)
 	ListUniqueRestaurants(ctx context.Context, page, pageSize int) ([]*Restaurant, int64, error)
+	ListRestaurantsByManager(ctx context.Context, managerId string) ([]*Restaurant, error)
 }
 
 type IRestaurantUsecase interface {
-	CreateRestaurant(ctx context.Context, r *Restaurant) error
-	UpdateRestaurant(ctx context.Context, r *Restaurant) error
+	CreateRestaurant(ctx context.Context, r *Restaurant, files map[string][]byte) error
+	UpdateRestaurant(ctx context.Context, r *Restaurant, files map[string][]byte) error
 	DeleteRestaurant(ctx context.Context, id string, manager string) error
 	GetRestaurantBySlug(ctx context.Context, slug string) (*Restaurant, error)
 	GetRestaurantByOldSlug(ctx context.Context, slug string) (*Restaurant, error)
 	ListBranchesBySlug(ctx context.Context, slug string, page, pageSize int) ([]*Restaurant, int64, error)
 	ListUniqueRestaurants(ctx context.Context, page, pageSize int) ([]*Restaurant, int64, error)
+	ListRestaurantsByManager(ctx context.Context, managerId string) ([]*Restaurant, error)
 }
