@@ -44,6 +44,10 @@ class RestMenuCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.whiteColor,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primaryColor.withOpacity(0.5),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.primaryColor.withOpacity(0.08),
@@ -133,9 +137,8 @@ class RestMenuCard extends StatelessWidget {
                     Text(
                       isPublished ? 'Published' : 'Pending',
                       style: TextStyle(
-                        color: isPublished
-                            ? AppColors.primaryColor
-                            : Colors.grey,
+                        color:
+                            isPublished ? AppColors.primaryColor : Colors.grey,
                         fontWeight: FontWeight.w600,
                         fontSize: 13,
                       ),
@@ -162,9 +165,8 @@ class RestMenuCard extends StatelessWidget {
                   _InfoChip(
                     icon: Icons.circle,
                     label: 'Avg. rating',
-                    value: avgRating != null
-                        ? avgRating.toStringAsFixed(1)
-                        : '-',
+                    value:
+                        avgRating != null ? avgRating.toStringAsFixed(1) : '-',
                   ),
                 ],
               ),
