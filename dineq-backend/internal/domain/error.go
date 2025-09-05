@@ -9,6 +9,7 @@ type DomainError struct {
 
 var (
 	ErrNotFound                       = errors.New("not found")
+	ErrForbidden                      = errors.New("forbidden")
 	ErrUserNotFound                   = errors.New("user not found")
 	ErrReviewNotFound                   = errors.New("review not found")
 	ErrDuplicateUser                  = errors.New("user already exists")
@@ -69,6 +70,7 @@ var (
 	ErrPasswordMustContainNumber      = errors.New("password must contain at least one number")
 	ErrPasswordMustContainSpecialChar = errors.New("password must contain at least one special character")
 	ErrFailedToDeleteQRCode           = errors.New("failed to delete qr code")
+	ErrMenuItemNotFound               = errors.New("menu item not found")
 )
 
 var (

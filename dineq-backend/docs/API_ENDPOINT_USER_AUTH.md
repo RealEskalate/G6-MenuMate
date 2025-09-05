@@ -413,7 +413,7 @@ All responses follow a consistent format:
 
 ## Rate Limiting
 
-API endpoints may have rate limiting. Check response headers for rate limit information.
+API endpoints may have rate limiting. Check response headers for rate limit information.null
 
 ## Support
 

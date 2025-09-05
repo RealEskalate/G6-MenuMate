@@ -52,6 +52,7 @@ type IRestaurantRepo interface {
 	Delete(ctx context.Context, id string, manager string) error
 	ListAllBranches(ctx context.Context, slug string, page, pageSize int) ([]*Restaurant, int64, error)
 	ListUniqueRestaurants(ctx context.Context, page, pageSize int) ([]*Restaurant, int64, error)
+	ListRestaurantsByManager(ctx context.Context, managerId string) ([]*Restaurant, error)
 }
 
 type IRestaurantUsecase interface {
@@ -62,4 +63,5 @@ type IRestaurantUsecase interface {
 	GetRestaurantByOldSlug(ctx context.Context, slug string) (*Restaurant, error)
 	ListBranchesBySlug(ctx context.Context, slug string, page, pageSize int) ([]*Restaurant, int64, error)
 	ListUniqueRestaurants(ctx context.Context, page, pageSize int) ([]*Restaurant, int64, error)
+	ListRestaurantsByManager(ctx context.Context, managerId string) ([]*Restaurant, error)
 }
