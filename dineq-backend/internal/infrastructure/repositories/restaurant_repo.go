@@ -17,35 +17,6 @@ type RestaurantRepo struct {
 	restaurantCol string
 }
 
-// ListRestaurantsByManager returns all restaurants managed by a given user.
-func (repo *RestaurantRepo) ListRestaurantsByManager(ctx context.Context, managerId string) ([]*domain.Restaurant, error) {
-	fmt.Printf("[DEBUG] Querying restaurants for managerId: %s\n", managerId)
-	managerOID, err := bson.ObjectIDFromHex(managerId)
-	if err != nil {
-		fmt.Printf("[DEBUG] Invalid ObjectID for managerId: %s\n", managerId)
-		return nil, err
-	}
-	filter := bson.M{"isDeleted": false, "$or": []bson.M{
-		{"managerId": managerOID},
-		{"ownerId": managerOID},
-	}}
-	fmt.Printf("[DEBUG] MongoDB filter: %+v\n", filter)
-	cursor, err := repo.db.Collection(repo.restaurantCol).Find(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-	var models []mapper.RestaurantModel
-	if err := cursor.All(ctx, &models); err != nil {
-		return nil, err
-	}
-	result := make([]*domain.Restaurant, len(models))
-	for i, m := range models {
-		result[i] = m.ToDomain()
-	}
-	return result, nil
-}
-
 func NewRestaurantRepo(database mongo.Database, restaurantCol string) domain.IRestaurantRepo {
 	return &RestaurantRepo{
 		db:            database,
@@ -251,4 +222,140 @@ func (repo *RestaurantRepo) ListUniqueRestaurants(ctx context.Context, page, pag
 		result[i] = m.ToDomain()
 	}
 	return result, total, nil
+}
+
+func (repo *RestaurantRepo) FindNearby(ctx context.Context, lat, lng float64, maxDistance int, page, pageSize int) ([]*domain.Restaurant, int64, error) {
+	restCol := repo.db.Collection(repo.restaurantCol)
+
+	geoNearStage := bson.D{{
+		Key: "$geoNear", Value: bson.M{
+			"near": bson.M{
+				"type":        "Point",
+				"coordinates": []float64{lng, lat},
+			},
+			"distanceField": "distance",
+			"maxDistance":   maxDistance,
+			"spherical":     true,
+		},
+	}}
+
+	facetStage := bson.D{{
+		Key: "$facet", Value: bson.M{
+			"totalData": bson.A{
+				bson.D{{Key: "$skip", Value: (page - 1) * pageSize}},
+				bson.D{{Key: "$limit", Value: pageSize}},
+			},
+			"totalCount": bson.A{
+				bson.D{{Key: "$count", Value: "count"}},
+			},
+		},
+	}}
+
+	pipeline := []bson.D{geoNearStage, facetStage}
+
+	cursor, err := restCol.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var facetResults []mapper.FacetResultModel
+	if err := cursor.All(ctx, &facetResults); err != nil {
+		return nil, 0, err
+	}
+
+	if len(facetResults) == 0 {
+		return []*domain.Restaurant{}, 0, nil
+	}
+
+	restaurants, total := facetResults[0].Parse()
+	return restaurants, total, nil
+
+}
+
+// func (repo *RestaurantRepo) GetByRestaurantName(ctx context.Context, name string) (*domain.Restaurant, error) {
+// 	filter := bson.M{"name": bson.M{
+// 		"$regex":   name, // partial match
+// 		"$options": "i",  // case-insensitive
+// 	}, "isDeleted": false}
+// 	var model mapper.RestaurantModel
+
+// 	err := repo.db.Collection(repo.restaurantCol).Find(ctx, filter).Decode(&model)
+// 	if err != nil {
+// 		if err == mongo.ErrNoDocuments() {
+// 			// Check if it exists but marked deleted to return 410 scenario
+// 			deletedFilter := bson.M{"name": name, "isDeleted": true} // END:
+// 			var deleted mapper.RestaurantModel
+// 			derr := repo.db.Collection(repo.restaurantCol).FindOne(ctx, deletedFilter).Decode(&deleted)
+// 			if derr == nil { // exists but deleted
+// 				return nil, domain.ErrRestaurantDeleted
+// 			}
+// 			return nil, domain.ErrRestaurantNotFound
+// 		}
+// 		return nil, err
+// 	}
+
+// 	return model.ToDomain(), nil
+// }
+
+func (repo *RestaurantRepo) ListRestaurantsByName(ctx context.Context, name string, page, pageSize int) ([]*domain.Restaurant, int64, error) {
+	restCol := repo.db.Collection(repo.restaurantCol)
+	filter := bson.M{"name": bson.M{
+		"$regex":   name, // partial match
+		"$options": "i",  // case-insensitive
+	}, "isDeleted": false}
+
+	total, err := restCol.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	opts := options.Find().
+		SetSkip(int64((page - 1) * pageSize)).
+		SetLimit(int64(pageSize)).
+		SetSort(bson.D{{Key: "createdAt", Value: -1}}) // END:
+
+	cursor, err := restCol.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var models []mapper.RestaurantModel
+	if err := cursor.All(ctx, &models); err != nil {
+		return nil, 0, err
+	}
+
+	result := make([]*domain.Restaurant, len(models))
+	for i, m := range models {
+		result[i] = m.ToDomain()
+	}
+	return result, total, nil
+}
+
+func (repo *RestaurantRepo) GetByManagerId(ctx context.Context, manager string) (*domain.Restaurant, error) {
+	oid, err := bson.ObjectIDFromHex(manager)
+
+	if err != nil {
+		return nil, domain.ErrServerIssue
+	}
+	filter := bson.M{"managerId": oid, "isDeleted": false} // BEGIN:
+	var model mapper.RestaurantModel
+
+	err = repo.db.Collection(repo.restaurantCol).FindOne(ctx, filter).Decode(&model)
+	if err != nil {
+		if err == mongo.ErrNoDocuments() {
+			// Check if it exists but marked deleted to return 410 scenario
+			deletedFilter := bson.M{"managerId": oid, "isDeleted": true} // END:
+			var deleted mapper.RestaurantModel
+			derr := repo.db.Collection(repo.restaurantCol).FindOne(ctx, deletedFilter).Decode(&deleted)
+			if derr == nil { // exists but deleted
+				return nil, domain.ErrRestaurantDeleted
+			}
+			return nil, domain.ErrRestaurantNotFound
+		}
+		return nil, err
+	}
+
+	return model.ToDomain(), nil
 }

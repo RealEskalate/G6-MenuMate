@@ -16,11 +16,6 @@ type RestaurantUsecase struct {
 	ctxtimeout     time.Duration
 }
 
-func (s *RestaurantUsecase) ListRestaurantsByManager(ctx context.Context, managerId string) ([]*domain.Restaurant, error) {
-	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
-	defer cancel()
-	return s.Repo.ListRestaurantsByManager(c, managerId)
-}
 func NewRestaurantUsecase(r domain.IRestaurantRepo, timeout time.Duration, storage services.StorageService) domain.IRestaurantUsecase {
 	return &RestaurantUsecase{
 		Repo:           r,
@@ -117,4 +112,24 @@ func (s *RestaurantUsecase) ListUniqueRestaurants(ctx context.Context, page, pag
 		pageSize = 50
 	}
 	return s.Repo.ListUniqueRestaurants(c, page, pageSize)
+}
+
+func (s *RestaurantUsecase) FindNearby(ctx context.Context, lat, lng float64, maxDistance int, page, pageSize int) ([]*domain.Restaurant, int64, error) {
+	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
+	defer cancel()
+	if pageSize > 50 {
+		pageSize = 50
+	}
+	return s.Repo.FindNearby(c, lat, lng, maxDistance, page, pageSize)
+}
+func (s *RestaurantUsecase) GetRestaurantByName(ctx context.Context, name string, page, pageSize int) ([]*domain.Restaurant, int64, error) {
+	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
+	defer cancel()
+	return s.Repo.ListRestaurantsByName(c, name, page, pageSize)
+}
+
+func (s *RestaurantUsecase) GetRestaurantByManagerId(ctx context.Context, manager string) (*domain.Restaurant, error) {
+	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
+	defer cancel()
+	return s.Repo.GetByManagerId(c, manager)
 }
