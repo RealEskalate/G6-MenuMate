@@ -11,6 +11,7 @@ type ReviewModel struct {
     ID           bson.ObjectID `bson:"_id,omitempty"`
     ItemID       string        `bson:"itemId"`
     UserID       string        `bson:"userId"`
+    RestaurantID string        `bson:"restaurantId"`
     Picture      string        `bson:"picture,omitempty"`
     Description  string        `bson:"description"`
     Rating       float64       `bson:"rating"`
@@ -30,6 +31,7 @@ func ReviewToDomain(r *ReviewModel) *domain.Review {
         ID:           r.ID.Hex(),
         ItemID:       r.ItemID,
         UserID:       r.UserID,
+        RestaurantID: r.RestaurantID,
         Picture:      r.Picture,
         Description:  r.Description,
         Rating:       r.Rating,
@@ -60,6 +62,7 @@ func ReviewFromDomain(r *domain.Review) *ReviewModel {
         ID:           oid,
         ItemID:       r.ItemID,
         UserID:       r.UserID,
+        RestaurantID:       r.RestaurantID,
         Picture:      r.Picture,
         Description:  r.Description,
         Rating:       r.Rating,
