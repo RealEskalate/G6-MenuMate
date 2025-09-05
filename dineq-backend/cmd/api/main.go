@@ -20,16 +20,25 @@ func main() {
 	logger.InitLogger()
 	logger.Log.Info().Msg("-------------Starting DineQ Menu Mate API---------------")
 
-	// Load environment & bootstrap app
-	app, err := bootstrap.InitApp()
-	if err != nil {
-		logger.Log.Fatal().Err(err).Msg("failed to initialize app")
+	// Support light-weight mode for CORS testing without DB (set SKIP_DB=true)
+	var env *bootstrap.Env
+	var dbName string
+	skipDB := os.Getenv("SKIP_DB") == "true"
+	var app *bootstrap.Application
+	var err error
+	if skipDB {
+		env, err = bootstrap.NewEnv()
+		if err != nil { logger.Log.Fatal().Err(err).Msg("failed to load env in SKIP_DB mode") }
+		if env.Port == "" { env.Port = ":8080" }
+		logger.Log.Warn().Msg("Running in SKIP_DB mode (no database connection) – for CORS / middleware testing only")
+	} else {
+		app, err = bootstrap.InitApp()
+		if err != nil { logger.Log.Fatal().Err(err).Msg("failed to initialize app") }
+		env = app.Env
+		dbName = env.DB_Name
+		logger.Log.Info().Str("db", env.DB_Name).Msg("Database acquired")
+		defer app.CloseDBConnection()
 	}
-	env := app.Env
-	db := app.Mongo.Database(env.DB_Name)
-	defer app.CloseDBConnection()
-
-	logger.Log.Info().Str("db", env.DB_Name).Msg("Database acquired")
 
 	timeout := time.Duration(env.CtxTSeconds) * time.Second
 
@@ -59,8 +68,16 @@ func main() {
 		}
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Authorization, Accept")
-		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type")
+
+		// Dynamically reflect requested headers to avoid blocking custom headers (e.g. 'skip-auth')
+		requestedHeaders := c.GetHeader("Access-Control-Request-Headers")
+		if requestedHeaders == "" {
+			// Fallback baseline list – include common & custom application headers
+			requestedHeaders = "Origin, Content-Type, Authorization, Accept, Skip-Auth, X-Requested-With"
+		}
+		c.Writer.Header().Set("Access-Control-Allow-Headers", requestedHeaders)
+		// Expose additional headers if needed by frontend (add Set-Cookie for clarity)
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Set-Cookie")
 		if c.Request.Method == http.MethodOptions {
 			c.AbortWithStatus(http.StatusNoContent)
 			return
@@ -68,7 +85,14 @@ func main() {
 		c.Next()
 	})
 
-	routers.Setup(env, timeout, db, router)
+	if skipDB {
+		// Minimal health endpoint when DB is skipped
+		router.GET("/api/v1/health", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{"status": "ok", "db": "skipped"})
+		})
+	} else {
+		routers.Setup(env, timeout, app.Mongo.Database(dbName), router)
+	}
 
 	srv := &http.Server{
 		Addr:         env.Port,
