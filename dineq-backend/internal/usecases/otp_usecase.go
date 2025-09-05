@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 
+	utils "github.com/RealEskalate/G6-MenuMate/Utils"
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
 )
@@ -43,20 +44,20 @@ func (otpuc *OTPUsecase) RequestOTP(email string) error {
 		return err
 	}
 
-	// send otp for email
-	body := fmt.Sprintf(`
-		<html>
-		<body>
-			<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; background-color: #f9f9f9;">
-				<h2 style="color: #333;">Your OTP Code</h2>
-				<p>Use the following OTP code to complete your registration:</p>
-				<h1 style="color: #007BFF; text-align: center;">%s</h1>
-				<p>This code will expire in %d minutes.</p>
-				<p style="color: #666; text-align: center;">If you did not request this code, please ignore this email.</p>
-			</div>
-		</body>
-		</html>
-	`, code, int(otpuc.otpExpiration.Minutes()))
+
+
+
+	var data = struct {
+    Title   string
+    Name    string
+    Message string
+    OTP     string
+    Expiry  int
+	}{Title: "Email Verification", Name: "User", Message: "Use the OTP below to verify your email address.", OTP: code, Expiry: int(otpuc.otpExpiration.Minutes())}
+	body, err := utils.RenderTemplate("otp.html", data)
+	if err != nil {
+		return err
+	}
 
 	err = otpuc.EmailService.SendEmail(ctx, email, "Your OTP Code", body)
 	if err != nil {

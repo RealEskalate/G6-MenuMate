@@ -10,6 +10,7 @@ import (
 type PasswordResetToken struct {
 	ID        string
 	Email     string
+	Method    string // "link" or "otp"
 	TokenHash string
 	RateLimit int
 	ExpiresAt time.Time

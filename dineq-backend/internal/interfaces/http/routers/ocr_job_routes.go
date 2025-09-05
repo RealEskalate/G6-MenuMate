@@ -56,11 +56,11 @@ func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 	// go ocrWorker.Start()
 
 	// qr services
-	qrService := services.NewQRService()
+	qrService := services.NewQRGenerator("qr_code_output.png")
 
 	// menu repo
 	menuRepo := repositories.NewMenuRepository(db, env.MenuCollection)
-	menuUsecase := usecase.NewMenuUseCase(menuRepo, *qrService, ctxTimeout)
+	menuUsecase := usecase.NewMenuUseCase(menuRepo, *qrService, cloudinaryStorage, ctxTimeout)
 
 	// repositories and usecases
 	ocrJobRepo := repositories.NewOCRJobRepository(db, env.OCRJobCollection)

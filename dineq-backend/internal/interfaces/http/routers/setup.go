@@ -11,9 +11,21 @@ import (
 	handler "github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/handlers"
 	usecase "github.com/RealEskalate/G6-MenuMate/internal/usecases"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 )
 
 func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router *gin.Engine) {
+  router.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"http://localhost:3000", "https://your-frontend.com"},
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge: 12 * time.Hour,
+    }))
+
+
+
 	// Notification services
 	notifySvc := services.NewNotificationService()
 	notifyRepo := repositories.NewNotificationRepository(db, env.NotificationCollection)

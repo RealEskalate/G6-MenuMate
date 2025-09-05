@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
@@ -11,12 +12,13 @@ import (
 
 type MenuUseCase struct {
 	menuRepo   domain.IMenuRepository
-	qrService  services.QRService
+	qrService  services.QRGeneratorService
+	strgService services.StorageService
 	ctxTimeout time.Duration
 }
 
-func NewMenuUseCase(menuRepo domain.IMenuRepository, qrService services.QRService, ctxTimeout time.Duration) domain.IMenuUseCase {
-	return &MenuUseCase{menuRepo: menuRepo, qrService: qrService, ctxTimeout: ctxTimeout}
+func NewMenuUseCase(menuRepo domain.IMenuRepository, qrService services.QRGeneratorService, strgService services.StorageService, ctxTimeout time.Duration) domain.IMenuUseCase {
+	return &MenuUseCase{menuRepo: menuRepo, qrService: qrService, strgService: strgService, ctxTimeout: ctxTimeout}
 }
 
 func (uc *MenuUseCase) CreateMenu(menu *domain.Menu) error {
@@ -58,7 +60,7 @@ func (uc *MenuUseCase) GetByRestaurantID(id string) ([]*domain.Menu, error) {
 	return uc.menuRepo.GetByRestaurantID(ctx, id)
 }
 
-func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *domain.QRCodeRequest) (*domain.QRCode, error) {
+func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *domain.QRConfig) (*domain.QRCode, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	defer cancel()
 
@@ -72,21 +74,33 @@ func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *d
 		return nil, domain.ErrMenuNotPublished
 	}
 
-	res, err := uc.qrService.GenerateQRCode(restaurantId, req)
+	img, err := uc.qrService.GenerateGradientQRWithLogo(req)
 	if err != nil {
 		return nil, err
 	}
 
+buf, err := uc.qrService.SaveImageAsUserFormat(img, req.Format)
+if err != nil {
+	return nil, err
+}
+
+// Upload the bytes to storage
+res, _, err := uc.strgService.UploadFile(ctx, restaurantId, buf.Bytes(), "qr-codes")
+if err != nil {
+	return nil, err
+}
+fmt.Println("QR code generated at:", res)
+
+	// fmt.Println("QR code generated at:", res)
 	qrCode := &domain.QRCode{
-		ID:            res.QRCodeID,
-		ImageURL:      res.ImageURL,
-		PublicMenuURL: res.PublicMenuURL,
-		DownloadURL:   res.DownloadURL,
+		ImageURL:      res,
+		PublicMenuURL: "http://localhost:8080/menu/the-italian-corner-742a0969",
+		DownloadURL:   res + "?download=true",
 		MenuID:        menu.ID,
 		RestaurantID:  restaurantId,
-		IsActive:      res.IsActive,
-		CreatedAt:     res.CreatedAt,
-		ExpiresAt:     res.ExpiresAt,
+		IsActive:      true,
+		CreatedAt:     time.Now(),
+		ExpiresAt:     time.Now().AddDate(5, 0 , 0),
 	}
 	return qrCode, nil
 }

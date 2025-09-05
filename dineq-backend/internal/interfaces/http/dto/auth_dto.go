@@ -1,5 +1,7 @@
 package dto
 
+import "time"
+
 type LoginRequest struct {
 	Identifier string `json:"identifier" validate:"required"`
 	Password   string `json:"password" validate:"required,min=6,max=100"`
@@ -19,12 +21,24 @@ type RefreshTokenResponse struct {
 
 type ForgotPasswordRequest struct {
 	Email string `json:"email" validate:"required,email"`
+	Platform string `json:"platform" validate:"required,oneof=web mobile"`
+
 }
 
-type ResetPasswordRequest struct {
-	Email       string `json:"email" binding:"required,email"`
-	Token       string `json:"token" binding:"required"`
-	NewPassword string `json:"new_password" binding:"required,min=8"`
+type PasswordResetSession struct {
+    UserID    string
+    Token     string // random session token
+    ExpiresAt time.Time
+}
+ // VerifyResetTokenRequest
+type VerifyResetTokenRequest struct {
+	Email string `json:"email" validate:"required,email"`
+	Token string `json:"token" validate:"required"`
+}
+// verify reset token and allow password reset
+type SetNewPasswordRequest struct {
+	SessionToken string `json:"session_token" validate:"required"`
+	NewPassword  string `json:"new_password" validate:"required,min=8"`
 }
 
 type ChangeRoleRequest struct {
