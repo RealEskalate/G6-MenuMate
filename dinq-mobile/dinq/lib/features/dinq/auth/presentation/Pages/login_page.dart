@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dinq/core/network/api_client.dart';
+import 'package:dinq/core/network/api_endpoints.dart';
 import 'package:dinq/core/util/theme.dart';
+import 'package:dinq/features/dinq/auth/data/repository/auth_repository_impl.dart';
+import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_event.dart';
+import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_state.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/Register_page.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/forget_password_page.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
@@ -29,9 +37,15 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   String? _emailError;
   String? _passwordError;
 
+  // BLoC instance
+  late AuthBloc _authBloc;
+
   @override
   void initState() {
     super.initState();
+
+    // Initialize BLoC
+    _authBloc = _createAuthBloc();
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1000),
@@ -109,6 +123,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     super.dispose();
   }
 
+  // Create AuthBloc with your actual repository
+  AuthBloc _createAuthBloc() {
+    final apiClient = ApiClient(baseUrl: ApiEndpoints.baseUrl);
+    final AuthRepository authRepository = AuthRepositoryImpl(apiClient: apiClient);
+    return AuthBloc(authRepository: authRepository);
+  }
+
   bool _validateForm() {
     bool isValid = true;
 
@@ -151,27 +172,42 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   void _handleLogin() {
     if (_validateForm()) {
-      // All validations passed, proceed with login
-      // You would typically call your authentication service here
-      print('Email: ${_emailController.text}');
-      print('Password: ${_passwordController.text}');
-
-      // For demo purposes, just show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Login successful!'),
-          backgroundColor: Colors.green,
+      _authBloc.add(
+        LoginUserEvent(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
         ),
       );
-
-      // Navigate to home page or dashboard
-      // Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocProvider.value(
+      value: _authBloc,
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthLoggedIn) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Login successful!'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+            // Navigate to home page or dashboard
+            Navigator.pushReplacementNamed(context, '/explore');
+          } else if (state is AuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+        },
+        child: Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -295,9 +331,15 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     child: Opacity(
                       opacity: _loginButtonAnimation.value,
                       child: Center(
-                        child: GestureDetector(
-                          onTap: _handleLogin,
-                          child: LoginButton(buttonname: "Login"),
+                        child: BlocBuilder<AuthBloc, AuthState>(
+                          builder: (context, state) {
+                            return state is AuthLoading
+                                ? const CircularProgressIndicator()
+                                : LoginButton(
+                                    buttonname: "Login",
+                                    onPressed: _handleLogin,
+                                  );
+                          },
                         ),
                       ),
                     ),
@@ -441,6 +483,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
               const SizedBox(height: 40),
             ],
           ),
+        ),
+      ),
         ),
       ),
     );

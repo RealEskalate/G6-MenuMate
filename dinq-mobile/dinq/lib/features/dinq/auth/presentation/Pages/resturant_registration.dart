@@ -7,6 +7,8 @@ import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding_first.dart
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
 import 'package:iconsax/iconsax.dart';
 
+import '../../../search/presentation/pages/home_page.dart';
+
 class ResturantRegistration extends StatefulWidget {
   const ResturantRegistration({super.key});
 
@@ -116,7 +118,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
     // Navigate to onboarding page
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const OnboardingFirst()),
+      MaterialPageRoute(builder: (context) => const HomePage()),
     );
   }
 

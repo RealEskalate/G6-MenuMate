@@ -15,6 +15,7 @@ import '../../features/dinq/restaurant_management/presentation/pages/generated_q
 import '../../features/dinq/restaurant_management/presentation/pages/legal_info_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/menus_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/opening_hours_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/qr_customization_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_details_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_profile_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/settings_page.dart';
@@ -47,6 +48,7 @@ class AppRoute {
   static const String setting = '/settings';
 
   // Menu management routes
+  static const String qrcustomization = '/qrcustom';
   static const String menus = '/menus';
   static const String editMenu = '/edit-menu';
   static const String editSingleMenu = '/edit-single-menu';
@@ -61,7 +63,7 @@ class AppRoute {
     switch (settings.name) {
       // Search routes
       case onboarding:
-         return MaterialPageRoute(builder: (_) => const OnboardingFirst());
+        return MaterialPageRoute(builder: (_) => const OnboardingFirst());
       case explore:
         return MaterialPageRoute(builder: (_) => const HomePage());
       case favorites:
@@ -114,8 +116,12 @@ class AppRoute {
         return MaterialPageRoute(
           builder: (_) => MenusPage(restaurantId: restaurantId),
         );
+        // QrCustomizationPage
+
       case editMenu:
         return MaterialPageRoute(builder: (_) => const EditMenuPage());
+      case qrcustomization:
+        return MaterialPageRoute(builder: (_) => const QrCustomizationPage());
       case editSingleMenu:
         // Pass menuData as arguments if needed
         final args = settings.arguments as Map<String, dynamic>?;

@@ -12,7 +12,7 @@ abstract class AuthRepository {
     String? firstName,
     String? lastName,
     String? phoneNumber,
-    String role = 'CUSTOMER', // Default role
+    String? role , // Default role
   });
 
   // Authentication

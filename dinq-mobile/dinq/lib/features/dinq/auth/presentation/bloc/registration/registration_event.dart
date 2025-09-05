@@ -14,6 +14,7 @@ class RegisterUserEvent extends AuthEvent {
   final String email;
   final String password;
   final String authProvider;
+  final String? role;
   final String? firstName;
   final String? lastName;
   final String? phoneNumber;
@@ -23,6 +24,7 @@ class RegisterUserEvent extends AuthEvent {
     required this.email,
     required this.password,
     required this.authProvider,
+    this.role,
     this.firstName,
     this.lastName,
     this.phoneNumber,
@@ -34,6 +36,7 @@ class RegisterUserEvent extends AuthEvent {
         email,
         password,
         authProvider,
+        role ?? '',
         firstName ?? '',
         lastName ?? '',
         phoneNumber ?? '',

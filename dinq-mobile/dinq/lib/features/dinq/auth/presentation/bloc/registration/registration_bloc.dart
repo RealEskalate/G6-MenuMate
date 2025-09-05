@@ -31,8 +31,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
         authProvider: event.authProvider,
-        firstName: event.firstName,
-        lastName: event.lastName,
+        // role: event.role ?? 'CUSTOMER',
+        role: event.role ??'',
+        // firstName: event.firstName,
+        // lastName: event.lastName,
+        firstName: event.firstName ?? "MEKDI",
+        lastName: event.lastName ?? "Lastname",
         phoneNumber: event.phoneNumber,
       );
       emit(AuthRegistered(user: user));

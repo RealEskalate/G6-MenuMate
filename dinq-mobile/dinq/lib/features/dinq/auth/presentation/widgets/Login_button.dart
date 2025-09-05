@@ -3,13 +3,19 @@ import 'package:flutter/material.dart';
 
 
 class LoginButton extends StatelessWidget {
-  final buttonname;
-  const LoginButton({super.key,required this.buttonname});
+  final String buttonname;
+  final VoidCallback? onPressed;
+
+  const LoginButton({
+    super.key,
+    required this.buttonname,
+    this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: () {},
+      onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primaryColor,
         fixedSize: const Size(300, 50)),
