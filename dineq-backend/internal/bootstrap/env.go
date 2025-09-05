@@ -50,7 +50,7 @@ type Env struct {
 	// user refresh token collection
 	RefreshTokenCollection string `mapstructure:"REFRESH_TOKEN_COLLECTION"`
 	// reaction collection
-	ReactionCollection	string `mapstructure: "REACTION_COLLECTION"`
+	ReactionCollection	string `mapstructure:"REACTION_COLLECTION"`
 
 	// restaurant collection
 	RestaurantCollection string `mapstructure:"RESTAURANT_COLLECTION"`
