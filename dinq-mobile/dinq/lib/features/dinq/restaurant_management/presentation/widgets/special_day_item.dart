@@ -27,10 +27,7 @@ class SpecialDayItem extends StatelessWidget {
               children: [
                 Text(
                   date,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -43,20 +40,13 @@ class SpecialDayItem extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   status,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
           ),
           IconButton(
-            icon: const Icon(
-              Icons.delete_outline,
-              color: Colors.red,
-              size: 20,
-            ),
+            icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
             onPressed: onDelete,
           ),
         ],

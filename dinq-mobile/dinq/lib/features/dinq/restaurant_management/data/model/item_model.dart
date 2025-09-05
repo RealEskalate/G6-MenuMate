@@ -30,59 +30,72 @@ class ItemModel extends Item {
   factory ItemModel.fromMap(Map<String, dynamic> data) => ItemModel(
     id: data['id'] ?? '',
     name: data['name'] ?? '',
-    nameAm: data['nameAm'] ?? '',
+    nameAm: data['nameAm'] ?? data['name_am'] ?? '',
     slug: data['slug'] ?? '',
-    categoryId: data['categoryId'] ?? '',
-    description: data['description'],
-    descriptionAm: data['descriptionAm'],
+    categoryId: data['categoryId'] ?? data['category_id'] ?? '',
+    description:
+        data['description'] ?? data['description_en'] ?? data['description_am'],
+    descriptionAm: data['descriptionAm'] ?? data['description_am'],
     image: (data['image'] as List<dynamic>?)?.map((e) => e as String).toList(),
-    price: data['price'] ?? 0,
+    price: (data['price'] as num?)?.toInt() ?? 0,
     currency: data['currency'] ?? '',
     allergies: (data['allergies'] as List<dynamic>?)
         ?.map((e) => e as String)
         .toList(),
     userImages: (data['userImages'] as List<dynamic>?),
-    calories: data['calories'],
+    calories:
+        (data['calories'] as num?)?.toInt() ??
+        (data['nutrition']?['calories'] as num?)?.toInt(),
     ingredients: (data['ingredients'] as List<dynamic>?)
         ?.map((e) => e as String)
         .toList(),
     ingredientsAm: (data['ingredientsAm'] as List<dynamic>?)
         ?.map((e) => e as String)
         .toList(),
-    preparationTime: data['preparationTime'],
-    howToEat: data['howToEat'],
-    howToEatAm: data['howToEatAm'],
-    viewCount: data['viewCount'] ?? 0,
-    averageRating: (data['averageRating'] as num?)?.toDouble() ?? 0.0,
+    preparationTime:
+        (data['preparationTime'] as num?)?.toInt() ??
+        (data['preparation_time'] as num?)?.toInt(),
+    howToEat: data['howToEat'] ?? data['how_to_eat'],
+    howToEatAm: data['howToEatAm'] ?? data['how_to_eat_am'],
+    viewCount: (data['view_count'] ?? data['viewCount']) is int
+        ? (data['view_count'] ?? data['viewCount']) as int
+        : ((data['view_count'] ?? data['viewCount']) as num?)?.toInt() ?? 0,
+    averageRating:
+        (data['average_rating'] as num?)?.toDouble() ??
+        (data['averageRating'] as num?)?.toDouble() ??
+        0.0,
     reviewIds:
         (data['reviewIds'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList() ??
-        [],
+        ((data['review_ids'] as List<dynamic>?)
+                ?.map((e) => e as String)
+                .toList() ??
+            []),
   );
 
   Map<String, dynamic> toMap() => {
     'id': id,
     'name': name,
-    'nameAm': nameAm,
+    'name_am': nameAm,
     'slug': slug,
-    'categoryId': categoryId,
+    'category_id': categoryId,
     'description': description,
-    'descriptionAm': descriptionAm,
+    'description_am': descriptionAm,
     'image': image,
     'price': price,
     'currency': currency,
     'allergies': allergies,
-    'userImages': userImages,
+    'user_images': userImages,
     'calories': calories,
     'ingredients': ingredients,
-    'ingredientsAm': ingredientsAm,
-    'preparationTime': preparationTime,
-    'howToEat': howToEat,
-    'howToEatAm': howToEatAm,
-    'viewCount': viewCount,
-    'averageRating': averageRating,
-    'reviewIds': reviewIds,
+    'ingredients_am': ingredientsAm,
+    'preparation_time': preparationTime,
+    'how_to_eat': howToEat,
+    'how_to_eat_am': howToEatAm,
+    'view_count': viewCount,
+    'average_rating': averageRating,
+    'review_ids': reviewIds,
   };
 
   factory ItemModel.fromJson(String data) {

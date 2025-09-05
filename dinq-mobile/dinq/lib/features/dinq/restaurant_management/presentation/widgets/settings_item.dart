@@ -20,17 +20,11 @@ class SettingsItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: leadingIcon != null
-          ? Icon(
-              leadingIcon,
-              color: iconColor ?? Colors.grey,
-            )
+          ? Icon(leadingIcon, color: iconColor ?? Colors.grey)
           : null,
       title: Text(
         title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
       ),
       trailing: trailing ?? const Icon(Icons.chevron_right),
       onTap: onTap,

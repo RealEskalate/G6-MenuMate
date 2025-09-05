@@ -23,20 +23,20 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
   bool showTimePicker = false;
   bool _showAddSpecialDay = false;
   bool _isOpeningTime = true; // Whether we're selecting opening or closing time
-  
+
   // Controllers for adding special days
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _statusController = TextEditingController();
-  
+
   late OpeningHoursBloc _openingHoursBloc;
-  
+
   @override
   void initState() {
     super.initState();
     _openingHoursBloc = OpeningHoursBloc();
     _openingHoursBloc.add(const LoadOpeningHours());
   }
-  
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -56,9 +56,9 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
               const SnackBar(content: Text('Changes saved successfully')),
             );
           } else if (state is OpeningHoursError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error: ${state.message}')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Error: ${state.message}')));
           }
         },
         builder: (context, state) {
@@ -73,12 +73,17 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
                   TextButton(
                     onPressed: state.hasChanges
                         ? () {
-                            context.read<OpeningHoursBloc>().add(const SaveOpeningHours());
+                            context.read<OpeningHoursBloc>().add(
+                              const SaveOpeningHours(),
+                            );
                           }
                         : null,
                     child: state is OpeningHoursSaving
                         ? const CircularProgressIndicator(color: Colors.orange)
-                        : const Text('Save Changes', style: TextStyle(color: Colors.orange)),
+                        : const Text(
+                            'Save Changes',
+                            style: TextStyle(color: Colors.orange),
+                          ),
                   ),
               ],
               leading: IconButton(
@@ -89,7 +94,9 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
             body: Stack(
               children: [
                 if (state is OpeningHoursLoading)
-                  const Center(child: CircularProgressIndicator(color: Colors.orange))
+                  const Center(
+                    child: CircularProgressIndicator(color: Colors.orange),
+                  )
                 else if (state is OpeningHoursLoaded)
                   SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
@@ -98,7 +105,10 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
                       children: [
                         const Text(
                           'Opening and closing hours',
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 24),
                         _buildCalendar(state),
@@ -107,7 +117,8 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
                       ],
                     ),
                   ),
-                if (showTimePicker && state is OpeningHoursLoaded) _buildTimePickerOverlay(state),
+                if (showTimePicker && state is OpeningHoursLoaded)
+                  _buildTimePickerOverlay(state),
                 if (_showAddSpecialDay) _buildAddSpecialDayOverlay(),
               ],
             ),
@@ -116,10 +127,7 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
               selectedItemColor: Colors.orange,
               unselectedItemColor: Colors.grey,
               items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.favorite_border),
                   label: 'Favorites',
@@ -128,10 +136,7 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
                   icon: Icon(Icons.analytics_outlined),
                   label: 'Analytics',
                 ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.menu),
-                  label: 'Menu',
-                ),
+                BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.settings),
                   label: 'Settings',
@@ -163,10 +168,18 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
       ],
     );
   }
-  
+
   Widget _buildWeeklyHours(OpeningHoursLoaded state) {
-    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    
+    final days = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -182,7 +195,10 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
               children: [
                 Expanded(
                   flex: 2,
-                  child: Text(days[index], style: const TextStyle(fontWeight: FontWeight.w500)),
+                  child: Text(
+                    days[index],
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
                 ),
                 Expanded(
                   flex: 3,
@@ -195,7 +211,10 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
                       });
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 12,
+                      ),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey.shade300),
                         borderRadius: BorderRadius.circular(4),
@@ -222,7 +241,10 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
                       });
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 12,
+                      ),
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey.shade300),
                         borderRadius: BorderRadius.circular(4),
@@ -260,7 +282,10 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.orange,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
               ),
               onPressed: () {
                 setState(() {
@@ -282,13 +307,13 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
           final index = entry.key;
           final day = entry.value;
           return SpecialDayItem(
-              date: '${day.date.month}/${day.date.day}/${day.date.year}',
-              title: day.title,
-              status: day.status,
-              onDelete: () {
-                context.read<OpeningHoursBloc>().add(RemoveSpecialDay(index));
-              },
-            );
+            date: '${day.date.month}/${day.date.day}/${day.date.year}',
+            title: day.title,
+            status: day.status,
+            onDelete: () {
+              context.read<OpeningHoursBloc>().add(RemoveSpecialDay(index));
+            },
+          );
         }),
         if (state.specialDays.isEmpty)
           const Center(
@@ -315,11 +340,17 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
         color: Colors.black.withOpacity(0.5),
         child: Center(
           child: TimePickerWidget(
-            openingTime: _isOpeningTime ? state.openingTimes[_selectedDayIndex] : null,
-            closingTime: !_isOpeningTime ? state.closingTimes[_selectedDayIndex] : null,
+            openingTime: _isOpeningTime
+                ? state.openingTimes[_selectedDayIndex]
+                : null,
+            closingTime: !_isOpeningTime
+                ? state.closingTimes[_selectedDayIndex]
+                : null,
             onOpeningTimeChanged: (time) {
               if (_isOpeningTime) {
-                context.read<OpeningHoursBloc>().add(UpdateOpeningTime(time, _selectedDayIndex));
+                context.read<OpeningHoursBloc>().add(
+                  UpdateOpeningTime(time, _selectedDayIndex),
+                );
                 setState(() {
                   showTimePicker = false;
                 });
@@ -327,7 +358,9 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
             },
             onClosingTimeChanged: (time) {
               if (!_isOpeningTime) {
-                context.read<OpeningHoursBloc>().add(UpdateClosingTime(time, _selectedDayIndex));
+                context.read<OpeningHoursBloc>().add(
+                  UpdateClosingTime(time, _selectedDayIndex),
+                );
                 setState(() {
                   showTimePicker = false;
                 });
@@ -338,7 +371,7 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
       ),
     );
   }
-  
+
   Widget _buildAddSpecialDayOverlay() {
     return GestureDetector(
       onTap: () {
@@ -380,14 +413,21 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
                     }
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 15,
+                    ),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+                        const Icon(
+                          Icons.calendar_today,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
@@ -430,12 +470,15 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
                     const SizedBox(width: 16),
                     ElevatedButton(
                       onPressed: () {
-                        if (_titleController.text.isNotEmpty && _statusController.text.isNotEmpty) {
-                          context.read<OpeningHoursBloc>().add(AddSpecialDay(
-                            date: _selectedDate,
-                            title: _titleController.text,
-                            status: _statusController.text,
-                          ));
+                        if (_titleController.text.isNotEmpty &&
+                            _statusController.text.isNotEmpty) {
+                          context.read<OpeningHoursBloc>().add(
+                            AddSpecialDay(
+                              date: _selectedDate,
+                              title: _titleController.text,
+                              status: _statusController.text,
+                            ),
+                          );
                           setState(() {
                             _showAddSpecialDay = false;
                           });
@@ -456,11 +499,21 @@ class OpeningHoursPageState extends State<OpeningHoursPage> {
       ),
     );
   }
-  
+
   String _getMonthName(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return months[month - 1];
   }

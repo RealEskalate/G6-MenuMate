@@ -347,7 +347,7 @@ class ReviewFixtures {
       images: tImages,
       like: index + 10,
       disLike: index,
-      createdAt: tCreatedAt, 
+      createdAt: tCreatedAt,
     ),
   );
 }

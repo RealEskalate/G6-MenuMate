@@ -50,10 +50,7 @@ class DocumentItem extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   fileSize,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                 ),
               ],
             ),

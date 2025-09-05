@@ -41,7 +41,10 @@ class LegalInfoPage extends StatelessWidget {
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
                 ),
                 child: const Text('Upload Files'),
               ),
@@ -54,10 +57,7 @@ class LegalInfoPage extends StatelessWidget {
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border),
             label: 'Favorites',
@@ -66,10 +66,7 @@ class LegalInfoPage extends StatelessWidget {
             icon: Icon(Icons.analytics_outlined),
             label: 'Analytics',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menu',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
@@ -91,12 +88,7 @@ class LegalInfoPage extends StatelessWidget {
         const SizedBox(height: 8),
         Row(
           children: [
-            Expanded(
-              child: Text(
-                value,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
+            Expanded(child: Text(value, style: const TextStyle(fontSize: 16))),
             const Icon(Icons.content_copy, color: Colors.grey),
           ],
         ),
@@ -127,13 +119,13 @@ class LegalInfoPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      fileName,
-                      style: const TextStyle(fontSize: 14),
-                    ),
+                    Text(fileName, style: const TextStyle(fontSize: 14)),
                     Text(
                       fileSize,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),

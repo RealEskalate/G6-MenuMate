@@ -92,7 +92,6 @@ void main() {
         expect(result.image, '');
         expect(result.isActive, true);
       });
-
     });
 
     group('toMap', () {
@@ -149,10 +148,14 @@ void main() {
 
       test('should handle malformed JSON gracefully', () {
         // Arrange
-        const jsonString = '{"id": "test", "name": "Test Restaurant"'; // Missing closing brace
+        const jsonString =
+            '{"id": "test", "name": "Test Restaurant"'; // Missing closing brace
 
         // Act & Assert
-        expect(() => RestaurantModel.fromJson(jsonString), throwsA(isA<FormatException>()));
+        expect(
+          () => RestaurantModel.fromJson(jsonString),
+          throwsA(isA<FormatException>()),
+        );
       });
 
       test('should handle empty JSON object', () {
@@ -223,10 +226,7 @@ void main() {
 
       test('should handle null values in copyWith', () {
         // Act
-        final result = tRestaurantModel.copyWith(
-          name: null,
-          description: null,
-        );
+        final result = tRestaurantModel.copyWith(name: null, description: null);
 
         // Assert
         expect(result.name, tRestaurantModel.name);
@@ -235,14 +235,17 @@ void main() {
     });
 
     group('toEntity', () {
-      test('should return the same instance since RestaurantModel extends Restaurant', () {
-        // Act
-        final result = tRestaurantModel.toEntity();
+      test(
+        'should return the same instance since RestaurantModel extends Restaurant',
+        () {
+          // Act
+          final result = tRestaurantModel.toEntity();
 
-        // Assert
-        expect(result, equals(tRestaurantModel));
-        expect(result, isA<RestaurantModel>());
-      });
+          // Assert
+          expect(result, equals(tRestaurantModel));
+          expect(result, isA<RestaurantModel>());
+        },
+      );
     });
 
     group('stringify', () {
@@ -347,7 +350,6 @@ void main() {
         expect(result.image, contains('?'));
         expect(parsedBack, equals(result));
       });
-
-        });
+    });
   });
 }

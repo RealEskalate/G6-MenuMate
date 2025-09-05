@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 
 import '../../../../../core/error/exceptions.dart';
 import '../../../../../core/error/failures.dart';
@@ -25,14 +26,14 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   // Restaurant
   @override
   Future<Either<Failure, Restaurant>> createRestaurant(
-    Restaurant restaurant,
+    FormData restaurant,
   ) async {
     final connected = await network.isConnected;
     print('[Repo] createRestaurant - isConnected=$connected');
     if (connected) {
       try {
         final resultModel = await remoteDataSource.createRestaurant(
-          RestaurantModel.fromEntity(restaurant),
+          restaurant,
         );
         return Right(resultModel.toEntity());
       } catch (e) {
@@ -140,7 +141,7 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
 
   // Menu
 
-@override
+  @override
   Future<Either<Failure, Menu>> uploadMenu(File printedMenu) async {
     final connected = await network.isConnected;
     if (connected) {

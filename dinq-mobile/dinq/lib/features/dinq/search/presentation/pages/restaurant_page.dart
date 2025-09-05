@@ -1,5 +1,4 @@
-import '../../domain/entities/Restaurant.dart'
-    as models;
+import '../../domain/entities/Restaurant.dart' as models;
 import '../widgets/bottom_navbar.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';

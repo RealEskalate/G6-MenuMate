@@ -24,16 +24,16 @@ class RestaurantProfilePage extends StatelessWidget {
             title: 'Restaurant details',
             leadingIcon: Icons.restaurant_menu,
             onTap: () {
-                Navigator.pushNamed(context, '/restaurant_details');
-              },
+              Navigator.pushNamed(context, '/restaurant_details');
+            },
           ),
           const Divider(),
           SettingsItem(
             title: 'Opening and closing hours',
             leadingIcon: Icons.access_time,
             onTap: () {
-                Navigator.pushNamed(context, '/opening_hours');
-              },
+              Navigator.pushNamed(context, '/opening_hours');
+            },
           ),
           const Divider(),
         ],
@@ -43,10 +43,7 @@ class RestaurantProfilePage extends StatelessWidget {
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border),
             label: 'Favorites',
@@ -55,10 +52,7 @@ class RestaurantProfilePage extends StatelessWidget {
             icon: Icon(Icons.analytics_outlined),
             label: 'Analytics',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menu',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',

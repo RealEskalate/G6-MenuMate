@@ -11,43 +11,41 @@ void main() {
   late GetReviews usecase;
   late MockRestaurantRepository mockRepository;
 
-  setUp(() => {
-    mockRepository = MockRestaurantRepository(),
-    usecase = GetReviews(mockRepository)
-  });
+  setUp(
+    () => {
+      mockRepository = MockRestaurantRepository(),
+      usecase = GetReviews(mockRepository),
+    },
+  );
 
   group('getReviews', () {
-      test(
-        'should return Right with list of reviews when successful',
-        () async {
-          // Arrange
-          when(
-            mockRepository.getReviews(ReviewFixtures.tItemId),
-          ).thenAnswer((_) async => Right(ReviewFixtures.tReviews));
+    test('should return Right with list of reviews when successful', () async {
+      // Arrange
+      when(
+        mockRepository.getReviews(ReviewFixtures.tItemId),
+      ).thenAnswer((_) async => Right(ReviewFixtures.tReviews));
 
-          // Act
-          final result = await usecase(ReviewFixtures.tItemId);
+      // Act
+      final result = await usecase(ReviewFixtures.tItemId);
 
-          // Assert
-          expect(result, Right(ReviewFixtures.tReviews));
-          verify(mockRepository.getReviews(ReviewFixtures.tItemId));
-          verifyNoMoreInteractions(mockRepository);
-        },
-      );
-
-      test('should return Left with failure when unsuccessful', () async {
-        // Arrange
-        const failure = ServerFailure('Reviews not found');
-        when(
-          mockRepository.getReviews(ReviewFixtures.tItemId),
-        ).thenAnswer((_) async => const Left(failure));
-
-        final result = await usecase(ReviewFixtures.tItemId);
-
-        expect(result, const Left(failure));
-        verify(mockRepository.getReviews(ReviewFixtures.tItemId));
-        verifyNoMoreInteractions(mockRepository);
-      });
+      // Assert
+      expect(result, Right(ReviewFixtures.tReviews));
+      verify(mockRepository.getReviews(ReviewFixtures.tItemId));
+      verifyNoMoreInteractions(mockRepository);
     });
 
+    test('should return Left with failure when unsuccessful', () async {
+      // Arrange
+      const failure = ServerFailure('Reviews not found');
+      when(
+        mockRepository.getReviews(ReviewFixtures.tItemId),
+      ).thenAnswer((_) async => const Left(failure));
+
+      final result = await usecase(ReviewFixtures.tItemId);
+
+      expect(result, const Left(failure));
+      verify(mockRepository.getReviews(ReviewFixtures.tItemId));
+      verifyNoMoreInteractions(mockRepository);
+    });
+  });
 }

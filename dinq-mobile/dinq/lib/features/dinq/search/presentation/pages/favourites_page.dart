@@ -1,5 +1,4 @@
-import '../../domain/entities/Restaurant.dart'
-    as models;
+import '../../domain/entities/Restaurant.dart' as models;
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
 import '../../domain/entities/menu.dart' as models;

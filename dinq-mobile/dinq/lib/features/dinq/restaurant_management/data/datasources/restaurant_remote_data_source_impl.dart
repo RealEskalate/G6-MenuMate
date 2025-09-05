@@ -17,12 +17,11 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   RestaurantRemoteDataSourceImpl({required this.dio});
 
   @override
-  Future<RestaurantModel> createRestaurant(RestaurantModel restaurant) async {
-    print('[Remote] createRestaurant - POST /restaurants');
+  Future<RestaurantModel> createRestaurant(FormData restaurant) async {
     try {
       final response = await dio.post(
         '$baseUrl/restaurants',
-        data: restaurant.toMap(),
+        data: restaurant,
         options: Options(
           headers: {
             'Content-Type': content,
@@ -31,9 +30,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
         ),
       );
       final statusCode = response.statusCode;
-      print(
-        '[Remote] createRestaurant - response status=$statusCode data=${response.data}',
-      );
       if (statusCode == 201 || statusCode == 200) {
         return RestaurantModel.fromMap(response.data);
       } else {
@@ -63,9 +59,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
     int page = 1,
     int pageSize = 20,
   }) async {
-    print(
-      '[Remote] getRestaurants - GET /restaurants?page=$page&pageSize=$pageSize',
-    );
     try {
       final uri = Uri.parse('$baseUrl/restaurants').replace(
         queryParameters: {
@@ -73,16 +66,10 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
           'pageSize': pageSize.toString(),
         },
       );
-      print('[Remote][Request] GET ${uri.toString()}');
-      print('[Remote][Request] dio.defaultHeaders=${dio.options.headers}');
-      print('[Remote][Request] requestOptions.headers=');
       final response = await dio.getUri(uri);
       final statusCode = response.statusCode;
-      print(
-        '[Remote] getRestaurants - response status=$statusCode data=${response.data}',
-      );
       if (statusCode == 200) {
-        final data = response.data as List<dynamic>;
+        final data = response.data['restaurants'] as List<dynamic>;
         return data.map((json) => RestaurantModel.fromMap(json)).toList();
       } else {
         throw ServerException(
@@ -111,16 +98,12 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<RestaurantModel> getRestaurantBySlug(String slug) async {
-    print('[Remote] getRestaurantBySlug - GET /restaurants/$slug');
     try {
       final response = await dio.get(
         '$baseUrl/restaurants/$slug',
         options: Options(headers: {'Content-Type': content}),
       );
       final statusCode = response.statusCode;
-      print(
-        '[Remote] getRestaurantBySlug - response status=$statusCode data=${response.data}',
-      );
       if (statusCode == 200) {
         return RestaurantModel.fromMap(response.data);
       } else {
@@ -150,14 +133,13 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<RestaurantModel> updateRestaurant(
-    RestaurantModel restaurant,
+    FormData restaurant,
     String slug,
   ) async {
-    print('[Remote] updateRestaurant - PUT /restaurants/$slug');
     try {
       final response = await dio.put(
         '$baseUrl/restaurants/$slug',
-        data: restaurant.toMap(),
+        data: restaurant,
         options: Options(
           headers: {
             'Content-Type': content,
@@ -195,7 +177,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<void> deleteRestaurant(String restaurantId) async {
-    print('[Remote] deleteRestaurant - DELETE /restaurants/$restaurantId');
     try {
       final response = await dio.delete(
         '$baseUrl/restaurants/$restaurantId',
@@ -233,13 +214,12 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<MenuModel> uploadMenu(File printedMenu) async {
-    print('[Remote] uploadMenu - POST /ocr/upload');
     try {
       // Create FormData for multipart upload
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
           printedMenu.path,
-          filename: 'menu_image.jpg',  // Adjust filename as needed
+          filename: 'menu_image.jpg', // Adjust filename as needed
         ),
       });
 
@@ -256,13 +236,11 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       );
 
       final uploadStatusCode = uploadResponse.statusCode;
-      print('[Remote] uploadMenu - upload response status=$uploadStatusCode data=${uploadResponse.data}');
 
       if (uploadStatusCode == 200 || uploadStatusCode == 201) {
         final uploadData = uploadResponse.data;
         if (uploadData['success'] == true) {
           final jobId = uploadData['data']['jobId'] as String;
-          print('[Remote] uploadMenu - jobId: $jobId');
 
           // Poll the job status every 2 seconds until completed
           while (true) {
@@ -279,7 +257,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
             );
 
             final pollStatusCode = pollResponse.statusCode;
-            print('[Remote] uploadMenu - poll response status=$pollStatusCode data=${pollResponse.data}');
 
             if (pollStatusCode == 200) {
               final pollData = pollResponse.data;
@@ -292,10 +269,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
                   // If MenuModel expects a specific format, adjust accordingly (e.g., wrap in a map)
                   return MenuModel.fromMap(results);
                 } else if (status == 'failed') {
-                  throw ServerException(
-                    'OCR job failed',
-                    statusCode: 200,
-                  );
+                  throw ServerException('OCR job failed', statusCode: 200);
                 }
                 // Continue polling if still processing
               } else {
@@ -306,7 +280,10 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
               }
             } else {
               throw ServerException(
-                HttpErrorHandler.getExceptionMessage(pollStatusCode, 'polling OCR job'),
+                HttpErrorHandler.getExceptionMessage(
+                  pollStatusCode,
+                  'polling OCR job',
+                ),
                 statusCode: pollStatusCode,
               );
             }
@@ -319,7 +296,10 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
         }
       } else {
         throw ServerException(
-          HttpErrorHandler.getExceptionMessage(uploadStatusCode, 'uploading menu'),
+          HttpErrorHandler.getExceptionMessage(
+            uploadStatusCode,
+            'uploading menu',
+          ),
           statusCode: uploadStatusCode,
         );
       }
@@ -338,9 +318,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<MenuModel> getMenu(String restaurantId) async {
-    print(
-      '[Remote] getMenu - GET /menus/<restaurantId> (requested: $restaurantId)',
-    );
     try {
       final response = await dio.get(
         '$baseUrl/menus/:$restaurantId',
@@ -376,7 +353,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<void> deleteMenu(String menuId) async {
-    print('[Remote] deleteMenu - DELETE /menus/$menuId');
     try {
       final response = await dio.delete(
         '$baseUrl/menus/$menuId',
@@ -411,7 +387,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<MenuModel> updateMenu(MenuModel menu) async {
-    print('[Remote] updateMenu - PUT /menus/${menu.id}');
     try {
       final response = await dio.put(
         '$baseUrl/menus/${menu.id}',
@@ -447,7 +422,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<List<ReviewModel>> getReviews(String itemId) async {
-    print('[Remote] getReviews - GET /items/$itemId/reviews');
     try {
       final response = await dio.get(
         '$baseUrl/items/$itemId/reviews',
@@ -484,7 +458,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<void> deleteReview(String reviewId) async {
-    print('[Remote] deleteReview - DELETE /reviews/$reviewId');
     try {
       final response = await dio.delete(
         '$baseUrl/reviews/$reviewId',
@@ -519,7 +492,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<List<String>> getUserImages(String slug) async {
-    print('[Remote] getUserImages - GET /items/$slug/images');
     try {
       final response = await dio.get(
         '$baseUrl/items/$slug/images',
@@ -553,5 +525,4 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       );
     }
   }
-
 }

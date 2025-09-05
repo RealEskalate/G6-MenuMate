@@ -20,8 +20,8 @@ class SettingsPage extends StatelessWidget {
             title: 'Restaurant profile',
             leadingIcon: Icons.restaurant,
             onTap: () {
-                Navigator.pushNamed(context, '/restaurant_profile');
-              },
+              Navigator.pushNamed(context, '/restaurant_profile');
+            },
           ),
           const Divider(),
           SettingsItem(
@@ -36,8 +36,8 @@ class SettingsPage extends StatelessWidget {
             title: 'Legal info',
             leadingIcon: Icons.gavel,
             onTap: () {
-                Navigator.pushNamed(context, '/legal_info');
-              },
+              Navigator.pushNamed(context, '/legal_info');
+            },
           ),
           const Divider(),
           SettingsItem(
@@ -63,10 +63,7 @@ class SettingsPage extends StatelessWidget {
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border),
             label: 'Favorites',
@@ -75,10 +72,7 @@ class SettingsPage extends StatelessWidget {
             icon: Icon(Icons.analytics_outlined),
             label: 'Analytics',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menu',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',

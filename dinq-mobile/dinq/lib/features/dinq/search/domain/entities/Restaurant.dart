@@ -17,7 +17,7 @@ class Restaurant {
   final int viewCount;
   final String bannerUrl;
 
-  Restaurant( {
+  Restaurant({
     required this.bannerUrl,
     required this.id,
     required this.name,
@@ -45,9 +45,5 @@ class Contact {
   final String email;
   final List<Uri> social;
 
-  Contact({
-    required this.phone,
-    required this.email,
-    required this.social,
-  });
+  Contact({required this.phone, required this.email, required this.social});
 }

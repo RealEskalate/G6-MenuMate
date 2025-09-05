@@ -5,10 +5,11 @@ import '../../../../../core/error/failures.dart';
 import '../entities/menu.dart';
 import '../entities/restaurant.dart';
 import '../entities/review.dart';
+import 'package:dio/dio.dart';
 
 abstract class RestaurantRepository {
   // Restaurant
-  Future<Either<Failure, Restaurant>> createRestaurant(Restaurant restaurant);
+  Future<Either<Failure, Restaurant>> createRestaurant(FormData restaurant);
   Future<Either<Failure, List<Restaurant>>> getRestaurants({
     int page = 1,
     int pageSize = 20,

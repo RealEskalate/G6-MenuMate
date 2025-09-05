@@ -25,14 +25,14 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
   bool get isFavorite => _favoriteDishIds.contains(widget.item.id);
 
   void _toggleFavorite() {
-  setState(() {
-    if (_FavoritesStore.dishIds.contains(widget.item.id)) {
-      _FavoritesStore.dishIds.remove(widget.item.id);
-    } else {
-      _FavoritesStore.dishIds.add(widget.item.id);
-    }
-  });
-}
+    setState(() {
+      if (_FavoritesStore.dishIds.contains(widget.item.id)) {
+        _FavoritesStore.dishIds.remove(widget.item.id);
+      } else {
+        _FavoritesStore.dishIds.add(widget.item.id);
+      }
+    });
+  }
 
   void _onTabSelected(BottomNavTab tab) {
     if (tab == BottomNavTab.explore) {

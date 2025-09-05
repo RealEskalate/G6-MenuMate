@@ -5,7 +5,8 @@ class BrandingPreferencesPage extends StatefulWidget {
   const BrandingPreferencesPage({super.key});
 
   @override
-  State<BrandingPreferencesPage> createState() => _BrandingPreferencesPageState();
+  State<BrandingPreferencesPage> createState() =>
+      _BrandingPreferencesPageState();
 }
 
 class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
@@ -15,15 +16,17 @@ class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
   String _defaultCurrency = 'ETB';
   String _defaultLanguage = 'English';
   String _vatPercentage = '15%';
-  
+
   // Text controllers to prevent automatic filling
-  final TextEditingController _vatController = TextEditingController(text: '15%');
-  
+  final TextEditingController _vatController = TextEditingController(
+    text: '15%',
+  );
+
   @override
   void initState() {
     super.initState();
   }
-  
+
   @override
   void dispose() {
     _vatController.dispose();
@@ -70,15 +73,30 @@ class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            _buildDropdownField('Default currency', _defaultCurrency, ['ETB', 'USD', 'EUR', 'GBP']),
+            _buildDropdownField('Default currency', _defaultCurrency, [
+              'ETB',
+              'USD',
+              'EUR',
+              'GBP',
+            ]),
             const SizedBox(height: 16),
-            _buildDropdownField('Default language', _defaultLanguage, ['English', 'Amharic', 'French', 'Arabic']),
+            _buildDropdownField('Default language', _defaultLanguage, [
+              'English',
+              'Amharic',
+              'French',
+              'Arabic',
+            ]),
             const SizedBox(height: 16),
-            _buildTextField('Default VAT/Service Charge (%)', _vatPercentage, (value) {
-              setState(() {
-                _vatPercentage = value;
-              });
-            }, controller: _vatController),
+            _buildTextField(
+              'Default VAT/Service Charge (%)',
+              _vatPercentage,
+              (value) {
+                setState(() {
+                  _vatPercentage = value;
+                });
+              },
+              controller: _vatController,
+            ),
           ],
         ),
       ),
@@ -87,10 +105,7 @@ class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Explore',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Explore'),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border),
             label: 'Favorites',
@@ -99,10 +114,7 @@ class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
             icon: Icon(Icons.analytics_outlined),
             label: 'Analytics',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Menu',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Settings',
@@ -113,14 +125,15 @@ class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
     );
   }
 
-  Widget _buildColorField(String label, Color color, Function(Color) onColorChanged) {
+  Widget _buildColorField(
+    String label,
+    Color color,
+    Function(Color) onColorChanged,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
-        ),
+        Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
@@ -129,11 +142,7 @@ class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
           ),
           child: Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                color: color,
-              ),
+              Container(width: 40, height: 40, color: color),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -153,10 +162,10 @@ class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
       ],
     );
   }
-  
+
   void _showColorPicker(Color currentColor, Function(Color) onColorChanged) {
     Color pickerColor = currentColor;
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -203,10 +212,7 @@ class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
-        ),
+        Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
@@ -240,21 +246,24 @@ class _BrandingPreferencesPageState extends State<BrandingPreferencesPage> {
     );
   }
 
-  Widget _buildTextField(String label, String value, Function(String) onChanged, {TextEditingController? controller}) {
+  Widget _buildTextField(
+    String label,
+    String value,
+    Function(String) onChanged, {
+    TextEditingController? controller,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
-        ),
+        Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
         const SizedBox(height: 8),
         TextField(
           decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(4),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
           controller: controller ?? TextEditingController(text: value),
           onChanged: onChanged,

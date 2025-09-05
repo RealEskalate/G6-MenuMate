@@ -54,7 +54,8 @@ class TimePickerWidget extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   // Get the parent context from the opening_hours_page
-                  final state = context.findAncestorStateOfType<OpeningHoursPageState>();
+                  final state = context
+                      .findAncestorStateOfType<OpeningHoursPageState>();
                   if (state != null) {
                     state.setState(() {
                       state.showTimePicker = false;
@@ -67,7 +68,8 @@ class TimePickerWidget extends StatelessWidget {
               ElevatedButton(
                 onPressed: () {
                   // Get the parent context from the opening_hours_page
-                  final state = context.findAncestorStateOfType<OpeningHoursPageState>();
+                  final state = context
+                      .findAncestorStateOfType<OpeningHoursPageState>();
                   if (state != null) {
                     state.setState(() {
                       state.showTimePicker = false;
@@ -88,15 +90,15 @@ class TimePickerWidget extends StatelessWidget {
   }
 
   Widget _buildTimePicker(
-      String label, TimeOfDay? time, Function(TimeOfDay) onTimeChanged) {
+    String label,
+    TimeOfDay? time,
+    Function(TimeOfDay) onTimeChanged,
+  ) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 14, color: Colors.grey),
-          ),
+          Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
           const SizedBox(height: 8),
           InkWell(
             onTap: () async {
