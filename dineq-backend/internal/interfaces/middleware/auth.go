@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
@@ -18,29 +19,41 @@ func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 		var tokenStr string
 		var err error
 
-		// Try to get token from Authorization header first
-		// authHeader := c.GetHeader("Authorization")
-		// if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
-		// 	tokenStr = authHeader[7:]
-		// } else {
-		// 	// Fallback to cookie
-		tokenStr, err = utils.GetCookie(c, "access_token")
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found, please login again"})
-			c.Abort()
-			return
+		// Prefer Authorization header (Bearer) then fallback to cookie
+		authHeader := c.GetHeader("Authorization")
+		if len(authHeader) > 0 {
+			lower := strings.ToLower(authHeader)
+			if strings.HasPrefix(lower, "bearer ") && len(authHeader) > 7 {
+				tokenStr = strings.TrimSpace(authHeader[7:])
+				tokenStr = strings.Trim(tokenStr, "\"") // remove accidental quotes
+			}
+		}
+		if tokenStr == "" { // fallback to cookie
+			tokenStr, err = utils.GetCookie(c, "access_token")
+			if err != nil || tokenStr == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found, please login again"})
+				c.Abort()
+				return
+			}
 		}
 
-		// Parse and validate the JWT
-		token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		// Parse and validate the JWT using MapClaims container
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (interface{}, error) {
+			if method, ok := t.Method.(*jwt.SigningMethodHMAC); !ok || method.Alg() != jwt.SigningMethodHS256.Alg() {
+				return nil, jwt.ErrSignatureInvalid
+			}
 			return []byte(env.ATS), nil
 		})
-
 		if err != nil || !token.Valid {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 			return
 		}
-		claims := token.Claims.(jwt.MapClaims)
+		_, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+			return
+		}
 		// check if the token has not expired
 		if exp, ok := claims["exp"].(float64); !ok || exp < float64(time.Now().Unix()) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "token expired"})
@@ -48,17 +61,23 @@ func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 		}
 
 		// Set user ID and role in the context for further use
-		c.Set("user_id", claims["sub"].(string))
-		if role, ok := claims["role"]; ok {
-			c.Set("role", role.(string))
+		if sub, ok := claims["sub"].(string); ok {
+			c.Set("user_id", sub)
 		}
-
-		// set is_verified in context
-		isVerified := claims["is_verified"].(bool)
-		if isVerified {
-			c.Set("is_verified", true)
+		if role, ok := claims["role"].(string); ok {
+			c.Set("role", role)
+		}
+		if isVerified, ok := claims["is_verified"].(bool); ok {
+			c.Set("is_verified", isVerified)
 		} else {
 			c.Set("is_verified", false)
+		}
+
+		// Optional debug: if client sends X-Debug-Auth: true return early with claims
+		if c.GetHeader("X-Debug-Auth") == "true" {
+			c.JSON(http.StatusOK, gin.H{"debug_claims": claims})
+			c.Abort()
+			return
 		}
 		c.Next()
 	}
@@ -74,11 +93,11 @@ func AdminOnly() gin.HandlerFunc {
 	}
 }
 
-// manager only
-func ManagerOnly() gin.HandlerFunc {
+// manager or Owner only
+func ManagerAndOwnerOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.GetString("role") != string(domain.RoleManager) && c.GetString("role") != string(domain.RoleOwner) {
-			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "This Operation is allowed for MANAGER only"})
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "This Operation is allowed for MANAGER or OWNERS only"})
 			return
 		}
 		c.Next()

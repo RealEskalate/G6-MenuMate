@@ -10,14 +10,14 @@ import (
 // OCRJobDTO represents the data transfer object for an OCRJob
 type OCRJobDTO struct {
 	ID               string    `json:"id"`
-	RestaurantID     string    `json:"restaurantId"`
-	ImageURL         string    `json:"imageUrl"`
+	RestaurantID     string    `json:"restaurant_id"`
+	ImageURL         string    `json:"image_url"`
 	Status           string    `json:"status"`
-	ResultText       string    `json:"resultText,omitempty"`
-	StructuredMenuID string    `json:"structuredMenuId,omitempty"`
+	ResultText       string    `json:"result_text,omitempty"`
+	StructuredMenuID string    `json:"structured_menu_id,omitempty"`
 	Error            string    `json:"error,omitempty"`
-	CreatedAt        time.Time `json:"createdAt"`
-	UpdatedAt        time.Time `json:"updatedAt"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
 }
 
 // Validate checks the OCRJobDTO for required fields
