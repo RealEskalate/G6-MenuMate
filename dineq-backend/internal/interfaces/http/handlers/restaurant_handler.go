@@ -115,7 +115,7 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 }
 
 // GetRestaurant retrieves a restaurant by its slug.
-func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
+func (h *RestaurantHandler) GetRestaurantBySlug(c *gin.Context) {
 	slug := c.Param("slug")
 	r, err := h.RestaurantUsecase.GetRestaurantBySlug(c.Request.Context(), slug)
 	if err != nil {
@@ -134,6 +134,42 @@ func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
 		c.JSON(http.StatusPermanentRedirect, gin.H{"redirect_to": old.Slug})
 		return
 	}
+	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
+}
+
+func (h *RestaurantHandler) GetRestaurantByName(c *gin.Context) {
+	name := c.Param("name")
+	r, err := h.RestaurantUsecase.GetRestaurantByName(c.Request.Context(), name)
+	if err != nil {
+		if err == domain.ErrRestaurantDeleted {
+			c.JSON(http.StatusGone, gin.H{"error": "restaurant deleted"})
+			return
+		} else {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		}
+
+	}
+	if r == nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "restaurant not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
+}
+
+func (h *RestaurantHandler) GetRestaurantByManagerId(c *gin.Context) {
+	manager := c.GetString("user_id")
+	r, err := h.RestaurantUsecase.GetRestaurantByManagerId(c.Request.Context(), manager)
+	if err != nil {
+		if err == domain.ErrRestaurantDeleted {
+			c.JSON(http.StatusGone, gin.H{"error": "restaurant deleted"})
+			return
+		} else {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		}
+
+	}
+
 	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
 }
 

@@ -279,3 +279,55 @@ func (repo *RestaurantRepo) FindNearby(ctx context.Context, lat, lng float64, ma
 	return restaurants, total, nil
 
 }
+
+func (repo *RestaurantRepo) GetByRestaurantName(ctx context.Context, name string) (*domain.Restaurant, error) {
+	filter := bson.M{"name": bson.M{
+		"$regex":   name, // partial match
+		"$options": "i",  // case-insensitive
+	}, "isDeleted": false}
+	var model mapper.RestaurantModel
+
+	err := repo.db.Collection(repo.restaurantCol).FindOne(ctx, filter).Decode(&model)
+	if err != nil {
+		if err == mongo.ErrNoDocuments() {
+			// Check if it exists but marked deleted to return 410 scenario
+			deletedFilter := bson.M{"name": name, "isDeleted": true} // END:
+			var deleted mapper.RestaurantModel
+			derr := repo.db.Collection(repo.restaurantCol).FindOne(ctx, deletedFilter).Decode(&deleted)
+			if derr == nil { // exists but deleted
+				return nil, domain.ErrRestaurantDeleted
+			}
+			return nil, domain.ErrRestaurantNotFound
+		}
+		return nil, err
+	}
+
+	return model.ToDomain(), nil
+}
+
+func (repo *RestaurantRepo) GetByManagerId(ctx context.Context, manager string) (*domain.Restaurant, error) {
+	oid, err := bson.ObjectIDFromHex(manager)
+
+	if err != nil {
+		return nil, domain.ErrServerIssue
+	}
+	filter := bson.M{"managerId": oid, "isDeleted": false} // BEGIN:
+	var model mapper.RestaurantModel
+
+	err = repo.db.Collection(repo.restaurantCol).FindOne(ctx, filter).Decode(&model)
+	if err != nil {
+		if err == mongo.ErrNoDocuments() {
+			// Check if it exists but marked deleted to return 410 scenario
+			deletedFilter := bson.M{"managerId": oid, "isDeleted": true} // END:
+			var deleted mapper.RestaurantModel
+			derr := repo.db.Collection(repo.restaurantCol).FindOne(ctx, deletedFilter).Decode(&deleted)
+			if derr == nil { // exists but deleted
+				return nil, domain.ErrRestaurantDeleted
+			}
+			return nil, domain.ErrRestaurantNotFound
+		}
+		return nil, err
+	}
+
+	return model.ToDomain(), nil
+}
