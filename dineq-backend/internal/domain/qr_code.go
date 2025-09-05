@@ -45,16 +45,16 @@ type QRCodeRequest struct {
 
 // QRCodeCustomization represents QR code customization options
 type QRCodeCustomization struct {
-	BackgroundColor string
-	ForegroundColor string
-	Logo            string
-	LogoSizePercent float64
-	GradientFrom     string
-	GradientTo       string
+	BackgroundColor   string
+	ForegroundColor   string
+	Logo              string
+	LogoSizePercent   float64
+	GradientFrom      string
+	GradientTo        string
 	GradientDirection string // horizontal or vertical
-	Margin           int
-	LabelText        string
-	LabelColor       string
-	LabelFontSize    int
-	LabelFontURL     string 
+	Margin            int
+	LabelText         string
+	LabelColor        string
+	LabelFontSize     int
+	LabelFontURL      string
 }

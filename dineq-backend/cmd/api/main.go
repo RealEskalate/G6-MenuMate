@@ -28,12 +28,18 @@ func main() {
 	var err error
 	if skipDB {
 		env, err = bootstrap.NewEnv()
-		if err != nil { logger.Log.Fatal().Err(err).Msg("failed to load env in SKIP_DB mode") }
-		if env.Port == "" { env.Port = ":8080" }
+		if err != nil {
+			logger.Log.Fatal().Err(err).Msg("failed to load env in SKIP_DB mode")
+		}
+		if env.Port == "" {
+			env.Port = ":8080"
+		}
 		logger.Log.Warn().Msg("Running in SKIP_DB mode (no database connection) – for CORS / middleware testing only")
 	} else {
 		app, err = bootstrap.InitApp()
-		if err != nil { logger.Log.Fatal().Err(err).Msg("failed to initialize app") }
+		if err != nil {
+			logger.Log.Fatal().Err(err).Msg("failed to initialize app")
+		}
 		env = app.Env
 		dbName = env.DB_Name
 		logger.Log.Info().Str("db", env.DB_Name).Msg("Database acquired")
@@ -50,8 +56,15 @@ func main() {
 	router.Use(func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
 		allowAll := false
-		for _, o := range env.CORSAllowedOrigins { if o == "*" { allowAll = true; break } }
-		if origin != "" { c.Writer.Header().Add("Vary", "Origin") }
+		for _, o := range env.CORSAllowedOrigins {
+			if o == "*" {
+				allowAll = true
+				break
+			}
+		}
+		if origin != "" {
+			c.Writer.Header().Add("Vary", "Origin")
+		}
 		if allowAll {
 			if origin != "" {
 				c.Writer.Header().Set("Access-Control-Allow-Origin", origin)
