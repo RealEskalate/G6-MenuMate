@@ -142,7 +142,8 @@ class _MangerRegistrationState extends State<MangerRegistration>
           email: _emailController.text.trim(),
           password: _passwordController.text,
           authProvider: 'EMAIL',
-          phoneNumber: _phoneController.text.trim(),
+          // phoneNumber: _phoneController.text.trim(),
+          role: 'OWNER',
         ),
       );
     } else {
@@ -208,7 +209,7 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 opacity: _fadeAnimation,
                 child: SlideTransition(
                   position: _slideAnimation,
-                  child: Text(
+                  child: const Text(
                     "Create Manger Account",
                     style: TextStyle(
                       fontFamily: 'Inter',
@@ -225,7 +226,7 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 opacity: _fadeAnimation,
                 child: SlideTransition(
                   position: _slideAnimation,
-                  child: Text(
+                  child: const Text(
                     "Join Dineq to manage your restaurant efficiently",
                     style: TextStyle(
                       fontWeight: FontWeight.normal,
@@ -393,19 +394,22 @@ class _MangerRegistrationState extends State<MangerRegistration>
               ),
               const SizedBox(height: 30),
               // Animated button with scale effect
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  return ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: state is AuthLoading
-                        ? const CircularProgressIndicator()
-                        : GestureDetector(
-                            onTap: _registerManager,
-                            child: const LoginButton(buttonname: "Create Account"),
-                          ),
-                  );
-                },
-              ),
+               BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    return ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: state is AuthLoading
+                            ? const CircularProgressIndicator()
+                            : LoginButton(
+                                buttonname: "Register",
+                                onPressed: _registerManager,
+                              ),
+                      ),
+                    );
+                  },
+                ),
               const SizedBox(height: 30),
               // Animated "or" divider
               FadeTransition(

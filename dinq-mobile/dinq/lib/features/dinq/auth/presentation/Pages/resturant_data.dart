@@ -3,6 +3,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:dinq/core/util/theme.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/prefiled.dart';
 
+import '../../../search/presentation/pages/home_page.dart';
+
 class RestaurantData extends StatefulWidget {
   final String name;
   final String phoneNumber;
@@ -98,7 +100,7 @@ class _RestaurantDataState extends State<RestaurantData> {
           child: Column(
             children: [
               const SizedBox(height: 40), // Reduced from 60
-              Text("Review & Submit",
+              const Text("Review & Submit",
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.bold,
@@ -106,7 +108,7 @@ class _RestaurantDataState extends State<RestaurantData> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text("Please review and submit your information.",
+              const Text("Please review and submit your information.",
                 style: TextStyle(
                   fontFamily: "Inter",
                   fontSize: 12,
@@ -116,7 +118,7 @@ class _RestaurantDataState extends State<RestaurantData> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              Text("Basic Information",
+              const Text("Basic Information",
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
@@ -129,7 +131,7 @@ class _RestaurantDataState extends State<RestaurantData> {
               CustomTextField(labelText:"Phone Number" , initialText: widget.phoneNumber),
               const SizedBox(height: 24),
 
-              Text("Your Legal Document",
+              const Text("Your Legal Document",
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 16,
@@ -138,7 +140,7 @@ class _RestaurantDataState extends State<RestaurantData> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text("Business License",
+              const Text("Business License",
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -194,17 +196,29 @@ class _RestaurantDataState extends State<RestaurantData> {
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                child: TextButton(
-                  onPressed: (){},
+                child: ElevatedButton(
+                  onPressed: (){
+                    Navigator.pushReplacementNamed(context, '/explore');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.whiteColor,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
                   child: Text(
                     "Skip for now",
                     style: TextStyle(
-                      color: AppColors.primaryColor,
+                      color: Colors.white,
                       fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
+
+
               const SizedBox(height: 40), // Extra space at bottom for scrolling
             ],
           ),

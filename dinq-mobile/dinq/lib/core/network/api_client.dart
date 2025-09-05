@@ -7,7 +7,7 @@ class ApiClient {
   final String baseUrl;
   final http.Client client;
 
-  ApiClient({required this.baseUrl, http.Client? client}) 
+  ApiClient({required this.baseUrl, http.Client? client})
     : client = client ?? http.Client();
 
  // Update your ApiClient with detailed debugging
@@ -23,21 +23,10 @@ Future<Map<String, dynamic>> get(
 
     final requestHeaders = await _withDefaultHeaders(headers);
 
-    print('🌐 GET Request:');
-    print('📋 URL: $uri');
-    print('📋 Headers: $requestHeaders');
-    print('📋 Query Params: $queryParameters');
-
     final response = await client.get(uri, headers: requestHeaders);
-
-    print('📨 GET Response:');
-    print('📊 Status: ${response.statusCode}');
-    print('📊 Headers: ${response.headers}');
-    print('📊 Body: ${response.body}');
 
     return _handleResponse(response);
   } catch (e) {
-    print('❌ GET Error: $e');
     throw _handleError(e);
   }
 }
@@ -52,26 +41,14 @@ Future<Map<String, dynamic>> post(
 
     final requestHeaders = await _withDefaultHeaders(headers);
 
-    // DEBUG: Print the request details
-    print('🌐 API POST Request:');
-    print('URL: $uri');
-    print('Headers: $requestHeaders');
-    print('Body: $body');
-
     final response = await client.post(
       uri,
       headers: requestHeaders,
       body: body != null ? json.encode(body) : null,
     );
 
-    // DEBUG: Print the response
-    print('📨 API Response:');
-    print('Status: ${response.statusCode}');
-    print('Body: ${response.body}');
-
     return _handleResponse(response);
   } catch (e) {
-    print('❌ API POST Error: $e');
     throw _handleError(e);
   }
 }

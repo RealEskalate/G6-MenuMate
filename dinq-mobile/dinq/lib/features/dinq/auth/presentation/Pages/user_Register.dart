@@ -136,6 +136,7 @@ class _UserRegisterState extends State<UserRegister>
           email: _emailController.text.trim(),
           password: _passwordController.text,
           authProvider: 'EMAIL',
+          role: 'CUSTOMER', // Explicitly set role for customer registration
         ),
       );
     } else {
@@ -299,16 +300,15 @@ class _UserRegisterState extends State<UserRegister>
                         opacity: _fadeAnimation,
                         child: state is AuthLoading
                             ? const CircularProgressIndicator()
-                            : GestureDetector(
-                                onTap: _registerUser,
-                                child: const LoginButton(
-                                  buttonname: "Register",
-                                ),
+                            : LoginButton(
+                                buttonname: "Register",
+                                onPressed: _registerUser,
                               ),
                       ),
                     );
                   },
                 ),
+
                 const SizedBox(height: 30),
                 FadeTransition(
                   opacity: CurvedAnimation(

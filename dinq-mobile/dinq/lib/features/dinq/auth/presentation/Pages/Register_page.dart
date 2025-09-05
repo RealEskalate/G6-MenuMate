@@ -10,6 +10,8 @@ import 'package:dinq/features/dinq/auth/presentation/Pages/user_Register.dart';
 import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/choose_box.dart';
 
+import 'resturant_registration.dart';
+
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -85,7 +87,9 @@ class _RegisterPageState extends State<RegisterPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocProvider(
+      create: (context) => _createAuthBloc(),
+      child: Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -159,11 +163,12 @@ class _RegisterPageState extends State<RegisterPage>
                         scale: 0.9 + (_box1Animation.value * 0.1),
                         child: GestureDetector(
                           onTap: () {
+                            final authBloc = context.read<AuthBloc>();
                             Navigator.push(
                               context,
                               PageRouteBuilder(
                                 pageBuilder: (context, animation, secondaryAnimation) => BlocProvider.value(
-                                  value: BlocProvider.of<AuthBloc>(context),
+                                  value: authBloc,
                                   child: const UserRegister(),
                                 ),
                                 transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -189,21 +194,25 @@ class _RegisterPageState extends State<RegisterPage>
               ),
               const SizedBox(height: 24),
               // Animated Restaurant option
-              AnimatedBuilder(
-                animation: _box2Animation,
+AnimatedBuilder(
+                animation: _box1Animation,
                 builder: (context, child) {
                   return Transform.translate(
-                    offset: Offset((1 - _box2Animation.value) * 100, 0),
+                    offset: Offset((1 - _box1Animation.value) * -100, 0),
                     child: Opacity(
-                      opacity: _box2Animation.value,
+                      opacity: _box1Animation.value,
                       child: Transform.scale(
-                        scale: 0.9 + (_box2Animation.value * 0.1),
+                        scale: 0.9 + (_box1Animation.value * 0.1),
                         child: GestureDetector(
                           onTap: () {
+                            final authBloc = context.read<AuthBloc>();
                             Navigator.push(
                               context,
                               PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => const MangerRegistration(),
+                                pageBuilder: (context, animation, secondaryAnimation) => BlocProvider.value(
+                                  value: authBloc,
+                                  child: const MangerRegistration(),
+                                ),
                                 transitionsBuilder: (context, animation, secondaryAnimation, child) {
                                   return FadeTransition(
                                     opacity: animation,
@@ -214,8 +223,8 @@ class _RegisterPageState extends State<RegisterPage>
                               ),
                             );
                           },
-                          child: ChooseBox(
-                            category: "Restaurant",
+                          child: const ChooseBox(
+                            category: "Resturant",
                             explanation: "Create and manage digital menus, generate QR codes and track performance",
                             icon: Icons.restaurant,
                           ),
@@ -229,6 +238,7 @@ class _RegisterPageState extends State<RegisterPage>
             ],
           ),
         ),
+      ),
       ),
     );
   }

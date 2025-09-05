@@ -20,7 +20,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? firstName,
     String? lastName,
     String? phoneNumber,
-    String role = 'CUSTOMER',
+    String? role ,
   }) async {
     try {
       final userData = {
@@ -31,25 +31,19 @@ class AuthRepositoryImpl implements AuthRepository {
         'role': role,
         if (firstName != null) 'first_name': firstName,
         if (lastName != null) 'last_name': lastName,
-        if (phoneNumber != null) 'phone_number': phoneNumber,
+        // if (phoneNumber != null) 'phone_number': phoneNumber,
       };
 
-      print('📨 Registering user with data: $userData');
-
       final response = await _apiClient.post(ApiEndpoints.register, body: userData);
-
-      print('✅ Registration response: $response');
 
       return UserModel.fromJson(response);
 
     } on ApiException catch (e) {
-      print('❌ Registration API error: ${e.message}');
       throw ApiException(
         message: _getRegisterErrorMessage(e),
         statusCode: e.statusCode,
       );
     } catch (e) {
-      print('❌ Registration unexpected error: $e');
       throw ApiException(
         message: 'Registration failed: ${e.toString()}',
         statusCode: 500,
@@ -68,21 +62,16 @@ class AuthRepositoryImpl implements AuthRepository {
         'password': password,
       };
 
-      print('🔐 Logging in with identifier: $email');
-
       final response = await _apiClient.post(ApiEndpoints.login, body: loginData);
 
-      print('✅ Login response received: $response');
-
-      // API returns tokens, not user data
-      if (response.containsKey('access_token') && response.containsKey('refresh_token')) {
+      // API returns tokens nested under 'data' key
+      final data = response['data'] as Map<String, dynamic>?;
+      if (data != null && data.containsKey('access_token') && data.containsKey('refresh_token')) {
         // Store tokens
         await TokenManager.saveTokens(
-          response['access_token'],
-          response['refresh_token'],
+          data['access_token'],
+          data['refresh_token'],
         );
-
-        print('✅ Tokens stored successfully');
 
         // Return a minimal UserModel with just the identifier
         // In a real app, you might want to fetch user profile separately
@@ -102,13 +91,11 @@ class AuthRepositoryImpl implements AuthRepository {
       }
 
     } on ApiException catch (e) {
-      print('❌ Login API error: ${e.message}');
       throw ApiException(
         message: _getLoginErrorMessage(e),
         statusCode: e.statusCode,
       );
     } catch (e) {
-      print('❌ Login unexpected error: $e');
       throw ApiException(
         message: 'Login failed: ${e.toString()}',
         statusCode: 500,
@@ -119,29 +106,22 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> logout() async {
     try {
-      print('🚪 Logging out');
-
       // Clear tokens first
       await TokenManager.clearTokens();
-      print('✅ Tokens cleared locally');
 
       // Try to logout on server (optional, since tokens are stateless)
       try {
         await _apiClient.post(ApiEndpoints.logout);
-        print('✅ Server logout successful');
       } catch (serverError) {
-        print('⚠️ Server logout failed, but local logout successful: $serverError');
         // Don't throw error for server logout failure since tokens are already cleared
       }
 
     } on ApiException catch (e) {
-      print('❌ Logout API error: ${e.message}');
       throw ApiException(
         message: 'Logout failed: ${e.message}',
         statusCode: e.statusCode,
       );
     } catch (e) {
-      print('❌ Logout unexpected error: $e');
       throw ApiException(
         message: 'Logout failed: ${e.toString()}',
         statusCode: 500,
@@ -152,17 +132,13 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> forgotPassword({required String email}) async {
     try {
-      print('📧 Sending forgot password email to: $email');
       await _apiClient.post(ApiEndpoints.forgotPassword, body: {'email': email});
-      print('✅ Forgot password email sent');
     } on ApiException catch (e) {
-      print('❌ Forgot password API error: ${e.message}');
       throw ApiException(
         message: 'Password reset request failed: ${e.message}',
         statusCode: e.statusCode,
       );
     } catch (e) {
-      print('❌ Forgot password unexpected error: $e');
       throw ApiException(
         message: 'Password reset request failed: ${e.toString()}',
         statusCode: 500,
@@ -177,21 +153,17 @@ class AuthRepositoryImpl implements AuthRepository {
     required String newPassword,
   }) async {
     try {
-      print('🔄 Resetting password for: $email');
       await _apiClient.post(ApiEndpoints.resetPassword, body: {
         'email': email,
         'token': token,
         'new_password': newPassword,
       });
-      print('✅ Password reset successful');
     } on ApiException catch (e) {
-      print('❌ Reset password API error: ${e.message}');
       throw ApiException(
         message: 'Password reset failed: ${e.message}',
         statusCode: e.statusCode,
       );
     } catch (e) {
-      print('❌ Reset password unexpected error: $e');
       throw ApiException(
         message: 'Password reset failed: ${e.toString()}',
         statusCode: 500,
@@ -202,20 +174,16 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<bool> checkUsernameAvailability(String username) async {
     try {
-      print('🔍 Checking username availability: $username');
       final response = await _apiClient.get('${ApiEndpoints.checkUsername}/$username');
       final isAvailable = response['available'] ?? false;
-      print('✅ Username available: $isAvailable');
       return isAvailable;
     } on ApiException catch (e) {
       if (e.statusCode == 409) return false; // Username exists
-      print('❌ Username check API error: ${e.message}');
       throw ApiException(
         message: 'Username availability check failed: ${e.message}',
         statusCode: e.statusCode,
       );
     } catch (e) {
-      print('❌ Username check unexpected error: $e');
       throw ApiException(
         message: 'Username availability check failed: ${e.toString()}',
         statusCode: 500,
@@ -226,20 +194,16 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<bool> checkEmailAvailability(String email) async {
     try {
-      print('🔍 Checking email availability: $email');
       final response = await _apiClient.get('${ApiEndpoints.checkEmail}/$email');
       final isAvailable = response['available'] ?? false;
-      print('✅ Email available: $isAvailable');
       return isAvailable;
     } on ApiException catch (e) {
       if (e.statusCode == 409) return false; // Email exists
-      print('❌ Email check API error: ${e.message}');
       throw ApiException(
         message: 'Email availability check failed: ${e.message}',
         statusCode: e.statusCode,
       );
     } catch (e) {
-      print('❌ Email check unexpected error: $e');
       throw ApiException(
         message: 'Email availability check failed: ${e.toString()}',
         statusCode: 500,
@@ -250,20 +214,16 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<bool> checkPhoneAvailability(String phoneNumber) async {
     try {
-      print('🔍 Checking phone availability: $phoneNumber');
       final response = await _apiClient.get('${ApiEndpoints.checkPhone}/$phoneNumber');
       final isAvailable = response['available'] ?? false;
-      print('✅ Phone available: $isAvailable');
       return isAvailable;
     } on ApiException catch (e) {
       if (e.statusCode == 409) return false; // Phone exists
-      print('❌ Phone check API error: ${e.message}');
       throw ApiException(
         message: 'Phone availability check failed: ${e.message}',
         statusCode: e.statusCode,
       );
     } catch (e) {
-      print('❌ Phone check unexpected error: $e');
       throw ApiException(
         message: 'Phone availability check failed: ${e.toString()}',
         statusCode: 500,

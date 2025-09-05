@@ -115,7 +115,7 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
                   : () {
                       // After publish, redirect to GeneratedQrPage using AppRoute
                       Navigator.of(context).pushNamed(
-                        AppRoute.generatedQr,
+                        AppRoute.qrcustomization,
                         arguments: {
                           // Replace with actual QR image path after generation
                           'qrImagePath': 'assets/images/qr_placeholder.png',

@@ -12,7 +12,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<Map<String, dynamic>> registerUser(
     Map<String, dynamic> userData,
   ) async {
-    print('trying to signup');
     return await apiClient.post(ApiEndpoints.register, body: userData);
   }
 
