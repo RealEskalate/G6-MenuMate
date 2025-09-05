@@ -13,12 +13,14 @@ import (
 type PasswordResetRepository struct {
 	DB         mongo.Database
 	Collection string
+	ResetSessionCollection string
 }
 
-func NewPasswordResetRepository(db mongo.Database, col string) domain.IPasswordResetRepository {
+func NewPasswordResetRepository(db mongo.Database, col string, resetSessionCol string) domain.IPasswordResetRepository {
 	return &PasswordResetRepository{
-		DB:         db,
-		Collection: col,
+		DB:                     db,
+		Collection:             col,
+		ResetSessionCollection: resetSessionCol,
 	}
 }
 
@@ -45,7 +47,7 @@ func (r *PasswordResetRepository) FindByEmail(ctx context.Context, email string)
 }
 
 func (r *PasswordResetRepository) MarkAsUsed(ctx context.Context, token *domain.PasswordResetToken) error {
-	_, err := r.DB.Collection(r.Collection).UpdateOne(ctx, bson.M{"email": token.Email, "token_hash": token.TokenHash}, bson.M{"$set": bson.M{"used": true}})
+	_, err := r.DB.Collection(r.Collection).UpdateOne(ctx, bson.M{"email": token.Email, "tokenHash": token.TokenHash}, bson.M{"$set": bson.M{"used": true}})
 	if err != nil {
 		return err
 	}
@@ -66,11 +68,11 @@ func (r *PasswordResetRepository) UpdateResetToken(ctx context.Context, token *d
 		ctx,
 		bson.M{"email": token.Email},
 		bson.M{"$set": bson.M{
-			"token_hash": tokenModel.TokenHash,
-			"expires_at": tokenModel.ExpiresAt,
-			"used":       tokenModel.Used,
-			"rate_limit": tokenModel.RateLimit,
-			"created_at": tokenModel.CreatedAt,
+			"tokenHash": tokenModel.TokenHash,
+			"expiresAt": tokenModel.ExpiresAt,
+			"used":      tokenModel.Used,
+			"rateLimit": tokenModel.RateLimit,
+			"createdAt": tokenModel.CreatedAt,
 		}},
 	)
 	if err != nil {
@@ -78,3 +80,37 @@ func (r *PasswordResetRepository) UpdateResetToken(ctx context.Context, token *d
 	}
 	return nil
 }
+
+// SaveResetSession saves a password reset session token
+func (r *PasswordResetRepository) SaveResetSession(ctx context.Context, session *domain.PasswordResetSession) error {
+	sessionModel := mapper.PasswordResetSessionFromDomain(session)
+	collection := r.DB.Collection(r.ResetSessionCollection)
+	if collection == nil {
+		return fmt.Errorf("database collection is not initialized")
+	}
+	_, err := collection.InsertOne(ctx, sessionModel)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetResetSession retrieves a password reset session by its token
+func (r *PasswordResetRepository) GetResetSession(ctx context.Context, sessionToken string) (*domain.PasswordResetSession, error) {
+	var sessionModel mapper.PasswordResetSessionDB
+	err := r.DB.Collection(r.ResetSessionCollection).FindOne(ctx, bson.M{"token": sessionToken}).Decode(&sessionModel)
+	if err != nil {
+		return nil, err
+	}
+	return mapper.PasswordResetSessionToDomain(&sessionModel), nil
+}
+
+// DeleteResetSession deletes a password reset session by its token
+func (r *PasswordResetRepository) DeleteResetSession(ctx context.Context, sessionToken string) error {
+	_, err := r.DB.Collection(r.ResetSessionCollection).DeleteOne(ctx, bson.M{"token": sessionToken})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+

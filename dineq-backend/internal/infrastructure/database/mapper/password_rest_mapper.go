@@ -19,7 +19,6 @@ type PasswordResetTokenDB struct {
 
 func PasswordResetTokenFromDomain(token *domain.PasswordResetToken) *PasswordResetTokenDB {
 	return &PasswordResetTokenDB{
-		ID:        bson.NewObjectID(),
 		Email:     token.Email,
 		RateLimit: int64(token.RateLimit),
 		TokenHash: token.TokenHash,
@@ -38,4 +37,30 @@ func PasswordResetTokenToDomain(token *PasswordResetTokenDB) *domain.PasswordRes
 		Used:      token.Used,
 		CreatedAt: token.CreatedAt,
 	}
+}
+
+
+// PasswordResetSessionFromDomain converts a domain PasswordResetSession to a DB model
+func PasswordResetSessionFromDomain(session *domain.PasswordResetSession) *PasswordResetSessionDB {
+	return &PasswordResetSessionDB{
+		UserID:    session.UserID,
+		Token:     session.Token,
+		ExpiresAt: session.ExpiresAt,
+	}
+}
+
+// PasswordResetSessionToDomain converts a DB PasswordResetSession to a domain model
+func PasswordResetSessionToDomain(session *PasswordResetSessionDB) *domain.PasswordResetSession {
+	return &domain.PasswordResetSession{
+		UserID:    session.UserID,
+		Token:     session.Token,
+		ExpiresAt: session.ExpiresAt,
+	}
+}
+
+type PasswordResetSessionDB struct {
+	ID        bson.ObjectID `bson:"_id,omitempty"`
+	UserID    string        `bson:"userId"`
+	Token     string        `bson:"token"`
+	ExpiresAt time.Time     `bson:"expiresAt"`
 }

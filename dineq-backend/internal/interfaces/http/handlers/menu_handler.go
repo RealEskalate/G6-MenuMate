@@ -96,15 +96,19 @@ func (h *MenuHandler) GenerateQRCode(c *gin.Context) {
 	restaurantID := c.Param("restaurant_slug")
 	menuID := c.Param("id")
 
-	var req dto.QRCodeRequest
+	var req dto.QRConfig
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
 
-	qrCodeRequest := dto.DTOToQRCodeRequest(&req)
+	domainReq := dto.QRConfigToDomain(&req)
+	if validate.Struct(domainReq) != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: validate.Struct(domainReq).Error()})
+		return
+	}
 
-	qrCode, err := h.UseCase.GenerateQRCode(restaurantID, menuID, qrCodeRequest)
+	qrCode, err := h.UseCase.GenerateQRCode(restaurantID, menuID, domainReq)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrServerIssue.Error(), Error: err.Error()})
 		return
