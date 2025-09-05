@@ -18,6 +18,14 @@ type Restaurant struct {
 	Tags               []string
 	VerificationStatus VerificationStatus
 	VerificationDocs   *string
+	Schedule           []Schedule
+	SpecialDays        []SpecialDay
+	PrimaryColor       string
+	AccentColor        string
+	DefaultCurrency    string
+	DefaultLanguage    string
+	DefaultVat         float64
+	TaxId              string
 	CoverImage         *string
 	AverageRating      float64
 	ViewCount          int64
@@ -29,6 +37,19 @@ type Restaurant struct {
 type Address struct {
 	Type        string
 	Coordinates [2]float64 // [longitude, latitude]
+}
+type Schedule struct {
+	Day       string
+	IsOpen    bool
+	StartTime string
+	EndTime   string
+}
+
+type SpecialDay struct {
+	Date      string
+	IsOpen    bool
+	StartTime string
+	EndTime   string
 }
 
 type VerificationStatus string
