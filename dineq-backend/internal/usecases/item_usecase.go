@@ -9,8 +9,8 @@ import (
 )
 
 type ItemUseCase struct {
-	repo        domain.IItemRepository
-	ctxTimeout  time.Duration
+	repo       domain.IItemRepository
+	ctxTimeout time.Duration
 }
 
 func NewItemUseCase(repo domain.IItemRepository, ctxTimeout time.Duration) domain.IItemUseCase {

@@ -32,10 +32,13 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 		NewOCRJobRoutes(env, api, db, notificationUseCase)
 		NewNotificationRoutes(env, api, db, notifySvc, notificationUseCase)
 		NewRestaurantRoutes(env, api, db)
+		NewImageSearchRoutes(env, api)
 		NewReactionRoutes(env, api, db)
 		NewMenuRoutes(env, api, db, notificationUseCase)
 		NewQRCodeRoutes(env, api, db, notificationUseCase)
+		NewUploadRoutes(env, api)
 		NewItemRoutes(env, api, db, notifySvc)
+		NewReviewRoutes(env, api,db)
 		h := handler.NewHealthHandler(db, 2*time.Second)
 		api.GET("/health", h.Health)
 	}

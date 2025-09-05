@@ -28,7 +28,7 @@ type ResetPasswordRequest struct {
 }
 
 type ChangeRoleRequest struct {
-	UserID string `json:"userId" validate:"required"`
+	UserID string `json:"user_id" validate:"required"`
 	Role   string `json:"role" validate:"required,oneof=admin user superadmin"`
 }
 
