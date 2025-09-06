@@ -11,8 +11,8 @@ export default function ReviewForm() {
   const [file, setFile] = useState<File | null>(null)
 
   return (
-    <div className="max-w-2xl mx-auto p-6 border rounded-lg shadow-sm bg-white">
-      <h2 className="text-2xl font-bold mb-2">Reviews</h2>
+    <div className=" p-6 border rounded-xl shadow-sm">
+      <h2 className='text-2xl font-semibold mb-3'>Write a Review</h2>
       <p className="text-gray-600 mb-6">Share your thoughts</p>
 
       {/* Name */}

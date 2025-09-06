@@ -15,12 +15,20 @@ function NavBar({ role }: Roles) {
     setOpen(false);
   }, [pathname]);
 
-  const linkClasses = (path: string) =>
-    pathname === path
-      ? "px-4 text-primary underline underline-offset-4 font-medium"
-      : "px-4 text-gray-700 hover:text-primary";
+  const linkClasses = (path: string) => {
+    if (path === "/user") {
+      // Home should match only exactly `/user`
+      return pathname === "/user"
+        ? "px-4 text-[var(--color-primary)] underline underline-offset-10 font-medium"
+        : "px-4 text-gray-700 hover:text-[var(--color-primary)]";
+    }
 
-  // Manager sidebar links for dropdown
+    // All other links: highlight if pathname starts with path
+    return pathname.startsWith(path)
+      ? "px-4 text-[var(--color-primary)] underline underline-offset-10 font-medium"
+      : "px-4 text-gray-700 hover:text-[var(--color-primary)]";
+  };
+
   const managerLinks = [
     { name: "Menus", href: "/dashboard/menu", icon: "/icons/menu.svg" },
     {
@@ -41,42 +49,38 @@ function NavBar({ role }: Roles) {
     },
   ];
 
-  // Extra manager links
   const extraManagerLinks = [
     { name: "About", href: "/restaurant/about" },
     { name: "Contact Us", href: "/restaurant/contact" },
   ];
 
   return (
-    <div className="relative border-b shadow-sm border-gray-200 px-6 py-2 flex items-center">
+    <div className="relative border-b shadow-sm border-gray-200 px-6 py-2 flex items-center justify-between">
       {/* Logo */}
       <Image src="/logo.png" alt="logo" width={100} height={120} />
 
       {/* CUSTOMER links */}
-      {role === "CUSTOMER" && (
+      {role === "USER" && (
         <div className="hidden md:flex ml-4">
-          <Link href="/" className={linkClasses("/")}>
+          <Link href="/user" className={linkClasses("/user")}>
             Home
           </Link>
           <Link
-            href="/customer/restaurants"
-            className={linkClasses("/customer/restaurants")}
+            href="/user/restaurant-display"
+            className={linkClasses("/user/restaurant-display")}
           >
             Restaurants
           </Link>
-          <Link href="/customer/scan" className={linkClasses("/customer/scan")}>
+          <Link href="/user/scan" className={linkClasses("/user/scan")}>
             Scan
           </Link>
           <Link
-            href="/customer/favorites"
+            href="/user/favorites"
             className={linkClasses("/customer/favorites")}
           >
             Favorites
           </Link>
-          <Link
-            href="/customer/profile"
-            className={linkClasses("/customer/profile")}
-          >
+          <Link href="/user/profile" className={linkClasses("/user/profile")}>
             Profile
           </Link>
         </div>
@@ -124,7 +128,7 @@ function NavBar({ role }: Roles) {
                       onClick={() => setOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-colors ${
                         active
-                          ? "bg-orange-50 text-orange-600"
+                          ? "bg-orange-50 text-primary underline underline-offset-4 font-medium"
                           : "text-gray-700 hover:bg-gray-50"
                       }`}
                     >
@@ -155,7 +159,11 @@ function NavBar({ role }: Roles) {
                     key={link.name}
                     href={link.href}
                     onClick={() => setOpen(false)}
-                    className="px-3 py-2 rounded-xl text-gray-700 hover:bg-gray-50 text-sm"
+                    className={`px-3 py-2 rounded-xl text-sm ${
+                      pathname.startsWith(link.href)
+                        ? "text-primary underline underline-offset-4 font-medium"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
                   >
                     {link.name}
                   </Link>

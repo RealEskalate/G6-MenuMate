@@ -9,7 +9,8 @@ export interface RegisterPayload {
 
 export async function registerUser(data: RegisterPayload) {
   try {
-    const res = await fetch("https://dineq-backend.onrender.com/api/v1/auth/register", {
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const res = await fetch(`${apiUrl}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

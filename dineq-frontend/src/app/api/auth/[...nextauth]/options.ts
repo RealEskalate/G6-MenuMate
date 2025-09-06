@@ -104,10 +104,7 @@ export const options: NextAuthOptions = {
         token.exp = Math.floor(Date.now() / 1000) + 15 * 60; // 15 min
       }
 
-      if (
-        trigger === "update" ||
-        (token.exp && Date.now() > token.exp * 1000)
-      ) {
+      if (trigger === "update" && token.exp && Date.now() > token.exp * 1000) {
         console.log("Refreshing token...", {
           exp: token.exp,
           currentTime: Math.floor(Date.now() / 1000),
@@ -123,7 +120,6 @@ export const options: NextAuthOptions = {
             body: JSON.stringify({ refresh_token: token.refreshToken }),
           });
           const result = await res.json();
-
           if (res.ok && result?.tokens?.access_token) {
             token.accessToken = result.tokens.access_token;
             token.exp = Math.floor(Date.now() / 1000) + 15 * 60;

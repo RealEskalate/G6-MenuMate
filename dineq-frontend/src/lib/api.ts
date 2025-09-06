@@ -86,6 +86,36 @@ export async function uploadMenuOCR(
 
   return res.json();
 }
+export interface NutritionalInfo {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface MenuItem {
+  name: string; 
+  name_am?: string; 
+  image: string | null; 
+  price: number | string; 
+  currency?: string; 
+  ingredients: string[]; 
+  description: string; 
+  description_am?: string; 
+  tab_tags?: string[]; 
+  tab_tags_am?: string[]; 
+  allergies?: string; 
+  allergies_am?: string; 
+  nutritional_info?: NutritionalInfo; 
+  preparation_time?: number; 
+  instructions: string; 
+  instructions_am?: string; 
+  voice?: string | null; 
+}
+
+
+
+
 
 export interface OCRStatusResponse {
   data: {
@@ -94,7 +124,7 @@ export interface OCRStatusResponse {
     progress: number;
     results?: {
       extracted_text: string;
-      menu_items: any[];
+      menu_items: MenuItem[];
     };
   };
   success: boolean;

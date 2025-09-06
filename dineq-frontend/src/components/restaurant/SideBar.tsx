@@ -16,7 +16,7 @@ function SideBar() {
     },
     {
       name: "QR Manager",
-      href: "restaurant/dashboard/qr-manager",
+      href: "/restaurant/dashboard/qr-manager",
       icon: "/icons/qr.png",
     },
     {

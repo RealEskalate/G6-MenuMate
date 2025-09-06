@@ -16,6 +16,7 @@ const schema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
+
 type FormData = z.infer<typeof schema>;
 
 export default function LoginPage() {
@@ -36,7 +37,7 @@ export default function LoginPage() {
 
     const res = await signIn("credentials", {
       redirect: false,
-      callbackUrl: "/auth/signin",
+      
       identifier: data.email,
       password: data.password,
     });
@@ -45,10 +46,13 @@ export default function LoginPage() {
       console.log("Login successful, redirecting...");
       const session = await getSession();
 
-      if (session?.user.role === "CUSTOMER") {
+      if (session?.user?.role === "CUSTOMER") {
         router.push("/user");
-      }  else {
+      } else if (session?.user?.role === "OWNER" || session?.user?.role === "MANAGER" || session?.user?.role === "STAFF" || session?.user?.role === "ADMIN") {
         router.push("/restaurant/dashboard/menu");
+      } else {
+        // Fallback to signin if role is not recognized
+        router.push("/auth/signin");
       }
     } else {
       console.log("Sign-in error:", res.error);

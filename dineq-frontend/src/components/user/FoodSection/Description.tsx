@@ -14,25 +14,55 @@ const Description = () => {
     "Injera",
   ];
   return (
-    <div>
-        <div className='boreder border-[var(--color-primary)] rounded-md flex flex-col'>
-            <h3 className='headline-medium'>Description</h3>
+    <div className=' border  rounded-xl shadow-sm p-4 mb-3'>
+        <div className='rounded-md flex flex-col'>
+            <h2 className="text-2xl font-semibold mb-3">Discription</h2>
             <p>Traditional Ethiopian chicken stew simmered with berbere spices and served with injera.</p>
 
         </div>
         <div className='boreder border-[var(--color-primary)] rounded-md flex flex-col'>
-            <h3 className='headline-medium'>Ingredients</h3>
-            <ul className="list-disc list-inside space-y-1 text-gray-700">
-        {ingredients.map((item, index) => (
-          <li key={index}> <Tags>{index}</Tags></li>
-        ))}
-      </ul>
+            <h2 className='text-2xl font-semibold mb-3'>Ingredients</h2>
+            <ul className="  space-x-1 flex  text-gray-700">
+              {ingredients.map((item, index) => (
+                <li key={index}> <Tags>{item}</Tags></li>
+              ))}
+            </ul>
+
         
 
         </div>
+        
 
     </div>
   )
 }
 
-export default Description
+
+// export default Description
+
+// import React from "react";
+// import Tags from "@/components/common/Tags";
+
+// export default function Description({
+//   description,
+//   allergies,
+// }: {
+//   description: string;
+//   allergies: string[];
+// }) {
+//   return (
+//     <div className="border rounded-xl shadow-sm p-4 mb-3">
+//       <h2 className="text-2xl font-semibold mb-3">Description</h2>
+//       <p className="mb-4">{description}</p>
+
+//       <h2 className="text-2xl font-semibold mb-3">Allergies</h2>
+//       <ul className="flex flex-wrap gap-2 text-gray-700">
+//         {allergies.map((allergy, index) => (
+//           <li key={index}>
+//             <Tags>{allergy}</Tags>
+//           </li>
+//         ))}
+//       </ul>
+//     </div>
+//   );
+// }
