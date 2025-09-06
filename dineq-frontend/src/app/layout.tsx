@@ -1,8 +1,8 @@
+
 import type { Metadata } from "next";
 import "./globals.css";
 import { Playfair_Display, Poppins } from "next/font/google";
-import ReduxProvider from "@/store/ReduxProvider";
-
+import Providers from "./providers"; 
 
 // Headings font
 const playfair = Playfair_Display({
@@ -23,17 +23,14 @@ export const metadata: Metadata = {
   description: "AI-powered menu digitizer for restaurants",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${playfair.variable} ${poppins.variable}`}>
       <body className="font-body">
-        <ReduxProvider>
+        {/* Wrap children with the client-side Providers component */}
+        <Providers>
           {children}
-        </ReduxProvider>
+        </Providers>
       </body>
     </html>
   );

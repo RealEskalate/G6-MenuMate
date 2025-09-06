@@ -15,6 +15,8 @@ export default function BasicInfoForm() {
   const logoImage = data.logo_image || null;
   const coverImage = data.cover_image || null;
   const router = useRouter();
+  const [tagsInput, setTagsInput] = useState(data.tags?.join(", ") || "");
+
 
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +30,7 @@ export default function BasicInfoForm() {
     router.push("/restaurant/register/review");
   };
 
-  const handleFileChange = (file: UploadedFile | null, key: "logo_image" | "businessLicense") => {
+  const handleFileChange = (file: UploadedFile | null, key: "logo_image" | "businessLicense" | "cover_image") => {
     if (file) {
       updateData({
         [key]: {
@@ -123,19 +125,20 @@ export default function BasicInfoForm() {
           <div className="relative w-full">
             <input
               type="text"
-              value={data.tags?.join(", ") || ""}
-              onChange={(e) =>
-                updateData({
-                  tags: e.target.value
-                    .split(",")
-                    .map((t) => t.trim())
-                    .filter((t) => t.length > 0),
-                })
-              }
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              onBlur={() => {
+                const tagsArray = tagsInput
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter((t) => t.length > 0);
+                updateData({ tags: tagsArray });
+              }}
               placeholder="Enter tags separated by commas (e.g. Ethiopian, Vegan, Fast Food)"
               className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm
-                         focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
+
             <span className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
               <FaTags className="text-gray-400 text-sm" />
             </span>
@@ -161,9 +164,9 @@ export default function BasicInfoForm() {
         {/* Banner Upload */}
         <FileUploadBox
           label="Banner Image"
-          required
+          required={false}
           file={coverImage}
-          onFileChange={(file) => handleFileChange(file, "businessLicense")}
+          onFileChange={(file) => handleFileChange(file, "cover_image")}
           compact={true}
         />
 
