@@ -21,13 +21,16 @@ func CreateIndexes(db Database, collection string) error {
 	defer cancel()
 
 	idxView := mdb.db.Collection(collection).Indexes()
+	// Drop legacy/wrong indexes if they exist so we can recreate with correct keys
+	// previous_slugs -> previousSlugs
+	_ = idxView.DropOne(ctx, "ix_previous_slugs")
 	models := []mongo.IndexModel{
 		{ // unique slug for canonical lookup
 			Keys:    bson.D{{Key: "slug", Value: 1}},
 			Options: options.Index().SetUnique(true).SetName("ux_slug"),
 		},
 		{ // previous_slugs lookup
-			Keys:    bson.D{{Key: "previous_slugs", Value: 1}},
+			Keys:    bson.D{{Key: "previousSlugs", Value: 1}},
 			Options: options.Index().SetName("ix_previous_slugs"),
 		},
 		{
@@ -56,14 +59,17 @@ func CreateUserIndexes(db Database, collection string) error {
 	defer cancel()
 
 	idxView := mdb.db.Collection(collection).Indexes()
+	// Drop legacy/wrong indexes if they exist so we can recreate with correct keys
+	// phone_number -> phoneNumber
+	_ = idxView.DropOne(ctx, "ux_phone_number")
 	models := []mongo.IndexModel{
 		{ // unique email if present
 			Keys:    bson.D{{Key: "email", Value: 1}},
 			Options: options.Index().SetUnique(true).SetName("ux_email").SetPartialFilterExpression(bson.D{{Key: "email", Value: bson.D{{Key: "$type", Value: "string"}}}}),
 		},
 		{ // unique phone number if present
-			Keys:    bson.D{{Key: "phone_number", Value: 1}},
-			Options: options.Index().SetUnique(true).SetName("ux_phone_number").SetPartialFilterExpression(bson.D{{Key: "phone_number", Value: bson.D{{Key: "$type", Value: "string"}}}}),
+			Keys:    bson.D{{Key: "phoneNumber", Value: 1}},
+			Options: options.Index().SetUnique(true).SetName("ux_phone_number").SetPartialFilterExpression(bson.D{{Key: "phoneNumber", Value: bson.D{{Key: "$type", Value: "string"}}}}),
 		},
 		{ // unique username if present (legacy)
 			Keys:    bson.D{{Key: "username", Value: 1}},
@@ -88,21 +94,23 @@ func CreateRefreshTokenIndexes(db Database, collection string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	idxView := mdb.db.Collection(collection).Indexes()
+		idxView := mdb.db.Collection(collection).Indexes()
 
-	_ = idxView.DropOne(ctx, "ux_token")
+		// Drop legacy/wrong indexes if they exist
+		_ = idxView.DropOne(ctx, "ux_token")
+		_ = idxView.DropOne(ctx, "ux_tokenhash") // will recreate with correct key casing
 
 	models := []mongo.IndexModel{
-		{Keys: bson.D{{Key: "tokenHash", Value: 1}},
-			Options: options.Index().SetUnique(true).SetName("ux_tokenhash"),
+			{Keys: bson.D{{Key: "tokenHash", Value: 1}},
+				Options: options.Index().SetUnique(true).SetName("ux_tokenHash"),
 		},
 		{ // user id lookup
-			Keys:    bson.D{{Key: "user_id", Value: 1}},
+				Keys:    bson.D{{Key: "userId", Value: 1}},
 			Options: options.Index().SetName("ix_user_id"),
 		},
 		{ // TTL auto removal
-			Keys:    bson.D{{Key: "expires_at", Value: 1}},
-			Options: options.Index().SetName("ttl_expires_at").SetExpireAfterSeconds(0),
+				Keys:    bson.D{{Key: "expiresAt", Value: 1}},
+				Options: options.Index().SetName("ttl_expiresAt").SetExpireAfterSeconds(0),
 		},
 	}
 	names, err := idxView.CreateMany(ctx, models)
@@ -123,11 +131,13 @@ func CreateOTPIndexes(db Database, collection string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	idxView := mdb.db.Collection(collection).Indexes()
-	models := []mongo.IndexModel{
-		{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetName("ix_email")},
-		{Keys: bson.D{{Key: "expires_at", Value: 1}}, Options: options.Index().SetName("ttl_expires_at").SetExpireAfterSeconds(0)},
-	}
+		idxView := mdb.db.Collection(collection).Indexes()
+		// Drop legacy ttl index name if present
+		_ = idxView.DropOne(ctx, "ttl_expires_at")
+		models := []mongo.IndexModel{
+			{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetName("ix_email")},
+			{Keys: bson.D{{Key: "expiresAt", Value: 1}}, Options: options.Index().SetName("ttl_expiresAt").SetExpireAfterSeconds(0)},
+		}
 	names, err := idxView.CreateMany(ctx, models)
 	if err != nil {
 		log.Debug().Err(err).Str("collection", collection).Msg("otp index creation (some may already exist)")
@@ -146,12 +156,15 @@ func CreatePasswordResetTokenIndexes(db Database, collection string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	idxView := mdb.db.Collection(collection).Indexes()
-	models := []mongo.IndexModel{
-		{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetName("ix_email")},
-		{Keys: bson.D{{Key: "tokenhash", Value: 1}}, Options: options.Index().SetUnique(true).SetName("ux_tokenhash")},
-		{Keys: bson.D{{Key: "expires_at", Value: 1}}, Options: options.Index().SetName("ttl_expires_at").SetExpireAfterSeconds(0)},
-	}
+		idxView := mdb.db.Collection(collection).Indexes()
+		// Drop legacy names/casing
+		_ = idxView.DropOne(ctx, "ux_tokenhash")
+		_ = idxView.DropOne(ctx, "ttl_expires_at")
+		models := []mongo.IndexModel{
+			{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetName("ix_email")},
+			{Keys: bson.D{{Key: "tokenHash", Value: 1}}, Options: options.Index().SetUnique(true).SetName("ux_tokenHash")},
+			{Keys: bson.D{{Key: "expiresAt", Value: 1}}, Options: options.Index().SetName("ttl_expiresAt").SetExpireAfterSeconds(0)},
+		}
 	names, err := idxView.CreateMany(ctx, models)
 	if err != nil {
 		log.Debug().Err(err).Str("collection", collection).Msg("password reset token index creation (some may already exist)")
