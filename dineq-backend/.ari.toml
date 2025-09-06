@@ -1,0 +1,31 @@
+
+root = "dineq-backend"
+tmp_dir = "tmp"
+
+
+[build]
+cmd = "go build -o tmp/dineq-api ./cmd/api"
+bin = "tmp/dineq-api"
+delay = 200
+stop_on_error = true
+send_interrupt = true
+kill_delay = 1000
+
+
+include_ext = ["go","mod","sum","env","yaml","yml","json","tpl","tmpl","html"]
+exclude_dir = ["vendor","tmp",".git","postman-collections"]
+
+
+exclude_regex = ["_test.go"]
+
+[log]
+time = true
+log_color = true
+
+[env]
+GO111MODULE="on"
+APP_ENV="development"
+
+[platform]
+os="linux"
+arch="amd64"
