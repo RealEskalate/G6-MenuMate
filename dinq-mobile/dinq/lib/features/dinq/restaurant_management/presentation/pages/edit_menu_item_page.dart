@@ -1,10 +1,11 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../../core/constants/constants.dart';
 import '../../../../../core/util/theme.dart';
 import '../widgets/upload_image.dart';
 
@@ -71,10 +72,97 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
     });
   }
 
+  Future<void> _fetchImagesFromBackend() async {
+    print('🔍 _fetchImagesFromBackend called');
+
+    if (itemNameController.text.trim().isEmpty) {
+      print('❌ Item name is empty');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter an item name first')),
+      );
+      return;
+    }
+
+    final itemName = itemNameController.text.trim();
+    print('📝 Item name: $itemName');
+
+    setState(() {
+      isLoadingImages = true;
+    });
+    print('⏳ Loading state set to true');
+
+    try {
+      final url = Uri.parse('$baseUrl/images/search?item=$itemName');
+      print('🌐 URL: $url');
+      print('🔑 Access Token: ${accessToken.substring(0, 20)}...');
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      print('📡 Response status code: ${response.statusCode}');
+      print('📄 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('📊 Parsed data: $data');
+
+        // Parse the actual API response format
+        final List<String> imageUrls = [];
+        if (data is Map && data.containsKey('data')) {
+          final apiData = data['data'];
+          if (apiData is Map && apiData.containsKey('results')) {
+            final results = apiData['results'];
+            if (results is List) {
+              print('📋 Found ${results.length} results in data.results');
+              for (var result in results) {
+                if (result is Map && result.containsKey('photo_url')) {
+                  final photoUrl = result['photo_url'];
+                  if (photoUrl is String && photoUrl.isNotEmpty) {
+                    imageUrls.add(photoUrl);
+                    print('✅ Added photo_url: $photoUrl');
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        print('🖼️ Extracted ${imageUrls.length} image URLs: $imageUrls');
+
+        setState(() {
+          extractedImageUrls = imageUrls;
+          selectedImageUrl = null;
+          uploadedImageFile = null;
+        });
+        print('✅ State updated with ${imageUrls.length} images');
+      } else {
+        print('❌ HTTP Error: ${response.statusCode}');
+        throw Exception('Failed to fetch images: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('💥 Exception caught: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching images: $e')),
+      );
+    } finally {
+      setState(() {
+        isLoadingImages = false;
+      });
+      print('🏁 Loading state set to false');
+    }
+  }
+
   // State for extracted images and selected image
   List<String> extractedImageUrls = [];
   String? selectedImageUrl;
   File? uploadedImageFile;
+  bool isLoadingImages = false;
 
   @override
   Widget build(BuildContext context) {
@@ -256,22 +344,7 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                           ),
                           icon: const Icon(Icons.image_search),
                           label: const Text('Extract from menu photo'),
-                          onPressed: () async {
-                            // Simulate backend call to get 6 images
-                            // Replace this with your actual backend call
-                            setState(() {
-                              extractedImageUrls = [
-                                'https://via.placeholder.com/120x120?text=1',
-                                'https://via.placeholder.com/120x120?text=2',
-                                'https://via.placeholder.com/120x120?text=3',
-                                'https://via.placeholder.com/120x120?text=4',
-                                'https://via.placeholder.com/120x120?text=5',
-                                'https://via.placeholder.com/120x120?text=6',
-                              ];
-                              selectedImageUrl = null;
-                              uploadedImageFile = null;
-                            });
-                          },
+                          onPressed: _fetchImagesFromBackend,
                         ),
                         const SizedBox(height: 10),
                         ElevatedButton.icon(
@@ -304,7 +377,16 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                             }
                           },
                         ),
-                        if (extractedImageUrls.isNotEmpty) ...[
+                        if (isLoadingImages) ...[
+                          const SizedBox(height: 16),
+                          const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                          const SizedBox(height: 8),
+                          const Center(
+                            child: Text('Fetching images...'),
+                          ),
+                        ] else if (extractedImageUrls.isNotEmpty) ...[
                           const SizedBox(height: 16),
                           Text(
                             'Select an extracted image:',
@@ -338,6 +420,17 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                                     width: 80,
                                     height: 80,
                                     fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        width: 80,
+                                        height: 80,
+                                        color: Colors.grey[300],
+                                        child: const Icon(
+                                          Icons.broken_image,
+                                          color: Colors.grey,
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                               );
