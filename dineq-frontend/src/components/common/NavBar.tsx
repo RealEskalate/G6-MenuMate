@@ -101,7 +101,7 @@ function NavBar({ role }: Roles) {
               {role === "USER" &&
                 [
                   { name: "Home", href: "/user" },
-                  { name: "Restaurants", href: "/user/restaurant-display" },
+                 
                   { name: "Scan", href: "/user/scan" },
                   { name: "Favorites", href: "/user/favorites" },
                   { name: "Profile", href: "/user/profile" },

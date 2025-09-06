@@ -178,3 +178,4 @@ const restaurantsSlice = createSlice({
 });
 
 export default restaurantsSlice.reducer;
+
