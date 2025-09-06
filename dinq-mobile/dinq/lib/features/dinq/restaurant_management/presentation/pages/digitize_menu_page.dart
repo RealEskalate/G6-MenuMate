@@ -3,7 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:async';
 import '../../../../../core/util/theme.dart';
+import '../../../../../core/network/api_client.dart';
+import '../../../../../core/constants/constants.dart';
 import 'edit_uploaded_menu_page.dart';
 
 class DigitizeMenuPage extends StatefulWidget {
@@ -32,6 +35,63 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
       setState(() {
         _imageFile = File(pickedFile.path);
       });
+    }
+  }
+
+  Future<void> _performOCR() async {
+    if (_imageFile == null) return;
+
+    final apiClient = ApiClient(baseUrl: baseUrl);
+
+    try {
+      // Step 1: Upload image to /ocr/upload
+      final uploadResponse = await apiClient.uploadFile('/ocr/upload', _imageFile!);
+      final jobId = uploadResponse['data']['job_id'];
+
+      // Step 2: Poll for completion
+      await _pollOCRStatus(apiClient, jobId);
+    } catch (e) {
+      // Handle error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('OCR failed: $e')),
+      );
+    }
+  }
+
+  Future<void> _pollOCRStatus(ApiClient apiClient, String jobId) async {
+    const pollInterval = Duration(seconds: 5);
+
+    while (true) {
+      try {
+        final response = await apiClient.get('/ocr/$jobId');
+        final status = response['data']['status'];
+
+        if (status == 'completed') {
+          final menuItems = response['data']['structured_menu']['menu_items'];
+          // Navigate to EditUploadedMenuPage with real data
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditUploadedMenuPage(
+                uploadedImage: _imageFile!,
+                menuItems: menuItems,
+              ),
+            ),
+          );
+          break;
+        } else if (status == 'processing') {
+          // Continue polling
+          await Future.delayed(pollInterval);
+        } else {
+          // Handle other statuses or errors
+          throw Exception('OCR processing failed with status: $status');
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Polling failed: $e')),
+        );
+        break;
+      }
     }
   }
 
@@ -228,16 +288,7 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditUploadedMenuPage(
-                              uploadedImage: _imageFile!,
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: _performOCR,
                       child: const Text(
                         'Digitize Menu',
                         style: TextStyle(

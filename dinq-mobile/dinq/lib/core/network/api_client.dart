@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'api_exceptions.dart';
 import 'token_manager.dart';
@@ -94,6 +95,45 @@ Future<Map<String, dynamic>> post(
         message: 'Unexpected error: $error',
         statusCode: 0,
       );
+    }
+  }
+
+  Future<Map<String, dynamic>> uploadFile(
+    String endpoint,
+    File file, {
+    Map<String, String>? headers,
+    String fieldName = 'file',
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl$endpoint');
+
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add authorization header
+      final authHeaders = await TokenManager.getAuthHeaders();
+      if (authHeaders != null) {
+        request.headers.addAll(authHeaders);
+      }
+
+      // Add custom headers if provided
+      if (headers != null) {
+        request.headers.addAll(headers);
+      }
+
+      // Add file
+      final fileStream = http.MultipartFile.fromBytes(
+        fieldName,
+        await file.readAsBytes(),
+        filename: file.path.split('/').last,
+      );
+      request.files.add(fileStream);
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return _handleResponse(response);
+    } catch (e) {
+      throw _handleError(e);
     }
   }
 

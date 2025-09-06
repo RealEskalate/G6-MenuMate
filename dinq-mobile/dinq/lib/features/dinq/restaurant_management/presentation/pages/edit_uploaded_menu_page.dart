@@ -10,8 +10,9 @@ import 'edit_menu_item_page.dart';
 
 class EditUploadedMenuPage extends StatefulWidget {
   final File uploadedImage;
+  final List<dynamic>? menuItems;
 
-  const EditUploadedMenuPage({super.key, required this.uploadedImage});
+  const EditUploadedMenuPage({super.key, required this.uploadedImage, this.menuItems});
 
   @override
   State<EditUploadedMenuPage> createState() => _EditUploadedMenuPageState();
@@ -20,9 +21,10 @@ class EditUploadedMenuPage extends StatefulWidget {
 class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
   bool _isExtracting = true;
   late File _currentImage;
+  late Map<String, List<Map<String, dynamic>>> _menuSections;
 
   // Example extracted menu data (replace with real OCR results)
-  Map<String, List<Map<String, dynamic>>> _menuSections = {
+  final Map<String, List<Map<String, dynamic>>> _dummyMenuSections = {
     'Breakfast': [
       {
         'name': 'Sambusa',
@@ -63,7 +65,24 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
   void initState() {
     super.initState();
     _currentImage = widget.uploadedImage;
-    _simulateExtraction();
+    if (widget.menuItems != null) {
+      _menuSections = _processMenuItems(widget.menuItems!);
+      _isExtracting = false;
+    } else {
+      _menuSections = _dummyMenuSections;
+      _simulateExtraction();
+    }
+  }
+
+  Map<String, List<Map<String, dynamic>>> _processMenuItems(List<dynamic> menuItems) {
+    // Group menu items by category or just put them all in one section
+    return {
+      'Menu Items': menuItems.map((item) => {
+        'name': item['name'] ?? '',
+        'desc': item['description'] ?? '',
+        'price': item['price']?.toString() ?? '0',
+      }).toList(),
+    };
   }
 
   void _simulateExtraction() {
