@@ -279,29 +279,52 @@ func (ac *AuthController) ForgotPasswordRequest(c *gin.Context) {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidInput.Error(), "invalid_input", err)
 		return
 	}
-	if err := ac.PasswordResetUsecase.RequestReset(req.Email); err != nil {
-		dto.WriteError(c, domain.ErrFailedToProcessRequest)
+
+	err := ac.PasswordResetUsecase.RequestReset(req.Email, req.Platform)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToProcessRequest.Error(), Error: err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
-// Reset password here
-func (ac *AuthController) ResetPasswordRequest(c *gin.Context) {
-	var req dto.ResetPasswordRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
+// POST /verify-reset-token
+func (ac *AuthController) VerifyResetToken(c *gin.Context) {
+	email := c.Query("email")
+	if email == "" {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: "Email is required"})
 		return
 	}
-	if err := validate.Struct(req); err != nil {
-		dto.WriteValidationError(c, "payload", domain.ErrInvalidInput.Error(), "invalid_input", err)
+	token := c.Query("token")
+	if token == "" {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: "Token is required"})
 		return
 	}
-	if err := ac.PasswordResetUsecase.ResetPassword(req.Email, req.Token, req.NewPassword); err != nil {
-		dto.WriteError(c, domain.ErrFailedToResetPassword)
+
+	fmt.Println("Verifying token for email:", email, "Token:", token)
+	sessionToken, err := ac.PasswordResetUsecase.VerifyResetToken(email, token)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
+
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"session_token": sessionToken}})
+}
+
+// POST /reset-password
+func (ac *AuthController) ResetPassword(c *gin.Context) {
+	var req dto.SetNewPasswordRequest
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(400, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		return
+	}
+
+	if err := ac.PasswordResetUsecase.ResetPasswordWithSession(req.SessionToken, req.NewPassword); err != nil {
+		c.JSON(400, dto.ErrorResponse{Message: domain.ErrFailedToResetPassword.Error(), Error: err.Error()})
+		return
+	}
+
+	c.JSON(200, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
 // verify email request

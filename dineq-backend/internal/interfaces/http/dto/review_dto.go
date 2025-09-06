@@ -1,84 +1,85 @@
 package dto
 
 import (
-	"fmt"
-	"time"
+    "time"
 
-	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+    "github.com/RealEskalate/G6-MenuMate/internal/domain"
 )
 
-// ReviewDTO represents the data transfer object for a Review
-type ReviewDTO struct {
-	ID           string    `json:"id"`
-	ItemID       string    `json:"item_id"`
-	UserID       string    `json:"user_id"`
-	Picture      string    `json:"picture,omitempty"`
-	Description  string    `json:"description"`
-	Rating       float64   `json:"rating"`
-	ReactionIDs  []string  `json:"reaction_ids"`
-	LikeCount    int       `json:"like_count"`
-	DislikeCount int       `json:"dislike_count"`
-	IsApproved   bool      `json:"is_approved"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	IsDeleted    bool      `json:"is_deleted"`
-	FlagCount    int       `json:"flag_count"`
+// ReviewRequest is used for creating or updating a review
+type ReviewRequest struct {
+    ItemID      string  `json:"item_id" validate:"required"`
+    RestaurantID      string  `json:"restaurant_id" validate:"required"`
+    Picture     string  `json:"picture,omitempty" validate:"omitempty,url"`
+    Description string  `json:"description" validate:"required,max=500"`
+    Rating      float64 `json:"rating" validate:"required,min=1,max=5"`
 }
 
-// ReactionDTO represents the data transfer object for a Reaction
-type ReactionDTO struct {
-	ID        string    `json:"id"`
-	ReviewID  string    `json:"review_id"`
-	UserID    string    `json:"user_id"`
-	Type      string    `json:"type"` // e.g., "LIKE", "DISLIKE"
-	CreatedAt time.Time `json:"created_at"`
-	IsDeleted bool      `json:"is_deleted"`
+// ReviewResponse is used for returning review data to the client
+type ReviewResponse struct {
+    ID           string    `json:"id"`
+    ItemID       string    `json:"item_id"`
+    RestaurantID string    `json:"restaurant_id"`
+    UserID       string    `json:"user_id"`
+    Picture      string    `json:"picture,omitempty"`
+    Description  string    `json:"description"`
+    Rating       float64   `json:"rating"`
+    CreatedAt    time.Time `json:"created_at"`
+    UpdatedAt    time.Time `json:"updated_at"`
+    LikeCount    int       `json:"like_count"`
+    DislikeCount int       `json:"dislike_count"`
+    ReactionIDs  []string  `json:"reaction_ids"`
+    // Optionally, embed user info for display
+    User *UserResponse `json:"user,omitempty"`
 }
 
-// Validate checks the ReviewDTO for required fields
-func (r *ReviewDTO) Validate() error {
-	if r.ItemID == "" || r.UserID == "" || r.Rating < 1 || r.Rating > 5 {
-		return fmt.Errorf("itemID, userID, and rating (1-5) are required")
-	}
-	return nil
+// Mapper: ReviewRequest → domain.Review
+func ToDomainReview(req ReviewRequest, userID string) *domain.Review {
+    return &domain.Review{
+        ItemID:      req.ItemID,
+        RestaurantID:      req.RestaurantID,
+        UserID:      userID,
+        Picture:     req.Picture,
+        Description: req.Description,
+        Rating:      req.Rating,
+        CreatedAt:   time.Now(),
+        UpdatedAt:   time.Now(),
+    }
 }
 
-// ToDomain converts the ReviewDTO to a domain.Review entity
-func (r *ReviewDTO) ToDomain() *domain.Review {
-	return &domain.Review{
-		ID:           r.ID,
-		ItemID:       r.ItemID,
-		UserID:       r.UserID,
-		Picture:      r.Picture,
-		Description:  r.Description,
-		Rating:       r.Rating,
-		ReactionIDs:  r.ReactionIDs,
-		LikeCount:    r.LikeCount,
-		DislikeCount: r.DislikeCount,
-		IsApproved:   r.IsApproved,
-		CreatedAt:    r.CreatedAt,
-		UpdatedAt:    r.UpdatedAt,
-		IsDeleted:    r.IsDeleted,
-		FlagCount:    r.FlagCount,
-	}
+// Mapper: domain.Review → ReviewResponse
+func ToReviewResponse(r *domain.Review, user *domain.User) ReviewResponse {
+    var userResp *UserResponse
+    if user != nil {
+        ur := ToUserResponse(*user)
+        userResp = &ur
+    }
+    return ReviewResponse{
+        ID:           r.ID,
+        ItemID:       r.ItemID,
+        RestaurantID: r.RestaurantID,
+        UserID:       r.UserID,
+        Picture:      r.Picture,
+        Description:  r.Description,
+        Rating:       r.Rating,
+        CreatedAt:    r.CreatedAt,
+        UpdatedAt:    r.UpdatedAt,
+        LikeCount:    r.LikeCount,
+        DislikeCount: r.DislikeCount,
+        ReactionIDs:  r.ReactionIDs,
+        User:         userResp,
+    }
 }
 
-// FromDomain converts a domain.Review entity to a ReviewDTO
-func (r *ReviewDTO) FromDomain(review *domain.Review) *ReviewDTO {
-	return &ReviewDTO{
-		ID:           review.ID,
-		ItemID:       review.ItemID,
-		UserID:       review.UserID,
-		Picture:      review.Picture,
-		Description:  review.Description,
-		Rating:       review.Rating,
-		ReactionIDs:  review.ReactionIDs,
-		LikeCount:    review.LikeCount,
-		DislikeCount: review.DislikeCount,
-		IsApproved:   review.IsApproved,
-		CreatedAt:    review.CreatedAt,
-		UpdatedAt:    review.UpdatedAt,
-		IsDeleted:    review.IsDeleted,
-		FlagCount:    review.FlagCount,
-	}
+// Mapper: []*domain.Review → []ReviewResponse
+func ToReviewResponseList(reviews []*domain.Review, users map[string]*domain.User) []ReviewResponse {
+    var responses []ReviewResponse
+    for _, r := range reviews {
+        var user *domain.User
+        if users != nil {
+            user = users[r.UserID]
+        }
+        responses = append(responses, ToReviewResponse(r, user))
+    }
+    return responses
 }

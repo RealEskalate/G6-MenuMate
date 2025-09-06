@@ -10,10 +10,20 @@ import (
 	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
 	handler "github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/handlers"
 	usecase "github.com/RealEskalate/G6-MenuMate/internal/usecases"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router *gin.Engine) {
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000", "https://your-frontend.com"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	// Notification services
 	notifySvc := services.NewNotificationService()
 	notifyRepo := repositories.NewNotificationRepository(db, env.NotificationCollection)
@@ -33,10 +43,12 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 		NewNotificationRoutes(env, api, db, notifySvc, notificationUseCase)
 		NewRestaurantRoutes(env, api, db)
 		NewImageSearchRoutes(env, api)
+		NewReactionRoutes(env, api, db)
 		NewMenuRoutes(env, api, db, notificationUseCase)
 		NewQRCodeRoutes(env, api, db, notificationUseCase)
 		NewUploadRoutes(env, api)
 		NewItemRoutes(env, api, db, notifySvc)
+		NewReviewRoutes(env, api,db)
 		h := handler.NewHealthHandler(db, 2*time.Second)
 		api.GET("/health", h.Health)
 	}
