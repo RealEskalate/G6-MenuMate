@@ -12,6 +12,11 @@ abstract class RestaurantRemoteDataSource {
     int page = 1,
     int pageSize = 20,
   });
+  Future<List<RestaurantModel>> searchRestaurants({
+    required String name,
+    int page = 1,
+    int pageSize = 10,
+  });
   Future<RestaurantModel> getRestaurantBySlug(String slug);
   Future<RestaurantModel> updateRestaurant(
     Map<String, dynamic> restaurant,
