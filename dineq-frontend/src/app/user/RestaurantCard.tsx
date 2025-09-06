@@ -12,7 +12,11 @@ const RestaurantCard: React.FC<Restaurant> = (props) => {
 
   return (
     <Link href={`/user/restaurant-display/${props.id}`} passHref>
-      <div className="border border-[var(--color-primary)] rounded-lg cursor-pointer hover:shadow-sm transition-shadow duration-200">
+      <div
+        className="border border-[var(--color-primary)] rounded-lg cursor-pointer 
+        transition-all duration-300 transform 
+        hover:-translate-y-2 hover:shadow-xl"
+      >
         <div className="relative flex flex-col p-2 h-full">
           {/* Restaurant Image */}
           <div className="relative w-full h-40 md:h-44 rounded-lg overflow-hidden">
@@ -41,7 +45,9 @@ const RestaurantCard: React.FC<Restaurant> = (props) => {
                   if (i < fullStars) {
                     return <FaStar key={i} className="text-yellow-500" />;
                   } else if (i === fullStars && hasHalfStar) {
-                    return <FaStar key={i} className="text-yellow-300 opacity-70" />;
+                    return (
+                      <FaStar key={i} className="text-yellow-300 opacity-70" />
+                    );
                   } else {
                     return <FaRegStar key={i} className="text-yellow-500" />;
                   }

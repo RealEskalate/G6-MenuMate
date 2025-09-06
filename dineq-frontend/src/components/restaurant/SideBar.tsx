@@ -5,12 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-function SideBar() {
+function SideBar() { 
   const pathname = usePathname();
 
   const links = [
     { name: "Menus", href: "/restaurant/dashboard/menu", icon: "/icons/menu.svg" },
-    { name: "QR Manager", href: "restaurant/dashboard/qr-manager", icon: "/icons/qr.png" },
+    { name: "QR Manager", href: "/restaurant/dashboard/qr-manager", icon: "/icons/qr.png" },
     { name: "Settings", href: "/restaurant/dashboard/settings", icon: "/icons/setting.png" },
     { name: "Analytics", href: "/dashboard/analytics", icon: "/icons/Analytics.png", pro: true },
   ];

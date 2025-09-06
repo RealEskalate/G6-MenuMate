@@ -77,6 +77,8 @@ function QrManager() {
                   <Image
                     src="/icons/edit.png"
                     alt="Edit"
+                    width={110}
+                    height={105}
                     className="w-4 h-4 mr-2"
                   
                   />
