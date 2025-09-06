@@ -9,13 +9,10 @@ import { useSession } from "next-auth/react";
 export default function ReviewPage() {
   const router = useRouter();
   const { data, resetData } = useRegister();
-  const { data: session } = useSession(); 
-  const tempToken =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTY5MDE4NjAsImlzX3ZlcmlmaWVkIjpmYWxzZSwicm9sZSI6Ik1BTkFHRVIiLCJzdGF0dXMiOiJBQ1RJVkUiLCJzdWIiOiI2OGI2ZTUxMjhmNGY5NTJkOGEyYWI1ZTkiLCJ1c2VybmFtZSI6Im5hbmFudGkifQ.q7AusSduKNQ2gLSUUPP-tcMMUvG3VAGfMTqiwex4_HM";
+  const { data: session } = useSession();  
+
 
   const basicInfo = {
-    Name: data.name,
-    Email: data.email,
     Restaurant: data.restaurant,
     Address: data.address,
     Phone: data.phone,
@@ -56,12 +53,16 @@ export default function ReviewPage() {
       if (data.businessLicense?.file) formData.append("verification_docs", data.businessLicense.file);
       if (data.cover_image?.file) formData.append("cover_image", data.cover_image.file);
 
+<<<<<<< HEAD
+      const res = await fetch("https://g6-menumate-1.onrender.com/api/v1/restaurants", {
+=======
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
       const res = await fetch(`${apiUrl}/restaurants`, {
+>>>>>>> 4c07e6431f3a66f87ea35fdc4e80d3ef9399b6d5
         method: "POST",
         body: formData,
         headers: {
-          Authorization: `Bearer ${tempToken}`,
+          Authorization: `Bearer ${session.accessToken}`,
         },
       });
 

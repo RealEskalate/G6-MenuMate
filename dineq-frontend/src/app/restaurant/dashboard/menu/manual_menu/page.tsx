@@ -20,6 +20,8 @@ import {
 import { useMenuContext } from "@/context/MenuOcrContext";
 import { ChevronDown, ChevronUp, Plus, Minus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+  import { createMenu } from "@/lib/menu";
+import { useSession } from "next-auth/react"
 
 interface NutritionalInfo {
   calories: number;
@@ -28,10 +30,10 @@ interface NutritionalInfo {
   fat: number;
 }
 
-interface MenuItem {
+export interface MenuItem {
   name: string;
   name_am?: string;
-  image: File | null | string;
+  image: string | File | null;
   price: number | string;
   currency?: string;
   ingredients: string[];
@@ -43,8 +45,8 @@ interface MenuItem {
   allergies_am?: string;
   nutritional_info?: NutritionalInfo;
   preparation_time?: number;
-  instructions: string;
-  instructions_am?: string;
+  how_to_eat: string;
+  how_to_eat_am?: string;
   voice?: string | null;
 }
 
@@ -72,6 +74,10 @@ const ManualMenu = () => {
   const [expandedItems, setExpandedItems] = useState<{
     [key: string]: boolean;
   }>({});
+  const [loading, setLoading] = useState(false);
+  const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
+   const { data: session } = useSession(); // token from session?
+  
 
   useEffect(() => {
     if (!initialized && ocrMenuItems.length > 0) {
@@ -237,10 +243,46 @@ const ManualMenu = () => {
   const removeTag = useCallback((index: number) => {
     setTags((prev) => prev.filter((_, i) => i !== index));
   }, []);
+; // to get token if using next-auth
+
+
+ 
+
+  const handleSubmit = async () => {
+    if (!restaurantSlug) {
+      alert("Restaurant slug is missing!");
+      return;
+    }
+
+    const token = session?.accessToken; // adjust depending on your session shape
+    if (!token) {
+      alert("No token found!");
+      return;
+    }
+
+    const menuData = {
+      name: menuName,
+      language,
+      tags,
+      sections,
+    };
+
+    try {
+      setLoading(true);
+      const result = await createMenu(restaurantSlug, menuData, token);
+      console.log("Menu created:", result);
+      alert("Menu created successfully!");
+    } catch (error: any) {
+      alert("Failed to create menu: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
+    <>
     <div className="flex-1 p-6 bg-white">
-      <h1 className="text-2xl font-bold mb-6">Manual Menu Editor</h1>
+      <h1 className="text-2xl font-bold mb-6">Add Menu Manually</h1>
 
       <div className="border border-orange-300 rounded-lg p-6 mb-6">
         <h2 className="text-lg font-semibold mb-4">Basic Details</h2>
@@ -834,6 +876,15 @@ const ManualMenu = () => {
         <Plus className="h-4 w-4 mr-2" /> Add Section
       </Button>
     </div>
+      <div className="mt-6 flex gap-4">
+        <Button onClick={addSection} variant="outline">
+          <Plus className="h-4 w-4 mr-2" /> Add Section
+        </Button>
+        <Button onClick={handleSubmit} disabled={loading}>
+          {loading ? "Submitting..." : "Submit Menu"}
+        </Button>
+      </div>
+      </>
   );
 };
 

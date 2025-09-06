@@ -1,12 +1,23 @@
-"use client";
+"use client"; 
 
-import { SessionProvider } from "next-auth/react";
 import ReduxProvider from "@/store/ReduxProvider";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SessionProvider } from "next-auth/react";
+import { useState, ReactNode } from "react";
+import { FavoritesProvider } from "@/context/FavoritesContext";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({ children }: { children: ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
     <SessionProvider>
-      <ReduxProvider>{children}</ReduxProvider>
+      <QueryClientProvider client={queryClient}>
+      <ReduxProvider>
+        <FavoritesProvider>
+        {children}
+        </FavoritesProvider>
+      </ReduxProvider>
+    </QueryClientProvider>
     </SessionProvider>
   );
 }
