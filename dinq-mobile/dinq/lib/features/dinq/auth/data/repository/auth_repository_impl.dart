@@ -5,8 +5,13 @@ import 'package:dinq/core/network/api_exceptions.dart';
 import 'package:dinq/core/network/token_manager.dart';
 import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart';
 import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
+import 'package:file_picker/file_picker.dart';
 
-class AuthRepositoryImpl implements AuthRepository {
+import '../../../restaurant_management/data/model/restaurant_model.dart';
+import '../../domain/repository/resturant_reg_repo.dart';
+import '../models/resturant_model.dart';
+
+class AuthRepositoryImpl implements AuthRepository ,ResturantRegRepo{
   final ApiClient _apiClient;
 
   AuthRepositoryImpl({required ApiClient apiClient}) : _apiClient = apiClient;
@@ -20,7 +25,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? firstName,
     String? lastName,
     String? phoneNumber,
-    String? role ,
+    String? role,
   }) async {
     try {
       final userData = {
@@ -34,10 +39,10 @@ class AuthRepositoryImpl implements AuthRepository {
         // if (phoneNumber != null) 'phone_number': phoneNumber,
       };
 
-      final response = await _apiClient.post(ApiEndpoints.register, body: userData);
+      final response =
+          await _apiClient.post(ApiEndpoints.register, body: userData);
 
       return UserModel.fromJson(response);
-
     } on ApiException catch (e) {
       throw ApiException(
         message: _getRegisterErrorMessage(e),
@@ -62,11 +67,14 @@ class AuthRepositoryImpl implements AuthRepository {
         'password': password,
       };
 
-      final response = await _apiClient.post(ApiEndpoints.login, body: loginData);
+      final response =
+          await _apiClient.post(ApiEndpoints.login, body: loginData);
 
       // API returns tokens nested under 'data' key
       final data = response['data'] as Map<String, dynamic>?;
-      if (data != null && data.containsKey('access_token') && data.containsKey('refresh_token')) {
+      if (data != null &&
+          data.containsKey('access_token') &&
+          data.containsKey('refresh_token')) {
         // Store tokens
         await TokenManager.saveTokens(
           data['access_token'],
@@ -89,7 +97,6 @@ class AuthRepositoryImpl implements AuthRepository {
           statusCode: 500,
         );
       }
-
     } on ApiException catch (e) {
       throw ApiException(
         message: _getLoginErrorMessage(e),
@@ -115,7 +122,6 @@ class AuthRepositoryImpl implements AuthRepository {
       } catch (serverError) {
         // Don't throw error for server logout failure since tokens are already cleared
       }
-
     } on ApiException catch (e) {
       throw ApiException(
         message: 'Logout failed: ${e.message}',
@@ -132,7 +138,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> forgotPassword({required String email}) async {
     try {
-      await _apiClient.post(ApiEndpoints.forgotPassword, body: {'email': email});
+      await _apiClient
+          .post(ApiEndpoints.forgotPassword, body: {'email': email});
     } on ApiException catch (e) {
       throw ApiException(
         message: 'Password reset request failed: ${e.message}',
@@ -174,7 +181,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<bool> checkUsernameAvailability(String username) async {
     try {
-      final response = await _apiClient.get('${ApiEndpoints.checkUsername}/$username');
+      final response =
+          await _apiClient.get('${ApiEndpoints.checkUsername}/$username');
       final isAvailable = response['available'] ?? false;
       return isAvailable;
     } on ApiException catch (e) {
@@ -194,7 +202,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<bool> checkEmailAvailability(String email) async {
     try {
-      final response = await _apiClient.get('${ApiEndpoints.checkEmail}/$email');
+      final response =
+          await _apiClient.get('${ApiEndpoints.checkEmail}/$email');
       final isAvailable = response['available'] ?? false;
       return isAvailable;
     } on ApiException catch (e) {
@@ -214,7 +223,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<bool> checkPhoneAvailability(String phoneNumber) async {
     try {
-      final response = await _apiClient.get('${ApiEndpoints.checkPhone}/$phoneNumber');
+      final response =
+          await _apiClient.get('${ApiEndpoints.checkPhone}/$phoneNumber');
       final isAvailable = response['available'] ?? false;
       return isAvailable;
     } on ApiException catch (e) {
@@ -230,6 +240,89 @@ class AuthRepositoryImpl implements AuthRepository {
       );
     }
   }
+
+
+    // required String resturantname,
+    // required String returantphone,
+    // required PlatformFile verification_docs,
+    // PlatformFile? logo_image,
+    // PlatformFile? cover_image,
+
+  @override
+  Future<ResturantModel> registerRestaurant({
+    required String resturantname,
+    required String returantphone,
+    required PlatformFile verification_docs,
+    PlatformFile? logo_image,
+    PlatformFile? cover_image,
+  }) async {
+    try {
+      // Prepare files map
+      final files = <String, PlatformFile?>{
+        'verification_docs': verification_docs,
+        'logo_image': logo_image,
+        'cover_image': cover_image,
+      };
+
+      // Prepare body data
+      final body = {
+        'resturant_name': resturantname,
+        'resturant_phone': returantphone,
+      };
+
+      // Call API (assuming postMultipart exists in your ApiClient)
+      final response = await _apiClient.postMultipart(
+        ApiEndpoints.resturantdetails,
+        body: body,
+        files: files,
+      );
+
+      // Convert JSON response to ResturantModel
+      return ResturantModel.fromJson(response);
+    } on ApiException catch (e) {
+      throw ApiException(
+        message: 'Restaurant registration failed: ${e.message}',
+        statusCode: e.statusCode,
+      );
+    } catch (e) {
+      throw ApiException(
+        message: 'Restaurant registration failed: ${e.toString()}',
+        statusCode: 500,
+      );
+    }
+  }
+
+
+  // @override
+  // Future<ResturantModel> registerRestaurant({
+  //   required String resturantname,
+  //   required String returantphone,
+  //   required PlatformFile verification_docs,
+  //   PlatformFile? logo_image,
+  //   PlatformFile? cover_image,
+  // }) async {
+  //   try {
+  //     final response = await _apiClient.postMultipart(
+  //       ApiEndpoints.resturantdetails,
+  //       body: {
+  //         'resturant_name': resturantname,
+  //         'resturant_phone': returantphone,
+  //       },
+  //       files: {
+  //         'verification_docs': verification_docs,
+  //         'logo_image': logo_image,
+  //         'cover_image': cover_image,
+  //       },
+  //     );
+
+  //     return ResturantModel.fromJson(response);
+  //   } catch (e) {
+  //     throw ApiException(
+  //       message: 'Restaurant creation failed: $e',
+  //       statusCode: 500,
+  //     );
+  //   }
+  // }
 
   // Error message handling
   String _getRegisterErrorMessage(ApiException e) {

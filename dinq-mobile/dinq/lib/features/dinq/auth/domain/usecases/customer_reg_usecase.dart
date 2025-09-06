@@ -31,4 +31,5 @@ class RegisterUserUseCase {
     );
     return user; // UserModel is a CustomerRegistration
   }
+
 }

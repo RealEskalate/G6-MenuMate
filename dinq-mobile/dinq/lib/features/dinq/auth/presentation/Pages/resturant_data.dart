@@ -34,7 +34,7 @@ class _RestaurantDataState extends State<RestaurantData> {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         allowMultiple: false,
         type: FileType.custom,
-        allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+        allowedExtensions: ['jpg', 'jpeg', 'png'],
       );
 
       if (result != null && result.files.isNotEmpty) {
@@ -71,20 +71,20 @@ class _RestaurantDataState extends State<RestaurantData> {
     }
 
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 5),
+      margin: const EdgeInsets.symmetric(vertical: 5),
       child: ListTile(
         leading: Icon(icon, color: iconColor, size: 32),
         title: Text(
           file.name,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 14),
+          style: const TextStyle(fontSize: 14),
         ),
         subtitle: Text(
           '${(file.size / 1024).toStringAsFixed(1)} KB',
-          style: TextStyle(fontSize: 12),
+          style: const TextStyle(fontSize: 12),
         ),
         trailing: IconButton(
-          icon: Icon(Icons.close, color: Colors.red),
+          icon: const Icon(Icons.close, color: Colors.red),
           onPressed: _removeFile,
         ),
       ),
@@ -95,7 +95,7 @@ class _RestaurantDataState extends State<RestaurantData> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView( // Wrap with SingleChildScrollView
-        padding: EdgeInsets.all(16), // Add some padding
+        padding: const EdgeInsets.all(16), // Add some padding
         child: Center(
           child: Column(
             children: [
@@ -110,7 +110,7 @@ class _RestaurantDataState extends State<RestaurantData> {
               const SizedBox(height: 8),
               const Text("Please review and submit your information.",
                 style: TextStyle(
-                  fontFamily: "Inter",
+                  fontFamily: 'Inter',
                   fontSize: 12,
                   fontWeight: FontWeight.normal,
                   color: AppColors.secondaryColor,

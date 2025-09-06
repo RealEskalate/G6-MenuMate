@@ -29,7 +29,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         allowMultiple: false,
         type: FileType.custom,
-        allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+        allowedExtensions: ['jpg', 'jpeg', 'png'],
       );
 
       if (result != null && result.files.isNotEmpty) {
@@ -92,7 +92,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
     if (_validateForm()) {
       if (_selectedFile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Please upload one document'),
             backgroundColor: Colors.orange,
           ),
@@ -190,6 +190,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
               ),
             ),
             const SizedBox(height: 20),
+            
 
             // File upload button - only show if no file is selected
             if (_selectedFile == null)
@@ -245,8 +246,8 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: _pickFile,
-                  icon: Icon(Icons.swap_horiz, color: AppColors.primaryColor),
-                  label: Text(
+                  icon: const Icon(Icons.swap_horiz, color: AppColors.primaryColor),
+                  label: const  Text(
                     "Change File",
                     style: TextStyle(color: AppColors.primaryColor),
                   ),
@@ -270,12 +271,12 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
                 onPressed: _submitForm,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   "Save and continue ->",
                   style: TextStyle(
                     color: Colors.white,

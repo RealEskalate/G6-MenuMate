@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'api_exceptions.dart';
 import 'token_manager.dart';
@@ -52,6 +53,53 @@ Future<Map<String, dynamic>> post(
     throw _handleError(e);
   }
 }
+Future<Map<String, dynamic>> postMultipart(
+  String endpoint, {
+  Map<String, String>? headers,
+  Map<String, String>? body,
+  Map<String, PlatformFile?>? files,
+}) async {
+  try {
+    final uri = Uri.parse('$baseUrl$endpoint');
+
+    final requestHeaders = await _withDefaultHeaders(headers);
+    requestHeaders.remove('Content-Type'); 
+    // multipart sets its own boundary content-type
+
+    var request = http.MultipartRequest('POST', uri);
+    request.headers.addAll(requestHeaders);
+
+    // Add fields
+    if (body != null) {
+      request.fields.addAll(body);
+    }
+
+    // Add files
+    if (files != null) {
+      for (var entry in files.entries) {
+        final fieldName = entry.key;
+        final file = entry.value;
+        if (file != null && file.bytes != null) {
+          request.files.add(
+            http.MultipartFile.fromBytes(
+              fieldName,
+              file.bytes!,
+              filename: file.name,
+            ),
+          );
+        }
+      }
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    return _handleResponse(response);
+  } catch (e) {
+    throw _handleError(e);
+  }
+}
+
   Future<Map<String, String>> _withDefaultHeaders(Map<String, String>? headers) async {
     final defaultHeaders = {
       'Content-Type': 'application/json',

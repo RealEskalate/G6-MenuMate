@@ -22,4 +22,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       body: {'identifier': identifier, 'password': password},
     );
   }
+
+  @override
+  Future<Map<String, dynamic>> createResturant(
+      Map<String, dynamic> Resturantdata) async {
+    return await apiClient.post(ApiEndpoints.resturantdetails,
+        body: Resturantdata);
+  }
 }
