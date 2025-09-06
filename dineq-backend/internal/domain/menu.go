@@ -6,22 +6,22 @@ import (
 )
 
 type Menu struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
+	ID             string    `json:"id"`
+	Name           string    `json:"name"`
 	RestaurantSlug string    `json:"restaurant_slug"`
-	Slug         string    `json:"slug"`
-	Version      int       `json:"version"`
-	IsPublished  bool      `json:"is_published"`
-	PublishedAt  time.Time `json:"published_at"`
-	Tabs         []Tab     `json:"tabs"`
-	Items        []Item
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
-	CreatedBy    string     `json:"created_by"`
-	UpdatedBy    string     `json:"updated_by"`
-	IsDeleted    bool       `json:"is_deleted"`
-	DeletedAt    *time.Time `json:"deleted_at,omitempty"`
-	ViewCount    int        `json:"view_count"`
+	Slug           string    `json:"slug"`
+	Version        int       `json:"version"`
+	IsPublished    bool      `json:"is_published"`
+	PublishedAt    time.Time `json:"published_at"`
+	Tabs           []Tab     `json:"tabs"`
+	Items          []Item
+	CreatedAt      time.Time  `json:"created_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
+	CreatedBy      string     `json:"created_by"`
+	UpdatedBy      string     `json:"updated_by"`
+	IsDeleted      bool       `json:"is_deleted"`
+	DeletedAt      *time.Time `json:"deleted_at,omitempty"`
+	ViewCount      int        `json:"view_count"`
 }
 
 type Tab struct {
@@ -51,6 +51,7 @@ type IMenuUseCase interface {
 	DeleteMenu(id string) error
 	MenuItemUpdate(id string, menuItem *Item) error
 	GetMenuItemBySlug(menuSlug string, itemSlug string) (*Item, error)
+	IncrementMenuViewCount(id string) error
 }
 
 type IMenuRepository interface {
@@ -61,8 +62,5 @@ type IMenuRepository interface {
 	GetByRestaurantID(ctx context.Context, restaurantId string) ([]*Menu, error)
 	IncrementViewCount(ctx context.Context, id string) error
 	MenuItemUpdate(ctx context.Context, slug string, menuItem *Item) error
-	GetBySlug(ctx context.Context, slug string) (*Menu, error)
 	GetMenuItemBySlug(ctx context.Context, menuSlug string, itemSlug string) (*Item, error)
-	PublishMenu(ctx context.Context, id string, userID string) error
-
 }

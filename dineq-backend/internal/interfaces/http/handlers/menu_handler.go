@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
@@ -43,9 +46,45 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 	}
 
 	var menuDto dto.MenuRequest
-	if err := c.ShouldBindJSON(&menuDto); err != nil {
-		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
-		return
+	contentType := c.ContentType()
+	if strings.HasPrefix(contentType, "multipart/form-data") {
+		if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
+			dto.WriteValidationError(c, "form", "failed to parse multipart form", "multipart_parse_failed", err)
+			return
+		}
+		menuDto.Name = c.PostForm("name")
+		menuDto.RestaurantSlug = slug
+		menuDto.Version, _ = strconv.Atoi(c.PostForm("version"))
+		menuDto.IsPublished = c.PostForm("is_published") == "true"
+		// Handle images for menu items
+		formItems := c.PostFormArray("items")
+		for _, itemJson := range formItems {
+			var item dto.ItemRequest
+			if err := json.Unmarshal([]byte(itemJson), &item); err == nil {
+				// Read image files for each item
+				imageHeaders := c.Request.MultipartForm.File[item.Name+"_image"]
+				for _, fh := range imageHeaders {
+					file, err := fh.Open()
+					if err == nil {
+						// You should upload the image and get a URL here
+						// For now, just append the filename
+						item.Image = append(item.Image, fh.Filename)
+						file.Close()
+					}
+				}
+				menuDto.Items = append(menuDto.Items, item)
+			}
+		}
+	} else {
+		if err := c.ShouldBindJSON(&menuDto); err != nil {
+			dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
+			return
+		}
+		// Normalize possible OCR field alias
+		if len(menuDto.Items) == 0 && len(menuDto.MenuItems) > 0 {
+			menuDto.Items = menuDto.MenuItems
+		}
+		menuDto.RestaurantSlug = slug
 	}
 	// Normalize possible OCR field alias
 	if len(menuDto.Items) == 0 && len(menuDto.MenuItems) > 0 {
@@ -56,7 +95,6 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
-
 	menu := dto.RequestToMenu(&menuDto)
 	menu.CreatedBy = userId
 	menu.UpdatedBy = userId // attribute creator
@@ -141,28 +179,28 @@ func (h *MenuHandler) PublishMenu(c *gin.Context) {
 
 // GenerateQRCode generates a QR code for a menu
 func (h *MenuHandler) GenerateQRCode(c *gin.Context) {
-  restaurantID := c.Param("restaurant_slug")
-  menuID := c.Param("id")
+	restaurantID := c.Param("restaurant_slug")
+	menuID := c.Param("id")
 
-  var req dto.QRCodeRequest
-  if err := c.ShouldBindJSON(&req); err != nil {
-    dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
-    return
-  }
+	var req dto.QRCodeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
+		return
+	}
 
-  qrCodeRequest := dto.DTOToQRCodeRequest(&req)
+	qrCodeRequest := dto.DTOToQRCodeRequest(&req)
 
-  qrCode, err := h.UseCase.GenerateQRCode(restaurantID, menuID, qrCodeRequest)
-  if err != nil {
-    dto.WriteError(c, err)
-    return
-  }
-  if err := h.QrUseCase.CreateQRCode(qrCode); err != nil {
-    dto.WriteError(c, err)
-    return
-  }
+	qrCode, err := h.UseCase.GenerateQRCode(restaurantID, menuID, qrCodeRequest)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+	if err := h.QrUseCase.CreateQRCode(qrCode); err != nil {
+		dto.WriteError(c, err)
+		return
+	}
 
-  c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgCreated, Data: gin.H{"qr_code": dto.DomainToQRCodeResponse(qrCode)}})
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgCreated, Data: gin.H{"qr_code": dto.DomainToQRCodeResponse(qrCode)}})
 }
 
 // DeleteMenu marks a menu as deleted
@@ -223,14 +261,55 @@ func (h *MenuHandler) MenuItemUpdate(c *gin.Context) {
 
 // GetMenuItemBySlug retrieves a menu item by its slug
 func (h *MenuHandler) GetMenuItemBySlug(c *gin.Context) {
-	restaurantSlug := c.Param("restaurant_slug")
+	_ = c.Param("restaurant_slug")
 	menuSlug := c.Param("menu_slug")
 	itemSlug := c.Param("item_slug")
 
-	item, err := h.UseCase.GetMenuItemBySlug(restaurantSlug, menuSlug, itemSlug)
+	item, err := h.UseCase.GetMenuItemBySlug(menuSlug, itemSlug)
 	if err != nil {
 		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"item": dto.ItemToResponse(item)}})
+}
+
+// PublicGetPublishedMenus lists published menus for a restaurant (by slug) without auth.
+func (h *MenuHandler) PublicGetPublishedMenus(c *gin.Context) {
+	restSlug := c.Param("restaurant_slug")
+	menus, err := h.UseCase.GetByRestaurantID(restSlug)
+	if err != nil || len(menus) == 0 {
+		dto.WriteError(c, domain.ErrNotFound)
+		return
+	}
+	// filter only published
+	var published []*domain.Menu
+	for _, m := range menus {
+		if m.IsPublished && !m.IsDeleted {
+			published = append(published, m)
+		}
+	}
+	if len(published) == 0 {
+		dto.WriteError(c, domain.ErrNotFound)
+		return
+	}
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menus": dto.MenuResponseList(published)}})
+}
+
+// PublicGetPublishedMenuByID returns a single published menu & increments view count.
+func (h *MenuHandler) PublicGetPublishedMenuByID(c *gin.Context) {
+	restSlug := c.Param("restaurant_slug")
+	menuID := c.Param("id")
+	menu, err := h.UseCase.GetByID(menuID)
+	if err != nil || menu == nil || menu.IsDeleted || !menu.IsPublished {
+		dto.WriteError(c, domain.ErrNotFound)
+		return
+	}
+	// best-effort guard: ensure requested restaurant matches
+	if strings.TrimSpace(restSlug) != "" && strings.TrimSpace(menu.RestaurantSlug) != "" && restSlug != menu.RestaurantSlug {
+		// allow either slug or id style match; if mismatch, hide existence
+		dto.WriteError(c, domain.ErrNotFound)
+		return
+	}
+	_ = h.UseCase.IncrementMenuViewCount(menuID) // best-effort
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menu": dto.MenuToResponse(menu)}})
 }

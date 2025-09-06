@@ -226,3 +226,31 @@ func (r *MenuRepository) MenuItemUpdate(ctx context.Context, itemSlug string, me
 	_, err := r.database.Collection(r.coll).UpdateOne(ctx, filter, update)
 	return err
 }
+
+// get menu item by slug
+func (r *MenuRepository) GetMenuItemBySlug(ctx context.Context, menuSlug string, itemSlug string) (*domain.Item, error) {
+	filter := bson.M{
+		"slug": menuSlug,
+		"items": bson.M{
+			"$elemMatch": bson.M{
+				"slug":      itemSlug,
+				"isDeleted": false,
+			},
+		},
+	}
+
+	var dbMenu mapper.MenuDB
+	err := r.database.Collection(r.coll).FindOne(ctx, filter).Decode(&dbMenu)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, dbItem := range dbMenu.Items {
+		if dbItem.Slug == itemSlug && !dbItem.IsDeleted {
+			item := mapper.ToDomainItem(&dbItem)
+			return item, nil
+		}
+	}
+
+	return nil, mongo.ErrNoDocuments()
+}

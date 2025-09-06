@@ -40,12 +40,22 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 
 	menuHandler := handler.NewMenuHandler(menuUsecase, qrUsecase, restaurantUsecase, notifUc)
 
+	// Public (unauthenticated) menu routes - only expose published menus
+	public := group.Group("/public/menus")
+	{
+		public.GET("/:restaurant_slug", menuHandler.PublicGetPublishedMenus)
+		public.GET("/:restaurant_slug/:id", menuHandler.PublicGetPublishedMenuByID)
+	}
+
+	// Also provide public read endpoints under standard path for convenience (no auth)
+	group.GET("/menus/:restaurant_slug", menuHandler.PublicGetPublishedMenus)
+	group.GET("/menus/:restaurant_slug/:id", menuHandler.PublicGetPublishedMenuByID)
+
 	protected := group.Group("/menus")
 	protected.Use(middleware.AuthMiddleware(*env))
 	protected.Use(middleware.ManagerAndOwnerOnly())
 	{
-		protected.GET("/:restaurant_slug", menuHandler.GetMenus)
-		protected.GET("/:restaurant_slug/:id", menuHandler.GetMenuByID)
+		// Authenticated endpoints for managing menus
 		protected.POST("/:restaurant_slug", menuHandler.CreateMenu)
 		protected.PATCH("/:restaurant_slug/:id", menuHandler.UpdateMenu)
 		protected.DELETE("/:restaurant_slug/:id", menuHandler.DeleteMenu)
