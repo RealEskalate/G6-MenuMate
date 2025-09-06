@@ -51,6 +51,9 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 		protected.DELETE("/:restaurant_slug/:id", menuHandler.DeleteMenu)
 		protected.POST("/:restaurant_slug/qrcode/:id", menuHandler.GenerateQRCode)
 		protected.POST("/:restaurant_slug/publish/:id", menuHandler.PublishMenu)
+		protected.PATCH("/:menu_slug/item", menuHandler.MenuItemUpdate)
+		protected.GET("/:restaurant_slug/:menu_slug/:item_slug", menuHandler.GetMenuItemBySlug)
+
 	}
 
 }

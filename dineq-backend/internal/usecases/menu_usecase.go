@@ -28,7 +28,7 @@ func (uc *MenuUseCase) CreateMenu(menu *domain.Menu) error {
 	// Build slug from menu name (ensure contains word 'menu') plus short uuid fragment for uniqueness
 	name := strings.TrimSpace(menu.Name)
 	if name == "" {
-		name = menu.RestaurantID + " menu"
+		name = menu.RestaurantSlug + " menu"
 	}
 	lowerName := strings.ToLower(name)
 	if !strings.Contains(lowerName, "menu") {
@@ -185,7 +185,7 @@ func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *d
   defer cancel()
 
   // find menu with restaurantId
-  menu, err := uc.menuRepo.GetByID(ctx, menuId)
+  menu, err := uc.menuRepo.GetBySlug(ctx, menuId)
   if err != nil {
     return nil, err
   }
@@ -226,4 +226,11 @@ func (uc *MenuUseCase) GetByID(id string) (*domain.Menu, error) {
 	defer cancel()
 
 	return uc.menuRepo.GetByID(ctx, id)
+}
+
+func (uc *MenuUseCase) MenuItemUpdate(slug string, menuItem *domain.Item) error {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
+	defer cancel()
+
+	return uc.menuRepo.MenuItemUpdate(ctx, slug, menuItem)
 }
