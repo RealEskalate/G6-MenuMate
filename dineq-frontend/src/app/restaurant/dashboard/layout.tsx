@@ -5,14 +5,18 @@ import Sidebar from "@/components/restaurant/SideBar";
 import Navbar from "@/components/common/NavBar";
 import { useSession } from "next-auth/react";
 import { useRestaurant } from "@/hooks/useRestaurant";
-import { MenuProvider } from "@/context/MenuOcrContext"; 
+import { MenuProvider } from "@/context/MenuOcrContext";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { data: session, status } = useSession();
   const { data, isLoading, error } = useRestaurant(session?.accessToken);
 
   const restaurant = data;
-  console.log(data)
+  console.log(data);
 
   return (
     <MenuProvider>

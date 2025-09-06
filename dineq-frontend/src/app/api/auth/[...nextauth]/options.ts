@@ -1,4 +1,3 @@
-
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
 
@@ -28,14 +27,14 @@ export const options: NextAuthOptions = {
         }
 
         try {
-        const res = await fetch(`${API_URL}/auth/login`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    identifier: credentials.identifier,
-    password: credentials.password,
-  }),
-})
+          const res = await fetch(`${API_URL}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              identifier: credentials.identifier,
+              password: credentials.password,
+            }),
+          });
 
           const result = await res.json();
           console.log("Authorize response:", result);
@@ -49,11 +48,11 @@ export const options: NextAuthOptions = {
               lastName: result.user.last_name,
               role: result.user.role,
               accessToken: result.tokens.access_token,
-              refreshToken: result.tokens.refresh_token ,
+              refreshToken: result.tokens.refresh_token,
             };
           }
 
-          throw new Error(result.message ||"Invalid email or password");
+          throw new Error(result.message || "Invalid email or password");
         } catch (err) {
           console.error("Login error:", err);
           throw new Error("Authentication failed");
@@ -105,10 +104,7 @@ export const options: NextAuthOptions = {
         token.exp = Math.floor(Date.now() / 1000) + 15 * 60; // 15 min
       }
 
-      if (
-        trigger === "update"  &&
-        (token.exp && Date.now() > token.exp * 1000)
-      ) {
+      if (trigger === "update" && token.exp && Date.now() > token.exp * 1000) {
         console.log("Refreshing token...", {
           exp: token.exp,
           currentTime: Math.floor(Date.now() / 1000),
@@ -118,13 +114,13 @@ export const options: NextAuthOptions = {
           if (!token.refreshToken) {
             throw new Error("No refresh token available");
           }
-        const res = await fetch(`${API_URL}/auth/refresh`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ refresh_token: token.refreshToken }),
-});
+          const res = await fetch(`${API_URL}/auth/refresh`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ refresh_token: token.refreshToken }),
+          });
           const result = await res.json();
-if (res.ok && result?.tokens?.access_token) {
+          if (res.ok && result?.tokens?.access_token) {
             token.accessToken = result.tokens.access_token;
             token.exp = Math.floor(Date.now() / 1000) + 15 * 60;
             delete token.error;
@@ -153,12 +149,20 @@ if (res.ok && result?.tokens?.access_token) {
 
       return session;
     },
-  
+    // async redirect({ url, baseUrl }) {
+    //   console.log("Redirect callback:", { url, baseUrl });
+    //   if (url.includes("/api/auth/callback")) {
+    //     const targetUrl = `http://localhost:3000/dashboard/menu`;
+    //     console.log("Constructed redirect URL:", targetUrl);
+    //     return targetUrl;
+    //   }
+    //   return url;
+    // },
     async redirect({ url, baseUrl }) {
       // If it’s an internal callback, just go to the dashboard
-     if (url.startsWith(baseUrl)) {
-  return `${baseUrl}`;
-}
+      if (url.startsWith(baseUrl)) {
+        return `${baseUrl}`;
+      }
       return baseUrl;
     },
   },

@@ -34,7 +34,7 @@ interface NutritionalInfo {
 
 export interface MenuItem {
   name: string;
-  name_am?: string|"";
+  name_am?: string | "";
   image: string | File | null;
   price: number | string;
   currency?: string;
@@ -464,7 +464,6 @@ const ManualMenu = () => {
                           }
                         />
                       </div>
-                   
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
@@ -520,7 +519,7 @@ const ManualMenu = () => {
                         rows={3}
                       />
                     </div>
-                   
+
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor={`itemAllergies-${sIndex}-${iIndex}`}>
@@ -541,7 +540,6 @@ const ManualMenu = () => {
                           }
                         />
                       </div>
-                    
                     </div>
                     <div>
                       <Label htmlFor={`itemPrepTime-${sIndex}-${iIndex}`}>
@@ -581,7 +579,7 @@ const ManualMenu = () => {
                         rows={3}
                       />
                     </div>
-                   
+
                     <div>
                       <Label htmlFor={`itemVoiceUrl-${sIndex}-${iIndex}`}>
                         Voice URL
@@ -786,7 +784,6 @@ const ManualMenu = () => {
                     </div>
 
                     {/* Tab Tags Amharic */}
-                 
 
                     {/* Image Upload */}
                     <div>

@@ -1,8 +1,8 @@
-// tailwind.config.js
-module.exports = {
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx}", // adjust if needed
-  ],
+// tailwind.config.ts
+import type { Config } from "tailwindcss";
+
+export default {
+  // The 'content' property is not needed in Tailwind v4
   theme: {
     extend: {
       keyframes: {
@@ -17,4 +17,4 @@ module.exports = {
     },
   },
   plugins: [],
-};
+} satisfies Config;
