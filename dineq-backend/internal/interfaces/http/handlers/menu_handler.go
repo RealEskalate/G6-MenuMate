@@ -215,3 +215,37 @@ func (h *MenuHandler) GetMenuByID(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menu": dto.MenuToResponse(menu)}})
 }
+
+// PublicGetPublishedMenus lists published menus for a restaurant (by slug) without auth.
+func (h *MenuHandler) PublicGetPublishedMenus(c *gin.Context) {
+	restSlug := c.Param("restaurant_slug")
+	menus, err := h.UseCase.GetByRestaurantID(restSlug)
+	if err != nil || len(menus) == 0 {
+		dto.WriteError(c, domain.ErrNotFound)
+		return
+	}
+	// filter only published
+	var published []*domain.Menu
+	for _, m := range menus { if m.IsPublished && !m.IsDeleted { published = append(published, m) } }
+	if len(published) == 0 { dto.WriteError(c, domain.ErrNotFound); return }
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menus": dto.MenuResponseList(published)}})
+}
+
+// PublicGetPublishedMenuByID returns a single published menu & increments view count.
+func (h *MenuHandler) PublicGetPublishedMenuByID(c *gin.Context) {
+	restSlug := c.Param("restaurant_slug")
+	menuID := c.Param("id")
+	menu, err := h.UseCase.GetByID(menuID)
+	if err != nil || menu == nil || menu.IsDeleted || !menu.IsPublished {
+		dto.WriteError(c, domain.ErrNotFound)
+		return
+	}
+	// best-effort guard: ensure requested restaurant matches
+	if strings.TrimSpace(restSlug) != "" && strings.TrimSpace(menu.RestaurantID) != "" && restSlug != menu.RestaurantID {
+		// allow either slug or id style match; if mismatch, hide existence
+		dto.WriteError(c, domain.ErrNotFound)
+		return
+	}
+	_ = h.UseCase.IncrementMenuViewCount(menuID) // best-effort
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menu": dto.MenuToResponse(menu)}})
+}

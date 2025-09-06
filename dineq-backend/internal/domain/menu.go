@@ -49,6 +49,7 @@ type IMenuUseCase interface {
 	GetByRestaurantID(id string) ([]*Menu, error)
 	GenerateQRCode(restaurantID string, menuId string, req *QRCodeRequest) (*QRCode, error)
 	DeleteMenu(id string) error
+	IncrementMenuViewCount(id string) error
 }
 
 type IMenuRepository interface {

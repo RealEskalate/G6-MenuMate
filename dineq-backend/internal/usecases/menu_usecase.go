@@ -196,3 +196,9 @@ func (uc *MenuUseCase) GetByID(id string) (*domain.Menu, error) {
 
 	return uc.menuRepo.GetByID(ctx, id)
 }
+
+func (uc *MenuUseCase) IncrementMenuViewCount(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
+	defer cancel()
+	return uc.menuRepo.IncrementViewCount(ctx, id)
+}
