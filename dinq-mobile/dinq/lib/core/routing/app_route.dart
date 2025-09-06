@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../features/dinq/auth/presentation/Pages/login_page.dart';
 import '../../features/dinq/auth/presentation/Pages/onboarding_first.dart';
+import '../../features/dinq/auth/presentation/Pages/verify_page.dart';
 import '../../features/dinq/qr_scanner/pages/qr_scanner_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/analytics_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/billing_page.dart';
@@ -60,9 +61,12 @@ class AppRoute {
   static const String digitizeMenu = '/digitize-menu';
   static const String editMenuItem = '/edit-menu-item';
   static const String login = '/login';
+  static const String verfy = '/verify';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case verfy:
+        return MaterialPageRoute(builder: (_) => const VerifyPage());
       case login:
         return MaterialPageRoute(builder: (_) => const LoginPage());
       case onboarding:
