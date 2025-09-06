@@ -345,7 +345,7 @@ class _MangerRegistrationState extends State<MangerRegistration>
                         const SizedBox(width: 8),
                         Expanded(
                           child: RichText(
-                            text: TextSpan(
+                            text: const TextSpan(
                               children: [
                                 TextSpan(
                                   text: "I agree to the ",
@@ -424,7 +424,7 @@ class _MangerRegistrationState extends State<MangerRegistration>
                           thickness: 1,
                         ),
                       ),
-                      Padding(
+                      const Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
                         child: Text(
                           "or",

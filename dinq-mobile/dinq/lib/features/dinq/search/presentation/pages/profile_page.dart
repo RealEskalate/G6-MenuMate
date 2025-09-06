@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../../../core/network/token_manager.dart';
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
@@ -73,6 +74,14 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _logout(BuildContext context) async {
+    // 1. Clear tokens
+    await TokenManager.clearTokens();
+
+    // 2. Navigate to login page
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,7 +94,6 @@ class _ProfilePageState extends State<ProfilePage> {
           'Profile',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-
         centerTitle: true,
         actions: [
           IconButton(
@@ -180,7 +188,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Colors.grey,
                   ),
                   onTap: () {
-                    // TODO: Implement change password
+                    
                   },
                 ),
                 const Divider(
@@ -197,8 +205,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  onTap: () {
-                    // TODO: Implement sign out
+                  onTap: () async {
+                    await _logout(context);
                   },
                 ),
               ],
@@ -233,7 +241,6 @@ class _ProfilePageState extends State<ProfilePage> {
         currentIndex: 2,
         isRestaurantOwner: true,
       ),
-      
     );
   }
 }
