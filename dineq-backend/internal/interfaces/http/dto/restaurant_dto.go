@@ -210,3 +210,22 @@ func ToRestaurantResponseList(restaurants []*domain.Restaurant) []*RestaurantRes
 type LocationDTO struct {
 	Coordinates [2]float64 `json:"coordinates"`
 }
+
+// populate schedule on create with default valuess
+func DefaultSchedule() []ScheduleDTO {
+	days := []string{
+		"monday", "tuesday", "wednesday",
+		"thursday", "friday", "saturday", "sunday",
+	}
+
+	schedules := make([]ScheduleDTO, 0, len(days))
+	for _, d := range days {
+		schedules = append(schedules, ScheduleDTO{
+			Day:       d,
+			IsOpen:    false,
+			StartTime: "00:00",
+			EndTime:   "22:00",
+		})
+	}
+	return schedules
+}
