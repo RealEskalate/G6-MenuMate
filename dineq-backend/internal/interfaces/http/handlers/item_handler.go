@@ -71,10 +71,10 @@ func (h *ItemHandler) UpdateItem(c *gin.Context) {
 		return
 	}
 
-	if err := validate.Struct(&itemDto); err != nil {
-		dto.WriteValidationError(c, "payload", domain.ErrInvalidInput.Error(), "invalid_input", err)
-		return
-	}
+	// if err := validate.Struct(&itemDto); err != nil {
+	// 	dto.WriteValidationError(c, "payload", domain.ErrInvalidInput.Error(), "invalid_input", err)
+	// 	return
+	// }
 	item := dto.RequestToItem(&itemDto)
 	if err := h.UseCase.UpdateItem(id, item); err != nil {
 		dto.WriteError(c, err)
