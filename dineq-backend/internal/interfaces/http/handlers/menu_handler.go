@@ -53,7 +53,7 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 			return
 		}
 		menuDto.Name = c.PostForm("name")
-		menuDto.RestaurantID = slug
+		menuDto.RestaurantSlug = slug
 		menuDto.Version, _ = strconv.Atoi(c.PostForm("version"))
 		menuDto.IsPublished = c.PostForm("is_published") == "true"
 		// Handle images for menu items
@@ -84,8 +84,13 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 		if len(menuDto.Items) == 0 && len(menuDto.MenuItems) > 0 {
 			menuDto.Items = menuDto.MenuItems
 		}
-		menuDto.RestaurantID = slug
+		menuDto.RestaurantSlug = slug
 	}
+	// Normalize possible OCR field alias
+	if len(menuDto.Items) == 0 && len(menuDto.MenuItems) > 0 {
+		menuDto.Items = menuDto.MenuItems
+	}
+	menuDto.RestaurantSlug = slug
 	if err := validate.Struct(menuDto); err != nil {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
@@ -126,7 +131,7 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
-	menuDto.RestaurantID = slug
+	menuDto.RestaurantSlug = slug
 	if menuDto.Name == "" && len(menuDto.Items) == 0 && len(menuDto.MenuItems) == 0 {
 		dto.WriteValidationError(c, "payload", "nothing to update", "invalid_request", nil)
 		return
@@ -174,28 +179,28 @@ func (h *MenuHandler) PublishMenu(c *gin.Context) {
 
 // GenerateQRCode generates a QR code for a menu
 func (h *MenuHandler) GenerateQRCode(c *gin.Context) {
-  restaurantID := c.Param("restaurant_slug")
-  menuID := c.Param("id")
+	restaurantID := c.Param("restaurant_slug")
+	menuID := c.Param("id")
 
-  var req dto.QRCodeRequest
-  if err := c.ShouldBindJSON(&req); err != nil {
-    dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
-    return
-  }
+	var req dto.QRCodeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
+		return
+	}
 
-  qrCodeRequest := dto.DTOToQRCodeRequest(&req)
+	qrCodeRequest := dto.DTOToQRCodeRequest(&req)
 
-  qrCode, err := h.UseCase.GenerateQRCode(restaurantID, menuID, qrCodeRequest)
-  if err != nil {
-    dto.WriteError(c, err)
-    return
-  }
-  if err := h.QrUseCase.CreateQRCode(qrCode); err != nil {
-    dto.WriteError(c, err)
-    return
-  }
+	qrCode, err := h.UseCase.GenerateQRCode(restaurantID, menuID, qrCodeRequest)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+	if err := h.QrUseCase.CreateQRCode(qrCode); err != nil {
+		dto.WriteError(c, err)
+		return
+	}
 
-  c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgCreated, Data: gin.H{"qr_code": dto.DomainToQRCodeResponse(qrCode)}})
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgCreated, Data: gin.H{"qr_code": dto.DomainToQRCodeResponse(qrCode)}})
 }
 
 // DeleteMenu marks a menu as deleted
@@ -226,6 +231,48 @@ func (h *MenuHandler) GetMenuByID(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menu": dto.MenuToResponse(menu)}})
 }
 
+// MenuItemUpdate updates a specific menu item within a menu
+func (h *MenuHandler) MenuItemUpdate(c *gin.Context) {
+	restaurantSlug := c.Param("restaurant_slug")
+	userID := c.GetString("user_id")
+	menuSlug := c.Param("menu_slug")
+
+	if !h.ensureOwnership(c, restaurantSlug, userID) {
+		return
+	}
+
+	var itemDto dto.ItemRequest
+	if err := c.ShouldBindJSON(&itemDto); err != nil {
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
+		return
+	}
+	if itemDto.Name == "" && itemDto.Description == "" && itemDto.Price == 0 {
+		dto.WriteValidationError(c, "payload", "nothing to update", "invalid_request", nil)
+		return
+	}
+	item := dto.RequestToItem(&itemDto)
+	if err := h.UseCase.MenuItemUpdate(menuSlug, item); err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgUpdated, Data: gin.H{"item": dto.ItemToResponse(item)}})
+}
+
+// GetMenuItemBySlug retrieves a menu item by its slug
+func (h *MenuHandler) GetMenuItemBySlug(c *gin.Context) {
+	_ = c.Param("restaurant_slug")
+	menuSlug := c.Param("menu_slug")
+	itemSlug := c.Param("item_slug")
+
+	item, err := h.UseCase.GetMenuItemBySlug(menuSlug, itemSlug)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"item": dto.ItemToResponse(item)}})
+}
+
 // PublicGetPublishedMenus lists published menus for a restaurant (by slug) without auth.
 func (h *MenuHandler) PublicGetPublishedMenus(c *gin.Context) {
 	restSlug := c.Param("restaurant_slug")
@@ -236,8 +283,15 @@ func (h *MenuHandler) PublicGetPublishedMenus(c *gin.Context) {
 	}
 	// filter only published
 	var published []*domain.Menu
-	for _, m := range menus { if m.IsPublished && !m.IsDeleted { published = append(published, m) } }
-	if len(published) == 0 { dto.WriteError(c, domain.ErrNotFound); return }
+	for _, m := range menus {
+		if m.IsPublished && !m.IsDeleted {
+			published = append(published, m)
+		}
+	}
+	if len(published) == 0 {
+		dto.WriteError(c, domain.ErrNotFound)
+		return
+	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menus": dto.MenuResponseList(published)}})
 }
 
@@ -251,7 +305,7 @@ func (h *MenuHandler) PublicGetPublishedMenuByID(c *gin.Context) {
 		return
 	}
 	// best-effort guard: ensure requested restaurant matches
-	if strings.TrimSpace(restSlug) != "" && strings.TrimSpace(menu.RestaurantID) != "" && restSlug != menu.RestaurantID {
+	if strings.TrimSpace(restSlug) != "" && strings.TrimSpace(menu.RestaurantSlug) != "" && restSlug != menu.RestaurantSlug {
 		// allow either slug or id style match; if mismatch, hide existence
 		dto.WriteError(c, domain.ErrNotFound)
 		return

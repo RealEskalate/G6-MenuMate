@@ -129,6 +129,8 @@ type Env struct {
 	// reset password session expiry
 	PasswordResetSessionExpiry     int    `mapstructure:"PASSWORD_RESET_SESSION_EXPIRE_MINUTES"` // in minutes
 	PasswordResetSessionCollection string `mapstructure:"PASSWORD_RESET_SESSION_COLLECTION"`
+
+
 }
 
 // Viper can be made injectable
