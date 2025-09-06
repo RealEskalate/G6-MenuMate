@@ -198,8 +198,8 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
                 height: 200,
                 child: OutlinedButton.icon(
                   onPressed: _pickFile,
-                  icon: Icon(Icons.upload_file, color: AppColors.primaryColor),
-                  label: Text(
+                  icon: const Icon(Icons.upload_file, color: AppColors.primaryColor),
+                  label: const Text(
                     "Browse File",
                     style: TextStyle(color: AppColors.primaryColor),
                   ),
@@ -228,7 +228,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
 
             // Show selected file if one is chosen
             if (_selectedFile != null) ...[
-              Text(
+              const Text(
                 "Selected Document:",
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
