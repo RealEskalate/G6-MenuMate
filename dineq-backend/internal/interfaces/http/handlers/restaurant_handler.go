@@ -70,6 +70,7 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 
 	r := &domain.Restaurant{
 		ManagerID: manager,
+		Schedule:  dto.ToDomainSchedule(dto.DefaultSchedule()),
 	}
 
 	// Required field
@@ -115,24 +116,6 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 		r.Tags = tags
 	}
 
-	if scheduleStr := c.PostForm("schedule"); scheduleStr != "" {
-		var schedules []dto.ScheduleDTO
-		if err := json.Unmarshal([]byte(scheduleStr), &schedules); err != nil {
-			fmt.Println("Schedule :", scheduleStr, "\n", schedules)
-			dto.WriteValidationError(c, "schedule", "invalid schedule format", "invalid_schedule", err)
-			return
-		}
-		r.Schedule = dto.ToDomainSchedule(schedules)
-	}
-
-	if specialsStr := c.PostForm("special_days"); specialsStr != "" {
-		var specials []dto.SpecialDayDTO
-		if err := json.Unmarshal([]byte(specialsStr), &specials); err != nil {
-			dto.WriteValidationError(c, "special_days", "invalid special_days format", "invalid_special_days", err)
-			return
-		}
-		r.SpecialDays = dto.ToDomainSpecialDay(specials)
-	}
 	// Read optional files
 	files := make(map[string][]byte)
 	for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
