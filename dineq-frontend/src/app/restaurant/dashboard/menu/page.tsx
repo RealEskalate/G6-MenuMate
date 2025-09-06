@@ -9,6 +9,10 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useMenus } from "@/hooks/useMenu";
 import { useRestaurant } from "@/hooks/useRestaurant"
+import MenuCardSkeleton from "@/components/restaurant/skeletons/MenuEditorSkeleton";
+import { useQrCode } from "@/hooks/useQrCode";
+import MenuCard from "@/components/restaurant/menu/MenuCard";
+
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -29,7 +33,20 @@ export default function Dashboard() {
     token
   );
   console.log("menus:", menus)
-  if (isLoadingRestaurant || isLoadingMenus) return <div>Loading...</div>;
+
+  const { data: qrImageUrl } = useQrCode(restaurantSlug!, token!);
+
+  
+  if (isLoadingRestaurant || isLoadingMenus) {
+  return (
+    <div className="flex flex-col md:flex-row gap-6 p-6">
+      {[...Array(1)].map((_, i) => (
+        <MenuCardSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
+
 
   return (
     <div>
@@ -50,79 +67,10 @@ export default function Dashboard() {
           {/* Menu cards */}
           <div className="flex flex-col md:flex-row gap-6">
             {menus?.map((menu) => (
+              <MenuCard key={menu.id} menu={menu} token={token!}
+              restaurantSlug={restaurantSlug!}
+               />
               
-              <div
-                key={menu.id}
-                className="relative w-full md:w-96 bg-white text-black rounded-xl border border-orange-400 p-4 shadow-md"
-              >
-                {/* Status + Delete */}
-                <div className="flex justify-between mb-2">
-                  <span className="font-bold text-xl">{menu.name}</span>
-                  <div className="flex space-x-4">
-                    <span className="bg-orange-100 text-orange-600 text-sm px-3 py-1 rounded-lg flex items-center gap-1">
-                      <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                      {menu.is_published ? "Published" : "Draft"}
-                    </span>
-                    <button className="text-red-500 hover:text-red-700">
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="text-gray-800 text-[12px]">
-                  Created {new Date(menu.created_at).toDateString()} - Updated{" "}
-                  {new Date(menu.updated_at).toDateString()}
-                </div>
-
-                {/* Empty boxes */}
-                <div className="flex justify-between mt-6">
-                  <div className="
-                  space-y-2">
-                    <div className="flex space-x-3 space-y-2">
-                      <div className="py-3 px-5 border border-orange-400 rounded-md">
-                        <div className="text-[16px] text-gray-600">Items</div>
-                        <div className="font-normal">
-                          {menu.items.length} Dishes
-                        </div>
-                      </div>
-                    
-                    </div>
-                    <div className="py-3 px-5 border border-orange-400 rounded-md ">
-                      <div className="text-[16px] text-gray-600">
-                        Avg rating
-                      </div>
-                      <div className="font-medium">4.3</div>
-                    </div>
-                  </div>
-                  <div>
-                    <Image
-                      src="/Vector.png"
-                      alt="Menu Image"
-                      width={150}
-                      height={100}
-                      className="pt-6 pr-1"
-                    />
-                  </div>
-                </div>
-
-                {/* Buttons */}
-                <div className="flex justify-between mt-6">
-                  <button className="border border-[#FD7E14] bg-white text-[#FD7E14] px-4 py-2 rounded-md hover:bg-gray-100 font-semibold">
-                    Manage QR
-                  </button>
-                  <Link href={`/restaurant/dashboard/menu/${menu.id}`}>
-                    <button className="bg-[#FD7E14] text-white px-4 py-2 rounded-md hover:bg-orange-600 flex items-center gap-1">
-                      <Image
-                        src="/icons/edit.png"
-                        alt="Edit Icon"
-                        width={16}
-                        height={16}
-                      />
-                      Edit Menu
-                    </button>
-                  </Link>
-                </div>
-              </div>
             ))}
           </div>
         </main>
