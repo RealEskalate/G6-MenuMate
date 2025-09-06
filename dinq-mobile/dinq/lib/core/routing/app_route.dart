@@ -1,3 +1,4 @@
+import '../../features/dinq/search/presentation/pages/restaurant_page.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/dinq/auth/presentation/Pages/onboarding_first.dart';
@@ -61,7 +62,7 @@ class AppRoute {
     switch (settings.name) {
       // Search routes
       case onboarding:
-         return MaterialPageRoute(builder: (_) => const OnboardingFirst());
+        return MaterialPageRoute(builder: (_) => const OnboardingFirst());
       case explore:
         return MaterialPageRoute(builder: (_) => const HomePage());
       // case favorites:
@@ -77,16 +78,16 @@ class AppRoute {
       //   final args = settings.arguments as Map<String, dynamic>? ?? {};
       //   final item = args['item'];
       //   return MaterialPageRoute(builder: (_) => ItemDetailsPage(item: item));
-      // case restaurant:
-      //   final args = settings.arguments as Map<String, dynamic>? ?? {};
-      //   final restaurant = args['restaurant']; 
-      //   final menu = args['menu'];
-      //   return MaterialPageRoute(
-      //     builder: (_) => RestaurantPage(
-      //       restaurant: restaurant,
-      //       menu: menu,
-      //     ),
-      //   );
+      case restaurant:
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final restaurant = args['restaurant'];
+        final menu = args['menu'];
+        return MaterialPageRoute(
+          builder: (_) => RestaurantPage(
+            restaurant: restaurant,
+            menu: menu,
+          ),
+        );
       case scannedMenu:
         return MaterialPageRoute(builder: (_) => const ScannedMenuPage());
       case profile:

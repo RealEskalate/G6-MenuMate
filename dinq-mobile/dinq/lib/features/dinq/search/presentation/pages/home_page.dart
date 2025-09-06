@@ -10,10 +10,8 @@ import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../widgets/nearby_restaurant_card.dart';
 import '../widgets/popular_dish_card.dart';
 
-
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +95,7 @@ class HomePage extends StatelessWidget {
                     builder: (context, state) {
                       if (state is RestaurantLoading) {
                         return const Center(child: CircularProgressIndicator());
-                      } else if (state is RestaurantsLoaded) {  
+                      } else if (state is RestaurantsLoaded) {
                         return SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
@@ -112,26 +110,41 @@ class HomePage extends StatelessWidget {
                                 final first = restaurants.first;
                                 final List<Widget> widgets = [];
 
-                                // Collect menu items from a few possible shapes (robust to different models)
-                                final List<dynamic> menuItems = [];
-                                final menus = (first as dynamic).menus ?? (first as dynamic).menu;
-                                if (menus is List) {
-                                  for (final m in menus) {
-                                    final items = (m as dynamic).items ?? (m as dynamic).menuItems;
-                                    if (items is List) {
-                                      menuItems.addAll(items);
+                                // Only try to get menu items if the property exists
+                                List<dynamic> menuItems = [];
+                                try {
+                                  if ((first as dynamic).menus != null &&
+                                      (first as dynamic).menus is List) {
+                                    for (final m in (first as dynamic).menus) {
+                                      if (m != null &&
+                                          (m as dynamic).items != null &&
+                                          (m as dynamic).items is List) {
+                                        menuItems.addAll((m as dynamic).items);
+                                      }
+                                    }
+                                  } else if ((first as dynamic).menu != null &&
+                                      (first as dynamic).menu is List) {
+                                    for (final m in (first as dynamic).menu) {
+                                      if (m != null &&
+                                          (m as dynamic).items != null &&
+                                          (m as dynamic).items is List) {
+                                        menuItems.addAll((m as dynamic).items);
+                                      }
                                     }
                                   }
+                                } catch (e) {
+                                  // If property doesn't exist, do nothing
                                 }
 
                                 if (menuItems.isEmpty) {
                                   widgets.add(const SizedBox(width: 8));
-                                  widgets.add(const Center(child: Text('No popular dishes yet.')));
+                                  widgets.add(const Center(
+                                      child: Text('No popular dishes yet.')));
                                   return widgets;
                                 }
 
-                                // Map each menu item to a PopularDishCard
-                                widgets.addAll(menuItems.map((item) => PopularDishCard(item: item)));
+                                widgets.addAll(menuItems.map(
+                                    (item) => PopularDishCard(item: item)));
                                 return widgets;
                               })(),
                             ],
