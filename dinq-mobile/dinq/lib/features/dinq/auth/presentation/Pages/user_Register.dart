@@ -319,7 +319,7 @@ class _UserRegisterState extends State<UserRegister>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
+                        const Text(
                           "Already have an account?",
                           style: TextStyle(
                             color: AppColors.secondaryColor,
@@ -337,7 +337,7 @@ class _UserRegisterState extends State<UserRegister>
                               ),
                             );
                           },
-                          child: Text(
+                          child: const Text(
                             "Login",
                             style: TextStyle(
                               color: AppColors.primaryColor,
@@ -406,7 +406,7 @@ class _UserRegisterState extends State<UserRegister>
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: const [
                             Icon(

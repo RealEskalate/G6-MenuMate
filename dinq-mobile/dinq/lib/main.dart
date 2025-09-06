@@ -1,5 +1,5 @@
 // main.dart - CORRECTED
-import 'package:dinq/features/dinq/auth/presentation/Pages/email_verfiction.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/email_verfyfication.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/verify_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

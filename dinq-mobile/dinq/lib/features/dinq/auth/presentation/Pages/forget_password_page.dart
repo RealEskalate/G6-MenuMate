@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/email_verfiction.dart';
+import 'package:dinq/features/dinq/auth/presentation/Pages/email_verfyfication.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/login_page.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
