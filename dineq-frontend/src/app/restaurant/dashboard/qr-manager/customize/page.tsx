@@ -5,6 +5,8 @@ import { Download, Upload } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
+
 
 export default function QRCustomizer() {
   const [foreground, setForeground] = useState("#000000");
@@ -29,11 +31,19 @@ export default function QRCustomizer() {
   const { data: session } = useSession();
   const token = session?.accessToken;
   const router = useRouter();
+  //handle slug and id from route
+
+  const searchParams = useSearchParams();
+  const restaurantSlug = searchParams.get("slug");
+  const menuId = searchParams.get("menu");
 
   // Static gradient data
   const gradientFrom = "#0F172A";
   const gradientTo = "#64748B";
   const gradientDirection = "vertical";
+
+  
+
 
 const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0];
@@ -250,8 +260,14 @@ const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
             </div>
             {/* Button to trigger API call */}
             <button
-                onClick={() => generateQRCodeFromAPI("restaurant-slug", "menu-id")}
-                disabled={!logoURL}
+                onClick={
+                  () => {
+                  if (restaurantSlug && menuId) {
+                    generateQRCodeFromAPI(restaurantSlug, menuId);
+                  } else {
+                    toast.error("Missing restaurant or menu information.");
+                  }
+                }}
                 className="mt-6 bg-orange-500 text-white py-2 px-6 rounded-xl hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Generate QR

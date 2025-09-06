@@ -5,6 +5,7 @@ import Sidebar from "@/components/restaurant/SideBar";
 import Navbar from "@/components/common/NavBar";
 import { useSession } from "next-auth/react";
 import { useRestaurant } from "@/hooks/useRestaurant";
+import { MenuProvider } from "@/context/MenuOcrContext"; 
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
@@ -14,7 +15,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   console.log(data)
 
   return (
-    <div className="">
+    <MenuProvider>
+      <div className="">
       <Toaster position="top-right" />
       <Navbar role="MANAGER" />
       <div className="flex gap-8">
@@ -32,5 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </section>
       </div>
     </div>
+    </MenuProvider>
+    
   );
 }

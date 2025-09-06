@@ -78,4 +78,3 @@ export default withAuth(
 export const config = {
   matcher: ["/restaurant/:path*", "/user/:path*",],
 };
-

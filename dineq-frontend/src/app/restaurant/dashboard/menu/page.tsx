@@ -76,26 +76,21 @@ export default function Dashboard() {
 
                 {/* Empty boxes */}
                 <div className="flex justify-between mt-6">
-                  <div>
+                  <div className="
+                  space-y-2">
                     <div className="flex space-x-3 space-y-2">
                       <div className="py-3 px-5 border border-orange-400 rounded-md">
                         <div className="text-[16px] text-gray-600">Items</div>
-                        <div className="font-normal">{menu.items.length} Dishes</div>
-                      </div>
-                      <div className="py-2 px-5 border border-orange-400 rounded-md">
-                        <div className="text-[16px] text-gray-600">Languages</div>
-                        <div className="flex space-x-2 pt-1">
-                          <span className="border border-gray-700 text-gray-700 rounded-md p-0.5">
-                            Amh
-                          </span>
-                          <span className="border border-gray-700 text-gray-700 rounded-md p-0.5">
-                            Eng
-                          </span>
+                        <div className="font-normal">
+                          {menu.items.length} Dishes
                         </div>
                       </div>
+                    
                     </div>
-                    <div className="py-3 px-5 border border-orange-400 rounded-md w-1/2">
-                      <div className="text-[16px] text-gray-600">Avg rating</div>
+                    <div className="py-3 px-5 border border-orange-400 rounded-md ">
+                      <div className="text-[16px] text-gray-600">
+                        Avg rating
+                      </div>
                       <div className="font-medium">4.3</div>
                     </div>
                   </div>
@@ -103,7 +98,7 @@ export default function Dashboard() {
                     <Image
                       src="/Vector.png"
                       alt="Menu Image"
-                      width={100}
+                      width={150}
                       height={100}
                       className="pt-6 pr-1"
                     />

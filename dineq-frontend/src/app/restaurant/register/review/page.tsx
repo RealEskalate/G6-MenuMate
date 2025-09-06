@@ -53,7 +53,8 @@ export default function ReviewPage() {
       if (data.businessLicense?.file) formData.append("verification_docs", data.businessLicense.file);
       if (data.cover_image?.file) formData.append("cover_image", data.cover_image.file);
 
-      const res = await fetch("https://g6-menumate-1.onrender.com/api/v1/restaurants", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const res = await fetch(`${apiUrl}/restaurants`, {
         method: "POST",
         body: formData,
         headers: {
@@ -61,13 +62,20 @@ export default function ReviewPage() {
         },
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Failed to create restaurant");
+      const responseText = await res.text();
+      let responseData;
+      try {
+          responseData = responseText ? JSON.parse(responseText) : {};
+      } catch (error) {
+          console.error("Failed to parse JSON response:", responseText);
+          throw new Error("Received an invalid response from the server.");
       }
 
-      const result = await res.json();
-      console.log("✅ Created restaurant:", result);
+      if (!res.ok) {
+        throw new Error(responseData.message || `Request failed with status ${res.status}`);
+      }
+
+      console.log("✅ Created restaurant:", responseData);
 
       resetData();
       router.push("/restaurant/success");

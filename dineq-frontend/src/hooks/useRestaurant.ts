@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 console.log(API_BASE)
 
-async function fetchRestaurantMe(token: string) {
+export async function fetchRestaurantMe(token: string) {
   console.log("Fetching restaurant with token:", token);
   const res = await fetch(`${API_BASE}/restaurants/me`, {
     headers: {

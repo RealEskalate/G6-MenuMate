@@ -1,3 +1,4 @@
+
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthOptions } from "next-auth";
 
@@ -27,14 +28,14 @@ export const options: NextAuthOptions = {
         }
 
         try {
-          const res = await fetch(`${API_URL}/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              identifier: credentials.identifier,
-              password: credentials.password,
-            }),
-          });
+        const res = await fetch(`${API_URL}/auth/login`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    identifier: credentials.identifier,
+    password: credentials.password,
+  }),
+})
 
           const result = await res.json();
           console.log("Authorize response:", result);
@@ -52,7 +53,7 @@ export const options: NextAuthOptions = {
             };
           }
 
-          throw new Error(result.message || "Invalid email or password");
+          throw new Error(result.message ||"Invalid email or password");
         } catch (err) {
           console.error("Login error:", err);
           throw new Error("Authentication failed");
@@ -105,7 +106,7 @@ export const options: NextAuthOptions = {
       }
 
       if (
-        trigger === "update" ||
+        trigger === "update"  &&
         (token.exp && Date.now() > token.exp * 1000)
       ) {
         console.log("Refreshing token...", {
@@ -117,14 +118,13 @@ export const options: NextAuthOptions = {
           if (!token.refreshToken) {
             throw new Error("No refresh token available");
           }
-          const res = await fetch(`${API_URL}/auth/refresh`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ refresh_token: token.refreshToken }),
-          });
+        const res = await fetch(`${API_URL}/auth/refresh`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ refresh_token: token.refreshToken }),
+});
           const result = await res.json();
-
-          if (res.ok && result?.tokens?.access_token) {
+if (res.ok && result?.tokens?.access_token) {
             token.accessToken = result.tokens.access_token;
             token.exp = Math.floor(Date.now() / 1000) + 15 * 60;
             delete token.error;
@@ -156,9 +156,9 @@ export const options: NextAuthOptions = {
   
     async redirect({ url, baseUrl }) {
       // If it’s an internal callback, just go to the dashboard
-      if (url.startsWith(baseUrl)) {
-        return `${baseUrl} `;
-      }
+     if (url.startsWith(baseUrl)) {
+  return `${baseUrl}`;
+}
       return baseUrl;
     },
   },
@@ -166,4 +166,3 @@ export const options: NextAuthOptions = {
   debug: true,
   // debug: process.env.NODE_ENV !== "production",
 };
-

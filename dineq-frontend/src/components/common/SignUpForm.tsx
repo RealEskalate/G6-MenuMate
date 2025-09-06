@@ -117,12 +117,13 @@ export default function SignupForm({ role }: SignupFormProps) {
     >
       {/* Username */}
       <div>
+        <label className="block text-black font-normal text-[18px] mb-1">
+          User Name
+        </label>
         <Input
-          label="Username"
           required
           placeholder="Choose a username"
           {...register("username")}
-          
         />
         {errors.username && (
           <p className="text-red-500 text-sm">{errors.username.message}</p>
@@ -131,8 +132,10 @@ export default function SignupForm({ role }: SignupFormProps) {
 
       {/* First Name */}
       <div>
+        <label className="block text-black font-normal text-[18px] mb-1">
+          First Name
+        </label>
         <Input
-          label="First Name"
           required
           placeholder="Enter your first name"
           {...register("first_name")}
@@ -144,8 +147,10 @@ export default function SignupForm({ role }: SignupFormProps) {
 
       {/* Last Name */}
       <div>
+        <label className="block text-black font-normal text-[18px] mb-1">
+          Last Name
+        </label>
         <Input
-          label="Last Name"
           required
           placeholder="Enter your last name"
           {...register("last_name")}
@@ -157,8 +162,11 @@ export default function SignupForm({ role }: SignupFormProps) {
 
       {/* Email */}
       <div>
+               <label className="block text-black font-normal text-[18px] mb-1">
+          Email Address
+               </label>
         <Input
-          label="Email Address"
+        
           required
           type="email"
           placeholder="Enter your email"
@@ -171,8 +179,11 @@ export default function SignupForm({ role }: SignupFormProps) {
 
       {/* Password */}
       <div>
+               <label className="block text-black font-normal text-[18px] mb-1">
+          Password
+               </label>
         <Input
-          label="Password"
+       
           required
           type="password"
           {...register("password")}
@@ -187,8 +198,11 @@ export default function SignupForm({ role }: SignupFormProps) {
 
       {/* Confirm Password */}
       <div>
+               <label className="block text-black font-normal text-[18px] mb-1">
+          Confirm Password
+               </label>
         <Input
-          label="Confirm Password"
+     
           required
           type="password"
           {...register("confirmPassword")}
@@ -241,9 +255,6 @@ export default function SignupForm({ role }: SignupFormProps) {
           Sign in
         </Link>
       </p>
-
-      
-      </form>
-   
+    </form>
   );
 }
