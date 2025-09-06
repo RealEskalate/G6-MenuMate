@@ -53,12 +53,8 @@ export default function ReviewPage() {
       if (data.businessLicense?.file) formData.append("verification_docs", data.businessLicense.file);
       if (data.cover_image?.file) formData.append("cover_image", data.cover_image.file);
 
-<<<<<<< HEAD
-      const res = await fetch("https://g6-menumate-1.onrender.com/api/v1/restaurants", {
-=======
       const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
       const res = await fetch(`${apiUrl}/restaurants`, {
->>>>>>> 4c07e6431f3a66f87ea35fdc4e80d3ef9399b6d5
         method: "POST",
         body: formData,
         headers: {

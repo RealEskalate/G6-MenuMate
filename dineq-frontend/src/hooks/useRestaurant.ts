@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 const API_BASE = "https://g6-menumate-1.onrender.com/api/v1";
 
-async function fetchRestaurantMe(token: string) {
+export async function fetchRestaurantMe(token: string) {
   console.log("Fetching restaurant with token:", token);
   const res = await fetch(`${API_BASE}/restaurants/me`, {
     headers: {

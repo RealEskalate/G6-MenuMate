@@ -20,8 +20,10 @@ import {
 import { useMenuContext } from "@/context/MenuOcrContext";
 import { ChevronDown, ChevronUp, Plus, Minus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-  import { createMenu } from "@/lib/menu";
-import { useSession } from "next-auth/react"
+import { createMenu } from "@/lib/menu";
+import { useSession } from "next-auth/react";
+import { fetchRestaurantMe } from "@/hooks/useRestaurant";
+import { useRouter } from "next/navigation";
 
 interface NutritionalInfo {
   calories: number;
@@ -76,8 +78,10 @@ const ManualMenu = () => {
   }>({});
   const [loading, setLoading] = useState(false);
   const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
-   const { data: session } = useSession(); // token from session?
-  
+  const { data: session } = useSession(); // token from session?
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [createdMenu, setCreatedMenu] = useState<any>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!initialized && ocrMenuItems.length > 0) {
@@ -130,8 +134,8 @@ const ManualMenu = () => {
         allergies_am: "",
         nutritional_info: { calories: 0, protein: 0, carbs: 0, fat: 0 },
         preparation_time: 0,
-        instructions: "",
-        instructions_am: "",
+        how_to_eat: "",
+        how_to_eat_am: "",
         voice: null,
       });
       return newSections;
@@ -198,10 +202,12 @@ const ManualMenu = () => {
       if (value.trim()) {
         setSections((prev) => {
           const newSections = [...prev];
-          if (Array.isArray(newSections[sectionIndex].items[itemIndex][field])) {
-            (newSections[sectionIndex].items[itemIndex][field] as string[]).push(
-              value.trim()
-            );
+          if (
+            Array.isArray(newSections[sectionIndex].items[itemIndex][field])
+          ) {
+            (
+              newSections[sectionIndex].items[itemIndex][field] as string[]
+            ).push(value.trim());
           }
           return newSections;
         });
@@ -242,19 +248,19 @@ const ManualMenu = () => {
 
   const removeTag = useCallback((index: number) => {
     setTags((prev) => prev.filter((_, i) => i !== index));
-  }, []);
-; // to get token if using next-auth
-
-
- 
-
+  }, []); // to get token if using next-auth
   const handleSubmit = async () => {
+    const restaurantData = await fetchRestaurantMe(
+      session?.accessToken as string
+    );
+    const restaurantSlug = restaurantData?.restaurants?.[0]?.slug;
+
     if (!restaurantSlug) {
       alert("Restaurant slug is missing!");
       return;
     }
 
-    const token = session?.accessToken; // adjust depending on your session shape
+    const token = session?.accessToken;
     if (!token) {
       alert("No token found!");
       return;
@@ -271,7 +277,16 @@ const ManualMenu = () => {
       setLoading(true);
       const result = await createMenu(restaurantSlug, menuData, token);
       console.log("Menu created:", result);
-      alert("Menu created successfully!");
+
+      // pull values from API response
+      const menu = result.data.menu;
+
+      setCreatedMenu({
+        id: menu.id,
+        restaurantSlug: restaurantSlug, // Fixed: Use the original slug, not menu.restaurant_id (which is likely an ID)
+        slug: menu.slug,
+      });
+      setShowPublishModal(true);
     } catch (error: any) {
       alert("Failed to create menu: " + error.message);
     } finally {
@@ -279,612 +294,679 @@ const ManualMenu = () => {
     }
   };
 
+  const handlePublish = async () => {
+    if (!createdMenu) return;
+
+    const { restaurantSlug, id } = createdMenu;
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/menus/${restaurantSlug}/publish/${id}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.accessToken}`,
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to publish menu");
+
+      alert("Menu published successfully!");
+      setShowPublishModal(false);
+
+      // ✅ redirect to QR customization page
+      router.push(`/qr-customization/${id}`);
+    } catch (error: any) {
+      alert("Failed to publish: " + error.message);
+    }
+  };
+
   return (
     <>
-    <div className="flex-1 p-6 bg-white">
-      <h1 className="text-2xl font-bold mb-6">Add Menu Manually</h1>
+      <div className="flex-1 p-6 bg-white">
+        <h1 className="text-2xl font-bold mb-6">Add Menu Manually</h1>
 
-      <div className="border border-orange-300 rounded-lg p-6 mb-6">
-        <h2 className="text-lg font-semibold mb-4">Basic Details</h2>
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <Label htmlFor="menuName">Menu Name</Label>
-            <Input
-              id="menuName"
-              type="text"
-              value={menuName}
-              onChange={(e) => setMenuName(e.target.value)}
-              placeholder="Enter menu name"
-            />
+        <div className="border border-orange-300 rounded-lg p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4">Basic Details</h2>
+          <div className="grid md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <Label htmlFor="menuName">Menu Name</Label>
+              <Input
+                id="menuName"
+                type="text"
+                value={menuName}
+                onChange={(e) => setMenuName(e.target.value)}
+                placeholder="Enter menu name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="menuLanguage">Default Language</Label>
+              <Select onValueChange={setLanguage} defaultValue={language}>
+                <SelectTrigger id="menuLanguage">
+                  <SelectValue placeholder="Select a language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Amharic">Amharic</SelectItem>
+                  <SelectItem value="English">English</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div>
-            <Label htmlFor="menuLanguage">Default Language</Label>
-            <Select onValueChange={setLanguage} defaultValue={language}>
-              <SelectTrigger id="menuLanguage">
-                <SelectValue placeholder="Select a language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Amharic">Amharic</SelectItem>
-                <SelectItem value="English">English</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div>
-          <Label htmlFor="menuTagInput">Menu Tags</Label>
-          <div className="flex gap-2 mb-2">
-            <Input
-              id="menuTagInput"
-              type="text"
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              className="flex-1"
-              placeholder="Enter tag"
-            />
-            <Button onClick={handleAddTag}>
-              <Plus className="h-4 w-4 mr-2" /> Add Tag
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag, i) => (
-              <Badge key={i} variant="secondary" className="flex items-center">
-                {tag}
-                <Button
-                  onClick={() => removeTag(i)}
-                  variant="ghost"
-                  size="icon"
-                  className="ml-2 h-4 w-4"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {sections.map((section, sIndex) => (
-        <Collapsible
-          key={sIndex}
-          className="border border-orange-300 rounded-lg p-6 mb-6"
-          open={expandedSections[sIndex]}
-          onOpenChange={() =>
-            setExpandedSections((prev) => ({
-              ...prev,
-              [sIndex]: !prev[sIndex],
-            }))
-          }
-        >
-          <CollapsibleTrigger asChild>
-            <div className="flex justify-between items-center cursor-pointer mb-4">
-              <h2 className="text-lg font-semibold">
-                Section {sIndex + 1}:{" "}
-                <Input
-                  type="text"
-                  value={section.name}
-                  onChange={(e) => updateSectionName(sIndex, e.target.value)}
-                  className="inline-block border-b border-gray-300 focus:outline-none p-0"
-                  placeholder="Section Name"
-                  onClick={(e) => e.stopPropagation()} // Prevents collapsible from closing
-                />
-              </h2>
-              <Button variant="ghost" size="icon">
-                {expandedSections[sIndex] ? (
-                  <ChevronUp className="h-5 w-5" />
-                ) : (
-                  <ChevronDown className="h-5 w-5" />
-                )}
+            <Label htmlFor="menuTagInput">Menu Tags</Label>
+            <div className="flex gap-2 mb-2">
+              <Input
+                id="menuTagInput"
+                type="text"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                className="flex-1"
+                placeholder="Enter tag"
+              />
+              <Button onClick={handleAddTag}>
+                <Plus className="h-4 w-4 mr-2" /> Add Tag
               </Button>
             </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4">
-            {section.items.map((item, iIndex) => (
-              <Collapsible
-                key={iIndex}
-                className="mb-6 border-b pb-6"
-                open={expandedItems[`${sIndex}-${iIndex}`]}
-                onOpenChange={() => toggleItem(sIndex, iIndex)}
-              >
-                <CollapsibleTrigger asChild>
-                  <div className="flex justify-between items-center cursor-pointer">
-                    <h3 className="font-medium mb-2">
-                      Item {iIndex + 1}: {item.name || "Untitled"}
-                    </h3>
-                    <Button variant="ghost" size="icon">
-                      {expandedItems[`${sIndex}-${iIndex}`] ? (
-                        <ChevronUp className="h-5 w-5" />
-                      ) : (
-                        <ChevronDown className="h-5 w-5" />
-                      )}
-                    </Button>
-                  </div>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor={`itemName-${sIndex}-${iIndex}`}>
-                        Item Name
-                      </Label>
-                      <Input
-                        id={`itemName-${sIndex}-${iIndex}`}
-                        type="text"
-                        value={item.name}
-                        placeholder="Item name"
-                        onChange={(e) =>
-                          updateItem(sIndex, iIndex, "name", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`itemNameAmharic-${sIndex}-${iIndex}`}>
-                        Item Name (Amharic)
-                      </Label>
-                      <Input
-                        id={`itemNameAmharic-${sIndex}-${iIndex}`}
-                        type="text"
-                        value={item.name_am}
-                        placeholder="Item name (Amharic)"
-                        onChange={(e) =>
-                          updateItem(sIndex, iIndex, "name_am", e.target.value)
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor={`itemPrice-${sIndex}-${iIndex}`}>
-                        Price
-                      </Label>
-                      <Input
-                        id={`itemPrice-${sIndex}-${iIndex}`}
-                        type="text"
-                        value={item.price as string}
-                        placeholder="Price"
-                        onChange={(e) =>
-                          updateItem(sIndex, iIndex, "price", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`itemCurrency-${sIndex}-${iIndex}`}>
-                        Currency
-                      </Label>
-                      <Input
-                        id={`itemCurrency-${sIndex}-${iIndex}`}
-                        type="text"
-                        value={item.currency}
-                        placeholder="Currency"
-                        onChange={(e) =>
-                          updateItem(
-                            sIndex,
-                            iIndex,
-                            "currency",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor={`itemDescription-${sIndex}-${iIndex}`}>
-                      Description
-                    </Label>
-                    <Textarea
-                      id={`itemDescription-${sIndex}-${iIndex}`}
-                      value={item.description}
-                      placeholder="Description"
-                      onChange={(e) =>
-                        updateItem(
-                          sIndex,
-                          iIndex,
-                          "description",
-                          e.target.value
-                        )
-                      }
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`itemDescriptionAmharic-${sIndex}-${iIndex}`}>
-                      Description (Amharic)
-                    </Label>
-                    <Textarea
-                      id={`itemDescriptionAmharic-${sIndex}-${iIndex}`}
-                      value={item.description_am}
-                      placeholder="Description (Amharic)"
-                      onChange={(e) =>
-                        updateItem(
-                          sIndex,
-                          iIndex,
-                          "description_am",
-                          e.target.value
-                        )
-                      }
-                      rows={3}
-                    />
-                  </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor={`itemAllergies-${sIndex}-${iIndex}`}>
-                        Allergies
-                      </Label>
-                      <Input
-                        id={`itemAllergies-${sIndex}-${iIndex}`}
-                        type="text"
-                        value={item.allergies}
-                        placeholder="Allergies"
-                        onChange={(e) =>
-                          updateItem(
-                            sIndex,
-                            iIndex,
-                            "allergies",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`itemAllergiesAmharic-${sIndex}-${iIndex}`}>
-                        Allergies (Amharic)
-                      </Label>
-                      <Input
-                        id={`itemAllergiesAmharic-${sIndex}-${iIndex}`}
-                        type="text"
-                        value={item.allergies_am}
-                        placeholder="Allergies (Amharic)"
-                        onChange={(e) =>
-                          updateItem(
-                            sIndex,
-                            iIndex,
-                            "allergies_am",
-                            e.target.value
-                          )
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor={`itemPrepTime-${sIndex}-${iIndex}`}>
-                      Preparation Time (minutes)
-                    </Label>
-                    <Input
-                      id={`itemPrepTime-${sIndex}-${iIndex}`}
-                      type="number"
-                      value={item.preparation_time ?? ""}
-                      placeholder="Preparation Time (minutes)"
-                      onChange={(e) =>
-                        updateItem(
-                          sIndex,
-                          iIndex,
-                          "preparation_time",
-                          Number(e.target.value)
-                        )
-                      }
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`itemInstructions-${sIndex}-${iIndex}`}>
-                      Instructions / How to Eat
-                    </Label>
-                    <Textarea
-                      id={`itemInstructions-${sIndex}-${iIndex}`}
-                      value={item.instructions}
-                      placeholder="Instructions / How to Eat"
-                      onChange={(e) =>
-                        updateItem(
-                          sIndex,
-                          iIndex,
-                          "instructions",
-                          e.target.value
-                        )
-                      }
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`itemInstructionsAmharic-${sIndex}-${iIndex}`}>
-                      Instructions (Amharic)
-                    </Label>
-                    <Textarea
-                      id={`itemInstructionsAmharic-${sIndex}-${iIndex}`}
-                      value={item.instructions_am}
-                      placeholder="Instructions (Amharic)"
-                      onChange={(e) =>
-                        updateItem(
-                          sIndex,
-                          iIndex,
-                          "instructions_am",
-                          e.target.value
-                        )
-                      }
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor={`itemVoiceUrl-${sIndex}-${iIndex}`}>
-                      Voice URL
-                    </Label>
-                    <Input
-                      id={`itemVoiceUrl-${sIndex}-${iIndex}`}
-                      type="text"
-                      value={item.voice || ""}
-                      placeholder="Voice URL"
-                      onChange={(e) =>
-                        updateItem(sIndex, iIndex, "voice", e.target.value)
-                      }
-                    />
-                  </div>
+            <div className="flex flex-wrap gap-2">
+              {tags.map((tag, i) => (
+                <Badge
+                  key={i}
+                  variant="secondary"
+                  className="flex items-center"
+                >
+                  {tag}
+                  <Button
+                    onClick={() => removeTag(i)}
+                    variant="ghost"
+                    size="icon"
+                    className="ml-2 h-4 w-4"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
 
-                  {/* Nutritional Info */}
-                  <div>
-                    <h4 className="font-medium mb-2">Nutritional Information</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {sections.map((section, sIndex) => (
+          <Collapsible
+            key={sIndex}
+            className="border border-orange-300 rounded-lg p-6 mb-6"
+            open={expandedSections[sIndex]}
+            onOpenChange={() =>
+              setExpandedSections((prev) => ({
+                ...prev,
+                [sIndex]: !prev[sIndex],
+              }))
+            }
+          >
+            <CollapsibleTrigger asChild>
+              <div className="flex justify-between items-center cursor-pointer mb-4">
+                <h2 className="text-lg font-semibold">
+                  Section {sIndex + 1}:{" "}
+                  <Input
+                    type="text"
+                    value={section.name}
+                    onChange={(e) => updateSectionName(sIndex, e.target.value)}
+                    className="inline-block border-b border-gray-300 focus:outline-none p-0"
+                    placeholder="Section Name"
+                    onClick={(e) => e.stopPropagation()} // Prevents collapsible from closing
+                  />
+                </h2>
+                <Button variant="ghost" size="icon">
+                  {expandedSections[sIndex] ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </Button>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4">
+              {section.items.map((item, iIndex) => (
+                <Collapsible
+                  key={iIndex}
+                  className="mb-6 border-b pb-6"
+                  open={expandedItems[`${sIndex}-${iIndex}`]}
+                  onOpenChange={() => toggleItem(sIndex, iIndex)}
+                >
+                  <CollapsibleTrigger asChild>
+                    <div className="flex justify-between items-center cursor-pointer">
+                      <h3 className="font-medium mb-2">
+                        Item {iIndex + 1}: {item.name || "Untitled"}
+                      </h3>
+                      <Button variant="ghost" size="icon">
+                        {expandedItems[`${sIndex}-${iIndex}`] ? (
+                          <ChevronUp className="h-5 w-5" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5" />
+                        )}
+                      </Button>
+                    </div>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor={`itemCalories-${sIndex}-${iIndex}`}>
-                          Calories
+                        <Label htmlFor={`itemName-${sIndex}-${iIndex}`}>
+                          Item Name
                         </Label>
                         <Input
-                          id={`itemCalories-${sIndex}-${iIndex}`}
-                          type="number"
-                          placeholder="Calories"
-                          value={item.nutritional_info?.calories ?? ""}
+                          id={`itemName-${sIndex}-${iIndex}`}
+                          type="text"
+                          value={item.name}
+                          placeholder="Item name"
                           onChange={(e) =>
-                            updateNutritionalInfo(
-                              sIndex,
-                              iIndex,
-                              "calories",
-                              Number(e.target.value)
-                            )
+                            updateItem(sIndex, iIndex, "name", e.target.value)
                           }
                         />
                       </div>
                       <div>
-                        <Label htmlFor={`itemProtein-${sIndex}-${iIndex}`}>
-                          Protein (g)
+                        <Label htmlFor={`itemNameAmharic-${sIndex}-${iIndex}`}>
+                          Item Name (Amharic)
                         </Label>
                         <Input
-                          id={`itemProtein-${sIndex}-${iIndex}`}
-                          type="number"
-                          placeholder="Protein (g)"
-                          value={item.nutritional_info?.protein ?? ""}
+                          id={`itemNameAmharic-${sIndex}-${iIndex}`}
+                          type="text"
+                          value={item.name_am}
+                          placeholder="Item name (Amharic)"
                           onChange={(e) =>
-                            updateNutritionalInfo(
+                            updateItem(
                               sIndex,
                               iIndex,
-                              "protein",
-                              Number(e.target.value)
-                            )
-                          }
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`itemCarbs-${sIndex}-${iIndex}`}>
-                          Carbs (g)
-                        </Label>
-                        <Input
-                          id={`itemCarbs-${sIndex}-${iIndex}`}
-                          type="number"
-                          placeholder="Carbs (g)"
-                          value={item.nutritional_info?.carbs ?? ""}
-                          onChange={(e) =>
-                            updateNutritionalInfo(
-                              sIndex,
-                              iIndex,
-                              "carbs",
-                              Number(e.target.value)
-                            )
-                          }
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor={`itemFat-${sIndex}-${iIndex}`}>
-                          Fat (g)
-                        </Label>
-                        <Input
-                          id={`itemFat-${sIndex}-${iIndex}`}
-                          type="number"
-                          placeholder="Fat (g)"
-                          value={item.nutritional_info?.fat ?? ""}
-                          onChange={(e) =>
-                            updateNutritionalInfo(
-                              sIndex,
-                              iIndex,
-                              "fat",
-                              Number(e.target.value)
+                              "name_am",
+                              e.target.value
                             )
                           }
                         />
                       </div>
                     </div>
-                  </div>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor={`itemPrice-${sIndex}-${iIndex}`}>
+                          Price
+                        </Label>
+                        <Input
+                          id={`itemPrice-${sIndex}-${iIndex}`}
+                          type="text"
+                          value={item.price as string}
+                          placeholder="Price"
+                          onChange={(e) =>
+                            updateItem(sIndex, iIndex, "price", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`itemCurrency-${sIndex}-${iIndex}`}>
+                          Currency
+                        </Label>
+                        <Input
+                          id={`itemCurrency-${sIndex}-${iIndex}`}
+                          type="text"
+                          value={item.currency}
+                          placeholder="Currency"
+                          onChange={(e) =>
+                            updateItem(
+                              sIndex,
+                              iIndex,
+                              "currency",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor={`itemDescription-${sIndex}-${iIndex}`}>
+                        Description
+                      </Label>
+                      <Textarea
+                        id={`itemDescription-${sIndex}-${iIndex}`}
+                        value={item.description}
+                        placeholder="Description"
+                        onChange={(e) =>
+                          updateItem(
+                            sIndex,
+                            iIndex,
+                            "description",
+                            e.target.value
+                          )
+                        }
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <Label
+                        htmlFor={`itemDescriptionAmharic-${sIndex}-${iIndex}`}
+                      >
+                        Description (Amharic)
+                      </Label>
+                      <Textarea
+                        id={`itemDescriptionAmharic-${sIndex}-${iIndex}`}
+                        value={item.description_am}
+                        placeholder="Description (Amharic)"
+                        onChange={(e) =>
+                          updateItem(
+                            sIndex,
+                            iIndex,
+                            "description_am",
+                            e.target.value
+                          )
+                        }
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor={`itemAllergies-${sIndex}-${iIndex}`}>
+                          Allergies
+                        </Label>
+                        <Input
+                          id={`itemAllergies-${sIndex}-${iIndex}`}
+                          type="text"
+                          value={item.allergies}
+                          placeholder="Allergies"
+                          onChange={(e) =>
+                            updateItem(
+                              sIndex,
+                              iIndex,
+                              "allergies",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label
+                          htmlFor={`itemAllergiesAmharic-${sIndex}-${iIndex}`}
+                        >
+                          Allergies (Amharic)
+                        </Label>
+                        <Input
+                          id={`itemAllergiesAmharic-${sIndex}-${iIndex}`}
+                          type="text"
+                          value={item.allergies_am}
+                          placeholder="Allergies (Amharic)"
+                          onChange={(e) =>
+                            updateItem(
+                              sIndex,
+                              iIndex,
+                              "allergies_am",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor={`itemPrepTime-${sIndex}-${iIndex}`}>
+                        Preparation Time (minutes)
+                      </Label>
+                      <Input
+                        id={`itemPrepTime-${sIndex}-${iIndex}`}
+                        type="number"
+                        value={item.preparation_time ?? ""}
+                        placeholder="Preparation Time (minutes)"
+                        onChange={(e) =>
+                          updateItem(
+                            sIndex,
+                            iIndex,
+                            "preparation_time",
+                            Number(e.target.value)
+                          )
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`itemHowToEat-${sIndex}-${iIndex}`}>
+                        Instructions / How to Eat
+                      </Label>
+                      <Textarea
+                        id={`itemHowToEat-${sIndex}-${iIndex}`}
+                        value={item.how_to_eat}
+                        placeholder="Instructions / How to Eat"
+                        onChange={(e) =>
+                          updateItem(
+                            sIndex,
+                            iIndex,
+                            "how_to_eat",
+                            e.target.value
+                          )
+                        }
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <Label
+                        htmlFor={`itemHowToEatAmharic-${sIndex}-${iIndex}`}
+                      >
+                        Instructions (Amharic)
+                      </Label>
+                      <Textarea
+                        id={`itemHowToEatAmharic-${sIndex}-${iIndex}`}
+                        value={item.how_to_eat_am}
+                        placeholder="Instructions (Amharic)"
+                        onChange={(e) =>
+                          updateItem(
+                            sIndex,
+                            iIndex,
+                            "how_to_eat_am",
+                            e.target.value
+                          )
+                        }
+                        rows={3}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`itemVoiceUrl-${sIndex}-${iIndex}`}>
+                        Voice URL
+                      </Label>
+                      <Input
+                        id={`itemVoiceUrl-${sIndex}-${iIndex}`}
+                        type="text"
+                        value={item.voice || ""}
+                        placeholder="Voice URL"
+                        onChange={(e) =>
+                          updateItem(sIndex, iIndex, "voice", e.target.value)
+                        }
+                      />
+                    </div>
 
-                  {/* Ingredients */}
-                  <div>
-                    <h4 className="font-medium mb-2">Ingredients</h4>
-                    <div className="space-y-2">
-                      {item.ingredients.map((ing, ingIndex) => (
-                        <div key={ingIndex} className="flex items-center gap-2">
+                    {/* Nutritional Info */}
+                    <div>
+                      <h4 className="font-medium mb-2">
+                        Nutritional Information
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                          <Label htmlFor={`itemCalories-${sIndex}-${iIndex}`}>
+                            Calories
+                          </Label>
                           <Input
-                            type="text"
-                            value={ing}
-                            onChange={(e) => {
-                              const newIngredients = [...item.ingredients];
-                              newIngredients[ingIndex] = e.target.value;
-                              updateItem(
+                            id={`itemCalories-${sIndex}-${iIndex}`}
+                            type="number"
+                            placeholder="Calories"
+                            value={item.nutritional_info?.calories ?? ""}
+                            onChange={(e) =>
+                              updateNutritionalInfo(
                                 sIndex,
                                 iIndex,
-                                "ingredients",
-                                newIngredients
-                              );
-                            }}
-                            className="flex-1"
+                                "calories",
+                                Number(e.target.value)
+                              )
+                            }
                           />
-                          <Button
-                            onClick={() =>
-                              removeArrayItem(
-                                sIndex,
-                                iIndex,
-                                "ingredients",
-                                ingIndex
-                              )
-                            }
-                            variant="destructive"
-                            size="icon"
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
                         </div>
-                      ))}
-                    </div>
-                    <Input
-                      type="text"
-                      placeholder="Add ingredient"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          addArrayItem(
-                            sIndex,
-                            iIndex,
-                            "ingredients",
-                            e.currentTarget.value
-                          );
-                          e.currentTarget.value = "";
-                          e.preventDefault();
-                        }
-                      }}
-                      className="mt-2"
-                    />
-                  </div>
-
-                  {/* Tab Tags */}
-                  <div>
-                    <h4 className="font-medium mb-2">Tab Tags</h4>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {item.tab_tags?.map((tag, tagIndex) => (
-                        <Badge key={tagIndex} variant="secondary">
-                          {tag}
-                          <Button
-                            onClick={() =>
-                              removeArrayItem(
+                        <div>
+                          <Label htmlFor={`itemProtein-${sIndex}-${iIndex}`}>
+                            Protein (g)
+                          </Label>
+                          <Input
+                            id={`itemProtein-${sIndex}-${iIndex}`}
+                            type="number"
+                            placeholder="Protein (g)"
+                            value={item.nutritional_info?.protein ?? ""}
+                            onChange={(e) =>
+                              updateNutritionalInfo(
                                 sIndex,
                                 iIndex,
-                                "tab_tags",
-                                tagIndex
+                                "protein",
+                                Number(e.target.value)
                               )
                             }
-                            variant="ghost"
-                            size="icon"
-                            className="ml-2 h-4 w-4"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      ))}
-                    </div>
-                    <Input
-                      type="text"
-                      placeholder="Add tab tag"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          addArrayItem(
-                            sIndex,
-                            iIndex,
-                            "tab_tags",
-                            e.currentTarget.value
-                          );
-                          e.currentTarget.value = "";
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                  </div>
-
-                  {/* Tab Tags Amharic */}
-                  <div>
-                    <h4 className="font-medium mb-2">Tab Tags (Amharic)</h4>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {item.tab_tags_am?.map((tag, tagIndex) => (
-                        <Badge key={tagIndex} variant="secondary">
-                          {tag}
-                          <Button
-                            onClick={() =>
-                              removeArrayItem(
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`itemCarbs-${sIndex}-${iIndex}`}>
+                            Carbs (g)
+                          </Label>
+                          <Input
+                            id={`itemCarbs-${sIndex}-${iIndex}`}
+                            type="number"
+                            placeholder="Carbs (g)"
+                            value={item.nutritional_info?.carbs ?? ""}
+                            onChange={(e) =>
+                              updateNutritionalInfo(
                                 sIndex,
                                 iIndex,
-                                "tab_tags_am",
-                                tagIndex
+                                "carbs",
+                                Number(e.target.value)
                               )
                             }
-                            variant="ghost"
-                            size="icon"
-                            className="ml-2 h-4 w-4"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      ))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`itemFat-${sIndex}-${iIndex}`}>
+                            Fat (g)
+                          </Label>
+                          <Input
+                            id={`itemFat-${sIndex}-${iIndex}`}
+                            type="number"
+                            placeholder="Fat (g)"
+                            value={item.nutritional_info?.fat ?? ""}
+                            onChange={(e) =>
+                              updateNutritionalInfo(
+                                sIndex,
+                                iIndex,
+                                "fat",
+                                Number(e.target.value)
+                              )
+                            }
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <Input
-                      type="text"
-                      placeholder="Add tab tag (Amharic)"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          addArrayItem(
-                            sIndex,
-                            iIndex,
-                            "tab_tags_am",
-                            e.currentTarget.value
-                          );
-                          e.currentTarget.value = "";
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                  </div>
 
-                  {/* Image Upload */}
-                  <div>
-                    <Label htmlFor={`itemImage-${sIndex}-${iIndex}`}>
-                      Item Image
-                    </Label>
-                    <Input
-                      id={`itemImage-${sIndex}-${iIndex}`}
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          updateItem(sIndex, iIndex, "image", file);
-                        }
-                      }}
-                    />
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
-            <Button
-              onClick={() => addItem(sIndex)}
-              variant="outline"
-              className="mt-4"
-            >
-              <Plus className="h-4 w-4 mr-2" /> Add Item
-            </Button>
-          </CollapsibleContent>
-        </Collapsible>
-      ))}
+                    {/* Ingredients */}
+                    <div>
+                      <h4 className="font-medium mb-2">Ingredients</h4>
+                      <div className="space-y-2">
+                        {item.ingredients.map((ing, ingIndex) => (
+                          <div
+                            key={ingIndex}
+                            className="flex items-center gap-2"
+                          >
+                            <Input
+                              type="text"
+                              value={ing}
+                              onChange={(e) => {
+                                const newIngredients = [...item.ingredients];
+                                newIngredients[ingIndex] = e.target.value;
+                                updateItem(
+                                  sIndex,
+                                  iIndex,
+                                  "ingredients",
+                                  newIngredients
+                                );
+                              }}
+                              className="flex-1"
+                            />
+                            <Button
+                              onClick={() =>
+                                removeArrayItem(
+                                  sIndex,
+                                  iIndex,
+                                  "ingredients",
+                                  ingIndex
+                                )
+                              }
+                              variant="destructive"
+                              size="icon"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="Add ingredient"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            addArrayItem(
+                              sIndex,
+                              iIndex,
+                              "ingredients",
+                              e.currentTarget.value
+                            );
+                            e.currentTarget.value = "";
+                            e.preventDefault();
+                          }
+                        }}
+                        className="mt-2"
+                      />
+                    </div>
 
-      <Button onClick={addSection}>
-        <Plus className="h-4 w-4 mr-2" /> Add Section
-      </Button>
-    </div>
-      <div className="mt-6 flex gap-4">
-        <Button onClick={addSection} variant="outline">
+                    {/* Tab Tags */}
+                    <div>
+                      <h4 className="font-medium mb-2">Tab Tags</h4>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {item.tab_tags?.map((tag, tagIndex) => (
+                          <Badge key={tagIndex} variant="secondary">
+                            {tag}
+                            <Button
+                              onClick={() =>
+                                removeArrayItem(
+                                  sIndex,
+                                  iIndex,
+                                  "tab_tags",
+                                  tagIndex
+                                )
+                              }
+                              variant="ghost"
+                              size="icon"
+                              className="ml-2 h-4 w-4"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        ))}
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="Add tab tag"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            addArrayItem(
+                              sIndex,
+                              iIndex,
+                              "tab_tags",
+                              e.currentTarget.value
+                            );
+                            e.currentTarget.value = "";
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                    </div>
+
+                    {/* Tab Tags Amharic */}
+                    <div>
+                      <h4 className="font-medium mb-2">Tab Tags (Amharic)</h4>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {item.tab_tags_am?.map((tag, tagIndex) => (
+                          <Badge key={tagIndex} variant="secondary">
+                            {tag}
+                            <Button
+                              onClick={() =>
+                                removeArrayItem(
+                                  sIndex,
+                                  iIndex,
+                                  "tab_tags_am",
+                                  tagIndex
+                                )
+                              }
+                              variant="ghost"
+                              size="icon"
+                              className="ml-2 h-4 w-4"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        ))}
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder="Add tab tag (Amharic)"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            addArrayItem(
+                              sIndex,
+                              iIndex,
+                              "tab_tags_am",
+                              e.currentTarget.value
+                            );
+                            e.currentTarget.value = "";
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                    </div>
+
+                    {/* Image Upload */}
+                    <div>
+                      <Label htmlFor={`itemImage-${sIndex}-${iIndex}`}>
+                        Item Image
+                      </Label>
+                      <Input
+                        id={`itemImage-${sIndex}-${iIndex}`}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            updateItem(sIndex, iIndex, "image", file);
+                          }
+                        }}
+                      />
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              ))}
+              <Button
+                onClick={() => addItem(sIndex)}
+                variant="outline"
+                className="mt-4"
+              >
+                <Plus className="h-4 w-4 mr-2" /> Add Item
+              </Button>
+            </CollapsibleContent>
+          </Collapsible>
+        ))}
+
+        <Button onClick={addSection}>
           <Plus className="h-4 w-4 mr-2" /> Add Section
         </Button>
+      </div>
+      <div className="mt-3 right-6">
         <Button onClick={handleSubmit} disabled={loading}>
           {loading ? "Submitting..." : "Submit Menu"}
         </Button>
       </div>
-      </>
+
+      {showPublishModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "white",
+            padding: "20px",
+            border: "1px solid black",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+            zIndex: 1000,
+          }}
+        >
+          <h2>Publish Menu</h2>
+          <p>Your menu has been created. Would you like to publish it now?</p>
+          <Button onClick={handlePublish} style={{ marginRight: "10px" }}>
+            Publish
+          </Button>
+          <Button onClick={() => setShowPublishModal(false)}>Cancel</Button>
+        </div>
+      )}
+    </>
   );
 };
 

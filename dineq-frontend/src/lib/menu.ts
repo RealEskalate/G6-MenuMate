@@ -5,7 +5,7 @@ export const createMenu = async (
 ) => {
   try {
     const response = await fetch(
-      `https://g6-menumate-1.onrender.com/api/v1/menus/${restaurantSlug}`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/menus/${restaurantSlug}`,
       {
         method: "POST",
         headers: {
