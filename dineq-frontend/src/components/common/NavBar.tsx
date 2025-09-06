@@ -15,20 +15,10 @@ function NavBar({ role }: Roles) {
     setOpen(false);
   }, [pathname]);
 
-
-  const linkClasses = (path: string) => {
-  if (path === "/user") {
-    // Home should match only exactly `/user`
-    return pathname === "/user"
+  const linkClasses = (path: string) =>
+    pathname === path
       ? "px-4 text-[var(--color-primary)] underline underline-offset-10 font-medium"
       : "px-4 text-gray-700 hover:text-[var(--color-primary)]";
-  }
-
-  // All other links: highlight if pathname starts with path
-  return pathname.startsWith(path)
-    ? "px-4 text-[var(--color-primary)] underline underline-offset-10 font-medium"
-    : "px-4 text-gray-700 hover:text-[var(--color-primary)]";
-};
 
   const managerLinks = [
     { name: "Menus", href: "/dashboard/menu", icon: "/icons/menu.svg" },
@@ -50,30 +40,11 @@ function NavBar({ role }: Roles) {
       {/* CUSTOMER links */}
       {role === "USER" && (
         <div className="hidden md:flex ml-4">
-          <Link href="/user" className={linkClasses("/user")}>
-            Home
-          </Link>
-          <Link
-            href="/user/restaurant-display"
-            className={linkClasses("/user/restaurant-display")}
-          >
-            Restaurants
-          </Link>
-          <Link href="/user/scan" className={linkClasses("/user/scan")}>
-            Scan
-          </Link>
-          <Link
-            href="/user/favorites"
-            className={linkClasses("/customer/favorites")}
-          >
-            Favorites
-          </Link>
-          <Link
-            href="/user/profile"
-            className={linkClasses("/user/profile")}
-          >
-            Profile
-          </Link>
+          <Link href="/user" className={linkClasses("/user")}>Home</Link>
+          
+          <Link href="/user/scan" className={linkClasses("/user/scan")}>Scan</Link>
+          <Link href="/user/favorites" className={linkClasses("/user/favorites")}>Favorites</Link>
+          <Link href="/user/profile" className={linkClasses("/user/profile")}>Profile</Link>
         </div>
       )}
 
@@ -88,25 +59,21 @@ function NavBar({ role }: Roles) {
         </div>
       )}
 
-      {/* MANAGER hamburger */}
-      {role === "MANAGER" && (
-        <>
-          <button
-            className="ml-auto md:hidden p-2 rounded-lg hover:bg-gray-100"
-            aria-label="Open menu"
-            onClick={() => setOpen((p) => !p)}
-          >
-            {open ? <X size={22} /> : <Menu size={22} />}
-          </button>
+      {/* MOBILE hamburger (USER or MANAGER) */}
+      <div className="md:hidden ml-auto relative">
+        <button
+          className="p-2 rounded-lg hover:bg-gray-100"
+          aria-label="Toggle menu"
+          onClick={() => setOpen((p) => !p)}
+        >
+          {open ? <X size={22} /> : <Menu size={22} />}
+        </button>
 
-          {/* Dropdown menu */}
-          {open && (
-            <div
-              className="absolute right-4 top-full mt-2 w-64 rounded-2xl border border-gray-200 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.08)] z-50 p-3"
-              role="menu"
-            >
-              <nav className="flex flex-col gap-2">
-                {managerLinks.map((link) => {
+        {open && (
+          <div className="absolute right-0 top-full mt-2 w-64 rounded-2xl border border-gray-200 bg-white shadow-lg z-50 p-3">
+            <nav className="flex flex-col gap-2">
+              {role === "MANAGER" &&
+                managerLinks.map((link) => {
                   const active = pathname.startsWith(link.href);
                   return (
                     <Link
@@ -130,11 +97,32 @@ function NavBar({ role }: Roles) {
                   );
                 })}
 
-                {/* Divider */}
-                <hr className="my-2 border-gray-200" />
+              {/* USER links */}
+              {role === "USER" &&
+                [
+                  { name: "Home", href: "/user" },
+                  { name: "Restaurants", href: "/user/restaurant-display" },
+                  { name: "Scan", href: "/user/scan" },
+                  { name: "Favorites", href: "/user/favorites" },
+                  { name: "Profile", href: "/user/profile" },
+                ].map((link) => (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className={`px-3 py-2 rounded-xl text-sm ${
+                      pathname === link.href
+                        ? "text-[var(--color-primary)] underline underline-offset-4 font-medium"
+                        : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
 
-                {/* Extra manager links in drawer */}
-                {extraManagerLinks.map((link) => (
+              {/* Extra manager links (if MANAGER) */}
+              {role === "MANAGER" &&
+                extraManagerLinks.map((link) => (
                   <Link
                     key={link.name}
                     href={link.href}
@@ -148,11 +136,10 @@ function NavBar({ role }: Roles) {
                     {link.name}
                   </Link>
                 ))}
-              </nav>
-            </div>
-          )}
-        </>
-      )}
+            </nav>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

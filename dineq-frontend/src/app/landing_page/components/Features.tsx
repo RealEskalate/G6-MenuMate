@@ -102,22 +102,24 @@ export default function Features() {
           </p>
         </div>
 
-        {/* Mobile: Horizontal scroll */}
-        <div className="sm:hidden overflow-x-auto flex gap-4 pb-6">
-          {cards.map((card, index) => (
-            <motion.div
-              key={card.id}
-              className={`min-w-[280px] flex-shrink-0 p-6 border border-orange-200 rounded-2xl shadow-lg`}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.8 }}
-            >
-              <h3 className="text-xl font-bold text-gray-800">{card.title}</h3>
-              <p className="mt-2 text-gray-600 text-sm">{card.description}</p>
-              {card.content}
-            </motion.div>
-          ))}
-        </div>
+       {/* Mobile: Horizontal scroll */}
+          <div className="sm:hidden overflow-x-auto flex gap-4 pb-6 px-4">
+            {cards.map((card, index) => (
+              <motion.div
+                key={card.id}
+                className="w-full flex-shrink-0 p-6 border border-orange-200 rounded-2xl shadow-lg bg-white box-border"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.8 }}
+              >
+                <h3 className="text-xl font-bold text-gray-800">{card.title}</h3>
+                <p className="mt-2 text-gray-600 text-sm">{card.description}</p>
+                {card.content}
+              </motion.div>
+            ))}
+          </div>
+
+
 
         {/* Desktop: Grid */}
         <div className="hidden lg:grid grid-cols-10 gap-8">
