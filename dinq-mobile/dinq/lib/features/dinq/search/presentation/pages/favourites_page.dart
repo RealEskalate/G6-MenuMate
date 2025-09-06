@@ -1,12 +1,13 @@
-import '../../domain/entities/Restaurant.dart' as models;
 import 'package:flutter/material.dart';
+
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
+import '../../domain/entities/Restaurant.dart' as models;
 import '../../domain/entities/menu.dart' as models;
-import 'restaurant_page.dart';
-import 'item_details_page.dart';
 import '../widgets/bottom_navbar.dart';
+import 'item_details_page.dart';
+import 'restaurant_page.dart';
 
 class _FavoritesStore {
   static final Set<String> restaurantIds = <String>{};

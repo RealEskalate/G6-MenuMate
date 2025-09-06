@@ -56,7 +56,7 @@ class MenusPage extends StatelessWidget {
                   label: 'Create\nmanually',
                   onTap: () async {
                     Navigator.pop(context); // close dialog
-                    await Future.delayed(Duration(milliseconds: 100));
+                    await Future.delayed(const Duration(milliseconds: 100));
                     Navigator.pushNamed(
                       context,
                       '/create-menu-manually',

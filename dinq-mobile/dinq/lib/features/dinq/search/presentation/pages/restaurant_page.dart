@@ -1,9 +1,10 @@
-import '../../domain/entities/Restaurant.dart' as models;
-import '../widgets/bottom_navbar.dart';
 import 'package:flutter/material.dart';
+
 import '../../../../../core/util/theme.dart';
 import '../../../search/domain/entities/menu.dart' as models;
 import '../../../search/domain/usecases/get_menu.dart';
+import '../../domain/entities/Restaurant.dart' as models;
+import '../widgets/bottom_navbar.dart';
 import 'item_details_page.dart';
 
 class _FavoritesStore {

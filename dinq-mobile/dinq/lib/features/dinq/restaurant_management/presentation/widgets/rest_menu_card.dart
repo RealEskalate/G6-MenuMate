@@ -80,14 +80,14 @@ class RestMenuCard extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      title: const Text("Delete Menu"),
+                      title: const Text('Delete Menu'),
                       content: const Text(
-                        "Are you sure you want to delete this menu? This action cannot be undone.",
+                        'Are you sure you want to delete this menu? This action cannot be undone.',
                       ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: const Text("Cancel"),
+                          child: const Text('Cancel'),
                         ),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
@@ -95,7 +95,7 @@ class RestMenuCard extends StatelessWidget {
                             foregroundColor: Colors.white,
                           ),
                           onPressed: () => Navigator.pop(context, true),
-                          child: const Text("Delete"),
+                          child: const Text('Delete'),
                         ),
                       ],
                     ),
@@ -106,7 +106,7 @@ class RestMenuCard extends StatelessWidget {
                     // Example: context.read<RestaurantBloc>().add(DeleteMenu(tab.id));
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text("Menu deleted successfully"),
+                        content: Text('Menu deleted successfully'),
                       ),
                     );
                   }
@@ -206,7 +206,7 @@ class RestMenuCard extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => EditMenuPage()),
+                    MaterialPageRoute(builder: (_) => const EditMenuPage()),
                   );
                 },
               ),

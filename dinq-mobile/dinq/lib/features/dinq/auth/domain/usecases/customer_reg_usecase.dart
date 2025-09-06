@@ -1,7 +1,7 @@
 // lib/features/dinq/auth/domain/usecases/register_user_usecase.dart
-import 'package:dinq/features/dinq/auth/Domain/entities/customer_registration.dart';
-import 'package:dinq/features/dinq/auth/Domain/repository/customer_reg_repo.dart';
-import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
+import '../../Domain/entities/customer_registration.dart';
+import '../../Domain/repository/customer_reg_repo.dart';
+import '../../data/models/user_model.dart';
 
 
 

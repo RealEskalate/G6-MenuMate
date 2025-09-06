@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
+import '../../../../../core/util/theme.dart';
+import '../widgets/Login_button.dart';
 
 class VerifyPage extends StatefulWidget {
   const VerifyPage({super.key});
@@ -127,7 +127,7 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
                                 ),
                               ],
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.verified,
                               size: 50,
                               color: Colors.white,
@@ -142,7 +142,7 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
                           child: FadeTransition(
                             opacity: _fadeAnimation,
                             child: Text(
-                              "Your request is submitted successfully!",
+                              'Your request is submitted successfully!',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontFamily: 'Inter',
@@ -167,8 +167,8 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
                           position: _textSlideAnimation,
                           child: FadeTransition(
                             opacity: _fadeAnimation,
-                            child: Text(
-                              "We will contact you through your email after we reviewed your documents. Feel free to explore our features until then",
+                            child: const Text(
+                              'We will contact you through your email after we reviewed your documents. Feel free to explore our features until then',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontFamily: 'Inter',
@@ -186,9 +186,9 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
                           position: _buttonSlideAnimation,
                           child: FadeTransition(
                             opacity: _fadeAnimation,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                              child: LoginButton(buttonname: "Back to home"),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20.0),
+                              child: LoginButton(buttonname: 'Back to home'),
                             ),
                           ),
                         ),

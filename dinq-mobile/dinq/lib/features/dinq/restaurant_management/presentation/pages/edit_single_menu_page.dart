@@ -230,8 +230,9 @@ class _EditSingleMenuPageState extends State<EditSingleMenuPage> {
                               );
                             },
                           );
-                          if (tag != null && tag.trim().isNotEmpty)
+                          if (tag != null && tag.trim().isNotEmpty) {
                             _addTag(tag.trim());
+                          }
                         },
                       ),
                     ],

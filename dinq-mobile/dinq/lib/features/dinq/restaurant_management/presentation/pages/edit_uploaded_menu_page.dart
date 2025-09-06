@@ -207,7 +207,7 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
                             const SizedBox(height: 8),
                             ...section.value
                                 .map((item) => _EditableMenuItem(item: item))
-                                .toList(),
+                                ,
                             const SizedBox(height: 18),
                           ],
                         );
@@ -270,7 +270,7 @@ class _EditableMenuItemState extends State<_EditableMenuItem> {
   String _truncateDescription(String desc) {
     final words = desc.split(' ');
     if (words.length <= 4) return desc;
-    return words.take(4).join(' ') + '...';
+    return '${words.take(4).join(' ')}...';
   }
 
   @override

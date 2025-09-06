@@ -1,4 +1,4 @@
-import 'package:dinq/core/util/theme.dart';
+import '../../../../../core/util/theme.dart';
 import 'package:flutter/material.dart';
 
 
@@ -15,7 +15,7 @@ class LoginButton extends StatelessWidget {
         fixedSize: const Size(300, 50)),
       child: Text(
         buttonname,
-        style: TextStyle(
+        style: const TextStyle(
           color: AppColors.whiteColor,
           fontWeight: FontWeight.normal,
           fontFamily: 'Inter',

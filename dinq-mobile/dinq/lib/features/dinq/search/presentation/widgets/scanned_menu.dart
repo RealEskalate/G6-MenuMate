@@ -1,5 +1,6 @@
-import '../../../../../core/util/theme.dart';
 import 'package:flutter/material.dart';
+
+import '../../../../../core/util/theme.dart';
 
 class MenuItemCard extends StatelessWidget {
   final String imageUrl;

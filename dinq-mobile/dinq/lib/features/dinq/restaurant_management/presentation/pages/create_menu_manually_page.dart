@@ -1,11 +1,12 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:file_picker/file_picker.dart';
-import 'dart:io';
+
 import '../../../../../core/util/theme.dart';
-import '../widgets/upload_image.dart';
 
 class CreateMenuManuallyPage extends StatefulWidget {
   final String restaurantId;
@@ -260,8 +261,9 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                               );
                             },
                           );
-                          if (tag != null && tag.trim().isNotEmpty)
+                          if (tag != null && tag.trim().isNotEmpty) {
                             _addTag(tag.trim());
+                          }
                         },
                       ),
                     ],
@@ -769,7 +771,7 @@ class _SectionData {
   String selectedSectionTag;
   final List<_ItemData> items = [_ItemData()];
 
-  _SectionData({this.selectedSectionTag = 'Breakfast'});
+  _SectionData();
 
   void dispose() {
     for (final item in items) {

@@ -1,7 +1,8 @@
-import '../widgets/scanned_menu.dart';
 import 'package:flutter/material.dart';
+
 import '../../../../../core/util/theme.dart';
 import '../widgets/bottom_navbar.dart';
+import '../widgets/scanned_menu.dart';
 
 class ScannedMenuPage extends StatelessWidget {
   const ScannedMenuPage({super.key});

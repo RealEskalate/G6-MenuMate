@@ -7,8 +7,8 @@ import '../../features/dinq/restaurant_management/presentation/pages/billing_pag
 import '../../features/dinq/restaurant_management/presentation/pages/branding_preferences_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/create_menu_manually_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/digitize_menu_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_item_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/edit_single_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/edit_uploaded_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/generated_qr_page.dart';

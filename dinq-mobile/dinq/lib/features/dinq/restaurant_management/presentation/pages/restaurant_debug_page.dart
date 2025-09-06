@@ -3,10 +3,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../data/model/restaurant_model.dart';
 import '../bloc/restaurant_bloc.dart';
 import '../bloc/restaurant_event.dart';
 import '../bloc/restaurant_state.dart';
-import '../../data/model/restaurant_model.dart';
 
 class RestaurantDebugPage extends StatelessWidget {
   const RestaurantDebugPage({super.key});
