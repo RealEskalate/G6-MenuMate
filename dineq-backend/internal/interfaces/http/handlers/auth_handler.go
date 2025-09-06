@@ -73,8 +73,8 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 	}
 	refreshToken := &domain.RefreshToken{Token: tokens.RefreshToken, UserID: user.ID, Revoked: false, ExpiresAt: tokens.RefreshTokenExpiresAt, CreatedAt: time.Now()}
 	_ = ac.RefreshTokenUsecase.Save(refreshToken)
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: tokens.RefreshToken, MaxAge: int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: true, SameSite: http.SameSiteStrictMode})
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: tokens.AccessToken, MaxAge: int(time.Until(tokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: true, SameSite: http.SameSiteStrictMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: tokens.RefreshToken, MaxAge: int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: false, SameSite: http.SameSiteStrictMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: tokens.AccessToken, MaxAge: int(time.Until(tokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: false, SameSite: http.SameSiteStrictMode})
 	c.JSON(http.StatusCreated, gin.H{"message": "Registration successful", "user": dto.ToUserResponse(user), "tokens": dto.LoginResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}})
 }
 
@@ -111,8 +111,8 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 	} else {
 		_ = ac.RefreshTokenUsecase.Save(rt)
 	}
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: tokens.RefreshToken, MaxAge: int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: true, SameSite: http.SameSiteStrictMode})
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: tokens.AccessToken, MaxAge: int(time.Until(tokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: true, SameSite: http.SameSiteStrictMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: tokens.RefreshToken, MaxAge: int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: false, SameSite: http.SameSiteStrictMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: tokens.AccessToken, MaxAge: int(time.Until(tokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: false, SameSite: http.SameSiteStrictMode})
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "user": dto.ToUserResponse(*user), "tokens": dto.LoginResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}})
 }
 
@@ -205,7 +205,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		Path:     "/",
 		Domain:   "",
 		Secure:   ac.CookieSecure,
-		HttpOnly: true,
+		HttpOnly: false,
 		SameSite: http.SameSiteStrictMode,
 	})
 	// Set the access token in the cookies
@@ -216,7 +216,7 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		Path:     "/",
 		Domain:   "",
 		Secure:   ac.CookieSecure,
-		HttpOnly: true,
+		HttpOnly: false,
 		SameSite: http.SameSiteStrictMode,
 	})
 	c.JSON(http.StatusOK, dto.LoginResponse{
@@ -463,14 +463,17 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			ac.RefreshTokenUsecase.Save(refreshToken)
 		}
 
-		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
-		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: response.AccessToken, MaxAge: int(time.Until(response.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
-		redir := ac.FrontendBaseURL
-		if redir == "" {
-			redir = "/"
-		}
-		c.Redirect(http.StatusTemporaryRedirect, redir+"/auth/google/success")
-		return
+		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
+		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: response.AccessToken, MaxAge: int(time.Until(response.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
+	       redir := ac.FrontendBaseURL
+	       fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
+	       if redir == "" {
+		       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
+		       redir = "http://localhost:3000"
+	       }
+	       fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success\n", redir)
+			   c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success")
+	       return
 	}
 
 	// If user not found – register new one
@@ -486,11 +489,14 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	}
 	refreshToken := &domain.RefreshToken{Token: newTokens.RefreshToken, UserID: newUser.ID, ExpiresAt: newTokens.RefreshTokenExpiresAt, Revoked: false, CreatedAt: time.Now()}
 	_ = ac.RefreshTokenUsecase.Save(refreshToken)
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: newTokens.RefreshToken, MaxAge: int(time.Until(newTokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: newTokens.AccessToken, MaxAge: int(time.Until(newTokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: true, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
-	redir := ac.FrontendBaseURL
-	if redir == "" {
-		redir = "/"
-	}
-	c.Redirect(http.StatusTemporaryRedirect, redir+"/auth/google/success?new=1")
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: newTokens.RefreshToken, MaxAge: int(time.Until(newTokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: newTokens.AccessToken, MaxAge: int(time.Until(newTokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
+       redir := ac.FrontendBaseURL
+       fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
+       if redir == "" {
+	       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
+	       redir = "http://localhost:3000"
+       }
+       fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success?new=1\n", redir)
+	c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success?new=1")
 }

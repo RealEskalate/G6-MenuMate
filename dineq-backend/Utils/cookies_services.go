@@ -28,7 +28,7 @@ func SetCookie(c *gin.Context, opts CookieOptions) {
 		MaxAge:   opts.MaxAge,
 		Expires:  time.Now().Add(time.Duration(opts.MaxAge) * time.Second),
 		Secure:   opts.Secure,
-		HttpOnly: opts.HttpOnly,
+		// HttpOnly: opts.HttpOnly,
 		SameSite: opts.SameSite,
 	})
 }

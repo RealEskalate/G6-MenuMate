@@ -243,6 +243,12 @@ func (repo *RestaurantRepo) ListUniqueRestaurants(ctx context.Context, page, pag
 func (repo *RestaurantRepo) FindNearby(ctx context.Context, lat, lng float64, maxDistance int, page, pageSize int) ([]*domain.Restaurant, int64, error) {
 	restCol := repo.db.Collection(repo.restaurantCol)
 
+	// Ensure 2dsphere index on location exists (defensive in case startup index creation didn't run)
+	_, _ = restCol.Indexes().CreateOne(ctx, mongo.IndexModel{
+		Keys:    bson.D{{Key: "location", Value: "2dsphere"}},
+		Options: options.Index().SetName("ix_location_2dsphere"),
+	})
+
 	geoNearStage := bson.D{{
 		Key: "$geoNear", Value: bson.M{
 			"near": bson.M{
@@ -251,7 +257,9 @@ func (repo *RestaurantRepo) FindNearby(ctx context.Context, lat, lng float64, ma
 			},
 			"distanceField": "distance",
 			"maxDistance":   maxDistance,
+			"key":           "location",
 			"spherical":     true,
+			"query":         bson.M{"isDeleted": false},
 		},
 	}}
 
