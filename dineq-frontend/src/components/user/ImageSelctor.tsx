@@ -1,12 +1,10 @@
+// src/components/user/AvatarSelector.tsx
 "use client";
 
 import * as React from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group"; // from shadcn
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type Avatar = {
@@ -15,14 +13,21 @@ type Avatar = {
   gender: "male" | "female";
 };
 
+type AvatarSelectorProps = {
+  avatars: Avatar[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSelect: (url: string) => void;
+};
+
 export default function AvatarSelector({
   avatars,
-}: {
-  avatars: Avatar[];
-}) {
+  open,
+  onOpenChange,
+  onSelect,
+}: AvatarSelectorProps) {
   const [gender, setGender] = React.useState<"male" | "female">("male");
-  const [page, setPage] = React.useState(0); // each page = 10 avatars
-
+  const [page, setPage] = React.useState(0);
   const filtered = avatars.filter((a) => a.gender === gender);
   const visible = filtered.slice(page * 10, page * 10 + 10);
 
@@ -30,20 +35,19 @@ export default function AvatarSelector({
   const handleBack = () => setPage((p) => p - 1);
 
   return (
-    <Dialog open>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Select Avatar</DialogTitle>
         </DialogHeader>
 
-        {/* Gender toggle (acts like radio) */}
         <ToggleGroup
           type="single"
           value={gender}
           onValueChange={(val) => {
             if (val === "male" || val === "female") {
               setGender(val);
-              setPage(0); // reset paging when switching
+              setPage(0);
             }
           }}
           className="flex gap-2 mb-4"
@@ -56,12 +60,12 @@ export default function AvatarSelector({
           </ToggleGroupItem>
         </ToggleGroup>
 
-        {/* Avatar grid */}
         <div className="grid grid-cols-5 gap-3">
           {visible.map((avatar) => (
             <button
               key={avatar.id}
-              className="rounded-full border-2 border-transparent hover:border-primary focus:border-primary"
+              onClick={() => onSelect(avatar.url)}
+              className="rounded-full border-2 border-transparent hover:border-primary focus:border-primary transition-all duration-200"
             >
               <Image
                 src={avatar.url}
@@ -74,7 +78,6 @@ export default function AvatarSelector({
           ))}
         </div>
 
-        {/* Pagination buttons */}
         <div className="flex justify-between mt-4">
           <Button onClick={handleBack} disabled={page === 0}>
             Go Back
