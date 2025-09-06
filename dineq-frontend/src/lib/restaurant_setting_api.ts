@@ -1,5 +1,5 @@
 // The base URL remains the same
-const API_BASE_URL = "https://g6-menumate-1.onrender.com/api/v1";
+const API_BASE_URL = "https://dineq.onrender.com/api/v1";
 
 // The helper to build FormData remains the same
 function buildFormData(data: Record<string, any>): FormData {
@@ -25,9 +25,15 @@ export const getMyRestaurantProfile = async (token: string) => {
       Authorization: `Bearer ${token}`, // <-- Pass the token here
     },
   });
-  if (!response.ok)
+  if (!response.ok) {
+    console.log("Fetch is not working response is not ok");
     throw new Error(`Failed to fetch data: ${response.statusText}`);
-  return await response.json();
+  }
+
+  const last_response = await response.json();
+  console.log(last_response);
+
+  return last_response;
 };
 
 /**
@@ -49,7 +55,10 @@ export const updateRestaurantProfile = async (
     },
     body: formData,
   });
-  if (!response.ok)
+  if (!response.ok) {
+    console.log("The update is not working");
     throw new Error(`Failed to update data: ${response.statusText}`);
+  }
+
   return await response.json();
 };

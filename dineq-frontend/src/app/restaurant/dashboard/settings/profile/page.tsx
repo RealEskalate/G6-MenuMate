@@ -24,20 +24,6 @@
 //           />
 //         </div>
 
-//         {/* Country Field */}
-//         <div>
-//           <label
-//             htmlFor="cuisine_type"
-//             className="block font-semibold text-base text-gray-700 mb-2"
-//           >
-//             Cuisine Type
-//           </label>
-//           <input
-//             type="text"
-//             id="cuisine_type"
-//             className="block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500"
-//           />
-//         </div>
 //       </div>
 
 //       {/* Restaurant Photo upload */}
@@ -247,10 +233,9 @@ import OpeningHours, {
 
 // Define the shape of our data state based on the API response
 type ProfileState = {
+  // email: string;
   name: string;
-  cuisine_type: string;
   about: string;
-  email: string;
   phone: string;
   location_string: string;
   logo_image: string | null;
@@ -258,23 +243,6 @@ type ProfileState = {
   schedule: DaySchedule[];
   special_days: SpecialDay[];
 };
-
-const EditIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth="1.5"
-    stroke="currentColor"
-    className="w-5 h-5"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125"
-    />
-  </svg>
-);
 
 const SettingProfile = () => {
   const { data: session, status: sessionStatus } = useSession(); // Get the user's session
@@ -288,22 +256,24 @@ const SettingProfile = () => {
 
   useEffect(() => {
     // Only fetch data when the user session is loaded and authenticated
+    console.log("use Effect");
+
     if (sessionStatus === "authenticated" && session?.accessToken) {
       getMyRestaurantProfile(session.accessToken)
         .then((apiData) => {
-          if (apiData.restaurants && apiData.restaurants.length > 0) {
+          console.log("fetched api data", apiData);
+          if (apiData) {
             // Your API returns an array, so we take the first restaurant
-            const restaurantData = apiData.restaurants[0];
+            const restaurantData = apiData;
 
             // Store the slug in state for future updates
             setSlug(restaurantData.slug);
 
             // Populate the data state
             setData({
+              // email: restaurantData.email || "",
               name: restaurantData.name || "",
-              cuisine_type: restaurantData.cuisine_type || "",
               about: restaurantData.about || "",
-              email: restaurantData.email || "",
               phone: restaurantData.phone || "",
               location_string:
                 restaurantData.location?.coordinates?.join(", ") || "",
@@ -318,15 +288,19 @@ const SettingProfile = () => {
         .finally(() => setIsLoading(false));
     } else if (sessionStatus === "unauthenticated") {
       // Handle case where user is not logged in
+      console.log("u are not authenticated");
       setIsLoading(false);
     }
-  }, [sessionStatus, session]);
+  }, []);
 
   // === UPDATE HANDLER ===
   const handleAutosave = useCallback(
     async (updates: Record<string, any>) => {
       // We need the slug and token to make an update
-      if (!slug || !session?.accessToken) return;
+      if (!slug || !session?.accessToken) {
+        console.log("There is no slug or there is no session?.accessToken");
+        return;
+      }
 
       setActiveField(null);
       setSavingStatus("saving");
@@ -393,8 +367,10 @@ const SettingProfile = () => {
     handleAutosave({ special_days: newSpecialDays });
   };
 
-  if (isLoading || sessionStatus === "loading")
+  if (isLoading || sessionStatus === "loading") {
+    console.log(sessionStatus);
     return <div className="p-6">Loading profile...</div>;
+  }
   if (!data)
     return (
       <div className="p-6 text-red-500">
@@ -404,7 +380,8 @@ const SettingProfile = () => {
     );
 
   return (
-    <div>
+    <div className="w-full h-full max-w-full max-h-full overflow-auto lg:w-auto lg:h-auto lg:overflow-visible">
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="font-semibold text-2xl">Restaurant Details</h1>
         <div className="text-sm text-gray-500 h-5">
@@ -414,55 +391,38 @@ const SettingProfile = () => {
         </div>
       </div>
 
-      {/* Name & Cuisine */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+      {/* Restaurant Name */}
+      <div className="grid grid-cols-1 min-w-[200px] md:grid-cols-2 gap-x-8 gap-y-6 mt-5">
         <div>
-          <label htmlFor="name" className="block font-semibold ...">
+          <label
+            htmlFor="name"
+            className="block font-semibold text-base text-gray-700 mb-2"
+          >
             Restaurant name
           </label>
-          <div className="relative">
-            <input
-              name="name"
-              id="name"
-              value={data.name}
-              onChange={handleInputChange}
-              onFocus={() => setActiveField("name")}
-              onBlur={() => handleAutosave({ name: data.name })}
-              readOnly={activeField !== "name"}
-              className="block w-full ... read-only:bg-gray-100 read-only:cursor-default"
-            />
-            <div className="absolute ...">
-              <EditIcon />
-            </div>
-          </div>
-        </div>
-        <div>
-          <label htmlFor="cuisine_type" className="block font-semibold ...">
-            Cuisine Type
-          </label>
-          <div className="relative">
-            <input
-              name="cuisine_type"
-              id="cuisine_type"
-              value={data.cuisine_type}
-              onChange={handleInputChange}
-              onFocus={() => setActiveField("cuisine_type")}
-              onBlur={() => handleAutosave({ cuisine_type: data.cuisine_type })}
-              readOnly={activeField !== "cuisine_type"}
-              className="block w-full ... read-only:bg-gray-100 read-only:cursor-default"
-            />
-            <div className="absolute ...">
-              <EditIcon />
-            </div>
-          </div>
+          <input
+            name="name"
+            id="name"
+            value={data.name}
+            onChange={handleInputChange}
+            onFocus={() => setActiveField("name")}
+            onBlur={() => handleAutosave({ name: data.name })}
+            readOnly={activeField !== "name"}
+            className="block w-full border border-gray-300 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500 read-only:bg-gray-100 read-only:cursor-default"
+          />
         </div>
       </div>
 
       {/* Photo Uploads */}
       <div className="flex flex-col md:flex-row gap-10 mt-10">
         <div>
-          <label className="block ...">Logo</label>
-          <label htmlFor="logo_image" className="flex ...">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Logo
+          </label>
+          <label
+            htmlFor="logo_image"
+            className="flex flex-col items-center justify-center w-full bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors md:w-[24rem] max-w-md h-40"
+          >
             {data.logo_image ? (
               <img
                 src={data.logo_image}
@@ -470,7 +430,7 @@ const SettingProfile = () => {
                 className="h-full w-full object-cover rounded-lg"
               />
             ) : (
-              <p>Upload photo</p>
+              <p className="text-sm text-gray-600">Upload photo</p>
             )}
           </label>
           <input
@@ -482,8 +442,13 @@ const SettingProfile = () => {
           />
         </div>
         <div>
-          <label className="block ...">Cover/Banner</label>
-          <label htmlFor="cover_image" className="flex ...">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Cover/Banner
+          </label>
+          <label
+            htmlFor="cover_image"
+            className="flex flex-col items-center justify-center w-full bg-white border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors md:w-[24rem] max-w-md h-40"
+          >
             {data.cover_image ? (
               <img
                 src={data.cover_image}
@@ -491,7 +456,7 @@ const SettingProfile = () => {
                 className="h-full w-full object-cover rounded-lg"
               />
             ) : (
-              <p>Upload photo</p>
+              <p className="text-sm text-gray-600">Upload photo</p>
             )}
           </label>
           <input
@@ -504,29 +469,98 @@ const SettingProfile = () => {
         </div>
       </div>
 
-      {/* Description & Contact Details... (apply the same pattern as above) */}
-      <div className="w-full mt-10">
-        <label htmlFor="about" className="...">
+      {/* Description */}
+      <div className="w-full md:w-[51rem] mt-10">
+        <label
+          htmlFor="about"
+          className="block text-sm font-medium text-gray-700 mb-1"
+        >
           Description
         </label>
-        <div className="relative">
-          <textarea
-            name="about"
-            id="about"
-            rows={4}
-            value={data.about}
+        <textarea
+          name="about"
+          id="about"
+          rows={4}
+          value={data.about}
+          onChange={handleInputChange}
+          onFocus={() => setActiveField("about")}
+          onBlur={() => handleAutosave({ about: data.about })}
+          readOnly={activeField !== "about"}
+          className="block w-full px-4 py-3 pr-12 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent read-only:bg-gray-100 read-only:cursor-default"
+        />
+      </div>
+
+      {/* Contact Details */}
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+        {/* <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Email
+          </label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            value={data.email}
             onChange={handleInputChange}
-            onFocus={() => setActiveField("about")}
-            onBlur={() => handleAutosave({ about: data.about })}
-            readOnly={activeField !== "about"}
-            className="block w-full ... read-only:bg-gray-100 read-only:cursor-default"
+            onFocus={() => setActiveField("email")}
+            onBlur={() => handleAutosave({ email: data.email })}
+            readOnly={activeField !== "email"}
+            className="block w-full px-4 py-3 pr-10 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 read-only:bg-gray-100 read-only:cursor-default"
           />
-          <div className="absolute ...">
-            <EditIcon />
-          </div>
+        </div> */}
+        <div>
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-gray-700"
+          >
+            Phone
+          </label>
+          <input
+            type="tel"
+            name="phone"
+            id="phone"
+            value={data.phone}
+            onChange={handleInputChange}
+            onFocus={() => setActiveField("phone")}
+            onBlur={() => handleAutosave({ phone: data.phone })}
+            readOnly={activeField !== "phone"}
+            className="block w-full px-4 py-3 pr-10 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 read-only:bg-gray-100 read-only:cursor-default"
+          />
         </div>
       </div>
 
+      {/* Location */}
+      <div className="mt-6">
+        <label
+          htmlFor="location"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Location
+        </label>
+        <input
+          type="text"
+          name="location"
+          id="location"
+          value={data.location_string}
+          onChange={handleInputChange}
+          onFocus={() => setActiveField("location")}
+          onBlur={() => handleAutosave({ location: data.location_string })}
+          readOnly={activeField !== "location"}
+          className="block w-full px-4 py-3 pr-10 text-gray-900 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 read-only:bg-gray-100 read-only:cursor-default"
+        />
+        <div className="mt-4">
+          <img
+            src="https://i.imgur.com/4l34n4A.png"
+            alt="Location map"
+            className="w-full h-48 object-cover rounded-lg border border-gray-300"
+          />
+        </div>
+      </div>
+
+      {/* Opening Hours */}
       <OpeningHours
         schedule={data.schedule}
         specialDays={data.special_days}

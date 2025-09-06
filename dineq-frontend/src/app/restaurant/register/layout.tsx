@@ -1,9 +1,13 @@
+"use client"
+
 import NavBar from "@/components/common/NavBar";
 import { RegisterProvider } from "@/context/RegisterContext";
+import { SessionProvider } from "next-auth/react";
 
 export default function RegisterLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RegisterProvider>
+    <SessionProvider>
+      <RegisterProvider>
       <div className="min-h-screen bg-gray-50 flex flex-col">
         {/* Navbar */}
         <NavBar role="MANAGER" />
@@ -15,5 +19,6 @@ export default function RegisterLayout({ children }: { children: React.ReactNode
         </main>
       </div>
     </RegisterProvider>
+    </SessionProvider>
   );
 }

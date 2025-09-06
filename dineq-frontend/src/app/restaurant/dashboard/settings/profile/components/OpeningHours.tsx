@@ -202,6 +202,25 @@ type OpeningHoursProps = {
   onSpecialDayDelete: (date: string) => void;
 };
 
+const DeleteIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="red"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    className="w-6 h-6"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 
+           01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 
+           011-1h4a1 1 0 011 1v3"
+    />
+  </svg>
+);
+
 // A reusable Toggle Switch component (now accepts onChange)
 const ToggleSwitch = ({
   checked,
@@ -246,8 +265,8 @@ const OpeningHours = ({
       date: "",
       event: "",
       is_open: true,
-      start_time: "09:00",
-      end_time: "17:00",
+      start_time: "00:00",
+      end_time: "00:00",
     });
   };
 
@@ -370,7 +389,7 @@ const OpeningHours = ({
                       onClick={() => onSpecialDayDelete(item.date)}
                       className="text-red-500 hover:text-red-700 ml-4 shrink-0"
                     >
-                      {/* Delete Icon SVG */}
+                      <DeleteIcon />
                     </button>
                   </div>
                 </div>

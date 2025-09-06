@@ -1,16 +1,33 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaMapMarkerAlt } from "react-icons/fa";
 
 type LocationPickerProps = {
-  value: string;
+  value: string; // "latitude, longitude"
   onChange: (location: string) => void;
   compact?: boolean;
 };
 
-export default function LocationPicker({ value, onChange, compact = false }: LocationPickerProps) {
+export default function LocationPicker({
+  value,
+  onChange,
+  compact = false,
+}: LocationPickerProps) {
   const [error, setError] = useState("");
+  const [userChoice, setUserChoice] = useState<"current" | null>(null);
+
+  
+  useEffect(() => {
+    if (value) {
+      if (!userChoice) {
+        setUserChoice("current");
+      }
+    } else {
+      setUserChoice(null);
+    }
+  }, [value]);
 
   const handleLocationFetch = () => {
     if (!navigator.geolocation) {
@@ -23,17 +40,29 @@ export default function LocationPicker({ value, onChange, compact = false }: Loc
         const coords = `${position.coords.latitude}, ${position.coords.longitude}`;
         onChange(coords);
         setError("");
+        setUserChoice("current");
       },
-      () => {
+      (err) => {
+        console.error("Geolocation error:", err);
         setError("Unable to retrieve your location.");
       }
     );
   };
 
+  const handleClearSelection = () => {
+    onChange("");
+    setUserChoice(null);
+    setError("");
+  };
+
   return (
     <div className={`${compact ? "space-y-1" : "space-y-2"}`}>
-      <label className={`block ${compact ? "text-md" : "text-lg"} font-medium text-gray-700`}>
-        Location (auto-filled)
+      <label
+        className={`block ${
+          compact ? "text-md" : "text-lg"
+        } font-medium text-gray-700`}
+      >
+        Location
       </label>
       <div className="relative">
         <input
@@ -45,16 +74,46 @@ export default function LocationPicker({ value, onChange, compact = false }: Loc
             compact ? "py-2" : "py-3"
           }`}
         />
-        <FaMapMarkerAlt className={`absolute right-3 text-gray-400 ${compact ? "top-2.5" : "top-3.5"}`} />
+        <FaMapMarkerAlt
+          className={`absolute right-3 text-gray-400 ${
+            compact ? "top-2.5" : "top-3.5"
+          }`}
+        />
       </div>
-      <button
-        type="button"
-        onClick={handleLocationFetch}
-        className={`text-orange-600 hover:underline ${compact ? "text-xs" : "text-sm"}`}
-      >
-        📍 Use my current location
-      </button>
-      {error && <p className={`text-red-500 font-medium ${compact ? "text-xs" : "text-sm"}`}>{error}</p>}
+
+      <div className="flex gap-4">
+        <button
+          type="button"
+          onClick={handleLocationFetch}
+          className={`text-orange-600 hover:underline ${
+            compact ? "text-xs" : "text-sm"
+          } ${userChoice === "current" ? "font-bold" : ""}`}
+        >
+          📍 Use my current location
+        </button>
+      </div>
+
+      {value && (
+        <button
+          type="button"
+          onClick={handleClearSelection}
+          className={`text-gray-500 hover:underline ${
+            compact ? "text-xs" : "text-sm"
+          }`}
+        >
+          Clear Location Selection
+        </button>
+      )}
+
+      {error && (
+        <p
+          className={`text-red-500 font-medium ${
+            compact ? "text-xs" : "text-sm"
+          }`}
+        >
+          {error}
+        </p>
+      )}
     </div>
   );
 }
