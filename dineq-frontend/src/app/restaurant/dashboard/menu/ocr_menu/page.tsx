@@ -80,6 +80,19 @@ const AddMenuWithOCR = () => {
     setEditedItems(newItems);
   };
 
+  const handleNutritionalChange = (
+    index: number,
+    subField: string,
+    value: number
+  ) => {
+    const newItems = [...editedItems];
+    if (!newItems[index].nutritional_info) {
+      newItems[index].nutritional_info = {};
+    }
+    newItems[index].nutritional_info[subField] = value;
+    setEditedItems(newItems);
+  };
+
   const handleSave = () => {
     dispatch(setMenuItems(editedItems));
     router.push("/restaurant/dashboard/menu/manual_menu");
@@ -326,13 +339,113 @@ const AddMenuWithOCR = () => {
                   />
                   <input
                     type="number"
-                    className="text-orange-500 font-bold w-full"
+                    className="text-orange-500 font-bold w-full mb-1"
                     value={item.price}
                     onChange={(e) =>
                       handleItemChange(idx, "price", parseFloat(e.target.value))
                     }
                   />
-                  <p className="text-orange-500 font-bold">{item.currency}</p>
+                  <input
+                    className="text-orange-500 font-bold w-full mb-1"
+                    value={item.currency}
+                    onChange={(e) =>
+                      handleItemChange(idx, "currency", e.target.value)
+                    }
+                  />
+                  <textarea
+                    className="text-sm text-gray-600 w-full mb-1"
+                    value={item.allergies}
+                    onChange={(e) =>
+                      handleItemChange(idx, "allergies", e.target.value)
+                    }
+                  />
+                  <textarea
+                    className="text-sm text-gray-600 w-full mb-1"
+                    value={item.allergies_am}
+                    onChange={(e) =>
+                      handleItemChange(idx, "allergies_am", e.target.value)
+                    }
+                  />
+                  <input
+                    type="number"
+                    className="w-full mb-1"
+                    value={item.preparation_time}
+                    onChange={(e) =>
+                      handleItemChange(
+                        idx,
+                        "preparation_time",
+                        parseInt(e.target.value)
+                      )
+                    }
+                  />
+                  <textarea
+                    className="text-sm text-gray-600 w-full mb-1"
+                    value={item.how_to_eat}
+                    onChange={(e) =>
+                      handleItemChange(idx, "how_to_eat", e.target.value)
+                    }
+                  />
+                  <textarea
+                    className="text-sm text-gray-600 w-full mb-1"
+                    value={item.how_to_eat_am}
+                    onChange={(e) =>
+                      handleItemChange(idx, "how_to_eat_am", e.target.value)
+                    }
+                  />
+                  <div className="grid grid-cols-4 gap-2 mb-2">
+                    <input
+                      type="number"
+                      placeholder="Calories"
+                      value={item.nutritional_info?.calories ?? ""}
+                      onChange={(e) =>
+                        handleNutritionalChange(
+                          idx,
+                          "calories",
+                          parseInt(e.target.value)
+                        )
+                      }
+                      className="border border-gray-300 rounded p-2"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Protein"
+                      value={item.nutritional_info?.protein ?? ""}
+                      onChange={(e) =>
+                        handleNutritionalChange(
+                          idx,
+                          "protein",
+                          parseInt(e.target.value)
+                        )
+                      }
+                      className="border border-gray-300 rounded p-2"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Carbs"
+                      value={item.nutritional_info?.carbs ?? ""}
+                      onChange={(e) =>
+                        handleNutritionalChange(
+                          idx,
+                          "carbs",
+                          parseInt(e.target.value)
+                        )
+                      }
+                      className="border border-gray-300 rounded p-2"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Fat"
+                      value={item.nutritional_info?.fat ?? ""}
+                      onChange={(e) =>
+                        handleNutritionalChange(
+                          idx,
+                          "fat",
+                          parseInt(e.target.value)
+                        )
+                      }
+                      className="border border-gray-300 rounded p-2"
+                    />
+                  </div>
                 </li>
               ))}
             </ul>

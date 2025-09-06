@@ -2,21 +2,24 @@
 
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { RootState } from "@/store";
 import { clearMenuItems } from "@/store/menuSlice";
+import { createMenu, uploadImage } from "@/lib/menuApi";
 
-// --- Types from OCR response ---
-interface NutritionalInfo {
+// --- Types ---
+export interface NutritionalInfo {
   calories: number;
   protein: number;
   carbs: number;
   fat: number;
 }
 
-interface MenuItem {
+export interface MenuItem {
   name: string;
   name_am?: string;
-  image: File | null | string;
+  image: string | File | null;
   price: number | string;
   currency?: string;
   ingredients: string[];
@@ -28,8 +31,8 @@ interface MenuItem {
   allergies_am?: string;
   nutritional_info?: NutritionalInfo;
   preparation_time?: number;
-  instructions: string;
-  instructions_am?: string;
+  how_to_eat: string;
+  how_to_eat_am?: string;
   voice?: string | null;
 }
 
@@ -40,9 +43,12 @@ interface Section {
 
 const ManualMenu = () => {
   const dispatch = useDispatch();
+  const { data: session } = useSession();
+  const router = useRouter();
   const ocrMenuItems = useSelector(
     (state: RootState) => state.menu?.menuItems ?? []
   );
+
   console.log("OCR Menu Items from Redux:", ocrMenuItems);
 
   const [initialized, setInitialized] = useState(false);
@@ -56,14 +62,47 @@ const ManualMenu = () => {
   const [expandedItems, setExpandedItems] = useState<{
     [key: string]: boolean;
   }>({});
+  const [loading, setLoading] = useState(false);
+  const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
 
-  // ✅ Hydrate from Redux once, then clear store
+  // ✅ Fetch restaurant slug on login
+  useEffect(() => {
+    const fetchRestaurantSlug = async () => {
+      if (!session?.accessToken) return;
+
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/restaurants/me`,
+          {
+            headers: {
+              Authorization: `Bearer ${session.accessToken}`,
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch restaurant info");
+
+        const data = await res.json();
+        console.log("🍽 Restaurant info:", data);
+
+        if (data?.restaurants?.length > 0) {
+          setRestaurantSlug(data.restaurants[0].slug);
+        }
+      } catch (err) {
+        console.error("❌ Error fetching restaurant slug:", err);
+      }
+    };
+
+    fetchRestaurantSlug();
+  }, [session?.accessToken]);
+
+  // ✅ Hydrate OCR items from Redux then clear store
   useEffect(() => {
     if (!initialized && ocrMenuItems.length > 0) {
       const mappedItems: MenuItem[] = ocrMenuItems.map((item: any) => ({
         name: item.name ?? "",
         name_am: item.name_am ?? "",
-        image: null, // replace OCR string with File later if needed
+        image: null,
         price: item.price ?? "",
         currency: item.currency ?? "",
         ingredients: item.ingredients ?? [],
@@ -80,20 +119,14 @@ const ManualMenu = () => {
           fat: 0,
         },
         preparation_time: item.preparation_time ?? 0,
-        instructions: item.how_to_eat ?? "",
-        instructions_am: item.how_to_eat_am ?? "",
+        how_to_eat: item.how_to_eat ?? "",
+        how_to_eat_am: item.how_to_eat_am ?? "",
         voice: item.voice ?? null,
       }));
 
-      setSections([
-        {
-          name: "Imported from OCR",
-          items: mappedItems,
-        },
-      ]);
-
+      setSections([{ name: "Imported from OCR", items: mappedItems }]);
       setInitialized(true);
-      dispatch(clearMenuItems()); // 🧹 clear store so no duplication
+      dispatch(clearMenuItems()); // 🧹 clear store
     }
   }, [ocrMenuItems, initialized, dispatch]);
 
@@ -119,8 +152,8 @@ const ManualMenu = () => {
       allergies_am: "",
       nutritional_info: { calories: 0, protein: 0, carbs: 0, fat: 0 },
       preparation_time: 0,
-      instructions: "",
-      instructions_am: "",
+      how_to_eat: "",
+      how_to_eat_am: "",
       voice: null,
     });
     setSections(newSections);
@@ -137,20 +170,20 @@ const ManualMenu = () => {
     setSections(newSections);
   };
 
-  const updateNutritionalInfo = (
-    sectionIndex: number,
-    itemIndex: number,
-    subField: keyof NutritionalInfo,
-    value: number
-  ) => {
-    const newSections = [...sections];
-    const item = newSections[sectionIndex].items[itemIndex];
-    item.nutritional_info = {
-      ...item.nutritional_info,
-      [subField]: value,
-    };
-    setSections(newSections);
-  };
+  // const updateNutritionalInfo = (
+  //   sectionIndex: number,
+  //   itemIndex: number,
+  //   subField: keyof NutritionalInfo,
+  //   value: number
+  // ) => {
+  //   const newSections = [...sections];
+  //   const item = newSections[sectionIndex].items[itemIndex];
+  //   item.nutritional_info = {
+  //     ...item.nutritional_info,
+  //     [subField]: value,
+  //   };
+  //   setSections(newSections);
+  // };
 
   const addArrayItem = (
     sectionIndex: number,
@@ -208,10 +241,66 @@ const ManualMenu = () => {
     setExpandedItems((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const handleSubmit = async () => {
+    if (!session?.accessToken || !restaurantSlug) {
+      console.error("Missing access token or restaurant slug");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const processedSections = await Promise.all(
+        sections.map(async (s) => ({
+          name: s.name,
+          menu_items: await Promise.all(
+            s.items.map(async (i) => {
+              let imageUrl: string | null = null;
+              if (i.image  instanceof File) {
+                imageUrl = await uploadImage(i.image, session.accessToken!);
+              } else if (typeof i.image === "string") {
+                imageUrl = i.image;
+              }
+
+              // ✅ Drop *_am fields before sending
+              const {
+                name_am,
+                description_am,
+                tab_tags_am,
+                allergies_am,
+                how_to_eat_am,
+                ...rest
+              } = i;
+
+              return {
+                ...rest,
+                image: imageUrl,
+              };
+            })
+          ),
+        }))
+      );
+
+      const payload = processedSections;
+
+      const response = await createMenu(
+        payload,
+        session.accessToken,
+        restaurantSlug
+      );
+      console.log("✅ Menu created:", response);
+      router.push("/restaurant/dashboard/menu");
+    } catch (err) {
+      console.error("❌ Error submitting menu:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // --- Render ---
   return (
     <div className="flex-1 p-6 bg-white">
-      <h1 className="text-2xl font-bold mb-6">Manual Menu Editor</h1>
+      <h1 className="text-2xl font-bold mb-6">Add Menu Manually</h1>
 
       {/* Basic Details */}
       <div className="border border-orange-300 rounded-lg p-6 mb-6">
@@ -288,39 +377,49 @@ const ManualMenu = () => {
           {section.items.map((item, iIndex) => {
             const key = `${sIndex}-${iIndex}`;
             const isExpanded = expandedItems[key] || false;
+            const displayName =
+              language === "Amharic"
+                ? item.name_am || "Untitled"
+                : item.name || "Untitled";
             return (
               <div key={iIndex} className="mb-6 border-b pb-6">
-                <div
-                  className="flex justify-between items-center cursor-pointer"
-                  onClick={() => toggleItemExpand(sIndex, iIndex)}
-                >
+                <div className="flex justify-between items-center">
                   <h3 className="font-medium mb-2">
-                    Item {iIndex + 1}: {item.name || "Untitled"}
+                    Item {iIndex + 1}: {displayName}
                   </h3>
-                  <span>{isExpanded ? "▲" : "▼"}</span>
+                  <span
+                    className="cursor-pointer"
+                    onClick={() => toggleItemExpand(sIndex, iIndex)}
+                  >
+                    {isExpanded ? "▲" : "▼"}
+                  </span>
                 </div>
 
                 {isExpanded && (
                   <div className="mt-4">
                     {/* Basic Fields */}
-                    <input
-                      type="text"
-                      value={item.name}
-                      placeholder="Item name"
-                      onChange={(e) =>
-                        updateItem(sIndex, iIndex, "name", e.target.value)
-                      }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
-                    />
-                    <input
-                      type="text"
-                      value={item.name_am}
-                      placeholder="Item name (Amharic)"
-                      onChange={(e) =>
-                        updateItem(sIndex, iIndex, "name_am", e.target.value)
-                      }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
-                    />
+                    <label className="block mb-1 font-medium">Item Name</label>
+                    {language === "English" ? (
+                      <input
+                        type="text"
+                        value={item.name}
+                        placeholder="Item name"
+                        onChange={(e) =>
+                          updateItem(sIndex, iIndex, "name", e.target.value)
+                        }
+                        className="w-full border border-gray-300 rounded p-2 mb-2"
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={item.name_am}
+                        placeholder="Item name"
+                        onChange={(e) =>
+                          updateItem(sIndex, iIndex, "name_am", e.target.value)
+                        }
+                        className="w-full border border-gray-300 rounded p-2 mb-2"
+                      />
+                    )}
                     <input
                       type="text"
                       value={item.price as string}
@@ -339,55 +438,66 @@ const ManualMenu = () => {
                       }
                       className="w-full border border-gray-300 rounded p-2 mb-2"
                     />
-                    <textarea
-                      value={item.description}
-                      placeholder="Description"
-                      onChange={(e) =>
-                        updateItem(
-                          sIndex,
-                          iIndex,
-                          "description",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
-                    />
-                    <textarea
-                      value={item.description_am}
-                      placeholder="Description (Amharic)"
-                      onChange={(e) =>
-                        updateItem(
-                          sIndex,
-                          iIndex,
-                          "description_am",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
-                    />
-                    <input
-                      type="text"
-                      value={item.allergies}
-                      placeholder="Allergies"
-                      onChange={(e) =>
-                        updateItem(sIndex, iIndex, "allergies", e.target.value)
-                      }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
-                    />
-                    <input
-                      type="text"
-                      value={item.allergies_am}
-                      placeholder="Allergies (Amharic)"
-                      onChange={(e) =>
-                        updateItem(
-                          sIndex,
-                          iIndex,
-                          "allergies_am",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
-                    />
+                    {language === "English" ? (
+                      <textarea
+                        value={item.description}
+                        placeholder="Description"
+                        onChange={(e) =>
+                          updateItem(
+                            sIndex,
+                            iIndex,
+                            "description",
+                            e.target.value
+                          )
+                        }
+                        className="w-full border border-gray-300 rounded p-2 mb-2"
+                      />
+                    ) : (
+                      <textarea
+                        value={item.description_am}
+                        placeholder="Description"
+                        onChange={(e) =>
+                          updateItem(
+                            sIndex,
+                            iIndex,
+                            "description_am",
+                            e.target.value
+                          )
+                        }
+                        className="w-full border border-gray-300 rounded p-2 mb-2"
+                      />
+                    )}
+                    {language === "English" ? (
+                      <input
+                        type="text"
+                        value={item.allergies}
+                        placeholder="Allergies"
+                        onChange={(e) =>
+                          updateItem(
+                            sIndex,
+                            iIndex,
+                            "allergies",
+                            e.target.value
+                          )
+                        }
+                        className="w-full border border-gray-300 rounded p-2 mb-2"
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={item.allergies_am}
+                        placeholder="Allergies"
+                        onChange={(e) =>
+                          updateItem(
+                            sIndex,
+                            iIndex,
+                            "allergies_am",
+                            e.target.value
+                          )
+                        }
+                        className="w-full border border-gray-300 rounded p-2 mb-2"
+                      />
+                    )}
                     <input
                       type="number"
                       value={item.preparation_time}
@@ -402,32 +512,35 @@ const ManualMenu = () => {
                       }
                       className="w-full border border-gray-300 rounded p-2 mb-2"
                     />
-                    <textarea
-                      value={item.instructions}
-                      placeholder="Instructions / How to Eat"
-                      onChange={(e) =>
-                        updateItem(
-                          sIndex,
-                          iIndex,
-                          "instructions",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
-                    />
-                    <textarea
-                      value={item.instructions_am}
-                      placeholder="Instructions (Amharic)"
-                      onChange={(e) =>
-                        updateItem(
-                          sIndex,
-                          iIndex,
-                          "instructions_am",
-                          e.target.value
-                        )
-                      }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
-                    />
+                    {language === "English" ? (
+                      <textarea
+                        value={item.how_to_eat}
+                        placeholder="How to Eat"
+                        onChange={(e) =>
+                          updateItem(
+                            sIndex,
+                            iIndex,
+                            "how_to_eat",
+                            e.target.value
+                          )
+                        }
+                        className="w-full border border-gray-300 rounded p-2 mb-2"
+                      />
+                    ) : (
+                      <textarea
+                        value={item.how_to_eat_am}
+                        placeholder="How to Eat"
+                        onChange={(e) =>
+                          updateItem(
+                            sIndex,
+                            iIndex,
+                            "how_to_eat_am",
+                            e.target.value
+                          )
+                        }
+                        className="w-full border border-gray-300 rounded p-2 mb-2"
+                      />
+                    )}
                     <input
                       type="text"
                       value={item.voice || ""}
@@ -444,56 +557,56 @@ const ManualMenu = () => {
                         type="number"
                         placeholder="Calories"
                         value={item.nutritional_info?.calories ?? ""}
-                        onChange={(e) =>
-                          updateNutritionalInfo(
-                            sIndex,
-                            iIndex,
-                            "calories",
-                            Number(e.target.value)
-                          )
-                        }
+                        // onChange={(e) =>
+                        //   updateNutritionalInfo(
+                        //     sIndex,
+                        //     iIndex,
+                        //     "calories",
+                        //     Number(e.target.value)
+                        //   )
+                        //}
                         className="border border-gray-300 rounded p-2"
                       />
                       <input
                         type="number"
                         placeholder="Protein (g)"
                         value={item.nutritional_info?.protein ?? ""}
-                        onChange={(e) =>
-                          updateNutritionalInfo(
-                            sIndex,
-                            iIndex,
-                            "protein",
-                            Number(e.target.value)
-                          )
-                        }
+                        // onChange={(e) =>
+                        //   updateNutritionalInfo(
+                        //     sIndex,
+                        //     iIndex,
+                        //     "protein",
+                        //     Number(e.target.value)
+                        //   )
+                        // }
                         className="border border-gray-300 rounded p-2"
                       />
                       <input
                         type="number"
                         placeholder="Carbs (g)"
                         value={item.nutritional_info?.carbs ?? ""}
-                        onChange={(e) =>
-                          updateNutritionalInfo(
-                            sIndex,
-                            iIndex,
-                            "carbs",
-                            Number(e.target.value)
-                          )
-                        }
+                        // onChange={(e) =>
+                        //   updateNutritionalInfo(
+                        //     sIndex,
+                        //     iIndex,
+                        //     "carbs",
+                        //     Number(e.target.value)
+                        //   )
+                        // }
                         className="border border-gray-300 rounded p-2"
                       />
                       <input
                         type="number"
                         placeholder="Fat (g)"
                         value={item.nutritional_info?.fat ?? ""}
-                        onChange={(e) =>
-                          updateNutritionalInfo(
-                            sIndex,
-                            iIndex,
-                            "fat",
-                            Number(e.target.value)
-                          )
-                        }
+                        // onChange={(e) =>
+                        //   updateNutritionalInfo(
+                        //     sIndex,
+                        //     iIndex,
+                        //     "fat",
+                        //     Number(e.target.value)
+                        //   )
+                        // }
                         className="border border-gray-300 rounded p-2"
                       />
                     </div>
@@ -551,92 +664,93 @@ const ManualMenu = () => {
                     </div>
 
                     {/* Tab Tags */}
-                    <div className="mb-2">
-                      <h4 className="font-medium mb-1">Tab Tags</h4>
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {item.tab_tags?.map((tag, tagIndex) => (
-                          <span
-                            key={tagIndex}
-                            className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full flex items-center"
-                          >
-                            {tag}
-                            <button
-                              onClick={() =>
-                                removeArrayItem(
-                                  sIndex,
-                                  iIndex,
-                                  "tab_tags",
-                                  tagIndex
-                                )
-                              }
-                              className="ml-2"
+                    {language === "English" ? (
+                      <div className="mb-2">
+                        <h4 className="font-medium mb-1">Tab Tags</h4>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {item.tab_tags?.map((tag, tagIndex) => (
+                            <span
+                              key={tagIndex}
+                              className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full flex items-center"
                             >
-                              ×
-                            </button>
-                          </span>
-                        ))}
+                              {tag}
+                              <button
+                                onClick={() =>
+                                  removeArrayItem(
+                                    sIndex,
+                                    iIndex,
+                                    "tab_tags",
+                                    tagIndex
+                                  )
+                                }
+                                className="ml-2"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Add tab tag"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              addArrayItem(
+                                sIndex,
+                                iIndex,
+                                "tab_tags",
+                                e.currentTarget.value
+                              );
+                              e.currentTarget.value = "";
+                            }
+                          }}
+                          className="w-full border border-gray-300 rounded p-2"
+                        />
                       </div>
-                      <input
-                        type="text"
-                        placeholder="Add tab tag"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            addArrayItem(
-                              sIndex,
-                              iIndex,
-                              "tab_tags",
-                              e.currentTarget.value
-                            );
-                            e.currentTarget.value = "";
-                          }
-                        }}
-                        className="w-full border border-gray-300 rounded p-2"
-                      />
-                    </div>
-
-                    {/* Tab Tags Amharic */}
-                    <div className="mb-2">
-                      <h4 className="font-medium mb-1">Tab Tags (Amharic)</h4>
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {item.tab_tags_am?.map((tag, tagIndex) => (
-                          <span
-                            key={tagIndex}
-                            className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full flex items-center"
-                          >
-                            {tag}
-                            <button
-                              onClick={() =>
-                                removeArrayItem(
-                                  sIndex,
-                                  iIndex,
-                                  "tab_tags_am",
-                                  tagIndex
-                                )
-                              }
-                              className="ml-2"
+                    ) : (
+                      <div className="mb-2">
+                        <h4 className="font-medium mb-1">Tab Tags</h4>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {item.tab_tags_am?.map((tag, tagIndex) => (
+                            <span
+                              key={tagIndex}
+                              className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full flex items-center"
                             >
-                              ×
-                            </button>
-                          </span>
-                        ))}
+                              {tag}
+                              <button
+                                onClick={() =>
+                                  removeArrayItem(
+                                    sIndex,
+                                    iIndex,
+                                    "tab_tags_am",
+                                    tagIndex
+                                  )
+                                }
+                                className="ml-2"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Add tab tag"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              addArrayItem(
+                                sIndex,
+                                iIndex,
+                                "tab_tags_am",
+                                e.currentTarget.value
+                              );
+                              e.currentTarget.value = "";
+                            }
+                          }}
+                          className="w-full border border-gray-300 rounded p-2"
+                        />
                       </div>
-                      <input
-                        type="text"
-                        placeholder="Add tab tag (Amharic)"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            addArrayItem(
-                              sIndex,
-                              iIndex,
-                              "tab_tags_am",
-                              e.currentTarget.value
-                            );
-                            e.currentTarget.value = "";
-                          }
-                        }}
-                        className="w-full border border-gray-300 rounded p-2"
-                      />
-                    </div>
+                    )}
 
                     {/* Image Upload */}
                     <input
@@ -662,9 +776,16 @@ const ManualMenu = () => {
 
       <button
         onClick={addSection}
-        className="bg-orange-500 text-white px-4 py-2 rounded"
+        className="bg-orange-500 text-white px-4 py-2 rounded mr-4"
       >
         + Add Section
+      </button>
+      <button
+        onClick={handleSubmit}
+        disabled={loading}
+        className="bg-orange-500 text-white px-4 py-2 rounded"
+      >
+        {loading ? "Submitting..." : "Submit Menu"}
       </button>
     </div>
   );
