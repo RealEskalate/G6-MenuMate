@@ -113,6 +113,30 @@ const ProfilePage = () => {
       setLoadingProfile(false);
     }
   };
+  // Add this handler in ProfilePage
+const handleLocalFileSelect = async (file: File) => {
+  if (!token) {
+    setSuccessMessage("Authentication token missing.");
+    setShowAvatarSelector(false);
+    return;
+  }
+
+  try {
+    setIsUpdatingAvatar(true);
+    setSuccessMessage("Uploading avatar...");
+
+    const apiResponse = await updateProfile(token, { avatar: file });
+
+    setSuccessMessage(apiResponse.message);
+    setProfile(apiResponse.data);
+  } catch (error) {
+    setSuccessMessage("Failed to upload avatar. Please try again.");
+    console.error("Error uploading avatar:", error);
+  } finally {
+    setIsUpdatingAvatar(false);
+    setShowAvatarSelector(false); // close modal
+  }
+};
 
   const onPasswordSubmit = async (data: PasswordForm) => {
     try {
@@ -337,7 +361,9 @@ const ProfilePage = () => {
           open={showAvatarSelector}
           onOpenChange={setShowAvatarSelector}
           onSelect={handleAvatarSelect}
+          onSelectLocalFile={handleLocalFileSelect}   // ✅ Added
         />
+
       )}
     </div>
   );
