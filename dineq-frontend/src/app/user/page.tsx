@@ -76,7 +76,18 @@ const Restaurants = () => {
   );
   if (error) return <div className="flex justify-center p-8 text-red-600">Failed to load restaurants: {error}</div>;
   if (!normalizedRestaurants.length) return (
-    <div className="flex justify-center p-8 text-gray-600">No restaurants available.</div>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full mt-4 mb-6 flex justify-center">
+        <div className="w-full max-w-xl relative">
+          <div className="h-10 bg-gray-200 rounded-md animate-pulse" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <RestaurantCardSkeleton key={i} />
+        ))}
+      </div>
+    </div>
   );
 
   return (

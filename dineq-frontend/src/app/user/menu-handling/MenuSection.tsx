@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { getMenusByRestaurantSlug, getMenuById, Menu } from "./menuApi";
+import { getMenusByRestaurantSlug, getMenuByRestaurantAndId, Menu } from "./menuApi";
 import MenuItemCard from "./MenuItemCard";
 
 interface MenuSectionProps {
@@ -31,7 +31,8 @@ const MenuSection: React.FC<MenuSectionProps> = ({ restaurantSlug }) => {
 
       try {
         const menusData = await getMenusByRestaurantSlug(restaurantSlug, session.accessToken);
-        setMenus(menusData); // ✅ now directly Menu[]
+        setMenus(menusData);
+        if (menusData.length > 0) setSelectedMenuId(menusData[0].id);
       } catch (err: any) {
         setErrorMenus(err.message || "Failed to fetch menus");
       } finally {
@@ -42,7 +43,7 @@ const MenuSection: React.FC<MenuSectionProps> = ({ restaurantSlug }) => {
     fetchMenus();
   }, [restaurantSlug, session?.accessToken, status]);
 
-  // Fetch selected menu
+  // Fetch selected menu details
   useEffect(() => {
     const fetchMenuDetails = async () => {
       if (!selectedMenuId || status !== "authenticated" || !session?.accessToken) return;
@@ -51,17 +52,22 @@ const MenuSection: React.FC<MenuSectionProps> = ({ restaurantSlug }) => {
       setErrorMenuDetails(null);
 
       try {
-        const menuData = await getMenuById(selectedMenuId, session.accessToken);
-        setSelectedMenu(menuData); // ✅ now directly Menu
+        const menuData = await getMenuByRestaurantAndId(
+          restaurantSlug,
+          selectedMenuId,
+          session.accessToken
+        );
+        setSelectedMenu(menuData);
       } catch (err: any) {
         setErrorMenuDetails(err.message || "Failed to fetch menu details");
+        setSelectedMenu(null);
       } finally {
         setLoadingMenuDetails(false);
       }
     };
 
     fetchMenuDetails();
-  }, [selectedMenuId, session?.accessToken, status]);
+  }, [selectedMenuId, restaurantSlug, session?.accessToken, status]);
 
   if (status === "unauthenticated") {
     return <p className="text-center p-4">Please log in to view menus.</p>;
@@ -103,20 +109,17 @@ const MenuSection: React.FC<MenuSectionProps> = ({ restaurantSlug }) => {
       {/* Menu Details */}
       {loadingMenuDetails && <p className="p-4">Loading menu details...</p>}
       {errorMenuDetails && <p className="text-red-600 p-4">{errorMenuDetails}</p>}
-      {selectedMenu && (
-        <div className="space-y-6">
-          {selectedMenu.categories.map((category) => (
-            <div key={category.name}>
-              <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {category.items.map((item) => (
-                  <MenuItemCard key={item.id} item={item} />
-                ))}
-              </div>
+      {selectedMenu?.categories && selectedMenu.categories.length > 0 &&
+        selectedMenu.categories.map((category) => (
+          <div key={category.name} className="mb-6">
+            <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {category.items?.map((item) => (
+                <MenuItemCard key={item.id} item={item} />
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
     </div>
   );
 };

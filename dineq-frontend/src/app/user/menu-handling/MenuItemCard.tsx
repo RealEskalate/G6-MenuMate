@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MenuItem } from "./menuApi"; // ✅ use from menuApi
+import { MenuItem } from "./menuApi";
 import SafeImage from "@/components/common/SafeImage";
 
 interface MenuItemCardProps {
@@ -10,7 +10,7 @@ interface MenuItemCardProps {
 
 const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
   return (
-    <div className="border border-[var(--color-primary)] rounded-lg hover:shadow-sm transition-shadow duration-200">
+    <div className="border border-[var(--color-primary)] rounded-lg hover:shadow-lg hover:-translate-y-1 transform transition-all duration-200">
       <div className="flex p-3">
         {/* Image */}
         <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
@@ -31,7 +31,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
                 {item.name}
               </h4>
               <span className="text-sm md:text-base font-bold text-[var(--color-primary)] ml-2">
-                ${item.price}
+                {item.currency ?? "$"} {item.price}
               </span>
             </div>
 
@@ -44,9 +44,9 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
 
           {/* Tags */}
           <div className="flex flex-wrap items-center gap-2 mt-2">
-            {(item.allergens?.length ?? 0) > 0 && (
+            {(item.allergies?.length ?? 0) > 0 && (
               <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
-                {item.allergens?.join(", ")}
+                {item.allergies?.join(", ")}
               </span>
             )}
             {(item.dietary_info?.length ?? 0) > 0 && (
