@@ -4,9 +4,10 @@ import 'package:dartz/dartz.dart';
 import '../../../../../../core/error/failures.dart';
 import '../entities/menu.dart';
 import '../entities/qr.dart';
+import '../../data/model/menu_create_model.dart';
 
 abstract class MenuRepository {
-  Future<Either<Failure, Menu>> uploadMenu(File printedMenu);
+  Future<Either<Failure, MenuCreateModel>> uploadMenu(File printedMenu);
   Future<Either<Failure, Menu>> createMenu(Menu menu);
   Future<Either<Failure, Menu>> publishMenu(
       {required String restaurantSlug, required String menuId});

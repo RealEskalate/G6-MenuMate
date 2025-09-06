@@ -15,15 +15,17 @@ class MenuRepositoryImpl implements MenuRepository {
   final NetworkInfo network;
   final MenuRemoteDataSource menuRemoteDataSource;
 
-  MenuRepositoryImpl({required this.network, required this.menuRemoteDataSource});
-  
+  MenuRepositoryImpl(
+      {required this.network, required this.menuRemoteDataSource});
+
   @override
-  Future<Either<Failure, Menu>> uploadMenu(File printedMenu) async {
+  Future<Either<Failure, MenuCreateModel>> uploadMenu(File printedMenu) async {
     final connected = await network.isConnected;
     if (connected) {
       try {
-        final menuModel = await menuRemoteDataSource.uploadMenu(printedMenu);
-        return Right(menuModel.toEntity());
+        final menuCreateModel =
+            await menuRemoteDataSource.uploadMenu(printedMenu);
+        return Right(menuCreateModel);
       } catch (e) {
         return Left(ExceptionMapper.toFailure(e as Exception));
       }

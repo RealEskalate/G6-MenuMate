@@ -5,7 +5,7 @@ import '../../model/menu_model.dart';
 import '../../model/qr_model.dart';
 
 abstract class MenuRemoteDataSource {
-  Future<MenuModel> uploadMenu(File printedMenu);
+  Future<MenuCreateModel> uploadMenu(File printedMenu);
   Future<MenuModel> createMenu(MenuCreateModel menu);
   Future<MenuModel> publishMenu(
       {required String restaurantSlug, required String menuId});

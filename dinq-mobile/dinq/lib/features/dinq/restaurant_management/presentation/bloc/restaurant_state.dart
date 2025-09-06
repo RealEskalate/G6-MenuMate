@@ -66,6 +66,15 @@ class QrLoaded extends RestaurantState {
   List<Object?> get props => [qr];
 }
 
+class MenuCreateLoaded extends RestaurantState {
+  final dynamic menuCreateModel;
+
+  const MenuCreateLoaded(this.menuCreateModel);
+
+  @override
+  List<Object?> get props => [menuCreateModel];
+}
+
 class MenuActionSuccess extends RestaurantActionSuccess {
   const MenuActionSuccess(super.message);
 }

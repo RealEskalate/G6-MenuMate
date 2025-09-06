@@ -147,7 +147,7 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     final result = await uploadMenu(event.menuFile);
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
-      (menu) => emit(const MenuActionSuccess('Menu uploaded successfully')),
+      (menuCreateModel) => emit(MenuCreateLoaded(menuCreateModel)),
     );
   }
 

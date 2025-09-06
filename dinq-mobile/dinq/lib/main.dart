@@ -7,6 +7,7 @@ import 'core/util/theme.dart';
 import 'features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import 'features/dinq/restaurant_management/presentation/bloc/restaurant_event.dart';
 import 'features/dinq/restaurant_management/presentation/bloc/restaurant_state.dart';
+import 'features/dinq/restaurant_management/presentation/pages/digitize_menu_page.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -27,8 +28,8 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        // replace routing temporarily with a small test screen that triggers GetMenu
-        home: const TestHome(),
+        // temporary test screen for OCR upload
+        home: const DigitizeMenuPage(),
         debugShowCheckedModeBanner: false,
         theme: appTheme,
       ),
@@ -53,10 +54,9 @@ class TestHome extends StatelessWidget {
                   return const CircularProgressIndicator();
                 } else if (state is MenuLoaded) {
                   return Text('Menu id: ${state.menu.items[0].id}');
-                  
-                }else if (state is RestaurantsLoaded) {
-                  return Text('Menu id: ${state.restaurants[0].restaurantName}');
-                  
+                } else if (state is RestaurantsLoaded) {
+                  return Text(
+                      'Menu id: ${state.restaurants[0].restaurantName}');
                 } else if (state is RestaurantError) {
                   return Text('Error: ${state.message}');
                 }
@@ -71,12 +71,13 @@ class TestHome extends StatelessWidget {
                     .add(const LoadMenu('workers-5fbe131a'));
               },
               child: const Text('Load Menu'),
-            ),const SizedBox(height: 20),
+            ),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 context
                     .read<RestaurantBloc>()
-                    .add(const LoadRestaurants(page: 1,pageSize: 20));
+                    .add(const LoadRestaurants(page: 1, pageSize: 20));
               },
               child: const Text('Load restaurant'),
             ),

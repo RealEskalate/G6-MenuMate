@@ -17,7 +17,7 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
   MenuRemoteDataSourceImpl({required this.dio});
 
   @override
-  Future<MenuModel> uploadMenu(File printedMenu) async {
+  Future<MenuCreateModel> uploadMenu(File printedMenu) async {
     try {
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
@@ -65,7 +65,26 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
                 final status = pollData['data']['status'] as String;
                 if (status == 'completed') {
                   final results = pollData['data']['results'];
-                  return MenuModel.fromMap(results);
+
+                  // Build a MenuCreateModel prefill from OCR results
+                  final extractedText = results['extracted_text'] as String?;
+                  final rawItems = results['menu_items'] ?? results['items'];
+                  final List<Map<String, dynamic>> items = [];
+                  if (rawItems is List) {
+                    for (final rawItem in rawItems) {
+                      if (rawItem is Map<String, dynamic>) {
+                        items.add(rawItem);
+                      }
+                    }
+                  }
+
+                  final Map<String, dynamic> createPayload = {
+                    'title': 'Scanned menu',
+                    'description': extractedText ?? '',
+                    'items': items,
+                  };
+
+                  return MenuCreateModel.fromMap(createPayload);
                 } else if (status == 'failed') {
                   throw ServerException('OCR job failed', statusCode: 200);
                 }
