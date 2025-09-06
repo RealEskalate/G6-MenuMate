@@ -8,8 +8,6 @@ import (
 
 // ReviewRequest is used for creating or updating a review
 type ReviewRequest struct {
-    ItemID      string  `json:"item_id" validate:"required"`
-    RestaurantID      string  `json:"restaurant_id" validate:"required"`
     Picture     string  `json:"picture,omitempty" validate:"omitempty,url"`
     Description string  `json:"description" validate:"required,max=500"`
     Rating      float64 `json:"rating" validate:"required,min=1,max=5"`
@@ -34,16 +32,16 @@ type ReviewResponse struct {
 }
 
 // Mapper: ReviewRequest → domain.Review
-func ToDomainReview(req ReviewRequest, userID string) *domain.Review {
+func ToDomainReview(req ReviewRequest, userID string, itemID string, restaurantID string) *domain.Review {
     return &domain.Review{
-        ItemID:      req.ItemID,
-        RestaurantID:      req.RestaurantID,
-        UserID:      userID,
-        Picture:     req.Picture,
-        Description: req.Description,
-        Rating:      req.Rating,
-        CreatedAt:   time.Now(),
-        UpdatedAt:   time.Now(),
+        ItemID:       itemID,
+        RestaurantID: restaurantID,
+        UserID:       userID,
+        Picture:      req.Picture,
+        Description:  req.Description,
+        Rating:       req.Rating,
+        CreatedAt:    time.Now(),
+        UpdatedAt:    time.Now(),
     }
 }
 

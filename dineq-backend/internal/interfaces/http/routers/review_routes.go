@@ -1,6 +1,8 @@
 package routers
 
 import (
+    "log"
+    "strings"
     "time"
 
     "github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
@@ -13,6 +15,7 @@ import (
 )
 
 func NewReviewRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database) {
+    log.Println("[ROUTES] Entering NewReviewRoutes registration")
     // context timeout
     ctxTimeout := time.Duration(env.CtxTSeconds) * time.Second
 
@@ -21,8 +24,26 @@ func NewReviewRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
     reviewUsecase := usecase.NewReviewUsecase(reviewRepo, ctxTimeout)
     reviewHandler := handler.NewReviewHandler(reviewUsecase)
 
-    // Authenticated routes
+    // Temporary debug middleware for this subgroup to trace 404s
+    debugGroup := group.Group("")
+    debugGroup.Use(func(c *gin.Context) {
+        if c.Request.Method == "POST" && strings.Contains(c.Request.URL.Path, "/restaurants/") && strings.Contains(c.Request.URL.Path, "/reviews") {
+            log.Printf("[DEBUG ROUTE ENTER] method=%s path=%s", c.Request.Method, c.Request.URL.Path)
+        }
+        c.Next()
+    })
+
+    // Authenticated routes (new nested path adjusted to avoid conflict with /restaurants/:slug): /restaurants/id/:restaurant_id/items/:item_id/reviews
+    log.Println("[ROUTES] Attempting to register POST /restaurants/id/:restaurant_id/items/:item_id/reviews (relative to /api/v1)")
+    debugGroup.POST("/restaurants/id/:restaurant_id/items/:item_id/reviews", middleware.AuthMiddleware(*env), reviewHandler.CreateReview)
+    // Trailing slash variant for some API clients that auto-append /
+    debugGroup.POST("/restaurants/id/:restaurant_id/items/:item_id/reviews/", middleware.AuthMiddleware(*env), reviewHandler.CreateReview)
+    log.Println("[ROUTES] Registered POST /api/v1/restaurants/id/:restaurant_id/items/:item_id/reviews")
+    // Temporary legacy fallback for clients still using body IDs (will be removed)
     group.POST("/reviews", middleware.AuthMiddleware(*env), reviewHandler.CreateReview)
+    log.Println("[ROUTES] Registered TEMP legacy POST /api/v1/reviews")
+    // Legacy (comment out when deprecated):
+    // group.POST("/reviews", middleware.AuthMiddleware(*env), reviewHandler.CreateReview)
     group.PATCH("/reviews/:id", middleware.AuthMiddleware(*env), reviewHandler.UpdateReview)
     group.DELETE("/reviews/:id", middleware.AuthMiddleware(*env), reviewHandler.DeleteReview)
 
