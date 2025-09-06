@@ -2,18 +2,41 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import Roles from "@/Types/role";
 
 function NavBar({ role }: Roles) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   // Close dropdown on route change
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  // Logout function
+  const handleLogout = async () => {
+    try {
+      await fetch("https://dineq.onrender.com/api/v1/auth/logout", {
+        method: "POST",
+        credentials: "include", // if backend uses cookies
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      // Remove token from storage
+      localStorage.removeItem("token");
+
+      // Redirect to login page
+      router.push("/login");
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
 
   const linkClasses = (path: string) =>
     pathname === path
@@ -24,7 +47,12 @@ function NavBar({ role }: Roles) {
     { name: "Menus", href: "/dashboard/menu", icon: "/icons/menu.svg" },
     { name: "QR Manager", href: "/dashboard/qr-manager", icon: "/icons/qr.png" },
     { name: "Settings", href: "/dashboard/settings", icon: "/icons/setting.png" },
-    { name: "Analytics", href: "/dashboard/analytics", icon: "/icons/Analytics.png", pro: true },
+    {
+      name: "Analytics",
+      href: "/dashboard/analytics",
+      icon: "/icons/Analytics.png",
+      pro: true,
+    },
   ];
 
   const extraManagerLinks = [
@@ -40,22 +68,49 @@ function NavBar({ role }: Roles) {
       {/* CUSTOMER links */}
       {role === "USER" && (
         <div className="hidden md:flex ml-4">
-          <Link href="/user" className={linkClasses("/user")}>Home</Link>
-          
-          <Link href="/user/scan" className={linkClasses("/user/scan")}>Scan</Link>
-          <Link href="/user/favorites" className={linkClasses("/user/favorites")}>Favorites</Link>
-          <Link href="/user/profile" className={linkClasses("/user/profile")}>Profile</Link>
+          <Link href="/user" className={linkClasses("/user")}>
+            Home
+          </Link>
+          <Link href="/user/scan" className={linkClasses("/user/scan")}>
+            Scan
+          </Link>
+          <Link href="/user/favorites" className={linkClasses("/user/favorites")}>
+            Favorites
+          </Link>
+          <Link href="/user/profile" className={linkClasses("/user/profile")}>
+            Profile
+          </Link>
+
+          {/* Logout link styled the same way */}
+          <button
+            onClick={handleLogout}
+            className="px-4 text-gray-700 hover:text-[var(--color-primary)]"
+          >
+            Logout
+          </button>
         </div>
       )}
 
       {/* MANAGER desktop links */}
       {role === "MANAGER" && (
-        <div className="hidden md:flex ml-auto">
+        <div className="hidden md:flex ml-auto items-center">
           {extraManagerLinks.map((link) => (
-            <Link key={link.name} href={link.href} className={linkClasses(link.href)}>
+            <Link
+              key={link.name}
+              href={link.href}
+              className={linkClasses(link.href)}
+            >
               {link.name}
             </Link>
           ))}
+
+          {/* Logout link styled the same way */}
+          <button
+            onClick={handleLogout}
+            className="px-4 text-gray-700 hover:text-[var(--color-primary)]"
+          >
+            Logout
+          </button>
         </div>
       )}
 
@@ -86,11 +141,18 @@ function NavBar({ role }: Roles) {
                           : "text-gray-700 hover:bg-gray-50"
                       }`}
                     >
-                      <Image src={link.icon} alt={link.name} width={18} height={18} />
+                      <Image
+                        src={link.icon}
+                        alt={link.name}
+                        width={18}
+                        height={18}
+                      />
                       <span className="flex items-center gap-1 text-sm">
                         {link.name}
                         {link.pro && (
-                          <sup className="text-[8px] text-orange-500 px-1 font-bold">PRO</sup>
+                          <sup className="text-[8px] text-orange-500 px-1 font-bold">
+                            PRO
+                          </sup>
                         )}
                       </span>
                     </Link>
@@ -101,7 +163,6 @@ function NavBar({ role }: Roles) {
               {role === "USER" &&
                 [
                   { name: "Home", href: "/user" },
-                 
                   { name: "Scan", href: "/user/scan" },
                   { name: "Favorites", href: "/user/favorites" },
                   { name: "Profile", href: "/user/profile" },
@@ -136,6 +197,19 @@ function NavBar({ role }: Roles) {
                     {link.name}
                   </Link>
                 ))}
+
+              {/* Logout link styled the same way */}
+              {role && (
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setOpen(false);
+                  }}
+                  className="px-3 py-2 rounded-xl text-sm text-gray-700 hover:text-[var(--color-primary)] text-left"
+                >
+                  Logout
+                </button>
+              )}
             </nav>
           </div>
         )}

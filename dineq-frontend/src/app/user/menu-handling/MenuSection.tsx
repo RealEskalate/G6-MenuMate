@@ -75,7 +75,7 @@ const MenuSection: React.FC<MenuSectionProps> = ({ restaurantSlug }) => {
     return <p className="text-red-600 text-center p-4">{errorMenus}</p>;
   }
 
-  if (menus.length === 0) {
+  if (!menus) {
     return <p className="text-center p-4">No menus available for this restaurant.</p>;
   }
 
