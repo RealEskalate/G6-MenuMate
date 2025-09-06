@@ -206,6 +206,7 @@ func NewEnv() (*Env, error) {
 	env.CookieSecure = strings.ToLower(os.Getenv("COOKIE_SECURE")) == "true"
 	env.CookieDomain = os.Getenv("COOKIE_DOMAIN")
 	env.CORSAllowedOriginsRaw = os.Getenv("CORS_ALLOWED_ORIGINS")
+	env.FrontendBaseURL = os.Getenv("FRONTEND_BASE_URL")
 	if env.CORSAllowedOriginsRaw == "" {
 		// default allow all for dev convenience
 		env.CORSAllowedOrigins = []string{"*"}

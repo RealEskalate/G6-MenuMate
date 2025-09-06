@@ -20,13 +20,20 @@ func NewItemRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database, 
 	itemUseCase := usecase.NewItemUseCase(itemRepo, ctxTimeout)
 
 	handler := handler.NewItemHandler(itemUseCase)
+
+	// Public item routes (read-only)
+	public := api.Group("/menu-items")
+	{
+		public.GET("/:menu_slug", handler.GetItems)
+		public.GET("/:menu_slug/:id", handler.GetItemByID)
+	}
+
+	// Protected item routes (mutations)
 	protected := api.Group("/menu-items")
 	protected.Use(middleware.AuthMiddleware(*env))
 	{
-		protected.GET("/:menu_slug", handler.GetItems)
 		protected.POST("/:menu_slug/", handler.CreateItem)
 		protected.PATCH("/:menu_slug/:id", handler.UpdateItem)
-		protected.GET("/:menu_slug/:id", handler.GetItemByID)
 		protected.POST("/:menu_slug/:id/reviews", handler.AddReview)
 		protected.DELETE("/:menu_slug/:id", handler.DeleteItem)
 	}
