@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Menu, MenuItem } from "@/Types/menu";
 
-const API_BASE = "https://g6-menumate-1.onrender.com/api/v1";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // --- Fetch functions ---
 
@@ -10,7 +10,7 @@ async function fetchMenus(
   restaurantSlug: string,
   token?: string
 ): Promise<Menu[]> {
-  const res = await fetch(`${API_BASE}/menus/${restaurantSlug}`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/menus/${restaurantSlug}`, {
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -18,10 +18,13 @@ async function fetchMenus(
   });
 
   const data = await res.json();
+  console.log("menu data:",data)
+  console.log("menu data zerzer",data.menu)
 
   if (!res.ok) throw new Error(data.message || "Failed to fetch menus");
+  
 
-  return data.data?.menu ?? []; 
+  return data.data?.menus ?? []; 
 }
 
 // Fetch a single menu by ID

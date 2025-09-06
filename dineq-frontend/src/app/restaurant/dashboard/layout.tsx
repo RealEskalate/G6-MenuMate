@@ -1,4 +1,5 @@
 "use client";
+import { Toaster } from "react-hot-toast";
 
 import Sidebar from "@/components/restaurant/SideBar";
 import Navbar from "@/components/common/NavBar";
@@ -9,10 +10,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { data: session, status } = useSession();
   const { data, isLoading, error } = useRestaurant(session?.accessToken);
 
-  const restaurant = data?.restaurants?.[0];
+  const restaurant = data;
+  console.log(data)
 
   return (
     <div className="">
+      <Toaster position="top-right" />
       <Navbar role="MANAGER" />
       <div className="flex gap-8">
         <Sidebar />
