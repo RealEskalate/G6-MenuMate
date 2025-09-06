@@ -1,10 +1,10 @@
 // lib/features/DineQ_App/auth/data/repositories/auth_repository_impl.dart
-import 'package:dinq/core/network/api_client.dart';
-import 'package:dinq/core/network/api_endpoints.dart';
-import 'package:dinq/core/network/api_exceptions.dart';
-import 'package:dinq/core/network/token_manager.dart';
-import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart';
-import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
+import '../../../../../core/network/api_client.dart';
+import '../../../../../core/network/api_endpoints.dart';
+import '../../../../../core/network/api_exceptions.dart';
+import '../../../../../core/network/token_manager.dart';
+import '../../domain/repository/Customer_reg_repo.dart';
+import '../models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final ApiClient _apiClient;

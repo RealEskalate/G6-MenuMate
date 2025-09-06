@@ -100,7 +100,7 @@ class _MenuSectionCard extends StatelessWidget {
                                       'desc': item['desc'] ?? '',
                                       'howToEat': '',
                                       'ingredients': [],
-                                      'image': item['image'] ?? null,
+                                      'image': item['image'],
                                     },
                                   )
                                   .toList(),

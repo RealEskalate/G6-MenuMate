@@ -40,7 +40,7 @@ class _GeneratedQrPageState extends State<GeneratedQrPage> {
         final newPath = '${downloadsDir.path}/$fileName.png';
         await file.copy(newPath);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('QR Code saved as PNG in Downloads')),
+          const SnackBar(content: Text('QR Code saved as PNG in Downloads')),
         );
       } else if (_selectedFormat == '.pdf') {
         // Create a PDF with the QR image
@@ -60,7 +60,7 @@ class _GeneratedQrPageState extends State<GeneratedQrPage> {
         final pdfFile = File('${downloadsDir.path}/$fileName.pdf');
         await pdfFile.writeAsBytes(await pdf.save());
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('QR Code saved as PDF in Downloads')),
+          const SnackBar(content: Text('QR Code saved as PDF in Downloads')),
         );
       }
     } catch (e) {

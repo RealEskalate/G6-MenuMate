@@ -7,15 +7,14 @@ import '../../features/dinq/restaurant_management/presentation/pages/billing_pag
 import '../../features/dinq/restaurant_management/presentation/pages/branding_preferences_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/create_menu_manually_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/digitize_menu_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_item_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/edit_single_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/edit_uploaded_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/generated_qr_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/legal_info_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/menus_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/opening_hours_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/qr_customization_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_details_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_profile_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/settings_page.dart';
@@ -46,7 +45,6 @@ class AppRoute {
   static const String billing = '/billing';
   static const String qrcode = '/qrcode';
   static const String setting = '/settings';
-  static const String qrcustom = '/qrcustom';
 
   // Menu management routes
   static const String menus = '/menus';
@@ -66,25 +64,29 @@ class AppRoute {
          return MaterialPageRoute(builder: (_) => const OnboardingFirst());
       case explore:
         return MaterialPageRoute(builder: (_) => const HomePage());
-      case favorites:
-        return MaterialPageRoute(
-          builder: (_) => const FavouritesPage(
-            allRestaurants: [], // Pass your data here
-            allDishes: [],
-          ),
-        );
+      // case favorites:
+      //   return MaterialPageRoute(
+      //     builder: (_) => const FavouritesPage(
+      //       allRestaurants: [], // Pass your data here
+      //       allDishes: [],
+      //     ),
+      //   );
       case home:
         return MaterialPageRoute(builder: (_) => const HomePage());
-      case itemDetail:
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
-        final item = args['item'];
-        return MaterialPageRoute(builder: (_) => ItemDetailsPage(item: item));
-      case restaurant:
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
-        final restaurantId = args['restaurantId'] as String? ?? '';
-        return MaterialPageRoute(
-          builder: (_) => RestaurantPage(restaurantId: restaurantId),
-        );
+      // case itemDetail:
+      //   final args = settings.arguments as Map<String, dynamic>? ?? {};
+      //   final item = args['item'];
+      //   return MaterialPageRoute(builder: (_) => ItemDetailsPage(item: item));
+      // case restaurant:
+      //   final args = settings.arguments as Map<String, dynamic>? ?? {};
+      //   final restaurant = args['restaurant']; 
+      //   final menu = args['menu'];
+      //   return MaterialPageRoute(
+      //     builder: (_) => RestaurantPage(
+      //       restaurant: restaurant,
+      //       menu: menu,
+      //     ),
+      //   );
       case scannedMenu:
         return MaterialPageRoute(builder: (_) => const ScannedMenuPage());
       case profile:
@@ -95,8 +97,8 @@ class AppRoute {
         return MaterialPageRoute(builder: (_) => const RestaurantProfilePage());
       case restaurantDetails:
         return MaterialPageRoute(builder: (_) => const RestaurantDetailsPage());
-      case openingHours:
-        return MaterialPageRoute(builder: (_) => const OpeningHoursPage());
+      // case openingHours:
+      //   return MaterialPageRoute(builder: (_) => const OpeningHoursPage());
       case legalInfo:
         return MaterialPageRoute(builder: (_) => const LegalInfoPage());
       case brandingPreferences:
@@ -108,16 +110,14 @@ class AppRoute {
         return MaterialPageRoute(builder: (_) => const QrScannerPage());
       case setting:
         return MaterialPageRoute(builder: (_) => const SettingsPage());
-      case qrcustom:
-        return MaterialPageRoute(builder: (_) => const QrCustomizationPage());
 
       // Menu management routes
-      case menus:
-        final args = settings.arguments as Map<String, dynamic>?;
-        final restaurantId = args?['restaurantId'] ?? '';
-        return MaterialPageRoute(
-          builder: (_) => MenusPage(restaurantId: restaurantId),
-        );
+      // case menus:
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   final restaurantId = args?['restaurantId'] ?? '';
+      //   return MaterialPageRoute(
+      //     builder: (_) => MenusPage(restaurantId: restaurantId),
+      //   );
       case editMenu:
         return MaterialPageRoute(builder: (_) => const EditMenuPage());
       case editSingleMenu:
@@ -126,10 +126,10 @@ class AppRoute {
         return MaterialPageRoute(
           builder: (_) => EditSingleMenuPage(menuData: args ?? {}),
         );
-      case createMenuManually:
-        return MaterialPageRoute(
-          builder: (_) => const CreateMenuManuallyPage(restaurantId: 'dummy'),
-        );
+      // case createMenuManually:
+      //   return MaterialPageRoute(
+      //     builder: (_) => const CreateMenuManuallyPage(restaurantId: 'dummy'),
+      //   );
       case editMenuItem:
         // Pass itemData as arguments if needed
         final args = settings.arguments as Map<String, dynamic>?;
@@ -137,15 +137,15 @@ class AppRoute {
         return MaterialPageRoute(
           builder: (_) => EditMenuItemPage(item: args?['item']),
         );
-      case editUploadedMenu:
-        // Pass uploadedImage and menuSections as arguments if needed
-        final args = settings.arguments as Map<String, dynamic>?;
-        return MaterialPageRoute(
-          builder: (_) => EditUploadedMenuPage(
-            uploadedImage: args?['uploadedImage'],
-            // Pass other args as needed
-          ),
-        );
+      // case editUploadedMenu:
+      //   // Pass uploadedImage and menuSections as arguments if needed
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   return MaterialPageRoute(
+      //     builder: (_) => EditUploadedMenuPage(
+      //       uploadedImage: args?['uploadedImage'],
+      //       // Pass other args as needed
+      //     ),
+      //   );
       case generatedQr:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
@@ -154,8 +154,8 @@ class AppRoute {
         );
       case analytics:
         return MaterialPageRoute(builder: (_) => const AnalyticsPage());
-      case digitizeMenu:
-        return MaterialPageRoute(builder: (_) => const DigitizeMenuPage());
+      // case digitizeMenu:
+      //   return MaterialPageRoute(builder: (_) => const DigitizeMenuPage());
       default:
         return MaterialPageRoute(
           builder: (_) =>

@@ -1,11 +1,9 @@
-import 'dart:io';
 
 import 'package:dartz/dartz.dart';
-import '../../../../../core/error/failures.dart';
-import '../entities/menu.dart';
-import '../entities/restaurant.dart';
-import '../entities/review.dart';
 import 'package:dio/dio.dart';
+
+import '../../../../../core/error/failures.dart';
+import '../entities/restaurant.dart';
 
 abstract class RestaurantRepository {
   // Restaurant
@@ -16,19 +14,9 @@ abstract class RestaurantRepository {
   });
   Future<Either<Failure, Restaurant>> getRestaurantBySlug(String slug);
   Future<Either<Failure, Restaurant>> updateRestaurant(
-    Restaurant restaurant,
+    FormData restaurant,
     String slug,
   );
   Future<Either<Failure, void>> deleteRestaurant(String restaurantId);
-  // Menu
-  Future<Either<Failure, Menu>> uploadMenu(File printedMenu);
-  Future<Either<Failure, Menu>> getMenu(String menuId);
-  Future<Either<Failure, void>> deleteMenu(String menuId);
-  Future<Either<Failure, Menu>> updateMenu(Menu menu);
-  // Review
-  Future<Either<Failure, List<Review>>> getReviews(String itemId);
-  Future<Either<Failure, void>> deleteReview(String reviewId);
-  // UserImage
-  Future<Either<Failure, List<String>>> getUserImages(String slug);
-  // Future<Either<Failure, void>> updateItem();
+  
 }

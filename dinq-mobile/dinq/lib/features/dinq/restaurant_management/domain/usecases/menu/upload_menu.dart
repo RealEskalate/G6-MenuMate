@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import '../../../../../../core/error/failures.dart';
 import '../../entities/menu.dart';
-import '../../repositories/restaurant_repository.dart';
+import '../../repositories/menu_repository.dart';
 
 class UploadMenu {
-  final RestaurantRepository repository;
+  final MenuRepository repository;
 
   UploadMenu(this.repository);
 

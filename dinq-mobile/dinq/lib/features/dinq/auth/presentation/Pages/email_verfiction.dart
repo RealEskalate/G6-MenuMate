@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
+import '../../../../../core/util/theme.dart';
+import '../widgets/Login_button.dart';
 
 class EmailVerification extends StatefulWidget {
   final String email;
@@ -110,8 +110,8 @@ class _EmailVerificationState extends State<EmailVerification> with SingleTicker
                 opacity: _fadeAnimation,
                 child: SlideTransition(
                   position: _slideAnimation,
-                  child: Text(
-                    "Email Verification",
+                  child: const Text(
+                    'Email Verification',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 28,
@@ -138,8 +138,8 @@ class _EmailVerificationState extends State<EmailVerification> with SingleTicker
                       curve: const Interval(0.3, 0.7, curve: Curves.easeOut),
                     ),
                   ),
-                  child: Text(
-                    "Please enter the 4-digit code send you at",
+                  child: const Text(
+                    'Please enter the 4-digit code send you at',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 12,
@@ -169,7 +169,7 @@ class _EmailVerificationState extends State<EmailVerification> with SingleTicker
                   ),
                   child: Text(
                     widget.email,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontFamily: 'Inter',
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
@@ -195,12 +195,12 @@ class _EmailVerificationState extends State<EmailVerification> with SingleTicker
                       curve: const Interval(0.5, 0.9, curve: Curves.easeOut),
                     ),
                   ),
-                  child: Text(
-                    "Resend code",
+                  child: const Text(
+                    'Resend code',
                     style: TextStyle(
                       fontFamily: 'Roboto',
                       fontWeight: FontWeight.bold,
-                      color: const Color.fromARGB(255, 97, 93, 93),
+                      color: Color.fromARGB(255, 97, 93, 93),
                       fontSize: 12,
                     ),
                   ),
@@ -229,7 +229,7 @@ class _EmailVerificationState extends State<EmailVerification> with SingleTicker
                     parent: _controller,
                     curve: const Interval(0.7, 1.0, curve: Curves.easeIn),
                   ),
-                  child: LoginButton(buttonname: "Enter"),
+                  child: const LoginButton(buttonname: 'Enter'),
                 ),
               ),
               const SizedBox(height: 40),

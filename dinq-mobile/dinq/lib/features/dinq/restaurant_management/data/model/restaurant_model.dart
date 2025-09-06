@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../../domain/entities/restaurant.dart';
 
+
 class RestaurantModel extends Restaurant {
   const RestaurantModel({
     required super.id,
@@ -19,7 +20,7 @@ class RestaurantModel extends Restaurant {
     required super.averageRating,
     required super.viewCount,
     required super.createdAt,
-    required super.updatedAt, required String name, required String description, required String email,
+    required super.updatedAt, 
   });
 
   factory RestaurantModel.fromMap(Map<String, dynamic> data) {
@@ -68,7 +69,7 @@ class RestaurantModel extends Restaurant {
       averageRating: toDouble(data['average_rating']),
       viewCount: toDouble(data['view_count']),
       createdAt: toDateTime(data['created_at']),
-      updatedAt: toDateTime(data['updated_at']),
+      updatedAt: toDateTime(data['updated_at']), 
     );
   }
 
@@ -131,7 +132,7 @@ class RestaurantModel extends Restaurant {
       averageRating: averageRating ?? this.averageRating,
       viewCount: viewCount ?? this.viewCount,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      updatedAt: updatedAt ?? this.updatedAt, 
     );
   }
 

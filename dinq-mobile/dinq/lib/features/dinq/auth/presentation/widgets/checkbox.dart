@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
+import '../../../../../core/util/theme.dart';
 
 class CustomCheckbox extends StatefulWidget {
   final ValueChanged<bool>? onChanged;
@@ -25,8 +25,8 @@ class _CustomCheckboxState extends State<CustomCheckbox> {
       },
       activeColor: AppColors.secondaryColor, // Color when checked
       checkColor: AppColors.primaryColor, // Color of the check icon
-      fillColor: MaterialStateProperty.resolveWith<Color>((Set<MaterialState> states) {
-        if (states.contains(MaterialState.disabled)) {
+      fillColor: WidgetStateProperty.resolveWith<Color>((Set<WidgetState> states) {
+        if (states.contains(WidgetState.disabled)) {
           return Colors.grey; // Color when disabled
         }
         return AppColors.whiteColor; // Use the default activeColor

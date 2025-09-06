@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
+import '../../../../../core/util/theme.dart';
 
 class ChooseBox extends StatelessWidget {
   final String category;
@@ -61,7 +61,7 @@ class ChooseBox extends StatelessWidget {
                   children: [
                     Text(
                       category,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.secondaryColor,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,

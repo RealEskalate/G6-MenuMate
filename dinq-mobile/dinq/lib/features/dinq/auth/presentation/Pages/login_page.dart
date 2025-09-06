@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/Register_page.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/forget_password_page.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
+import '../../../../../core/util/theme.dart';
+import 'Register_page.dart';
+import 'forget_password_page.dart';
+import '../widgets/Login_TextFields.dart';
+import '../widgets/Login_button.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -158,7 +158,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
       // For demo purposes, just show a success message
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Login successful!'),
           backgroundColor: Colors.green,
         ),
@@ -187,10 +187,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     offset: Offset(0, (1 - _titleAnimation.value) * 20),
                     child: Opacity(
                       opacity: _titleAnimation.value,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
+                      child: const Padding(
+                        padding: EdgeInsets.only(left: 8.0),
                         child: Text(
-                          "Welcome back!",
+                          'Welcome back!',
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.bold,
@@ -214,8 +214,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       opacity: _emailFieldAnimation.value,
                       child: LoginTextfields(
                         controller: _emailController,
-                        labeltext: "Email Address",
-                        hintText: "Enter your email",
+                        labeltext: 'Email Address',
+                        hintText: 'Enter your email',
                         errorText: _emailError,
                         keyboardType: TextInputType.emailAddress,
                       ),
@@ -234,8 +234,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       opacity: _passwordFieldAnimation.value,
                       child: LoginTextfields(
                         controller: _passwordController,
-                        labeltext: "Password",
-                        hintText: "***********",
+                        labeltext: 'Password',
+                        hintText: '***********',
                         isPassword: true,
                         errorText: _passwordError,
                       ),
@@ -269,10 +269,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                           ),
                         );
                       },
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Text("Forget Password?",
+                          Text('Forget Password?',
                             style: TextStyle(
                               color: AppColors.primaryColor,
                               fontSize: 14,
@@ -297,7 +297,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       child: Center(
                         child: GestureDetector(
                           onTap: _handleLogin,
-                          child: LoginButton(buttonname: "Login"),
+                          child: const LoginButton(buttonname: 'Login'),
                         ),
                       ),
                     ),
@@ -315,7 +315,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("Don't have an account?",
+                          const Text("Don't have an account?",
                             style: TextStyle(
                               color: AppColors.secondaryColor,
                               fontFamily: 'Inter',
@@ -342,7 +342,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 ),
                               );
                             },
-                            child: Text("Register",
+                            child: const Text('Register',
                               style: TextStyle(
                                 color: AppColors.primaryColor,
                                 fontFamily: 'Inter',
@@ -371,9 +371,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                             thickness: 1,
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text("or",
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text('or',
                             style: TextStyle(
                               fontWeight: FontWeight.normal,
                               color: AppColors.secondaryColor,
@@ -413,7 +413,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
@@ -421,9 +421,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 size: 24,
                                 color: Colors.green,
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12),
                               Text(
-                                "Sign in with Google",
+                                'Sign in with Google',
                                 style: TextStyle(
                                   color: Colors.black54,
                                   fontWeight: FontWeight.normal,

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/email_verfiction.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/login_page.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
+import '../../../../../core/util/theme.dart';
+import 'email_verfiction.dart';
+import 'login_page.dart';
+import '../widgets/Login_TextFields.dart';
+import '../widgets/Login_button.dart';
 
 // Add this import for the EmailVerification class
 
@@ -90,7 +90,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
     // Basic email validation
     if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Please enter your email address'),
           backgroundColor: Colors.red,
         ),
@@ -100,7 +100,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
 
     if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Please enter a valid email address'),
           backgroundColor: Colors.red,
         ),
@@ -144,8 +144,8 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
                     offset: Offset(0, (1 - _titleAnimation.value) * 20),
                     child: Opacity(
                       opacity: _titleAnimation.value,
-                      child: Text(
-                        "Forget Password",
+                      child: const Text(
+                        'Forget Password',
                         style: TextStyle(
                           fontFamily: 'Inter',
                           color: Colors.black,
@@ -166,7 +166,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
                     offset: Offset(0, (1 - _subtitleAnimation.value) * 15),
                     child: Opacity(
                       opacity: _subtitleAnimation.value,
-                      child: Text(
+                      child: const Text(
                         "Enter your email address and we'll send you a link to reset your password",
                         style: TextStyle(
                           fontFamily: 'Inter',
@@ -189,8 +189,8 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
                     child: Opacity(
                       opacity: _textFieldAnimation.value,
                       child: LoginTextfields(
-                        labeltext: "Email Address",
-                        hintText: "Enter your email.",
+                        labeltext: 'Email Address',
+                        hintText: 'Enter your email.',
                         controller: _emailController, // Pass the controller
                       ),
                     ),
@@ -209,7 +209,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
                       child: Center(
                         child: GestureDetector(
                           onTap: _navigateToEmailVerification,
-                          child: LoginButton(buttonname: "Send Reset Link"),
+                          child: const LoginButton(buttonname: 'Send Reset Link'),
                         ),
                       ),
                     ),
@@ -242,7 +242,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
                           ),
                         );
                       },
-                      child: Center(
+                      child: const Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -251,9 +251,9 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> with SingleTick
                               color: AppColors.primaryColor,
                               size: 16,
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4),
                             Text(
-                              "Back to Sign in",
+                              'Back to Sign in',
                               style: TextStyle(
                                 color: AppColors.primaryColor,
                                 fontFamily: 'Inter',

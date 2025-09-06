@@ -1,6 +1,7 @@
 import 'dart:convert';
-
 import '../../domain/entities/item.dart';
+import '../../domain/entities/nutrition.dart';
+import 'nutrition_model.dart';
 
 class ItemModel extends Item {
   const ItemModel({
@@ -8,95 +9,134 @@ class ItemModel extends Item {
     required super.name,
     required super.nameAm,
     required super.slug,
-    required super.categoryId,
+    required super.menuSlug,
+    super.images,
     super.description,
     super.descriptionAm,
-    super.image,
     required super.price,
     required super.currency,
     super.allergies,
-    super.userImages,
-    super.calories,
+    super.allergiesAm,
+    super.tabTags,
     super.ingredients,
     super.ingredientsAm,
     super.preparationTime,
     super.howToEat,
     super.howToEatAm,
+    super.nutritionalInfo,
     required super.viewCount,
     required super.averageRating,
     required super.reviewIds,
   });
 
   factory ItemModel.fromMap(Map<String, dynamic> data) => ItemModel(
-    id: data['id'] ?? '',
-    name: data['name'] ?? '',
-    nameAm: data['nameAm'] ?? data['name_am'] ?? '',
-    slug: data['slug'] ?? '',
-    categoryId: data['categoryId'] ?? data['category_id'] ?? '',
-    description:
-        data['description'] ?? data['description_en'] ?? data['description_am'],
-    descriptionAm: data['descriptionAm'] ?? data['description_am'],
-    image: (data['image'] as List<dynamic>?)?.map((e) => e as String).toList(),
-    price: (data['price'] as num?)?.toInt() ?? 0,
-    currency: data['currency'] ?? '',
-    allergies: (data['allergies'] as List<dynamic>?)
-        ?.map((e) => e as String)
-        .toList(),
-    userImages: (data['userImages'] as List<dynamic>?),
-    calories:
-        (data['calories'] as num?)?.toInt() ??
-        (data['nutrition']?['calories'] as num?)?.toInt(),
-    ingredients: (data['ingredients'] as List<dynamic>?)
-        ?.map((e) => e as String)
-        .toList(),
-    ingredientsAm: (data['ingredientsAm'] as List<dynamic>?)
-        ?.map((e) => e as String)
-        .toList(),
-    preparationTime:
-        (data['preparationTime'] as num?)?.toInt() ??
-        (data['preparation_time'] as num?)?.toInt(),
-    howToEat: data['howToEat'] ?? data['how_to_eat'],
-    howToEatAm: data['howToEatAm'] ?? data['how_to_eat_am'],
-    viewCount: (data['view_count'] ?? data['viewCount']) is int
-        ? (data['view_count'] ?? data['viewCount']) as int
-        : ((data['view_count'] ?? data['viewCount']) as num?)?.toInt() ?? 0,
-    averageRating:
-        (data['average_rating'] as num?)?.toDouble() ??
-        (data['averageRating'] as num?)?.toDouble() ??
-        0.0,
-    reviewIds:
-        (data['reviewIds'] as List<dynamic>?)
+        id: data['id'] ?? '',
+        name: data['name'] ?? '',
+        nameAm: data['nameAm'] ?? data['name_am'] ?? '',
+        slug: data['slug'] ?? '',
+        menuSlug: data['menuSlug'] ?? data['menu_slug'] ?? '',
+        images: ((data['images'] ?? data['image']) as List<dynamic>?)
             ?.map((e) => e as String)
-            .toList() ??
-        ((data['review_ids'] as List<dynamic>?)
+            .toList(),
+        description: data['description'] ??
+            data['description_en'] ??
+            data['description_am'],
+        descriptionAm: data['descriptionAm'] ?? data['description_am'],
+        price: (data['price'] as num?)?.toDouble() ?? 0.0,
+        currency: data['currency'] ?? '',
+        allergies: (data['allergies'] as List<dynamic>?)
+            ?.map((e) => e as String)
+            .toList(),
+        allergiesAm: (() {
+          final a = data['allergiesAm'] ?? data['allergies_am'];
+          if (a == null) return null;
+          if (a is List) return a.map((e) => e as String).toList();
+          if (a is String) return [a];
+          return null;
+        })(),
+        tabTags: ((data['tabTags'] ?? data['tab_tags']) as List<dynamic>?)
+            ?.map((e) => e as String)
+            .toList(),
+        ingredients: (() {
+          final ingr = data['ingredients'] ?? data['ingredients_list'];
+          if (ingr is List) return ingr.map((e) => e as String).toList();
+          if (ingr is String) {
+            return ingr
+                .split(',')
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+          }
+          return null;
+        })(),
+        ingredientsAm: (() {
+          final ingr = data['ingredientsAm'] ?? data['ingredients_am'];
+          if (ingr is List) return ingr.map((e) => e as String).toList();
+          if (ingr is String) {
+            return ingr
+                .split(',')
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+          }
+          return null;
+        })(),
+        preparationTime: (data['preparationTime'] as num?)?.toInt() ??
+            (data['preparation_time'] as num?)?.toInt(),
+        howToEat: data['howToEat'] ?? data['how_to_eat'],
+        howToEatAm: data['howToEatAm'] ?? data['how_to_eat_am'],
+        nutritionalInfo: (() {
+          final n = data['nutritionalInfo'] ??
+              data['nutrition'] ??
+              data['nutritional_info'];
+          if (n is Map<String, dynamic>) {
+            return NutritionModel.fromMap(n);
+          }
+          return null;
+        })(),
+        viewCount: (data['view_count'] ?? data['viewCount']) is int
+            ? (data['view_count'] ?? data['viewCount']) as int
+            : ((data['view_count'] ?? data['viewCount']) as num?)?.toInt() ?? 0,
+        averageRating: (data['average_rating'] as num?)?.toDouble() ??
+            (data['averageRating'] as num?)?.toDouble() ??
+            0.0,
+        reviewIds: (data['reviewIds'] as List<dynamic>?)
                 ?.map((e) => e as String)
                 .toList() ??
-            []),
-  );
+            ((data['review_ids'] as List<dynamic>?)
+                    ?.map((e) => e as String)
+                    .toList() ??
+                []),
+      );
 
   Map<String, dynamic> toMap() => {
-    'id': id,
-    'name': name,
-    'name_am': nameAm,
-    'slug': slug,
-    'category_id': categoryId,
-    'description': description,
-    'description_am': descriptionAm,
-    'image': image,
-    'price': price,
-    'currency': currency,
-    'allergies': allergies,
-    'user_images': userImages,
-    'calories': calories,
-    'ingredients': ingredients,
-    'ingredients_am': ingredientsAm,
-    'preparation_time': preparationTime,
-    'how_to_eat': howToEat,
-    'how_to_eat_am': howToEatAm,
-    'view_count': viewCount,
-    'average_rating': averageRating,
-    'review_ids': reviewIds,
-  };
+        'id': id,
+        'name': name,
+        'name_am': nameAm,
+        'slug': slug,
+        'menu_slug': menuSlug,
+        'description': description,
+        'description_am': descriptionAm,
+        'images': images,
+        'price': price,
+        'currency': currency,
+        'allergies': allergies,
+        'allergies_am': allergiesAm,
+        'tab_tags': tabTags,
+        'ingredients': ingredients,
+        'ingredients_am': ingredientsAm,
+        'preparation_time': preparationTime,
+        'how_to_eat': howToEat,
+        'how_to_eat_am': howToEatAm,
+        'nutritional_info': nutritionalInfo == null
+            ? null
+            : (nutritionalInfo is NutritionModel
+                ? (nutritionalInfo as NutritionModel).toMap()
+                : NutritionModel.fromEntity(nutritionalInfo!).toMap()),
+        'view_count': viewCount,
+        'average_rating': averageRating,
+        'review_ids': reviewIds,
+      };
 
   factory ItemModel.fromJson(String data) {
     return ItemModel.fromMap(json.decode(data) as Map<String, dynamic>);
@@ -109,20 +149,21 @@ class ItemModel extends Item {
     String? name,
     String? nameAm,
     String? slug,
-    String? categoryId,
+    String? menuSlug,
+    List<String>? images,
     String? description,
     String? descriptionAm,
-    List<String>? image,
-    int? price,
+    double? price,
     String? currency,
     List<String>? allergies,
-    List<dynamic>? userImages,
-    int? calories,
+    List<String>? allergiesAm,
+    List<String>? tabTags,
     List<String>? ingredients,
     List<String>? ingredientsAm,
     int? preparationTime,
     String? howToEat,
     String? howToEatAm,
+    Nutrition? nutritionalInfo,
     int? viewCount,
     double? averageRating,
     List<String>? reviewIds,
@@ -132,20 +173,21 @@ class ItemModel extends Item {
       name: name ?? this.name,
       nameAm: nameAm ?? this.nameAm,
       slug: slug ?? this.slug,
-      categoryId: categoryId ?? this.categoryId,
+      menuSlug: menuSlug ?? this.menuSlug,
+      images: images ?? this.images,
       description: description ?? this.description,
       descriptionAm: descriptionAm ?? this.descriptionAm,
-      image: image ?? this.image,
       price: price ?? this.price,
       currency: currency ?? this.currency,
       allergies: allergies ?? this.allergies,
-      userImages: userImages ?? this.userImages,
-      calories: calories ?? this.calories,
+      allergiesAm: allergiesAm ?? this.allergiesAm,
+      tabTags: tabTags ?? this.tabTags,
       ingredients: ingredients ?? this.ingredients,
       ingredientsAm: ingredientsAm ?? this.ingredientsAm,
       preparationTime: preparationTime ?? this.preparationTime,
       howToEat: howToEat ?? this.howToEat,
       howToEatAm: howToEatAm ?? this.howToEatAm,
+      nutritionalInfo: nutritionalInfo ?? this.nutritionalInfo,
       viewCount: viewCount ?? this.viewCount,
       averageRating: averageRating ?? this.averageRating,
       reviewIds: reviewIds ?? this.reviewIds,
@@ -158,26 +200,27 @@ class ItemModel extends Item {
   Item toEntity() => this;
 
   factory ItemModel.fromEntity(Item entity) => ItemModel(
-    id: entity.id,
-    name: entity.name,
-    nameAm: entity.nameAm,
-    slug: entity.slug,
-    categoryId: entity.categoryId,
-    description: entity.description,
-    descriptionAm: entity.descriptionAm,
-    image: entity.image,
-    price: entity.price,
-    currency: entity.currency,
-    allergies: entity.allergies,
-    userImages: entity.userImages,
-    calories: entity.calories,
-    ingredients: entity.ingredients,
-    ingredientsAm: entity.ingredientsAm,
-    preparationTime: entity.preparationTime,
-    howToEat: entity.howToEat,
-    howToEatAm: entity.howToEatAm,
-    viewCount: entity.viewCount,
-    averageRating: entity.averageRating,
-    reviewIds: entity.reviewIds,
-  );
+        id: entity.id,
+        name: entity.name,
+        nameAm: entity.nameAm,
+        slug: entity.slug,
+        menuSlug: entity.menuSlug,
+        images: entity.images,
+        description: entity.description,
+        descriptionAm: entity.descriptionAm,
+        price: entity.price,
+        currency: entity.currency,
+        allergies: entity.allergies,
+        allergiesAm: entity.allergiesAm,
+        tabTags: entity.tabTags,
+        ingredients: entity.ingredients,
+        ingredientsAm: entity.ingredientsAm,
+        preparationTime: entity.preparationTime,
+        howToEat: entity.howToEat,
+        howToEatAm: entity.howToEatAm,
+        nutritionalInfo: entity.nutritionalInfo,
+        viewCount: entity.viewCount,
+        averageRating: entity.averageRating,
+        reviewIds: entity.reviewIds,
+      );
 }

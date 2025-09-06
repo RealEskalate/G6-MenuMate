@@ -1,25 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/util/theme.dart';
+import '../../../restaurant_management/domain/entities/restaurant.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
+import '../../../../../core/routing/app_route.dart';
 
 class NearbyRestaurantCard extends StatelessWidget {
-  final String imageUrl;
-  final String name;
-  final String cuisine;
-  final String distance;
-  final double rating;
-  final int reviews;
-  final VoidCallback? onViewMenu;
+  final Restaurant restaurant;
 
-  const NearbyRestaurantCard({
-    super.key,
-    required this.imageUrl,
-    required this.name,
-    required this.cuisine,
-    required this.distance,
-    required this.rating,
-    required this.reviews,
-    this.onViewMenu,
-  });
+  const NearbyRestaurantCard({super.key, required this.restaurant});
 
   @override
   Widget build(BuildContext context) {
@@ -33,47 +24,81 @@ class NearbyRestaurantCard extends StatelessWidget {
         minLeadingWidth: 0,
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            imageUrl,
-            width: 56,
-            height: 56,
-            fit: BoxFit.cover,
-          ),
+          child:
+              restaurant.logoImage != null && restaurant.logoImage!.isNotEmpty
+                  ? Image.network(
+                      restaurant.logoImage!,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Image.asset(
+                          'assets/images/food.png',
+                          width: 56,
+                          height: 56),
+                    )
+                  : Image.asset(
+                      'assets/images/food.png',
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                    ),
         ),
-        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Column(
+        title: Text(restaurant.restaurantName,
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('$cuisine • $distance', style: const TextStyle(fontSize: 13)),
+            restaurant.tags == null || restaurant.tags!.isEmpty
+                ? const SizedBox.shrink()
+                : Text(
+                    restaurant.tags!.take(2).join(' • '),
+                    style: const TextStyle(fontSize: 13),
+                  ),
             Row(
               children: [
                 const Icon(Icons.star, color: Colors.orange, size: 16),
                 const SizedBox(width: 2),
                 Text(
-                  '$rating',
+                  '${restaurant.averageRating}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '($reviews)',
+                  '${restaurant.viewCount}',
                   style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
               ],
             ),
           ],
         ),
-        trailing: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryColor,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+        trailing: BlocListener<RestaurantBloc, RestaurantState>(
+          listener: (context, state) {
+            if (state is MenuLoaded) {
+              Navigator.pushNamed(
+                context,
+                AppRoute.restaurant,
+                arguments: {
+                  'restaurant': restaurant,
+                  'menu': state.menu,
+                },
+              );
+            }
+          },
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              elevation: 0,
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            elevation: 0,
+            onPressed: () {
+              context.read<RestaurantBloc>().add(LoadMenu(restaurant.slug));
+            },
+            child: const Text('View Menu'),
           ),
-          onPressed: onViewMenu,
-          child: const Text('View Menu'),
         ),
       ),
     );

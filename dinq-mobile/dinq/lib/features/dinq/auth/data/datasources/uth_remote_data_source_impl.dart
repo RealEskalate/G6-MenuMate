@@ -1,6 +1,6 @@
 // lib/features/DineQ_App/auth/data/datasources/auth_remote_data_source_impl.dart
-import 'package:dinq/core/network/api_client.dart';
-import 'package:dinq/core/network/api_endpoints.dart';
+import '../../../../../core/network/api_client.dart';
+import '../../../../../core/network/api_endpoints.dart';
 import 'auth_remote_data_source.dart';
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {

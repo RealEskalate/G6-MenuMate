@@ -1,30 +1,23 @@
 // lib/features/DineQ_App/auth/data/models/user_model.dart
-import 'package:dinq/features/dinq/auth/domain/entities/customer_registration.dart';
+import '../../domain/entities/customer_registration.dart';
 
 
 
 class UserModel extends CustomerRegistration {
+  @override
   final String? phoneNumber;
 
   UserModel({
-    required String id,
-    required String username,
-    required String email,
-    required String password,
-    required String role,
-    required String authprovider,
-    String? firstName,
-    String? lastName,
+    required super.id,
+    required super.username,
+    required super.email,
+    required super.password,
+    required super.role,
+    required super.authprovider,
+    super.firstName,
+    super.lastName,
     this.phoneNumber,
   }) : super(
-         id: id,
-         username: username,
-         email: email,
-         password: password,
-         role: role,
-         authprovider: authprovider,
-         firstName: firstName,
-         lastName: lastName,
          phoneNumber: phoneNumber,
        );
 

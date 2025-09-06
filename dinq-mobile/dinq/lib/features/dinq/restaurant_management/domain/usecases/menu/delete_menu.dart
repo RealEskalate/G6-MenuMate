@@ -1,10 +1,10 @@
 import 'package:dartz/dartz.dart';
 
 import '../../../../../../core/error/failures.dart';
-import '../../repositories/restaurant_repository.dart';
+import '../../repositories/menu_repository.dart';
 
 class DeleteMenu {
-  final RestaurantRepository repository;
+  final MenuRepository repository;
   DeleteMenu(this.repository);
 
   Future<Either<Failure, void>> call(String menuId) async {

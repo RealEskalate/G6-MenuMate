@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 
-import '../../domain/entities/category.dart';
 import '../../domain/entities/item.dart';
 import '../../domain/entities/menu.dart';
 import '../../domain/entities/restaurant.dart';
 import '../../domain/entities/review.dart';
+import '../../domain/entities/qr.dart';
 
 abstract class RestaurantState extends Equatable {
   const RestaurantState();
@@ -47,13 +47,27 @@ class MenuLoaded extends RestaurantState {
   List<Object?> get props => [menu, categories];
 }
 
-class CategoriesLoaded extends RestaurantState {
-  final List<Category> categories;
+// class CategoriesLoaded extends RestaurantState {
+// class CategoriesLoaded extends RestaurantState {
+//   final List<Category> categories;
+//
+//   const CategoriesLoaded(this.categories);
+//
+//   @override
+//   List<Object?> get props => [categories];
+// }
 
-  const CategoriesLoaded(this.categories);
+class QrLoaded extends RestaurantState {
+  final Qr qr;
+
+  const QrLoaded(this.qr);
 
   @override
-  List<Object?> get props => [categories];
+  List<Object?> get props => [qr];
+}
+
+class MenuActionSuccess extends RestaurantActionSuccess {
+  const MenuActionSuccess(super.message);
 }
 
 class ItemDetailsLoaded extends RestaurantState {

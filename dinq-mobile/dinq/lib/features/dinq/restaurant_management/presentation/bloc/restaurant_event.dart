@@ -1,4 +1,9 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
+
+import '../../domain/entities/menu.dart';
 
 abstract class RestaurantEvent extends Equatable {
   const RestaurantEvent();
@@ -60,7 +65,7 @@ class LoadRestaurantBySlug extends RestaurantEvent {
 }
 
 class CreateRestaurantEvent extends RestaurantEvent {
-  final dynamic restaurantModel; // usually RestaurantModel
+  final FormData restaurantModel;
 
   const CreateRestaurantEvent(this.restaurantModel);
 
@@ -69,7 +74,7 @@ class CreateRestaurantEvent extends RestaurantEvent {
 }
 
 class UpdateRestaurantEvent extends RestaurantEvent {
-  final dynamic restaurantModel;
+  final FormData restaurantModel;
   final String slug;
 
   const UpdateRestaurantEvent(this.restaurantModel, this.slug);
@@ -85,4 +90,120 @@ class DeleteRestaurantEvent extends RestaurantEvent {
 
   @override
   List<Object?> get props => [restaurantId];
+}
+
+// Menu-related events
+class CreateMenuEvent extends RestaurantEvent {
+  final Menu menu;
+
+  const CreateMenuEvent(this.menu);
+
+  @override
+  List<Object?> get props => [menu];
+}
+
+class UpdateMenuEvent extends RestaurantEvent {
+  final String restaurantSlug;
+  final String menuId;
+  final String? title;
+  final String? description;
+
+  const UpdateMenuEvent({
+    required this.restaurantSlug,
+    required this.menuId,
+    this.title,
+    this.description,
+  });
+
+  @override
+  List<Object?> get props => [restaurantSlug, menuId, title, description];
+}
+
+class DeleteMenuEvent extends RestaurantEvent {
+  final String menuId;
+
+  const DeleteMenuEvent(this.menuId);
+
+  @override
+  List<Object?> get props => [menuId];
+}
+
+class UploadMenuEvent extends RestaurantEvent {
+  final File menuFile;
+
+  const UploadMenuEvent(this.menuFile);
+
+  @override
+  List<Object?> get props => [menuFile];
+}
+
+class PublishMenuEvent extends RestaurantEvent {
+  final String restaurantSlug;
+  final String menuId;
+
+  const PublishMenuEvent({required this.restaurantSlug, required this.menuId});
+
+  @override
+  List<Object?> get props => [restaurantSlug, menuId];
+}
+
+class GenerateMenuQrEvent extends RestaurantEvent {
+  final String restaurantSlug;
+  final String menuId;
+  final int? size;
+  final int? quality;
+  final bool? includeLabel;
+  final String? backgroundColor;
+  final String? foregroundColor;
+  final String? gradientFrom;
+  final String? gradientTo;
+  final String? gradientDirection;
+  final String? logo;
+  final double? logoSizePercent;
+  final int? margin;
+  final String? labelText;
+  final String? labelColor;
+  final int? labelFontSize;
+  final String? labelFontUrl;
+
+  const GenerateMenuQrEvent({
+    required this.restaurantSlug,
+    required this.menuId,
+    this.size,
+    this.quality,
+    this.includeLabel,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.gradientFrom,
+    this.gradientTo,
+    this.gradientDirection,
+    this.logo,
+    this.logoSizePercent,
+    this.margin,
+    this.labelText,
+    this.labelColor,
+    this.labelFontSize,
+    this.labelFontUrl,
+  });
+
+  @override
+  List<Object?> get props => [
+        restaurantSlug,
+        menuId,
+        size,
+        quality,
+        includeLabel,
+        backgroundColor,
+        foregroundColor,
+        gradientFrom,
+        gradientTo,
+        gradientDirection,
+        logo,
+        logoSizePercent,
+        margin,
+        labelText,
+        labelColor,
+        labelFontSize,
+        labelFontUrl,
+      ];
 }

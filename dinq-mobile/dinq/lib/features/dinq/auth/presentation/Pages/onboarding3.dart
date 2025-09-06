@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/login_page.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding2_page.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding_first.dart';
+import '../../../../../core/util/theme.dart';
+import 'login_page.dart';
+import 'onboarding2_page.dart';
+import 'onboarding_first.dart';
 class OnboardingThirdPage extends StatelessWidget {
   const OnboardingThirdPage({super.key});
 
@@ -25,7 +25,7 @@ class OnboardingThirdPage extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.asset(
-                    "assets/images/image1.png",
+                    'assets/images/image1.png',
                     width: 300,
                     height: 280,
                     fit: BoxFit.cover,
@@ -36,8 +36,8 @@ class OnboardingThirdPage extends StatelessWidget {
               const SizedBox(height: 40),
 
               // Title with cute styling
-              Text(
-                "Bring your menu to life!",
+              const Text(
+                'Bring your menu to life!',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Inter',
@@ -50,10 +50,10 @@ class OnboardingThirdPage extends StatelessWidget {
               const SizedBox(height: 20),
 
               // Description with cute styling
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
-                  "Upload your menu, share your QR code, and make it easy for customers to explore what you serve.",
+                  'Upload your menu, share your QR code, and make it easy for customers to explore what you serve.',
                   style: TextStyle(
                     fontWeight: FontWeight.normal,
                     fontFamily: 'Inter',
@@ -83,9 +83,9 @@ class OnboardingThirdPage extends StatelessWidget {
                     color: AppColors.primaryColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Text(
-                      "Continue ->",
+                      'Continue ->',
                       style: TextStyle(
                         color: AppColors.whiteColor,
                         fontWeight: FontWeight.normal,

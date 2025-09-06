@@ -10,7 +10,7 @@ class CustomerRegistration extends Equatable {
   final String? phoneNumber;
   final String? firstName;
   final String? lastName;
-  CustomerRegistration({
+  const CustomerRegistration({
     required this.id,
     required this.username,
     required this.email,

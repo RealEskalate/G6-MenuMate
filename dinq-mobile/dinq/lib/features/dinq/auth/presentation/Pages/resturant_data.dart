@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/prefiled.dart';
+import '../../../../../core/util/theme.dart';
+import '../widgets/prefiled.dart';
 
 class RestaurantData extends StatefulWidget {
   final String name;
   final String phoneNumber;
   final PlatformFile? document;
 
-  RestaurantData({
+  const RestaurantData({super.key, 
     required this.name,
     required this.phoneNumber,
     required this.document,
@@ -69,20 +69,20 @@ class _RestaurantDataState extends State<RestaurantData> {
     }
 
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 5),
+      margin: const EdgeInsets.symmetric(vertical: 5),
       child: ListTile(
         leading: Icon(icon, color: iconColor, size: 32),
         title: Text(
           file.name,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 14),
+          style: const TextStyle(fontSize: 14),
         ),
         subtitle: Text(
           '${(file.size / 1024).toStringAsFixed(1)} KB',
-          style: TextStyle(fontSize: 12),
+          style: const TextStyle(fontSize: 12),
         ),
         trailing: IconButton(
-          icon: Icon(Icons.close, color: Colors.red),
+          icon: const Icon(Icons.close, color: Colors.red),
           onPressed: _removeFile,
         ),
       ),
@@ -93,12 +93,12 @@ class _RestaurantDataState extends State<RestaurantData> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView( // Wrap with SingleChildScrollView
-        padding: EdgeInsets.all(16), // Add some padding
+        padding: const EdgeInsets.all(16), // Add some padding
         child: Center(
           child: Column(
             children: [
               const SizedBox(height: 40), // Reduced from 60
-              Text("Review & Submit",
+              const Text('Review & Submit',
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.bold,
@@ -106,9 +106,9 @@ class _RestaurantDataState extends State<RestaurantData> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text("Please review and submit your information.",
+              const Text('Please review and submit your information.',
                 style: TextStyle(
-                  fontFamily: "Inter",
+                  fontFamily: 'Inter',
                   fontSize: 12,
                   fontWeight: FontWeight.normal,
                   color: AppColors.secondaryColor,
@@ -116,7 +116,7 @@ class _RestaurantDataState extends State<RestaurantData> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              Text("Basic Information",
+              const Text('Basic Information',
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
@@ -124,12 +124,12 @@ class _RestaurantDataState extends State<RestaurantData> {
                 ),
               ),
               const SizedBox(height: 16),
-              CustomTextField(labelText:"Restaurant Name" , initialText: widget.name),
+              CustomTextField(labelText:'Restaurant Name' , initialText: widget.name),
               const SizedBox(height: 20), // Reduced from 40
-              CustomTextField(labelText:"Phone Number" , initialText: widget.phoneNumber),
+              CustomTextField(labelText:'Phone Number' , initialText: widget.phoneNumber),
               const SizedBox(height: 24),
 
-              Text("Your Legal Document",
+              const Text('Your Legal Document',
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 16,
@@ -138,7 +138,7 @@ class _RestaurantDataState extends State<RestaurantData> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text("Business License",
+              const Text('Business License',
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -159,13 +159,13 @@ class _RestaurantDataState extends State<RestaurantData> {
                 width: 200,
                 child: OutlinedButton.icon(
                   onPressed: _pickFile,
-                  icon: Icon(Icons.swap_horiz, color: AppColors.primaryColor),
+                  icon: const Icon(Icons.swap_horiz, color: AppColors.primaryColor),
                   label: Text(
-                    _selectedFile == null ? "Upload File" : "Change File",
-                    style: TextStyle(color: AppColors.primaryColor),
+                    _selectedFile == null ? 'Upload File' : 'Change File',
+                    style: const TextStyle(color: AppColors.primaryColor),
                   ),
                   style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: AppColors.primaryColor),
+                    side: const BorderSide(color: AppColors.primaryColor),
                   ),
                 ),
               ),
@@ -176,13 +176,13 @@ class _RestaurantDataState extends State<RestaurantData> {
                   onPressed: (){},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text(
-                    "Save and continue ->",
+                  child: const Text(
+                    'Save and continue ->',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -196,8 +196,8 @@ class _RestaurantDataState extends State<RestaurantData> {
                 width: double.infinity,
                 child: TextButton(
                   onPressed: (){},
-                  child: Text(
-                    "Skip for now",
+                  child: const Text(
+                    'Skip for now',
                     style: TextStyle(
                       color: AppColors.primaryColor,
                       fontSize: 16,

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dinq/core/network/api_client.dart';
-import 'package:dinq/core/network/api_endpoints.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/data/repository/auth_repository_impl.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/login_page.dart';
-import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
-import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_event.dart';
-import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_state.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
-import 'package:dinq/features/dinq/auth/domain/repository/customer_reg_repo.dart';
+import '../../../../../core/network/api_client.dart';
+import '../../../../../core/network/api_endpoints.dart';
+import '../../../../../core/util/theme.dart';
+import '../../data/repository/auth_repository_impl.dart';
+import 'login_page.dart';
+import '../bloc/registration/registration_bloc.dart';
+import '../bloc/registration/registration_event.dart';
+import '../bloc/registration/registration_state.dart';
+import '../widgets/Login_TextFields.dart';
+import '../widgets/Login_button.dart';
+import '../../domain/repository/customer_reg_repo.dart';
 
 class UserRegister extends StatefulWidget {
   const UserRegister({super.key});
@@ -101,15 +101,17 @@ class _UserRegisterState extends State<UserRegister>
   String? _validateUsername(String? value) {
     if (value == null || value.isEmpty) return 'Username is required';
     if (value.length < 3) return 'Username must be at least 3 characters';
-    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value))
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
       return 'Only letters, numbers, and underscores allowed';
+    }
     return null;
   }
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Email is required';
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value))
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
       return 'Please enter a valid email address';
+    }
     return null;
   }
 
@@ -205,7 +207,7 @@ class _UserRegisterState extends State<UserRegister>
                   child: SlideTransition(
                     position: _slideAnimation,
                     child: const Text(
-                      "Create account",
+                      'Create account',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 28,
@@ -223,8 +225,8 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                   child: LoginTextfields(
                     controller: _usernameController,
-                    labeltext: "Username",
-                    hintText: "Enter your username",
+                    labeltext: 'Username',
+                    hintText: 'Enter your username',
                     errorText: _usernameError,
                     onChanged: (value) {
                       setState(() {
@@ -241,8 +243,8 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                   child: LoginTextfields(
                     controller: _emailController,
-                    labeltext: "Email",
-                    hintText: "Enter your email",
+                    labeltext: 'Email',
+                    hintText: 'Enter your email',
                     keyboardType: TextInputType.emailAddress,
                     errorText: _emailError,
                     onChanged: (value) {
@@ -260,8 +262,8 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                   child: LoginTextfields(
                     controller: _passwordController,
-                    labeltext: "Password",
-                    hintText: "*********",
+                    labeltext: 'Password',
+                    hintText: '*********',
                     isPassword: true,
                     errorText: _passwordError,
                     onChanged: (value) {
@@ -279,8 +281,8 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                   child: LoginTextfields(
                     controller: _confirmPasswordController,
-                    labeltext: "Confirm Password",
-                    hintText: "*********",
+                    labeltext: 'Confirm Password',
+                    hintText: '*********',
                     isPassword: true,
                     errorText: _confirmPasswordError,
                     onChanged: (value) {
@@ -302,7 +304,7 @@ class _UserRegisterState extends State<UserRegister>
                             : GestureDetector(
                                 onTap: _registerUser,
                                 child: const LoginButton(
-                                  buttonname: "Register",
+                                  buttonname: 'Register',
                                 ),
                               ),
                       ),
@@ -319,8 +321,8 @@ class _UserRegisterState extends State<UserRegister>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          "Already have an account?",
+                        const Text(
+                          'Already have an account?',
                           style: TextStyle(
                             color: AppColors.secondaryColor,
                             fontFamily: 'Inter',
@@ -337,8 +339,8 @@ class _UserRegisterState extends State<UserRegister>
                               ),
                             );
                           },
-                          child: Text(
-                            "Login",
+                          child: const Text(
+                            'Login',
                             style: TextStyle(
                               color: AppColors.primaryColor,
                               fontFamily: 'Inter',
@@ -367,7 +369,7 @@ class _UserRegisterState extends State<UserRegister>
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.0),
                         child: Text(
-                          "or",
+                          'or',
                           style: TextStyle(
                             fontWeight: FontWeight.normal,
                             color: AppColors.secondaryColor,
@@ -406,9 +408,9 @@ class _UserRegisterState extends State<UserRegister>
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Icon(
                               Icons.g_mobiledata,
                               size: 24,
@@ -416,7 +418,7 @@ class _UserRegisterState extends State<UserRegister>
                             ),
                             SizedBox(width: 12),
                             Text(
-                              "Sign up with Google",
+                              'Sign up with Google',
                               style: TextStyle(
                                 color: Colors.black54,
                                 fontWeight: FontWeight.normal,
@@ -445,10 +447,10 @@ class AnimatedTextField extends StatelessWidget {
   final Widget child;
 
   const AnimatedTextField({
-    Key? key,
+    super.key,
     required this.animation,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

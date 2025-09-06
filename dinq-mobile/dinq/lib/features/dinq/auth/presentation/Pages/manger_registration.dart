@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/resturant_registration.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/checkbox.dart';
-import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
-import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_event.dart';
-import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_state.dart';
+import '../../../../../core/util/theme.dart';
+import 'resturant_registration.dart';
+import '../widgets/Login_TextFields.dart';
+import '../widgets/Login_button.dart';
+import '../widgets/checkbox.dart';
+import '../bloc/registration/registration_bloc.dart';
+import '../bloc/registration/registration_event.dart';
+import '../bloc/registration/registration_state.dart';
 
 class MangerRegistration extends StatefulWidget {
   const MangerRegistration({super.key});
@@ -103,22 +103,25 @@ class _MangerRegistrationState extends State<MangerRegistration>
   String? _validateUsername(String? value) {
     if (value == null || value.isEmpty) return 'Username is required';
     if (value.length < 3) return 'Username must be at least 3 characters';
-    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value))
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
       return 'Only letters, numbers, and underscores allowed';
+    }
     return null;
   }
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Email is required';
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value))
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
       return 'Please enter a valid email address';
+    }
     return null;
   }
 
   String? _validatePhone(String? value) {
     if (value == null || value.isEmpty) return 'Phone number is required';
-    if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(value))
+    if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(value)) {
       return 'Please enter a valid phone number';
+    }
     return null;
   }
 
@@ -208,8 +211,8 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 opacity: _fadeAnimation,
                 child: SlideTransition(
                   position: _slideAnimation,
-                  child: Text(
-                    "Create Manger Account",
+                  child: const Text(
+                    'Create Manger Account',
                     style: TextStyle(
                       fontFamily: 'Inter',
                       fontSize: 24,
@@ -225,8 +228,8 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 opacity: _fadeAnimation,
                 child: SlideTransition(
                   position: _slideAnimation,
-                  child: Text(
-                    "Join Dineq to manage your restaurant efficiently",
+                  child: const Text(
+                    'Join Dineq to manage your restaurant efficiently',
                     style: TextStyle(
                       fontWeight: FontWeight.normal,
                       fontFamily: 'Inter',
@@ -244,8 +247,8 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 delay: 100,
                 child: LoginTextfields(
                   controller: _usernameController,
-                  labeltext: "Username",
-                  hintText: "Enter your Username",
+                  labeltext: 'Username',
+                  hintText: 'Enter your Username',
                   errorText: _usernameError,
                   onChanged: (value) {
                     setState(() {
@@ -261,7 +264,7 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 delay: 200,
                 child: LoginTextfields(
                   controller: _emailController,
-                  labeltext: "Email Address",
+                  labeltext: 'Email Address',
                   hintText: "We'll use this to send you important updates",
                   keyboardType: TextInputType.emailAddress,
                   errorText: _emailError,
@@ -278,8 +281,8 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 delay: 300,
                 child: LoginTextfields(
                   controller: _phoneController,
-                  labeltext: "Phone Number",
-                  hintText: "Include country code (e.g., +251 for Ethiopia)",
+                  labeltext: 'Phone Number',
+                  hintText: 'Include country code (e.g., +251 for Ethiopia)',
                   isPhoneNumber: true,
                   errorText: _phoneError,
                   onChanged: (value) {
@@ -295,8 +298,8 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 delay: 400,
                 child: LoginTextfields(
                   controller: _passwordController,
-                  labeltext: "Password",
-                  hintText: "Must be at least 8 characters with uppercase, lowercase, and number",
+                  labeltext: 'Password',
+                  hintText: 'Must be at least 8 characters with uppercase, lowercase, and number',
                   isPassword: true,
                   errorText: _passwordError,
                   onChanged: (value) {
@@ -312,8 +315,8 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 delay: 500,
                 child: LoginTextfields(
                   controller: _confirmPasswordController,
-                  labeltext: "Confirm Password",
-                  hintText: "Re-enter your password to confirm",
+                  labeltext: 'Confirm Password',
+                  hintText: 'Re-enter your password to confirm',
                   isPassword: true,
                   errorText: _confirmPasswordError,
                   onChanged: (value) {
@@ -344,39 +347,39 @@ class _MangerRegistrationState extends State<MangerRegistration>
                         const SizedBox(width: 8),
                         Expanded(
                           child: RichText(
-                            text: TextSpan(
+                            text: const TextSpan(
                               children: [
                                 TextSpan(
-                                  text: "I agree to the ",
+                                  text: 'I agree to the ',
                                   style: TextStyle(
-                                    fontFamily: "Inter",
+                                    fontFamily: 'Inter',
                                     fontWeight: FontWeight.normal,
                                     fontSize: 14,
                                     color: AppColors.secondaryColor,
                                   ),
                                 ),
                                 TextSpan(
-                                  text: "Terms of Service ",
+                                  text: 'Terms of Service ',
                                   style: TextStyle(
-                                    fontFamily: "Roboto",
+                                    fontFamily: 'Roboto',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
                                     color: AppColors.primaryColor,
                                   ),
                                 ),
                                 TextSpan(
-                                  text: "and ",
+                                  text: 'and ',
                                   style: TextStyle(
-                                    fontFamily: "Inter",
+                                    fontFamily: 'Inter',
                                     fontWeight: FontWeight.normal,
                                     fontSize: 14,
                                     color: AppColors.secondaryColor,
                                   ),
                                 ),
                                 TextSpan(
-                                  text: "Privacy Policy *",
+                                  text: 'Privacy Policy *',
                                   style: TextStyle(
-                                    fontFamily: "Inter",
+                                    fontFamily: 'Inter',
                                     fontWeight: FontWeight.bold,
                                     fontSize: 14,
                                     color: AppColors.primaryColor,
@@ -401,7 +404,7 @@ class _MangerRegistrationState extends State<MangerRegistration>
                         ? const CircularProgressIndicator()
                         : GestureDetector(
                             onTap: _registerManager,
-                            child: const LoginButton(buttonname: "Create Account"),
+                            child: const LoginButton(buttonname: 'Create Account'),
                           ),
                   );
                 },
@@ -420,10 +423,10 @@ class _MangerRegistrationState extends State<MangerRegistration>
                           thickness: 1,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.0),
                         child: Text(
-                          "or",
+                          'or',
                           style: TextStyle(
                             fontWeight: FontWeight.normal,
                             color: AppColors.secondaryColor,
@@ -459,7 +462,7 @@ class _MangerRegistrationState extends State<MangerRegistration>
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
@@ -467,9 +470,9 @@ class _MangerRegistrationState extends State<MangerRegistration>
                             size: 24,
                             color: Colors.green,
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Text(
-                            "Sign up with Google",
+                            'Sign up with Google',
                             style: TextStyle(
                               color: Colors.black54,
                               fontWeight: FontWeight.normal,
@@ -499,11 +502,11 @@ class AnimatedFormField extends StatelessWidget {
   final Widget child;
 
   const AnimatedFormField({
-    Key? key,
+    super.key,
     required this.animation,
     required this.delay,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

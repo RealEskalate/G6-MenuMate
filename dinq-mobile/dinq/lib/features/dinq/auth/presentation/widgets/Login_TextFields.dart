@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:dinq/core/util/theme.dart';
+import '../../../../../core/util/theme.dart';
 
 class LoginTextfields extends StatefulWidget {
   final String labeltext;
@@ -66,21 +66,21 @@ class _LoginTextfieldsState extends State<LoginTextfields> {
       onChanged: widget.onChanged,
       decoration: InputDecoration(
         labelText: widget.labeltext,
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           color: AppColors.secondaryColor,
           fontFamily: 'Inter',
         ),
         hintText: widget.hintText,
-        hintStyle: TextStyle(
+        hintStyle: const TextStyle(
           color: AppColors.secondaryColor,
           fontSize: 10,
         ),
         border: OutlineInputBorder(
-          borderSide: BorderSide(color: AppColors.secondaryColor),
+          borderSide: const BorderSide(color: AppColors.secondaryColor),
           borderRadius: BorderRadius.circular(8.0),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: AppColors.secondaryColor, width: 2.0),
+          borderSide: const BorderSide(color: AppColors.secondaryColor, width: 2.0),
           borderRadius: BorderRadius.circular(8.0),
         ),
         errorBorder: OutlineInputBorder(
@@ -131,8 +131,8 @@ class _LoginTextfieldsState extends State<LoginTextfields> {
   }
 
   Widget _buildPhonePrefix() {
-    return Padding(
-      padding: const EdgeInsets.only(right: 4.0),
+    return const Padding(
+      padding: EdgeInsets.only(right: 4.0),
       child: Text(
         '+251 ',
         style: TextStyle(
