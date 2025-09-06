@@ -1,7 +1,7 @@
 import 'dart:convert';
 
+import '../../../auth/data/model/user_model.dart';
 import '../../domain/entities/review.dart';
-import '../model/user_model.dart';
 
 class ReviewModel extends Review {
   const ReviewModel({

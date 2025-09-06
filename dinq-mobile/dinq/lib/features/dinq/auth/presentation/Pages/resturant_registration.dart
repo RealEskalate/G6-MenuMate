@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
-import '../../../../../core/util/theme.dart';
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'resturant_data.dart';
-import 'onboarding_first.dart';
+import 'package:flutter/material.dart';
+
+import '../../../../../core/util/theme.dart';
 import '../widgets/Login_TextFields.dart';
-import 'package:iconsax/iconsax.dart';
+import 'onboarding_first.dart';
+import 'resturant_data.dart';
 
 class ResturantRegistration extends StatefulWidget {
   const ResturantRegistration({super.key});
@@ -18,7 +17,6 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
   PlatformFile? _selectedFile;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _nameError;
   String? _phoneError;
 

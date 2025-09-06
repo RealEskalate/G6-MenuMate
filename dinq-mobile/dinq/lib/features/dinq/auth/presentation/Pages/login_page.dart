@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+
+import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
-import 'Register_page.dart';
-import 'forget_password_page.dart';
+import '../../../../../injection_container.dart' as di;
+import '../../domain/usecases/user/login_user_usecase.dart';
 import '../widgets/Login_TextFields.dart';
 import '../widgets/Login_button.dart';
+import 'Register_page.dart';
+import 'forget_password_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,7 +16,8 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _titleAnimation;
   late Animation<double> _emailFieldAnimation;
@@ -118,7 +123,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         _emailError = 'Please enter your email address';
       });
       isValid = false;
-    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(_emailController.text)) {
+    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+        .hasMatch(_emailController.text)) {
       setState(() {
         _emailError = 'Please enter a valid email address';
       });
@@ -152,20 +158,44 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   void _handleLogin() {
     if (_validateForm()) {
       // All validations passed, proceed with login
-      // You would typically call your authentication service here
-      print('Email: ${_emailController.text}');
-      print('Password: ${_passwordController.text}');
-
-      // For demo purposes, just show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Login successful!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      // Navigate to home page or dashboard
-      // Navigator.pushReplacementNamed(context, '/home');
+      final LoginUserUseCase usecase = di.sl<LoginUserUseCase>();
+      // perform login
+      usecase
+          .call(
+              identifier: _emailController.text.trim(),
+              password: _passwordController.text)
+          .then((either) {
+        // either is expected to have fold(left, right)
+        try {
+          either.fold((failure) {
+            final message = failure.toString().isNotEmpty
+                ? failure.toString()
+                : 'Login failed';
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message), backgroundColor: Colors.red),
+            );
+          }, (res) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Login successful!'),
+                  backgroundColor: Colors.green),
+            );
+            Navigator.pushReplacementNamed(context, AppRoute.explore);
+          });
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('Login error: ${e.toString()}'),
+                backgroundColor: Colors.red),
+          );
+        }
+      }).catchError((e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Login error: ${e.toString()}'),
+              backgroundColor: Colors.red),
+        );
+      });
     }
   }
 
@@ -255,8 +285,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         Navigator.push(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => const ForgetPasswordPage(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const ForgetPasswordPage(),
+                            transitionsBuilder: (context, animation,
+                                secondaryAnimation, child) {
                               return SlideTransition(
                                 position: Tween<Offset>(
                                   begin: const Offset(1, 0),
@@ -265,19 +298,20 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 child: child,
                               );
                             },
-                            transitionDuration: const Duration(milliseconds: 400),
+                            transitionDuration:
+                                const Duration(milliseconds: 400),
                           ),
                         );
                       },
                       child: const Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Text('Forget Password?',
+                          Text(
+                            'Forget Password?',
                             style: TextStyle(
-                              color: AppColors.primaryColor,
-                              fontSize: 14,
-                              fontFamily: 'Inter'
-                            ),
+                                color: AppColors.primaryColor,
+                                fontSize: 14,
+                                fontFamily: 'Inter'),
                           ),
                         ],
                       ),
@@ -315,7 +349,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Don't have an account?",
+                          const Text(
+                            "Don't have an account?",
                             style: TextStyle(
                               color: AppColors.secondaryColor,
                               fontFamily: 'Inter',
@@ -328,8 +363,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               Navigator.push(
                                 context,
                                 PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) => const RegisterPage(),
-                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  pageBuilder: (context, animation,
+                                          secondaryAnimation) =>
+                                      const RegisterPage(),
+                                  transitionsBuilder: (context, animation,
+                                      secondaryAnimation, child) {
                                     return SlideTransition(
                                       position: Tween<Offset>(
                                         begin: const Offset(1, 0),
@@ -338,11 +376,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                       child: child,
                                     );
                                   },
-                                  transitionDuration: const Duration(milliseconds: 400),
+                                  transitionDuration:
+                                      const Duration(milliseconds: 400),
                                 ),
                               );
                             },
-                            child: const Text('Register',
+                            child: const Text(
+                              'Register',
                               style: TextStyle(
                                 color: AppColors.primaryColor,
                                 fontFamily: 'Inter',
@@ -373,7 +413,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         ),
                         const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text('or',
+                          child: Text(
+                            'or',
                             style: TextStyle(
                               fontWeight: FontWeight.normal,
                               color: AppColors.secondaryColor,

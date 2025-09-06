@@ -2,8 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 
-import 'core/constants/constants.dart';
+import 'core/network/api_endpoints.dart';
+import 'core/network/token_manager.dart';
+import 'core/network/auth_interceptor.dart';
 import 'core/network/network_info.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'features/dinq/restaurant_management/data/datasources/menu/menu_remote_data_source.dart';
 import 'features/dinq/restaurant_management/data/datasources/menu/menu_remote_data_source_impl.dart';
 import 'features/dinq/restaurant_management/data/datasources/restaurant/restaurant_remote_data_source_restaurant.dart';
@@ -32,6 +35,13 @@ import 'features/dinq/restaurant_management/domain/usecases/review/delete_review
 import 'features/dinq/restaurant_management/domain/usecases/review/get_reviews.dart';
 import 'features/dinq/restaurant_management/domain/usecases/review/get_user_images.dart';
 import 'features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import 'features/dinq/auth/presentation/bloc/user_bloc.dart';
+import 'features/dinq/auth/domain/usecases/user/register_user_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/login_user_usecase.dart';
+import 'features/dinq/auth/data/datasources/user_remote_data_source.dart';
+import 'features/dinq/auth/data/datasources/user_remote_data_source_impl.dart';
+import 'features/dinq/auth/data/repositories/user_repository_impl.dart';
+import 'features/dinq/auth/domain/repositories/user_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -73,6 +83,24 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateRestaurant(sl()));
   sl.registerLazySingleton(() => DeleteRestaurant(sl()));
 
+  // -- Auth (User) feature registrations
+  // Data source and repository
+  sl.registerLazySingleton<UserRemoteDataSource>(
+      () => UserRemoteDataSourceImpl(dio: sl()));
+
+  sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(
+        remoteDataSource: sl(),
+        network: sl(),
+        tokenManager: sl(),
+      ));
+
+  // Use cases
+  sl.registerLazySingleton(() => RegisterUserUseCase(sl()));
+  sl.registerLazySingleton(() => LoginUserUseCase(sl()));
+
+  // BLoC for registration flow
+  sl.registerFactory(() => UserBloc(registerUser: sl()));
+
   // Repository
   // Data sources
   sl.registerLazySingleton<MenuRemoteDataSource>(
@@ -103,7 +131,25 @@ Future<void> init() async {
   // Core
   // External
   // Configure Dio with base options so injected callers reuse same client
-  sl.registerLazySingleton(() => Dio(BaseOptions(baseUrl: baseUrl)));
+  // Use ApiEndpoints.root as the base URL provider
+  final dio = Dio(BaseOptions(baseUrl: ApiEndpoints.root));
+
+  // dedicated Dio used for refresh calls to avoid recursion
+  final refreshDio = Dio(BaseOptions(baseUrl: ApiEndpoints.root));
+
+  // register secure storage backed TokenManager
+  sl.registerLazySingleton(
+      () => TokenManager(secureStorage: const FlutterSecureStorage()));
+
+  // register refreshDio and AuthInterceptor
+  sl.registerLazySingleton(() => refreshDio);
+  sl.registerLazySingleton<AuthInterceptor>(
+      () => AuthInterceptor(tokenManager: sl(), refreshDio: sl()));
+
+  // add interceptor to main dio
+  dio.interceptors.add(sl<AuthInterceptor>());
+
+  sl.registerLazySingleton(() => dio);
   sl.registerLazySingleton(() => InternetConnectionChecker.createInstance());
 
   // Core

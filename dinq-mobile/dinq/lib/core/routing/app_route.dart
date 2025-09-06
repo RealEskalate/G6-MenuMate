@@ -14,7 +14,6 @@ import '../../features/dinq/restaurant_management/presentation/pages/edit_upload
 import '../../features/dinq/restaurant_management/presentation/pages/generated_qr_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/legal_info_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/menus_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/opening_hours_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_details_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_profile_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/settings_page.dart';
@@ -93,8 +92,6 @@ class AppRoute {
         return MaterialPageRoute(builder: (_) => const RestaurantProfilePage());
       case restaurantDetails:
         return MaterialPageRoute(builder: (_) => const RestaurantDetailsPage());
-      case openingHours:
-        return MaterialPageRoute(builder: (_) => const OpeningHoursPage());
       case legalInfo:
         return MaterialPageRoute(builder: (_) => const LegalInfoPage());
       case brandingPreferences:

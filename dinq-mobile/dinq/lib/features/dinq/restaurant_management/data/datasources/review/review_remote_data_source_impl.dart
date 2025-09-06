@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 
-import '../../../../../../core/constants/constants.dart';
 import '../../../../../../core/error/exceptions.dart';
+import '../../../../../../core/network/api_endpoints.dart';
+import '../../../../../../core/network/token_manager.dart';
 import '../../model/review_model.dart';
 import 'review_remote_data_source.dart';
 
@@ -16,7 +17,7 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
   Future<List<ReviewModel>> getReviews(String itemId) async {
     try {
       final response = await dio.get(
-        '$baseUrl/items/$itemId/reviews',
+        ApiEndpoints.itemReviews(itemId),
         options: Options(headers: {'Content-Type': content}),
       );
       final statusCode = response.statusCode;
@@ -51,14 +52,11 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
   @override
   Future<void> deleteReview(String reviewId) async {
     try {
+      final headers = await TokenManager.getAuthHeadersStatic();
+      headers['Content-Type'] = content;
       final response = await dio.delete(
-        '$baseUrl/reviews/$reviewId',
-        options: Options(
-          headers: {
-            'Content-Type': content,
-            'Authorization': 'Bearer $accessToken',
-          },
-        ),
+        ApiEndpoints.deleteReview(reviewId),
+        options: Options(headers: headers),
       );
       final statusCode = response.statusCode;
       if (statusCode == 200 || statusCode == 204) {
@@ -86,7 +84,7 @@ class ReviewRemoteDataSourceImpl implements ReviewRemoteDataSource {
   Future<List<String>> getUserImages(String slug) async {
     try {
       final response = await dio.get(
-        '$baseUrl/items/$slug/images',
+        ApiEndpoints.itemImages(slug),
         options: Options(headers: {'Content-Type': content}),
       );
       final statusCode = response.statusCode;

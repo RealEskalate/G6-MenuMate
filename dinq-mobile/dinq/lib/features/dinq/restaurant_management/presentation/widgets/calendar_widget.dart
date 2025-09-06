@@ -211,8 +211,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     }
 
     // Get screen width to make calendar responsive
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cellSize = (screenWidth - 32) / 7; // 32 for padding
+// 32 for padding
 
     return GridView.count(
       crossAxisCount: 7,

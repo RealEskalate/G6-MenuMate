@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/util/theme.dart';
-import '../../../search/domain/entities/menu.dart' as models;
-import '../../../search/domain/usecases/get_menu.dart';
-import '../../domain/entities/Restaurant.dart' as models;
+import '../../../restaurant_management/domain/entities/menu.dart';
+import '../../../restaurant_management/domain/entities/restaurant.dart'
+    as restmodels;
+import '../../../restaurant_management/domain/entities/item.dart' as itemmodels;
+import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
 import '../widgets/bottom_navbar.dart';
 import 'item_details_page.dart';
 
 class _FavoritesStore {
   static final Set<String> restaurantIds = <String>{};
-  static final Set<String> dishIds = <String>{};
 }
 
 class RestaurantPage extends StatefulWidget {
@@ -21,14 +25,8 @@ class RestaurantPage extends StatefulWidget {
   State<RestaurantPage> createState() => _RestaurantPageState();
 }
 
-class _RestaurantPageState extends State<RestaurantPage>
-    with TickerProviderStateMixin {
-  late TabController _tabController;
-  final GetMenuUseCase _getMenuUseCase = GetMenuUseCase();
-  models.Menu? _menu;
-  bool _isLoading = true;
-  static final Set<String> _favoriteRestaurantIds = {}; // For UI only
-
+class _RestaurantPageState extends State<RestaurantPage> {
+  Menu? _menu;
 
   void _toggleFavorite() {
     setState(() {
@@ -57,104 +55,97 @@ class _RestaurantPageState extends State<RestaurantPage>
   @override
   void initState() {
     super.initState();
-    _loadMenu();
+    // Ask the RestaurantBloc to load the menu for this restaurant
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<RestaurantBloc>().add(LoadMenu(widget.restaurantId));
+    });
   }
 
-  Future<void> _loadMenu() async {
-    try {
-      final menu = await _getMenuUseCase.execute(widget.restaurantId);
-      setState(() {
-        _menu = menu;
-        _isLoading = false;
-        _tabController = TabController(length: menu.tabs.length, vsync: this);
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      // Handle error
-    }
-  }
+  List<restmodels.Restaurant> get allRestaurants => [
+        restmodels.Restaurant(
+          id: widget.restaurantId,
+          slug: 'addis-red-sea',
+          restaurantName: 'Addis Red Sea',
+          managerId: '',
+          restaurantPhone: '',
+          previousSlugs: const [],
+          verificationStatus: 'verified',
+          averageRating: 4.5,
+          viewCount: 0.0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      ];
 
-  List<models.Restaurant> get allRestaurants => [
-    // When creating a Restaurant for UI display:
-    models.Restaurant(
-      id: widget.restaurantId,
-      name: 'Addis Red Sea',
-      bannerUrl:
-          'https://plus.unsplash.com/premium_photo-1661883237884-263e8de8869b?q=80&w=889&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-      verificationStatus:
-          models.VerificationStatus.verified, // required, pick any
-      contact: models.Contact(
-        phone: '',
-        email: '',
-        social: [],
-      ), // required, dummy
-      ownerId: '',
-      branchIds: [],
-      averageRating: 4.5,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-  ];
-
-  List<models.Item> get allDishes {
+  List<itemmodels.Item> get allDishes {
     if (_menu == null) return [];
-    return _menu!.tabs
-        .expand((tab) => tab.categories)
-        .expand((cat) => cat.items)
-        .toList();
+    return _menu!.items;
   }
 
   @override
   void dispose() {
-    if (_menu != null) {
-      _tabController.dispose();
-    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.primaryColor),
-        ),
-      );
-    }
+    return BlocBuilder<RestaurantBloc, RestaurantState>(
+      builder: (context, state) {
+        if (state is RestaurantLoading) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: AppColors.primaryColor),
+            ),
+          );
+        }
 
-    if (_menu == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Menu'),
-          backgroundColor: AppColors.primaryColor,
-        ),
-        body: const Center(child: Text('Failed to load menu')),
-      );
-    }
+        if (state is RestaurantError) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Menu'),
+              backgroundColor: AppColors.primaryColor,
+            ),
+            body: Center(child: Text('Failed to load menu: ${state.message}')),
+          );
+        }
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildRestaurantHeader(),
-            _buildTabBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: _menu!.tabs
-                    .map((menuTab) => _buildTabContent(menuTab))
-                    .toList(),
+        if (state is MenuLoaded) {
+          // initialize menu once
+          _menu ??= state.menu;
+
+          return Scaffold(
+            body: SafeArea(
+              child: Column(
+                children: [
+                  _buildRestaurantHeader(),
+                  // Render menu items as a simple list (Menu.items exists in domain)
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(0),
+                      itemCount: _menu!.items.length,
+                      itemBuilder: (context, index) {
+                        final item = _menu!.items[index];
+                        return _buildMenuItem(item);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomNavBar(
-        selectedTab: BottomNavTab.explore,
-        onTabSelected: _onTabSelected,
-      ),
+            bottomNavigationBar: BottomNavBar(
+              selectedTab: BottomNavTab.explore,
+              onTabSelected: _onTabSelected,
+            ),
+          );
+        }
+
+        // default fallback
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(color: AppColors.primaryColor),
+          ),
+        );
+      },
     );
   }
 
@@ -368,62 +359,8 @@ class _RestaurantPageState extends State<RestaurantPage>
     );
   }
 
-  Widget _buildTabBar() {
-    return Container(
-      height: 50,
-      decoration: const BoxDecoration(color: Colors.white),
-      child: TabBar(
-        controller: _tabController,
-        isScrollable: true,
-        labelColor: Colors.white,
-        unselectedLabelColor: Colors.black,
-        indicator: BoxDecoration(
-          color: AppColors.primaryColor,
-          borderRadius: BorderRadius.circular(25),
-        ),
-        tabs: _menu!.tabs.map((menuTab) {
-          return Tab(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Center(child: Text(menuTab.name)),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildTabContent(models.Tab menuTab) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: menuTab.categories.length,
-      itemBuilder: (context, index) {
-        final category = menuTab.categories[index];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (category.name != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Text(
-                  category.name!,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ...category.items.map((item) => _buildMenuItem(item)),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildMenuItem(models.Item item) {
+  // TabBar removed; menu now renders as a simple list using Menu.items
+  Widget _buildMenuItem(itemmodels.Item item) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -531,4 +468,3 @@ class _RestaurantPageState extends State<RestaurantPage>
     );
   }
 }
-

@@ -2,8 +2,9 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 
-import '../../../../../../core/constants/constants.dart';
 import '../../../../../../core/error/exceptions.dart';
+import '../../../../../../core/network/api_endpoints.dart';
+import '../../../../../../core/network/token_manager.dart';
 import '../../model/menu_create_model.dart';
 import '../../model/menu_model.dart';
 import '../../model/qr_model.dart';
@@ -26,15 +27,13 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
         ),
       });
 
+      final headers = await (await TokenManager.getAuthHeadersStatic())
+        ..addAll({'Content-Type': 'multipart/form-data'});
+
       final uploadResponse = await dio.post(
-        '$baseUrl/ocr/upload',
+        ApiEndpoints.ocrUpload,
         data: formData,
-        options: Options(
-          headers: {
-            'Authorization': 'Bearer $accessToken',
-            'Content-Type': 'multipart/form-data',
-          },
-        ),
+        options: Options(headers: headers),
       );
 
       final uploadStatusCode = uploadResponse.statusCode;
@@ -47,14 +46,11 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
           while (true) {
             await Future.delayed(const Duration(seconds: 2));
 
+            final pollHeaders = await TokenManager.getAuthHeadersStatic();
+            pollHeaders['Content-Type'] = content;
             final pollResponse = await dio.get(
-              '$baseUrl/ocr/$jobId',
-              options: Options(
-                headers: {
-                  'Authorization': 'Bearer $accessToken',
-                  'Content-Type': content,
-                },
-              ),
+              ApiEndpoints.ocrJob(jobId),
+              options: Options(headers: pollHeaders),
             );
 
             final pollStatusCode = pollResponse.statusCode;
@@ -136,14 +132,13 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
   Future<MenuModel> getMenu(String restaurantSlug) async {
     try {
       print(
-          'Sending request to get menu for restaurant:$baseUrl/menus/$restaurantSlug');
+          'Sending request to get menu for restaurant:${ApiEndpoints.menusForRestaurant(restaurantSlug)}');
 
+      final getHeaders = await TokenManager.getAuthHeadersStatic();
+      getHeaders['Content-Type'] = content;
       final response = await dio.get(
-        '$baseUrl/menus/$restaurantSlug',
-        options: Options(headers: {
-          'Content-Type': content,
-          'Authorization': 'Bearer $accessToken'
-        }),
+        ApiEndpoints.menusForRestaurant(restaurantSlug),
+        options: Options(headers: getHeaders),
       );
 
       final statusCode = response.statusCode;
@@ -213,14 +208,11 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
   Future<MenuModel> publishMenu(
       {required String restaurantSlug, required String menuId}) async {
     try {
+      final publishHeaders = await TokenManager.getAuthHeadersStatic();
+      publishHeaders['Content-Type'] = content;
       final response = await dio.post(
-        '$baseUrl/menus/$restaurantSlug/publish/$menuId',
-        options: Options(
-          headers: {
-            'Content-Type': content,
-            'Authorization': 'Bearer $accessToken',
-          },
-        ),
+        ApiEndpoints.publishMenu(restaurantSlug, menuId),
+        options: Options(headers: publishHeaders),
       );
 
       final statusCode = response.statusCode;
@@ -289,15 +281,12 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
   @override
   Future<MenuModel> createMenu(MenuCreateModel menu) async {
     try {
+      final createHeaders = await TokenManager.getAuthHeadersStatic();
+      createHeaders['Content-Type'] = content;
       final response = await dio.post(
-        '$baseUrl/menus',
+        ApiEndpoints.menus,
         data: menu.toMap(),
-        options: Options(
-          headers: {
-            'Content-Type': content,
-            'Authorization': 'Bearer $accessToken',
-          },
-        ),
+        options: Options(headers: createHeaders),
       );
 
       final statusCode = response.statusCode;
@@ -367,15 +356,12 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
     required Map<String, Object?> custom,
   }) async {
     try {
+      final qrHeaders = await TokenManager.getAuthHeadersStatic();
+      qrHeaders['Content-Type'] = content;
       final response = await dio.post(
-        '$baseUrl/menus/$restaurantSlug/qrcode/$menuId',
+        ApiEndpoints.menuQr(restaurantSlug, menuId),
         data: custom,
-        options: Options(
-          headers: {
-            'Content-Type': content,
-            'Authorization': 'Bearer $accessToken',
-          },
-        ),
+        options: Options(headers: qrHeaders),
       );
 
       final statusCode = response.statusCode;
@@ -417,14 +403,11 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
   @override
   Future<void> deleteMenu(String menuId) async {
     try {
+      final delHeaders = await TokenManager.getAuthHeadersStatic();
+      delHeaders['Content-Type'] = content;
       final response = await dio.delete(
-        '$baseUrl/menus/$menuId',
-        options: Options(
-          headers: {
-            'Content-Type': content,
-            'Authorization': 'Bearer $accessToken',
-          },
-        ),
+        ApiEndpoints.menuById(menuId),
+        options: Options(headers: delHeaders),
       );
       final statusCode = response.statusCode;
       if (statusCode == 200 || statusCode == 204) {
@@ -459,15 +442,12 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
         if (description != null) 'description': description,
       };
 
+      final patchHeaders = await TokenManager.getAuthHeadersStatic();
+      patchHeaders['Content-Type'] = content;
       final response = await dio.patch(
-        '$baseUrl/menus/$restaurantSlug/$menuId',
+        ApiEndpoints.updateMenu(restaurantSlug, menuId),
         data: body,
-        options: Options(
-          headers: {
-            'Content-Type': content,
-            'Authorization': 'Bearer $accessToken',
-          },
-        ),
+        options: Options(headers: patchHeaders),
       );
 
       final statusCode = response.statusCode;

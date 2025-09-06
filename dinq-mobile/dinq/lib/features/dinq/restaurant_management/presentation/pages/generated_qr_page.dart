@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
@@ -30,7 +29,6 @@ class _GeneratedQrPageState extends State<GeneratedQrPage> {
     }
 
     try {
-      final directory = await getExternalStorageDirectory();
       final downloadsDir = Directory('/storage/emulated/0/Download');
       final fileName = 'qr_code_${DateTime.now().millisecondsSinceEpoch}';
 

@@ -1,7 +1,8 @@
 import 'package:dio/dio.dart';
 
-import '../../../../../../core/constants/constants.dart';
 import '../../../../../../core/error/exceptions.dart';
+import '../../../../../../core/network/api_endpoints.dart';
+import '../../../../../../core/network/token_manager.dart';
 import '../../model/restaurant_model.dart';
 import 'restaurant_remote_data_source_restaurant.dart';
 
@@ -15,15 +16,12 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   @override
   Future<RestaurantModel> createRestaurant(FormData restaurant) async {
     try {
+      final headers = await TokenManager.getAuthHeadersStatic();
+      headers['Content-Type'] = content;
       final response = await dio.post(
-        '$baseUrl/restaurants',
+        ApiEndpoints.restaurants,
         data: restaurant,
-        options: Options(
-          headers: {
-            'Content-Type': content,
-            'Authorization': 'Bearer $accessToken',
-          },
-        ),
+        options: Options(headers: headers),
       );
       final statusCode = response.statusCode;
       if (statusCode == 201 || statusCode == 200) {
@@ -54,7 +52,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   Future<List<RestaurantModel>> getRestaurants(
       {int page = 1, int pageSize = 20}) async {
     try {
-      final uri = Uri.parse('$baseUrl/restaurants').replace(
+      final uri = Uri.parse(ApiEndpoints.restaurants).replace(
         queryParameters: {
           'page': page.toString(),
           'pageSize': pageSize.toString(),
@@ -93,9 +91,11 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   @override
   Future<RestaurantModel> getRestaurantBySlug(String slug) async {
     try {
+      final headers = await TokenManager.getAuthHeadersStatic();
+      headers['Content-Type'] = content;
       final response = await dio.get(
-        '$baseUrl/restaurants/$slug',
-        options: Options(headers: {'Content-Type': content}),
+        ApiEndpoints.restaurantBySlug(slug),
+        options: Options(headers: headers),
       );
       final statusCode = response.statusCode;
       if (statusCode == 200) {
@@ -129,15 +129,12 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   Future<RestaurantModel> updateRestaurant(
       FormData restaurant, String slug) async {
     try {
+      final headers = await TokenManager.getAuthHeadersStatic();
+      headers['Content-Type'] = content;
       final response = await dio.put(
-        '$baseUrl/restaurants/$slug',
+        ApiEndpoints.restaurantBySlug(slug),
         data: restaurant,
-        options: Options(
-          headers: {
-            'Content-Type': content,
-            'Authorization': 'Bearer $accessToken',
-          },
-        ),
+        options: Options(headers: headers),
       );
       final statuscode = response.statusCode;
       if (statuscode == 200) {
@@ -170,14 +167,11 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   @override
   Future<void> deleteRestaurant(String restaurantId) async {
     try {
+      final headers = await TokenManager.getAuthHeadersStatic();
+      headers['Content-Type'] = content;
       final response = await dio.delete(
-        '$baseUrl/restaurants/$restaurantId',
-        options: Options(
-          headers: {
-            'Content-Type': content,
-            'Authorization': 'Bearer $accessToken',
-          },
-        ),
+        ApiEndpoints.restaurantById(restaurantId),
+        options: Options(headers: headers),
       );
       final statusCode = response.statusCode;
       if (statusCode == 200 || statusCode == 204) {

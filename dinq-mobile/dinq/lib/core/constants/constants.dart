@@ -1,4 +1,0 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-String baseUrl = dotenv.env['BASE_URL']!;
-const String accessToken =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1pdGlrdW1lbGthbXNld0BnbWFpbC5jb20iLCJleHAiOjE3NTcxMzQ1MjQsImlzX3ZlcmlmaWVkIjpmYWxzZSwicm9sZSI6Ik9XTkVSIiwic3RhdHVzIjoiQUNUSVZFIiwic3ViIjoiNjhiYWNmYjc2YzI3MTJjODMyMmU0NmZkIn0.3rOnKeiT0bCkblKcWKR0paLjoCgTmvXzFmOKTGkeePY';

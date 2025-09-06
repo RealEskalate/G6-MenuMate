@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../../core/network/api_client.dart';
-import '../../../../../core/network/api_endpoints.dart';
+
 import '../../../../../core/util/theme.dart';
-import '../../domain/repository/Customer_reg_repo.dart';
-import '../../data/repository/auth_repository_impl.dart';
+import '../../presentation/bloc/user_bloc.dart';
+// registration bloc unused here; using global UserBloc instead
+import '../widgets/choose_box.dart';
 import 'manger_registration.dart';
 import 'user_Register.dart';
-import '../bloc/registration/registration_bloc.dart';
-import '../widgets/choose_box.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -76,12 +74,7 @@ class _RegisterPageState extends State<RegisterPage>
     super.dispose();
   }
 
-  // Create AuthBloc with your actual repository
-  AuthBloc _createAuthBloc() {
-    final apiClient = ApiClient(baseUrl: ApiEndpoints.baseUrl);
-    final AuthRepository authRepository = AuthRepositoryImpl(apiClient: apiClient);
-    return AuthBloc(authRepository: authRepository);
-  }
+  // Use the globally provided UserBloc (registered in DI)
 
   @override
   Widget build(BuildContext context) {
@@ -162,23 +155,28 @@ class _RegisterPageState extends State<RegisterPage>
                             Navigator.push(
                               context,
                               PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => BlocProvider.value(
-                                  value: BlocProvider.of<AuthBloc>(context),
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) =>
+                                        BlocProvider.value(
+                                  value: BlocProvider.of<UserBloc>(context),
                                   child: const UserRegister(),
                                 ),
-                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                transitionsBuilder: (context, animation,
+                                    secondaryAnimation, child) {
                                   return FadeTransition(
                                     opacity: animation,
                                     child: child,
                                   );
                                 },
-                                transitionDuration: const Duration(milliseconds: 500),
+                                transitionDuration:
+                                    const Duration(milliseconds: 500),
                               ),
                             );
                           },
                           child: const ChooseBox(
                             category: 'Customer',
-                            explanation: 'Discover dishes, scan QR menus and share reviews',
+                            explanation:
+                                'Discover dishes, scan QR menus and share reviews',
                             icon: Icons.person,
                           ),
                         ),
@@ -203,20 +201,25 @@ class _RegisterPageState extends State<RegisterPage>
                             Navigator.push(
                               context,
                               PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => const MangerRegistration(),
-                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) =>
+                                        const MangerRegistration(),
+                                transitionsBuilder: (context, animation,
+                                    secondaryAnimation, child) {
                                   return FadeTransition(
                                     opacity: animation,
                                     child: child,
                                   );
                                 },
-                                transitionDuration: const Duration(milliseconds: 500),
+                                transitionDuration:
+                                    const Duration(milliseconds: 500),
                               ),
                             );
                           },
                           child: const ChooseBox(
                             category: 'Restaurant',
-                            explanation: 'Create and manage digital menus, generate QR codes and track performance',
+                            explanation:
+                                'Create and manage digital menus, generate QR codes and track performance',
                             icon: Icons.restaurant,
                           ),
                         ),

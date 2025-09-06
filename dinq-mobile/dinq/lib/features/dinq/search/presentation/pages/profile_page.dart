@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
-import '../widgets/bottom_navbar.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -63,15 +61,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _onTabSelected(BuildContext context, BottomNavTab tab) {
-    if (tab == BottomNavTab.explore) {
-      Navigator.pushReplacementNamed(context, AppRoute.explore);
-    } else if (tab == BottomNavTab.favorites) {
-      Navigator.pushReplacementNamed(context, AppRoute.favorites);
-    } else if (tab == BottomNavTab.profile) {
-      // Already on profile
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

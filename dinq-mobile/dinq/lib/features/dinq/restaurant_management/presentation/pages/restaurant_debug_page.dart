@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/model/restaurant_model.dart';
 import '../bloc/restaurant_bloc.dart';
 import '../bloc/restaurant_event.dart';
 import '../bloc/restaurant_state.dart';
@@ -32,37 +31,23 @@ class RestaurantDebugPage extends StatelessWidget {
                   bloc.add(const LoadRestaurantBySlug('pizza-hut')),
               child: const Text('Load Restaurant by Slug (pizza-hut)'),
             ),
+            // Create / Update actions are not available in this debug page because
+            // the event expects FormData; keep placeholders to avoid compile errors.
             ElevatedButton(
               onPressed: () {
-                final restaurant = const RestaurantModel(
-                  id: 'debug-id',
-                  name: 'Debug Resto',
-                  description: 'desc',
-                  address: 'addr',
-                  phone: '000',
-                  email: 'a@b.com',
-                  image: '',
-                  isActive: true,
-                );
-                bloc.add(CreateRestaurantEvent(restaurant));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content:
+                        Text('Use the management UI to create restaurants')));
               },
-              child: const Text('Create Restaurant (debug)'),
+              child: const Text('Create Restaurant (placeholder)'),
             ),
             ElevatedButton(
               onPressed: () {
-                final restaurant = const RestaurantModel(
-                  id: 'debug-id',
-                  name: 'Debug Resto Updated',
-                  description: 'desc',
-                  address: 'addr',
-                  phone: '111',
-                  email: 'a@b.com',
-                  image: '',
-                  isActive: true,
-                );
-                bloc.add(UpdateRestaurantEvent(restaurant, 'debug-slug'));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content:
+                        Text('Use the management UI to update restaurants')));
               },
-              child: const Text('Update Restaurant (debug)'),
+              child: const Text('Update Restaurant (placeholder)'),
             ),
             ElevatedButton(
               onPressed: () =>

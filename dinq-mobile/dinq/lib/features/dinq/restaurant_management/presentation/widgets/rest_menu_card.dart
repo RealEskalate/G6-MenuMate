@@ -3,23 +3,32 @@ import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
 // import '../../../../restaurant_management/domain/entities/item.dart';
 import '../../domain/entities/item.dart';
-import '../../domain/entities/tab.dart' as entity;
 import '../pages/edit_menu_page.dart';
-import '../pages/edit_single_menu_page.dart';
+// ...existing code... (edit_single_menu_page unused)
 
 class RestMenuCard extends StatelessWidget {
-  final entity.Tab tab;
+  final dynamic tab; // can be legacy Tab object or a single Item
   final bool isPublished;
 
   const RestMenuCard({super.key, required this.tab, required this.isPublished});
 
   List<Item> _getAllItems() {
-    // Aggregate all items from all categories in this tab
+    // If this is a single Item, return it. Otherwise, try to aggregate
     final items = <Item>[];
-    for (final category in tab.categories) {
-      if (category.items != null) {
-        items.addAll(category.items!);
+    if (tab is Item) {
+      items.add(tab as Item);
+      return items;
+    }
+
+    // Legacy tab shape: aggregate categories -> items
+    try {
+      for (final category in tab.categories) {
+        if (category.items != null) {
+          items.addAll(category.items as List<Item>);
+        }
       }
+    } catch (_) {
+      // If the shape is unexpected, return empty list
     }
     return items;
   }
@@ -64,7 +73,7 @@ class RestMenuCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${tab.name}',
+                '${tab is Item ? tab.name : tab.name}',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 17,

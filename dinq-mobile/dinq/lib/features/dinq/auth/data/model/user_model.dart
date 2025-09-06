@@ -18,7 +18,6 @@ class UserModel extends User {
   });
 
   factory UserModel.fromMap(Map<String, dynamic> data) {
-    // accept both snake_case and camelCase keys
     String parseString(String a, String b) =>
         (data[a] ?? data[b] ?? '') as String;
 

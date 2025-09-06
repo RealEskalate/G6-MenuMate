@@ -21,7 +21,6 @@ class _EmailVerificationState extends State<EmailVerification> with SingleTicker
   final List<FocusNode> _focusNodes = List.generate(4, (index) => FocusNode());
   final List<TextEditingController> _controllers = List.generate(4, (index) => TextEditingController());
 
-  int _currentDigitIndex = 0;
 
   @override
   void initState() {
@@ -67,7 +66,6 @@ class _EmailVerificationState extends State<EmailVerification> with SingleTicker
     for (int i = 0; i < _controllers.length; i++) {
       _controllers[i].addListener(() {
         if (_controllers[i].text.isNotEmpty && i < 3) {
-          _currentDigitIndex = i + 1;
           FocusScope.of(context).requestFocus(_focusNodes[i + 1]);
         }
 
@@ -276,13 +274,11 @@ class _EmailVerificationState extends State<EmailVerification> with SingleTicker
         onChanged: (value) {
           setState(() {
             if (value.isNotEmpty && index < 3) {
-              _currentDigitIndex = index + 1;
             }
           });
         },
         onTap: () {
           setState(() {
-            _currentDigitIndex = index;
           });
         },
       ),

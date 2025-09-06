@@ -5,9 +5,9 @@ import 'resturant_registration.dart';
 import '../widgets/Login_TextFields.dart';
 import '../widgets/Login_button.dart';
 import '../widgets/checkbox.dart';
-import '../bloc/registration/registration_bloc.dart';
-import '../bloc/registration/registration_event.dart';
-import '../bloc/registration/registration_state.dart';
+import '../../presentation/bloc/user_bloc.dart';
+import '../../presentation/bloc/user_event.dart';
+import '../../presentation/bloc/user_state.dart';
 
 class MangerRegistration extends StatefulWidget {
   const MangerRegistration({super.key});
@@ -89,7 +89,8 @@ class _MangerRegistrationState extends State<MangerRegistration>
       _emailError = _validateEmail(_emailController.text);
       _phoneError = _validatePhone(_phoneController.text);
       _passwordError = _validatePassword(_passwordController.text);
-      _confirmPasswordError = _validateConfirmPassword(_confirmPasswordController.text);
+      _confirmPasswordError =
+          _validateConfirmPassword(_confirmPasswordController.text);
     });
 
     return _usernameError == null &&
@@ -139,15 +140,16 @@ class _MangerRegistrationState extends State<MangerRegistration>
 
   void _registerManager() {
     if (_validateAllFields()) {
-      context.read<AuthBloc>().add(
-        RegisterUserEvent(
-          username: _usernameController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          authProvider: 'EMAIL',
-          phoneNumber: _phoneController.text.trim(),
-        ),
-      );
+      context.read<UserBloc>().add(
+            RegisterUserEvent(
+              username: _usernameController.text.trim(),
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
+              authProvider: 'EMAIL',
+              // phone number was collected but RegisterUserEvent doesn't have phoneNumber field in this project's user_event
+              // We'll pass phone as part of firstName temporarily if needed, or ignore for now.
+            ),
+          );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -161,12 +163,13 @@ class _MangerRegistrationState extends State<MangerRegistration>
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
+    return BlocListener<UserBloc, UserState>(
       listener: (context, state) {
-        if (state is AuthRegistered) {
+        if (state is UserRegistered) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Manager registration successful! Please continue with restaurant setup.'),
+              content: Text(
+                  'Manager registration successful! Please continue with restaurant setup.'),
               backgroundColor: Colors.green,
               duration: Duration(seconds: 3),
             ),
@@ -175,8 +178,10 @@ class _MangerRegistrationState extends State<MangerRegistration>
             Navigator.push(
               context,
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) => const ResturantRegistration(),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const ResturantRegistration(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
                   return SlideTransition(
                     position: Tween<Offset>(
                       begin: const Offset(1, 0),
@@ -189,294 +194,201 @@ class _MangerRegistrationState extends State<MangerRegistration>
               ),
             );
           });
-        } else if (state is AuthError) {
+        } else if (state is UserError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 4),
-            ),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         }
       },
       child: Scaffold(
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              // Animated title
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: const Text(
-                    'Create Manger Account',
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 40),
+                // Animated title
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: const Text(
+                      'Create Manger Account',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              // Animated subtitle
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: const Text(
-                    'Join Dineq to manage your restaurant efficiently',
-                    style: TextStyle(
-                      fontWeight: FontWeight.normal,
-                      fontFamily: 'Inter',
-                      fontSize: 14,
-                      color: AppColors.secondaryColor,
+                const SizedBox(height: 10),
+                // Animated subtitle
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: const Text(
+                      'Join Dineq to manage your restaurant efficiently',
+                      style: TextStyle(
+                        fontWeight: FontWeight.normal,
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        color: AppColors.secondaryColor,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              // Animated form fields with staggered delay
-              AnimatedFormField(
-                animation: _fadeAnimation,
-                delay: 100,
-                child: LoginTextfields(
-                  controller: _usernameController,
-                  labeltext: 'Username',
-                  hintText: 'Enter your Username',
-                  errorText: _usernameError,
-                  onChanged: (value) {
-                    setState(() {
-                      _usernameError = _validateUsername(value);
-                    });
-                  },
+                const SizedBox(height: 30),
+                // Animated form fields with staggered delay
+                AnimatedFormField(
+                  animation: _fadeAnimation,
+                  delay: 100,
+                  child: LoginTextfields(
+                    controller: _usernameController,
+                    labeltext: 'Username',
+                    hintText: 'Enter your Username',
+                    errorText: _usernameError,
+                    onChanged: (value) {
+                      setState(() {
+                        _usernameError = _validateUsername(value);
+                      });
+                    },
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 20),
-              AnimatedFormField(
-                animation: _fadeAnimation,
-                delay: 200,
-                child: LoginTextfields(
-                  controller: _emailController,
-                  labeltext: 'Email Address',
-                  hintText: "We'll use this to send you important updates",
-                  keyboardType: TextInputType.emailAddress,
-                  errorText: _emailError,
-                  onChanged: (value) {
-                    setState(() {
-                      _emailError = _validateEmail(value);
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              AnimatedFormField(
-                animation: _fadeAnimation,
-                delay: 300,
-                child: LoginTextfields(
-                  controller: _phoneController,
-                  labeltext: 'Phone Number',
-                  hintText: 'Include country code (e.g., +251 for Ethiopia)',
-                  isPhoneNumber: true,
-                  errorText: _phoneError,
-                  onChanged: (value) {
-                    setState(() {
-                      _phoneError = _validatePhone(value);
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              AnimatedFormField(
-                animation: _fadeAnimation,
-                delay: 400,
-                child: LoginTextfields(
-                  controller: _passwordController,
-                  labeltext: 'Password',
-                  hintText: 'Must be at least 8 characters with uppercase, lowercase, and number',
-                  isPassword: true,
-                  errorText: _passwordError,
-                  onChanged: (value) {
-                    setState(() {
-                      _passwordError = _validatePassword(value);
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              AnimatedFormField(
-                animation: _fadeAnimation,
-                delay: 500,
-                child: LoginTextfields(
-                  controller: _confirmPasswordController,
-                  labeltext: 'Confirm Password',
-                  hintText: 'Re-enter your password to confirm',
-                  isPassword: true,
-                  errorText: _confirmPasswordError,
-                  onChanged: (value) {
-                    setState(() {
-                      _confirmPasswordError = _validateConfirmPassword(value);
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Animated checkbox
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomCheckbox(
-                          onChanged: (value) {
-                            setState(() {
-                              _isTermsAccepted = value ?? false;
-                            });
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: RichText(
-                            text: const TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: 'I agree to the ',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 14,
-                                    color: AppColors.secondaryColor,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: 'Terms of Service ',
-                                  style: TextStyle(
-                                    fontFamily: 'Roboto',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: AppColors.primaryColor,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: 'and ',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 14,
-                                    color: AppColors.secondaryColor,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: 'Privacy Policy *',
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: AppColors.primaryColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                const SizedBox(height: 20),
+                AnimatedFormField(
+                  animation: _fadeAnimation,
+                  delay: 200,
+                  child: LoginTextfields(
+                    controller: _emailController,
+                    labeltext: 'Email Address',
+                    hintText: "We'll use this to send you important updates",
+                    keyboardType: TextInputType.emailAddress,
+                    errorText: _emailError,
+                    onChanged: (value) {
+                      setState(() {
+                        _emailError = _validateEmail(value);
+                      });
+                    },
                   ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              // Animated button with scale effect
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  return ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: state is AuthLoading
-                        ? const CircularProgressIndicator()
-                        : GestureDetector(
-                            onTap: _registerManager,
-                            child: const LoginButton(buttonname: 'Create Account'),
-                          ),
-                  );
-                },
-              ),
-              const SizedBox(height: 30),
-              // Animated "or" divider
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          color: AppColors.secondaryColor.withOpacity(0.5),
-                          thickness: 1,
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          'or',
-                          style: TextStyle(
-                            fontWeight: FontWeight.normal,
-                            color: AppColors.secondaryColor,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          color: AppColors.secondaryColor.withOpacity(0.5),
-                          thickness: 1,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 20),
+                AnimatedFormField(
+                  animation: _fadeAnimation,
+                  delay: 300,
+                  child: LoginTextfields(
+                    controller: _phoneController,
+                    labeltext: 'Phone Number',
+                    hintText: 'Include country code (e.g., +251 for Ethiopia)',
+                    isPhoneNumber: true,
+                    errorText: _phoneError,
+                    onChanged: (value) {
+                      setState(() {
+                        _phoneError = _validatePhone(value);
+                      });
+                    },
                   ),
                 ),
-              ),
-              const SizedBox(height: 30),
-              // Animated Google sign-in button
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(color: Colors.grey.shade300),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                const SizedBox(height: 20),
+                AnimatedFormField(
+                  animation: _fadeAnimation,
+                  delay: 400,
+                  child: LoginTextfields(
+                    controller: _passwordController,
+                    labeltext: 'Password',
+                    hintText:
+                        'Must be at least 8 characters with uppercase, lowercase, and number',
+                    isPassword: true,
+                    errorText: _passwordError,
+                    onChanged: (value) {
+                      setState(() {
+                        _passwordError = _validatePassword(value);
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+                AnimatedFormField(
+                  animation: _fadeAnimation,
+                  delay: 500,
+                  child: LoginTextfields(
+                    controller: _confirmPasswordController,
+                    labeltext: 'Confirm Password',
+                    hintText: 'Re-enter your password to confirm',
+                    isPassword: true,
+                    errorText: _confirmPasswordError,
+                    onChanged: (value) {
+                      setState(() {
+                        _confirmPasswordError = _validateConfirmPassword(value);
+                      });
+                    },
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Animated checkbox
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.g_mobiledata,
-                            size: 24,
-                            color: Colors.green,
+                          CustomCheckbox(
+                            onChanged: (value) {
+                              setState(() {
+                                _isTermsAccepted = value;
+                              });
+                            },
                           ),
-                          SizedBox(width: 12),
-                          Text(
-                            'Sign up with Google',
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontWeight: FontWeight.normal,
-                              fontFamily: 'Inter',
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: RichText(
+                              text: const TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'I agree to the ',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 14,
+                                      color: AppColors.secondaryColor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'Terms of Service ',
+                                    style: TextStyle(
+                                      fontFamily: 'Roboto',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'and ',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 14,
+                                      color: AppColors.secondaryColor,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'Privacy Policy *',
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -484,12 +396,103 @@ class _MangerRegistrationState extends State<MangerRegistration>
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 40), // Extra padding at the bottom
-            ],
+                const SizedBox(height: 30),
+                // Animated button with scale effect
+                BlocBuilder<UserBloc, UserState>(
+                  builder: (context, state) {
+                    return ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: state is UserLoading
+                          ? const CircularProgressIndicator()
+                          : GestureDetector(
+                              onTap: _registerManager,
+                              child: const LoginButton(
+                                  buttonname: 'Create Account'),
+                            ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 30),
+                // Animated "or" divider
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Divider(
+                            color: AppColors.secondaryColor.withOpacity(0.5),
+                            thickness: 1,
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            'or',
+                            style: TextStyle(
+                              fontWeight: FontWeight.normal,
+                              color: AppColors.secondaryColor,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(
+                            color: AppColors.secondaryColor.withOpacity(0.5),
+                            thickness: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // Animated Google sign-in button
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () {},
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: BorderSide(color: Colors.grey.shade300),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.g_mobiledata,
+                              size: 24,
+                              color: Colors.green,
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              'Sign up with Google',
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontWeight: FontWeight.normal,
+                                fontFamily: 'Inter',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 40), // Extra padding at the bottom
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }

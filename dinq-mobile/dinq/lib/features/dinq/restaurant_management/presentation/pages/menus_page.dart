@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/injection.dart';
 import '../../../../../core/util/theme.dart';
 // import '../../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
 // import '../../../../restaurant_management/presentation/bloc/restaurant_event.dart';
 // import '../../../../restaurant_management/presentation/bloc/restaurant_state.dart';
+import '../../../../../injection_container.dart';
 import '../bloc/restaurant_bloc.dart';
 import '../bloc/restaurant_event.dart';
 import '../bloc/restaurant_state.dart';
@@ -34,9 +34,9 @@ class MenusPage extends StatelessWidget {
               'How do you want to create\nyour menu?',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: AppColors.secondaryColor,
-                fontSize: 18,
-              ),
+                    color: AppColors.secondaryColor,
+                    fontSize: 18,
+                  ),
             ),
             const SizedBox(height: 24),
             Row(
@@ -87,8 +87,8 @@ class MenusPage extends StatelessWidget {
           title: Text(
             'Menus',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppColors.secondaryColor,
-            ),
+                  color: AppColors.secondaryColor,
+                ),
           ),
         ),
         body: Padding(
@@ -119,15 +119,14 @@ class MenusPage extends StatelessWidget {
                     if (state is RestaurantLoading) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is MenuLoaded) {
-                      final menu = state.menu;
-                      final menus = menu.tabs;
+                      final menus = state.menu.items;
                       return ListView.builder(
                         itemCount: menus.length,
                         itemBuilder: (context, idx) {
                           final tab = menus[idx];
                           return RestMenuCard(
                             tab: tab,
-                            isPublished: menu.isPublished,
+                            isPublished: state.menu.isPublished,
                           );
                         },
                       );
