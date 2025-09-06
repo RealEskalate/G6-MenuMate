@@ -1,10 +1,12 @@
 // src/store/store.ts
 import { configureStore } from "@reduxjs/toolkit";
 import restaurantsReducer from "@/store/restaurantsSlice";
+import menuReducer from "@/store/menuSlice";
 
 export const store = configureStore({
   reducer: {
-    restaurants: restaurantsReducer, // Add other slices here later if needed
+    restaurants: restaurantsReducer,
+    menu: menuReducer,
   },
 });
 

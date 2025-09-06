@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { registerUser } from "@/lib/api";   
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 // import { a } from "framer-motion/client";
 
@@ -83,7 +84,26 @@ export default function SignupForm({ role }: SignupFormProps) {
       };
       const response = await registerUser(payload);
       console.log("✅ Registered:", response);
-      router.push("/auth/signin");
+
+      if(role === "MANAGER"){
+
+        const result = await signIn("credentials", {
+        redirect: false, 
+        identifier: data.email,
+        password: data.password,
+      });
+      
+      if (result?.error) {
+        console.error("❌ Auto-login failed:", result.error);
+        router.push("/auth/signin");
+      } else {
+        router.push("/restaurant/register/basic-info");
+      }
+
+
+      } else{
+        router.push("/auth/signin");
+      }
 
     } catch (err) {
       console.error("❌ Signup failed:", err);

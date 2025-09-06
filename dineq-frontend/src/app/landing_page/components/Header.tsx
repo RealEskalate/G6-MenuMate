@@ -36,7 +36,7 @@ export default function Header() {
         <div className="hidden md:flex items-center space-x-4">
           <Link href="/auth/signin"  className="text-gray-600 hover:text-orange-500"> Log In</Link>
           <Link
-            href="/user-routes/whoareyou"
+            href="/auth/whoareyou"
             className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600"
           >
             Get started
