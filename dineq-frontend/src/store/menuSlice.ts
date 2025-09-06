@@ -1,4 +1,3 @@
-// store/menuSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { MenuItem } from "@/lib/api"; // the interface we defined earlier
 

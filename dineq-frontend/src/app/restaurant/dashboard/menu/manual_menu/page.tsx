@@ -1,15 +1,29 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { RootState } from "@/store";
-import { clearMenuItems } from "@/store/menuSlice";
-import { createMenu, uploadImage } from "@/lib/menuApi";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useMenuContext } from "@/context/MenuOcrContext";
+import { ChevronDown, ChevronUp, Plus, Minus, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+  import { createMenu } from "@/lib/menu";
+import { useSession } from "next-auth/react"
 
-// --- Types ---
-export interface NutritionalInfo {
+interface NutritionalInfo {
   calories: number;
   protein: number;
   carbs: number;
@@ -42,14 +56,8 @@ interface Section {
 }
 
 const ManualMenu = () => {
-  const dispatch = useDispatch();
-  const { data: session } = useSession();
-  const router = useRouter();
-  const ocrMenuItems = useSelector(
-    (state: RootState) => state.menu?.menuItems ?? []
-  );
-
-  console.log("OCR Menu Items from Redux:", ocrMenuItems);
+  const { menuItems: ocrMenuItems, clearMenuItems } = useMenuContext();
+  console.log("OCR Menu Items from Context:", ocrMenuItems);
 
   const [initialized, setInitialized] = useState(false);
   const [menuName, setMenuName] = useState("Untitled menu");
@@ -59,416 +67,449 @@ const ManualMenu = () => {
   const [sections, setSections] = useState<Section[]>([
     { name: "Starters", items: [] },
   ]);
+
+  const [expandedSections, setExpandedSections] = useState<{
+    [key: number]: boolean;
+  }>({});
   const [expandedItems, setExpandedItems] = useState<{
     [key: string]: boolean;
   }>({});
   const [loading, setLoading] = useState(false);
   const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
+   const { data: session } = useSession(); // token from session?
+  
 
-  // ✅ Fetch restaurant slug on login
-  useEffect(() => {
-    const fetchRestaurantSlug = async () => {
-      if (!session?.accessToken) return;
-
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/restaurants/me`,
-          {
-            headers: {
-              Authorization: `Bearer ${session.accessToken}`,
-            },
-          }
-        );
-
-        if (!res.ok) throw new Error("Failed to fetch restaurant info");
-
-        const data = await res.json();
-        console.log("🍽 Restaurant info:", data);
-
-        if (data?.restaurants?.length > 0) {
-          setRestaurantSlug(data.restaurants[0].slug);
-        }
-      } catch (err) {
-        console.error("❌ Error fetching restaurant slug:", err);
-      }
-    };
-
-    fetchRestaurantSlug();
-  }, [session?.accessToken]);
-
-  // ✅ Hydrate OCR items from Redux then clear store
   useEffect(() => {
     if (!initialized && ocrMenuItems.length > 0) {
       const mappedItems: MenuItem[] = ocrMenuItems.map((item: any) => ({
+        ...item,
         name: item.name ?? "",
-        name_am: item.name_am ?? "",
-        image: null,
         price: item.price ?? "",
-        currency: item.currency ?? "",
         ingredients: item.ingredients ?? [],
-        description: item.description ?? "",
-        description_am: item.description_am ?? "",
-        tab_tags: item.tab_tags ?? [],
-        tab_tags_am: item.tab_tags_am ?? [],
-        allergies: item.allergies ?? "",
-        allergies_am: item.allergies_am ?? "",
         nutritional_info: item.nutritional_info ?? {
           calories: 0,
           protein: 0,
           carbs: 0,
           fat: 0,
         },
-        preparation_time: item.preparation_time ?? 0,
-        how_to_eat: item.how_to_eat ?? "",
-        how_to_eat_am: item.how_to_eat_am ?? "",
-        voice: item.voice ?? null,
       }));
 
       setSections([{ name: "Imported from OCR", items: mappedItems }]);
       setInitialized(true);
-      dispatch(clearMenuItems()); // 🧹 clear store
+      clearMenuItems();
     }
-  }, [ocrMenuItems, initialized, dispatch]);
+  }, [ocrMenuItems, initialized, clearMenuItems]);
 
-  // --- Handlers ---
-  const addSection = () => {
-    setSections([...sections, { name: "", items: [] }]);
-  };
+  const toggleItem = useCallback((sectionIndex: number, itemIndex: number) => {
+    const key = `${sectionIndex}-${itemIndex}`;
+    setExpandedItems((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  }, []);
 
-  const addItem = (sectionIndex: number) => {
-    const newSections = [...sections];
-    newSections[sectionIndex].items.push({
-      name: "",
-      name_am: "",
-      image: null,
-      price: "",
-      currency: "",
-      ingredients: [""],
-      description: "",
-      description_am: "",
-      tab_tags: [],
-      tab_tags_am: [],
-      allergies: "",
-      allergies_am: "",
-      nutritional_info: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-      preparation_time: 0,
-      how_to_eat: "",
-      how_to_eat_am: "",
-      voice: null,
+  const addSection = useCallback(() => {
+    setSections((prev) => [...prev, { name: "", items: [] }]);
+  }, []);
+
+  const addItem = useCallback((sectionIndex: number) => {
+    setSections((prev) => {
+      const newSections = [...prev];
+      newSections[sectionIndex].items.push({
+        name: "",
+        name_am: "",
+        image: null,
+        price: "",
+        currency: "",
+        ingredients: [],
+        description: "",
+        description_am: "",
+        tab_tags: [],
+        tab_tags_am: [],
+        allergies: "",
+        allergies_am: "",
+        nutritional_info: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+        preparation_time: 0,
+        instructions: "",
+        instructions_am: "",
+        voice: null,
+      });
+      return newSections;
     });
-    setSections(newSections);
-  };
+  }, []);
 
-  const updateItem = (
-    sectionIndex: number,
-    itemIndex: number,
-    field: keyof MenuItem,
-    value: any
-  ) => {
-    const newSections = [...sections];
-    (newSections[sectionIndex].items[itemIndex] as any)[field] = value;
-    setSections(newSections);
-  };
+  const updateSectionName = useCallback((index: number, name: string) => {
+    setSections((prev) => {
+      const newSections = [...prev];
+      newSections[index].name = name;
+      return newSections;
+    });
+  }, []);
 
-  // const updateNutritionalInfo = (
-  //   sectionIndex: number,
-  //   itemIndex: number,
-  //   subField: keyof NutritionalInfo,
-  //   value: number
-  // ) => {
-  //   const newSections = [...sections];
-  //   const item = newSections[sectionIndex].items[itemIndex];
-  //   item.nutritional_info = {
-  //     ...item.nutritional_info,
-  //     [subField]: value,
-  //   };
-  //   setSections(newSections);
-  // };
+  const updateItem = useCallback(
+    (
+      sectionIndex: number,
+      itemIndex: number,
+      field: keyof MenuItem,
+      value: any
+    ) => {
+      setSections((prevSections) => {
+        const newSections = [...prevSections];
+        const updatedItem = {
+          ...newSections[sectionIndex].items[itemIndex],
+          [field]: value,
+        };
+        newSections[sectionIndex].items[itemIndex] = updatedItem;
+        return newSections;
+      });
+    },
+    []
+  );
 
-  const addArrayItem = (
-    sectionIndex: number,
-    itemIndex: number,
-    field: "ingredients" | "tab_tags" | "tab_tags_am",
-    value: string
-  ) => {
-    if (value.trim()) {
-      const newSections = [...sections];
-      (newSections[sectionIndex].items[itemIndex][field] as string[]).push(
-        value.trim()
-      );
-      setSections(newSections);
-    }
-  };
+  const updateNutritionalInfo = useCallback(
+    (
+      sectionIndex: number,
+      itemIndex: number,
+      subField: keyof NutritionalInfo,
+      value: number
+    ) => {
+      setSections((prevSections) => {
+        const newSections = [...prevSections];
+        const item = newSections[sectionIndex].items[itemIndex];
+        const updatedNutritionalInfo = {
+          ...item.nutritional_info,
+          [subField]: value,
+        };
+        newSections[sectionIndex].items[itemIndex].nutritional_info =
+          updatedNutritionalInfo;
+        return newSections;
+      });
+    },
+    []
+  );
 
-  const removeArrayItem = (
-    sectionIndex: number,
-    itemIndex: number,
-    field: "ingredients" | "tab_tags" | "tab_tags_am",
-    arrayIndex: number
-  ) => {
-    const newSections = [...sections];
-    (newSections[sectionIndex].items[itemIndex][field] as string[]).splice(
-      arrayIndex,
-      1
-    );
-    setSections(newSections);
-  };
+  const addArrayItem = useCallback(
+    (
+      sectionIndex: number,
+      itemIndex: number,
+      field: "ingredients" | "tab_tags" | "tab_tags_am",
+      value: string
+    ) => {
+      if (value.trim()) {
+        setSections((prev) => {
+          const newSections = [...prev];
+          if (Array.isArray(newSections[sectionIndex].items[itemIndex][field])) {
+            (newSections[sectionIndex].items[itemIndex][field] as string[]).push(
+              value.trim()
+            );
+          }
+          return newSections;
+        });
+      }
+    },
+    []
+  );
 
-  const handleImageSelect = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    sectionIndex: number,
-    itemIndex: number
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      updateItem(sectionIndex, itemIndex, "image", file);
-    }
-  };
+  const removeArrayItem = useCallback(
+    (
+      sectionIndex: number,
+      itemIndex: number,
+      field: "ingredients" | "tab_tags" | "tab_tags_am",
+      arrayIndex: number
+    ) => {
+      setSections((prev) => {
+        const newSections = [...prev];
+        if (Array.isArray(newSections[sectionIndex].items[itemIndex][field])) {
+          const newArray = [
+            ...(newSections[sectionIndex].items[itemIndex][field] as string[]),
+          ];
+          newArray.splice(arrayIndex, 1);
+          (newSections[sectionIndex].items[itemIndex][field] as string[]) =
+            newArray;
+        }
+        return newSections;
+      });
+    },
+    []
+  );
 
-  const handleAddTag = () => {
+  const handleAddTag = useCallback(() => {
     if (newTag.trim()) {
-      setTags([...tags, newTag.trim()]);
+      setTags((prev) => [...prev, newTag.trim()]);
       setNewTag("");
     }
-  };
+  }, [newTag]);
 
-  const removeTag = (index: number) => {
-    setTags(tags.filter((_, i) => i !== index));
-  };
+  const removeTag = useCallback((index: number) => {
+    setTags((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+; // to get token if using next-auth
 
-  const toggleItemExpand = (sectionIndex: number, itemIndex: number) => {
-    const key = `${sectionIndex}-${itemIndex}`;
-    setExpandedItems((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+
+ 
 
   const handleSubmit = async () => {
-    if (!session?.accessToken || !restaurantSlug) {
-      console.error("Missing access token or restaurant slug");
+    if (!restaurantSlug) {
+      alert("Restaurant slug is missing!");
       return;
     }
 
-    setLoading(true);
+    const token = session?.accessToken; // adjust depending on your session shape
+    if (!token) {
+      alert("No token found!");
+      return;
+    }
+
+    const menuData = {
+      name: menuName,
+      language,
+      tags,
+      sections,
+    };
 
     try {
-      const processedSections = await Promise.all(
-        sections.map(async (s) => ({
-          name: s.name,
-          menu_items: await Promise.all(
-            s.items.map(async (i) => {
-              let imageUrl: string | null = null;
-              if (i.image  instanceof File) {
-                imageUrl = await uploadImage(i.image, session.accessToken!);
-              } else if (typeof i.image === "string") {
-                imageUrl = i.image;
-              }
-
-              // ✅ Drop *_am fields before sending
-              const {
-                name_am,
-                description_am,
-                tab_tags_am,
-                allergies_am,
-                how_to_eat_am,
-                ...rest
-              } = i;
-
-              return {
-                ...rest,
-                image: imageUrl,
-              };
-            })
-          ),
-        }))
-      );
-
-      const payload = processedSections;
-
-      const response = await createMenu(
-        payload,
-        session.accessToken,
-        restaurantSlug
-      );
-      console.log("✅ Menu created:", response);
-      router.push("/restaurant/dashboard/menu");
-    } catch (err) {
-      console.error("❌ Error submitting menu:", err);
+      setLoading(true);
+      const result = await createMenu(restaurantSlug, menuData, token);
+      console.log("Menu created:", result);
+      alert("Menu created successfully!");
+    } catch (error: any) {
+      alert("Failed to create menu: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- Render ---
   return (
+    <>
     <div className="flex-1 p-6 bg-white">
       <h1 className="text-2xl font-bold mb-6">Add Menu Manually</h1>
 
-      {/* Basic Details */}
       <div className="border border-orange-300 rounded-lg p-6 mb-6">
         <h2 className="text-lg font-semibold mb-4">Basic Details</h2>
-        <div className="flex flex-col md:flex-row gap-4 mb-4">
-          <input
-            type="text"
-            value={menuName}
-            onChange={(e) => setMenuName(e.target.value)}
-            className="flex-1 border border-gray-300 rounded p-2"
-            placeholder="Menu name"
-          />
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="flex-1 border border-gray-300 rounded p-2"
-          >
-            <option>Amharic</option>
-            <option>English</option>
-          </select>
+        <div className="grid md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <Label htmlFor="menuName">Menu Name</Label>
+            <Input
+              id="menuName"
+              type="text"
+              value={menuName}
+              onChange={(e) => setMenuName(e.target.value)}
+              placeholder="Enter menu name"
+            />
+          </div>
+          <div>
+            <Label htmlFor="menuLanguage">Default Language</Label>
+            <Select onValueChange={setLanguage} defaultValue={language}>
+              <SelectTrigger id="menuLanguage">
+                <SelectValue placeholder="Select a language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Amharic">Amharic</SelectItem>
+                <SelectItem value="English">English</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-
-        {/* Tags */}
         <div>
-          <input
-            type="text"
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            className="border border-gray-300 rounded p-2 mr-2"
-            placeholder="Enter tag"
-          />
-          <button
-            onClick={handleAddTag}
-            className="bg-orange-500 text-white px-4 py-2 rounded"
-          >
-            Add Tag
-          </button>
-          <div className="flex flex-wrap gap-2 mt-2">
+          <Label htmlFor="menuTagInput">Menu Tags</Label>
+          <div className="flex gap-2 mb-2">
+            <Input
+              id="menuTagInput"
+              type="text"
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              className="flex-1"
+              placeholder="Enter tag"
+            />
+            <Button onClick={handleAddTag}>
+              <Plus className="h-4 w-4 mr-2" /> Add Tag
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
             {tags.map((tag, i) => (
-              <span
-                key={i}
-                className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full flex items-center"
-              >
+              <Badge key={i} variant="secondary" className="flex items-center">
                 {tag}
-                <button onClick={() => removeTag(i)} className="ml-2">
-                  ×
-                </button>
-              </span>
+                <Button
+                  onClick={() => removeTag(i)}
+                  variant="ghost"
+                  size="icon"
+                  className="ml-2 h-4 w-4"
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </Badge>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Sections + Items */}
       {sections.map((section, sIndex) => (
-        <div
+        <Collapsible
           key={sIndex}
           className="border border-orange-300 rounded-lg p-6 mb-6"
+          open={expandedSections[sIndex]}
+          onOpenChange={() =>
+            setExpandedSections((prev) => ({
+              ...prev,
+              [sIndex]: !prev[sIndex],
+            }))
+          }
         >
-          <h2 className="text-lg font-semibold mb-4">
-            Section {sIndex + 1}:{" "}
-            <input
-              type="text"
-              value={section.name}
-              onChange={(e) => {
-                const newSections = [...sections];
-                newSections[sIndex].name = e.target.value;
-                setSections(newSections);
-              }}
-              className="border-b border-gray-300 focus:outline-none"
-            />
-          </h2>
-
-          {section.items.map((item, iIndex) => {
-            const key = `${sIndex}-${iIndex}`;
-            const isExpanded = expandedItems[key] || false;
-            const displayName =
-              language === "Amharic"
-                ? item.name_am || "Untitled"
-                : item.name || "Untitled";
-            return (
-              <div key={iIndex} className="mb-6 border-b pb-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-medium mb-2">
-                    Item {iIndex + 1}: {displayName}
-                  </h3>
-                  <span
-                    className="cursor-pointer"
-                    onClick={() => toggleItemExpand(sIndex, iIndex)}
-                  >
-                    {isExpanded ? "▲" : "▼"}
-                  </span>
-                </div>
-
-                {isExpanded && (
-                  <div className="mt-4">
-                    {/* Basic Fields */}
-                    <label className="block mb-1 font-medium">Item Name</label>
-                    {language === "English" ? (
-                      <input
+          <CollapsibleTrigger asChild>
+            <div className="flex justify-between items-center cursor-pointer mb-4">
+              <h2 className="text-lg font-semibold">
+                Section {sIndex + 1}:{" "}
+                <Input
+                  type="text"
+                  value={section.name}
+                  onChange={(e) => updateSectionName(sIndex, e.target.value)}
+                  className="inline-block border-b border-gray-300 focus:outline-none p-0"
+                  placeholder="Section Name"
+                  onClick={(e) => e.stopPropagation()} // Prevents collapsible from closing
+                />
+              </h2>
+              <Button variant="ghost" size="icon">
+                {expandedSections[sIndex] ? (
+                  <ChevronUp className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4">
+            {section.items.map((item, iIndex) => (
+              <Collapsible
+                key={iIndex}
+                className="mb-6 border-b pb-6"
+                open={expandedItems[`${sIndex}-${iIndex}`]}
+                onOpenChange={() => toggleItem(sIndex, iIndex)}
+              >
+                <CollapsibleTrigger asChild>
+                  <div className="flex justify-between items-center cursor-pointer">
+                    <h3 className="font-medium mb-2">
+                      Item {iIndex + 1}: {item.name || "Untitled"}
+                    </h3>
+                    <Button variant="ghost" size="icon">
+                      {expandedItems[`${sIndex}-${iIndex}`] ? (
+                        <ChevronUp className="h-5 w-5" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5" />
+                      )}
+                    </Button>
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor={`itemName-${sIndex}-${iIndex}`}>
+                        Item Name
+                      </Label>
+                      <Input
+                        id={`itemName-${sIndex}-${iIndex}`}
                         type="text"
                         value={item.name}
                         placeholder="Item name"
                         onChange={(e) =>
                           updateItem(sIndex, iIndex, "name", e.target.value)
                         }
-                        className="w-full border border-gray-300 rounded p-2 mb-2"
                       />
-                    ) : (
-                      <input
+                    </div>
+                    <div>
+                      <Label htmlFor={`itemNameAmharic-${sIndex}-${iIndex}`}>
+                        Item Name (Amharic)
+                      </Label>
+                      <Input
+                        id={`itemNameAmharic-${sIndex}-${iIndex}`}
                         type="text"
                         value={item.name_am}
-                        placeholder="Item name"
+                        placeholder="Item name (Amharic)"
                         onChange={(e) =>
                           updateItem(sIndex, iIndex, "name_am", e.target.value)
                         }
-                        className="w-full border border-gray-300 rounded p-2 mb-2"
                       />
-                    )}
-                    <input
-                      type="text"
-                      value={item.price as string}
-                      placeholder="Price"
-                      onChange={(e) =>
-                        updateItem(sIndex, iIndex, "price", e.target.value)
-                      }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
-                    />
-                    <input
-                      type="text"
-                      value={item.currency}
-                      placeholder="Currency"
-                      onChange={(e) =>
-                        updateItem(sIndex, iIndex, "currency", e.target.value)
-                      }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
-                    />
-                    {language === "English" ? (
-                      <textarea
-                        value={item.description}
-                        placeholder="Description"
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor={`itemPrice-${sIndex}-${iIndex}`}>
+                        Price
+                      </Label>
+                      <Input
+                        id={`itemPrice-${sIndex}-${iIndex}`}
+                        type="text"
+                        value={item.price as string}
+                        placeholder="Price"
+                        onChange={(e) =>
+                          updateItem(sIndex, iIndex, "price", e.target.value)
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`itemCurrency-${sIndex}-${iIndex}`}>
+                        Currency
+                      </Label>
+                      <Input
+                        id={`itemCurrency-${sIndex}-${iIndex}`}
+                        type="text"
+                        value={item.currency}
+                        placeholder="Currency"
                         onChange={(e) =>
                           updateItem(
                             sIndex,
                             iIndex,
-                            "description",
+                            "currency",
                             e.target.value
                           )
                         }
-                        className="w-full border border-gray-300 rounded p-2 mb-2"
                       />
-                    ) : (
-                      <textarea
-                        value={item.description_am}
-                        placeholder="Description"
-                        onChange={(e) =>
-                          updateItem(
-                            sIndex,
-                            iIndex,
-                            "description_am",
-                            e.target.value
-                          )
-                        }
-                        className="w-full border border-gray-300 rounded p-2 mb-2"
-                      />
-                    )}
-                    {language === "English" ? (
-                      <input
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor={`itemDescription-${sIndex}-${iIndex}`}>
+                      Description
+                    </Label>
+                    <Textarea
+                      id={`itemDescription-${sIndex}-${iIndex}`}
+                      value={item.description}
+                      placeholder="Description"
+                      onChange={(e) =>
+                        updateItem(
+                          sIndex,
+                          iIndex,
+                          "description",
+                          e.target.value
+                        )
+                      }
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`itemDescriptionAmharic-${sIndex}-${iIndex}`}>
+                      Description (Amharic)
+                    </Label>
+                    <Textarea
+                      id={`itemDescriptionAmharic-${sIndex}-${iIndex}`}
+                      value={item.description_am}
+                      placeholder="Description (Amharic)"
+                      onChange={(e) =>
+                        updateItem(
+                          sIndex,
+                          iIndex,
+                          "description_am",
+                          e.target.value
+                        )
+                      }
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor={`itemAllergies-${sIndex}-${iIndex}`}>
+                        Allergies
+                      </Label>
+                      <Input
+                        id={`itemAllergies-${sIndex}-${iIndex}`}
                         type="text"
                         value={item.allergies}
                         placeholder="Allergies"
@@ -480,13 +521,17 @@ const ManualMenu = () => {
                             e.target.value
                           )
                         }
-                        className="w-full border border-gray-300 rounded p-2 mb-2"
                       />
-                    ) : (
-                      <input
+                    </div>
+                    <div>
+                      <Label htmlFor={`itemAllergiesAmharic-${sIndex}-${iIndex}`}>
+                        Allergies (Amharic)
+                      </Label>
+                      <Input
+                        id={`itemAllergiesAmharic-${sIndex}-${iIndex}`}
                         type="text"
                         value={item.allergies_am}
-                        placeholder="Allergies"
+                        placeholder="Allergies (Amharic)"
                         onChange={(e) =>
                           updateItem(
                             sIndex,
@@ -495,12 +540,17 @@ const ManualMenu = () => {
                             e.target.value
                           )
                         }
-                        className="w-full border border-gray-300 rounded p-2 mb-2"
                       />
-                    )}
-                    <input
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor={`itemPrepTime-${sIndex}-${iIndex}`}>
+                      Preparation Time (minutes)
+                    </Label>
+                    <Input
+                      id={`itemPrepTime-${sIndex}-${iIndex}`}
                       type="number"
-                      value={item.preparation_time}
+                      value={item.preparation_time ?? ""}
                       placeholder="Preparation Time (minutes)"
                       onChange={(e) =>
                         updateItem(
@@ -510,125 +560,166 @@ const ManualMenu = () => {
                           Number(e.target.value)
                         )
                       }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
                     />
-                    {language === "English" ? (
-                      <textarea
-                        value={item.how_to_eat}
-                        placeholder="How to Eat"
-                        onChange={(e) =>
-                          updateItem(
-                            sIndex,
-                            iIndex,
-                            "how_to_eat",
-                            e.target.value
-                          )
-                        }
-                        className="w-full border border-gray-300 rounded p-2 mb-2"
-                      />
-                    ) : (
-                      <textarea
-                        value={item.how_to_eat_am}
-                        placeholder="How to Eat"
-                        onChange={(e) =>
-                          updateItem(
-                            sIndex,
-                            iIndex,
-                            "how_to_eat_am",
-                            e.target.value
-                          )
-                        }
-                        className="w-full border border-gray-300 rounded p-2 mb-2"
-                      />
-                    )}
-                    <input
+                  </div>
+                  <div>
+                    <Label htmlFor={`itemInstructions-${sIndex}-${iIndex}`}>
+                      Instructions / How to Eat
+                    </Label>
+                    <Textarea
+                      id={`itemInstructions-${sIndex}-${iIndex}`}
+                      value={item.instructions}
+                      placeholder="Instructions / How to Eat"
+                      onChange={(e) =>
+                        updateItem(
+                          sIndex,
+                          iIndex,
+                          "instructions",
+                          e.target.value
+                        )
+                      }
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`itemInstructionsAmharic-${sIndex}-${iIndex}`}>
+                      Instructions (Amharic)
+                    </Label>
+                    <Textarea
+                      id={`itemInstructionsAmharic-${sIndex}-${iIndex}`}
+                      value={item.instructions_am}
+                      placeholder="Instructions (Amharic)"
+                      onChange={(e) =>
+                        updateItem(
+                          sIndex,
+                          iIndex,
+                          "instructions_am",
+                          e.target.value
+                        )
+                      }
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor={`itemVoiceUrl-${sIndex}-${iIndex}`}>
+                      Voice URL
+                    </Label>
+                    <Input
+                      id={`itemVoiceUrl-${sIndex}-${iIndex}`}
                       type="text"
                       value={item.voice || ""}
                       placeholder="Voice URL"
                       onChange={(e) =>
                         updateItem(sIndex, iIndex, "voice", e.target.value)
                       }
-                      className="w-full border border-gray-300 rounded p-2 mb-2"
                     />
+                  </div>
 
-                    {/* Nutritional Info */}
-                    <div className="grid grid-cols-4 gap-2 mb-2">
-                      <input
-                        type="number"
-                        placeholder="Calories"
-                        value={item.nutritional_info?.calories ?? ""}
-                        // onChange={(e) =>
-                        //   updateNutritionalInfo(
-                        //     sIndex,
-                        //     iIndex,
-                        //     "calories",
-                        //     Number(e.target.value)
-                        //   )
-                        //}
-                        className="border border-gray-300 rounded p-2"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Protein (g)"
-                        value={item.nutritional_info?.protein ?? ""}
-                        // onChange={(e) =>
-                        //   updateNutritionalInfo(
-                        //     sIndex,
-                        //     iIndex,
-                        //     "protein",
-                        //     Number(e.target.value)
-                        //   )
-                        // }
-                        className="border border-gray-300 rounded p-2"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Carbs (g)"
-                        value={item.nutritional_info?.carbs ?? ""}
-                        // onChange={(e) =>
-                        //   updateNutritionalInfo(
-                        //     sIndex,
-                        //     iIndex,
-                        //     "carbs",
-                        //     Number(e.target.value)
-                        //   )
-                        // }
-                        className="border border-gray-300 rounded p-2"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Fat (g)"
-                        value={item.nutritional_info?.fat ?? ""}
-                        // onChange={(e) =>
-                        //   updateNutritionalInfo(
-                        //     sIndex,
-                        //     iIndex,
-                        //     "fat",
-                        //     Number(e.target.value)
-                        //   )
-                        // }
-                        className="border border-gray-300 rounded p-2"
-                      />
+                  {/* Nutritional Info */}
+                  <div>
+                    <h4 className="font-medium mb-2">Nutritional Information</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div>
+                        <Label htmlFor={`itemCalories-${sIndex}-${iIndex}`}>
+                          Calories
+                        </Label>
+                        <Input
+                          id={`itemCalories-${sIndex}-${iIndex}`}
+                          type="number"
+                          placeholder="Calories"
+                          value={item.nutritional_info?.calories ?? ""}
+                          onChange={(e) =>
+                            updateNutritionalInfo(
+                              sIndex,
+                              iIndex,
+                              "calories",
+                              Number(e.target.value)
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`itemProtein-${sIndex}-${iIndex}`}>
+                          Protein (g)
+                        </Label>
+                        <Input
+                          id={`itemProtein-${sIndex}-${iIndex}`}
+                          type="number"
+                          placeholder="Protein (g)"
+                          value={item.nutritional_info?.protein ?? ""}
+                          onChange={(e) =>
+                            updateNutritionalInfo(
+                              sIndex,
+                              iIndex,
+                              "protein",
+                              Number(e.target.value)
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`itemCarbs-${sIndex}-${iIndex}`}>
+                          Carbs (g)
+                        </Label>
+                        <Input
+                          id={`itemCarbs-${sIndex}-${iIndex}`}
+                          type="number"
+                          placeholder="Carbs (g)"
+                          value={item.nutritional_info?.carbs ?? ""}
+                          onChange={(e) =>
+                            updateNutritionalInfo(
+                              sIndex,
+                              iIndex,
+                              "carbs",
+                              Number(e.target.value)
+                            )
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`itemFat-${sIndex}-${iIndex}`}>
+                          Fat (g)
+                        </Label>
+                        <Input
+                          id={`itemFat-${sIndex}-${iIndex}`}
+                          type="number"
+                          placeholder="Fat (g)"
+                          value={item.nutritional_info?.fat ?? ""}
+                          onChange={(e) =>
+                            updateNutritionalInfo(
+                              sIndex,
+                              iIndex,
+                              "fat",
+                              Number(e.target.value)
+                            )
+                          }
+                        />
+                      </div>
                     </div>
+                  </div>
 
-                    {/* Ingredients */}
-                    <div className="mb-2">
-                      <h4 className="font-medium mb-1">Ingredients</h4>
+                  {/* Ingredients */}
+                  <div>
+                    <h4 className="font-medium mb-2">Ingredients</h4>
+                    <div className="space-y-2">
                       {item.ingredients.map((ing, ingIndex) => (
-                        <div key={ingIndex} className="flex mb-1">
-                          <input
+                        <div key={ingIndex} className="flex items-center gap-2">
+                          <Input
                             type="text"
                             value={ing}
                             onChange={(e) => {
-                              const newSections = [...sections];
-                              newSections[sIndex].items[iIndex].ingredients[
-                                ingIndex
-                              ] = e.target.value;
-                              setSections(newSections);
+                              const newIngredients = [...item.ingredients];
+                              newIngredients[ingIndex] = e.target.value;
+                              updateItem(
+                                sIndex,
+                                iIndex,
+                                "ingredients",
+                                newIngredients
+                              );
                             }}
-                            className="flex-1 border border-gray-300 rounded p-2 mr-2"
+                            className="flex-1"
                           />
-                          <button
+                          <Button
                             onClick={() =>
                               removeArrayItem(
                                 sIndex,
@@ -637,157 +728,163 @@ const ManualMenu = () => {
                                 ingIndex
                               )
                             }
-                            className="text-red-500"
+                            variant="destructive"
+                            size="icon"
                           >
-                            ×
-                          </button>
+                            <Minus className="h-4 w-4" />
+                          </Button>
                         </div>
                       ))}
-                      <div className="flex">
-                        <input
-                          type="text"
-                          placeholder="Add ingredient"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              addArrayItem(
-                                sIndex,
-                                iIndex,
-                                "ingredients",
-                                e.currentTarget.value
-                              );
-                              e.currentTarget.value = "";
-                            }
-                          }}
-                          className="flex-1 border border-gray-300 rounded p-2"
-                        />
-                      </div>
                     </div>
+                    <Input
+                      type="text"
+                      placeholder="Add ingredient"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          addArrayItem(
+                            sIndex,
+                            iIndex,
+                            "ingredients",
+                            e.currentTarget.value
+                          );
+                          e.currentTarget.value = "";
+                          e.preventDefault();
+                        }
+                      }}
+                      className="mt-2"
+                    />
+                  </div>
 
-                    {/* Tab Tags */}
-                    {language === "English" ? (
-                      <div className="mb-2">
-                        <h4 className="font-medium mb-1">Tab Tags</h4>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {item.tab_tags?.map((tag, tagIndex) => (
-                            <span
-                              key={tagIndex}
-                              className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full flex items-center"
-                            >
-                              {tag}
-                              <button
-                                onClick={() =>
-                                  removeArrayItem(
-                                    sIndex,
-                                    iIndex,
-                                    "tab_tags",
-                                    tagIndex
-                                  )
-                                }
-                                className="ml-2"
-                              >
-                                ×
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Add tab tag"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              addArrayItem(
+                  {/* Tab Tags */}
+                  <div>
+                    <h4 className="font-medium mb-2">Tab Tags</h4>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {item.tab_tags?.map((tag, tagIndex) => (
+                        <Badge key={tagIndex} variant="secondary">
+                          {tag}
+                          <Button
+                            onClick={() =>
+                              removeArrayItem(
                                 sIndex,
                                 iIndex,
                                 "tab_tags",
-                                e.currentTarget.value
-                              );
-                              e.currentTarget.value = "";
+                                tagIndex
+                              )
                             }
-                          }}
-                          className="w-full border border-gray-300 rounded p-2"
-                        />
-                      </div>
-                    ) : (
-                      <div className="mb-2">
-                        <h4 className="font-medium mb-1">Tab Tags</h4>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                          {item.tab_tags_am?.map((tag, tagIndex) => (
-                            <span
-                              key={tagIndex}
-                              className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full flex items-center"
-                            >
-                              {tag}
-                              <button
-                                onClick={() =>
-                                  removeArrayItem(
-                                    sIndex,
-                                    iIndex,
-                                    "tab_tags_am",
-                                    tagIndex
-                                  )
-                                }
-                                className="ml-2"
-                              >
-                                ×
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Add tab tag"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              addArrayItem(
+                            variant="ghost"
+                            size="icon"
+                            className="ml-2 h-4 w-4"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))}
+                    </div>
+                    <Input
+                      type="text"
+                      placeholder="Add tab tag"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          addArrayItem(
+                            sIndex,
+                            iIndex,
+                            "tab_tags",
+                            e.currentTarget.value
+                          );
+                          e.currentTarget.value = "";
+                          e.preventDefault();
+                        }
+                      }}
+                    />
+                  </div>
+
+                  {/* Tab Tags Amharic */}
+                  <div>
+                    <h4 className="font-medium mb-2">Tab Tags (Amharic)</h4>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {item.tab_tags_am?.map((tag, tagIndex) => (
+                        <Badge key={tagIndex} variant="secondary">
+                          {tag}
+                          <Button
+                            onClick={() =>
+                              removeArrayItem(
                                 sIndex,
                                 iIndex,
                                 "tab_tags_am",
-                                e.currentTarget.value
-                              );
-                              e.currentTarget.value = "";
+                                tagIndex
+                              )
                             }
-                          }}
-                          className="w-full border border-gray-300 rounded p-2"
-                        />
-                      </div>
-                    )}
-
-                    {/* Image Upload */}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageSelect(e, sIndex, iIndex)}
-                      className="mb-2"
+                            variant="ghost"
+                            size="icon"
+                            className="ml-2 h-4 w-4"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))}
+                    </div>
+                    <Input
+                      type="text"
+                      placeholder="Add tab tag (Amharic)"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          addArrayItem(
+                            sIndex,
+                            iIndex,
+                            "tab_tags_am",
+                            e.currentTarget.value
+                          );
+                          e.currentTarget.value = "";
+                          e.preventDefault();
+                        }
+                      }}
                     />
                   </div>
-                )}
-              </div>
-            );
-          })}
 
-          <button
-            onClick={() => addItem(sIndex)}
-            className="bg-orange-100 text-orange-500 px-4 py-2 rounded"
-          >
-            + Add Item
-          </button>
-        </div>
+                  {/* Image Upload */}
+                  <div>
+                    <Label htmlFor={`itemImage-${sIndex}-${iIndex}`}>
+                      Item Image
+                    </Label>
+                    <Input
+                      id={`itemImage-${sIndex}-${iIndex}`}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          updateItem(sIndex, iIndex, "image", file);
+                        }
+                      }}
+                    />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
+            <Button
+              onClick={() => addItem(sIndex)}
+              variant="outline"
+              className="mt-4"
+            >
+              <Plus className="h-4 w-4 mr-2" /> Add Item
+            </Button>
+          </CollapsibleContent>
+        </Collapsible>
       ))}
 
-      <button
-        onClick={addSection}
-        className="bg-orange-500 text-white px-4 py-2 rounded mr-4"
-      >
-        + Add Section
-      </button>
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="bg-orange-500 text-white px-4 py-2 rounded"
-      >
-        {loading ? "Submitting..." : "Submit Menu"}
-      </button>
+      <Button onClick={addSection}>
+        <Plus className="h-4 w-4 mr-2" /> Add Section
+      </Button>
     </div>
+      <div className="mt-6 flex gap-4">
+        <Button onClick={addSection} variant="outline">
+          <Plus className="h-4 w-4 mr-2" /> Add Section
+        </Button>
+        <Button onClick={handleSubmit} disabled={loading}>
+          {loading ? "Submitting..." : "Submit Menu"}
+        </Button>
+      </div>
+      </>
   );
 };
 

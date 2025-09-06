@@ -7,7 +7,6 @@ import { RootState, AppDispatch } from '@/store/store';
 import { Restaurant } from '../../Types/restaurants';
 import { Search } from 'lucide-react';
 import { RestaurantCardSkeleton } from '@/components/common/LoadingSkeletons';
-import NavBar from '@/components/common/NavBar';
 import { ApiRestaurant } from '@/store/restaurantsSlice';
 
 const Restaurants = () => {
@@ -87,7 +86,6 @@ const Restaurants = () => {
 
   return (
     <div className='w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-      <NavBar role={'CUSTOMER'}/>
       {/* Search Bar */}
       <div className='w-full mt-4 mb-6 flex justify-center'>
         <div className='w-full max-w-xl relative'>
