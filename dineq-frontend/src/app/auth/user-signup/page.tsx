@@ -15,7 +15,7 @@ export default function UserSignup() {
           <p className="text-gray-500 text-center mb-3 text-sm lg:text-base pt-2">
             Join Dineq to discover amazing Ethiopian cuisine.
           </p>
-          <SignupForm role="MANAGER" />
+          <SignupForm role="CUSTOMER" />
         </div>
       </div>
 
