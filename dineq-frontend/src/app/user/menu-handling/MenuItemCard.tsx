@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { MenuItem } from "@/store/menuSlice";
+import { MenuItem } from "./menuApi"; // ✅ use from menuApi
 import SafeImage from "@/components/common/SafeImage";
 
 interface MenuItemCardProps {
@@ -12,7 +12,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
   return (
     <div className="border border-[var(--color-primary)] rounded-lg hover:shadow-sm transition-shadow duration-200">
       <div className="flex p-3">
-        {/* Food Image - Left Side */}
+        {/* Image */}
         <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
           <SafeImage
             src={item.image || "/Background.png"}
@@ -23,7 +23,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
           />
         </div>
 
-        {/* Food Info - Right Side */}
+        {/* Info */}
         <div className="flex-1 ml-3 flex flex-col justify-between">
           <div>
             <div className="flex items-start justify-between">
@@ -34,7 +34,7 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
                 ${item.price}
               </span>
             </div>
-            
+
             {item.description && (
               <p className="text-xs md:text-sm text-gray-600 mt-1 line-clamp-2">
                 {item.description}
@@ -42,22 +42,18 @@ const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
             )}
           </div>
 
-          {/* Bottom Row */}
-          <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center gap-2">
-              {item.category && (
-                <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
-                  {item.category}
-                </span>
-              )}
-              <span className={`px-2 py-1 text-xs rounded-full ${
-                item.is_available 
-                  ? "bg-green-100 text-green-800" 
-                  : "bg-red-100 text-red-800"
-              }`}>
-                {item.is_available ? "Available" : "Unavailable"}
+          {/* Tags */}
+          <div className="flex flex-wrap items-center gap-2 mt-2">
+            {(item.allergens?.length ?? 0) > 0 && (
+              <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                {item.allergens?.join(", ")}
               </span>
-            </div>
+            )}
+            {(item.dietary_info?.length ?? 0) > 0 && (
+              <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                {item.dietary_info?.join(", ")}
+              </span>
+            )}
           </div>
         </div>
       </div>
