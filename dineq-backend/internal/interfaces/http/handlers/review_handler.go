@@ -36,31 +36,31 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 		reviewError(c, http.StatusUnauthorized, "unauthorized", "Unauthorized", "", nil)
 		return
 	}
-
+	itemID := c.Param("item_id")
+	restaurantID := c.Param("restaurant_id")
+	if itemID == "" || restaurantID == "" {
+		reviewError(c, http.StatusBadRequest, "path_params_required", "restaurant_id and item_id are required in path", "", nil)
+		return
+	}
 	var req dto.ReviewRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		reviewError(c, http.StatusBadRequest, "invalid_request", "Invalid request", "", err)
 		return
 	}
-
 	if req.Rating < 1 || req.Rating > 5 {
 		reviewError(c, http.StatusBadRequest, "rating_out_of_range", "rating must be in the range 1 to 5", "rating", nil)
 		return
 	}
-
-	review := dto.ToDomainReview(req, userID)
+	review := dto.ToDomainReview(req, userID, itemID, restaurantID)
 	if err := h.uc.CreateReview(c.Request.Context(), review); err != nil {
 		reviewError(c, http.StatusInternalServerError, "create_review_failed", "Failed to create review", "", err)
 		return
 	}
-
-	// Use the updated review.ID directly
 	createdReview, err := h.uc.GetReviewByID(c.Request.Context(), review.ID)
 	if err != nil {
 		reviewError(c, http.StatusInternalServerError, "fetch_review_failed", "Failed to fetch created review", "", err)
 		return
 	}
-
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Review created successfully",
 		"review":  dto.ToReviewResponse(createdReview, nil),
@@ -121,7 +121,15 @@ func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 		reviewError(c, http.StatusBadRequest, "rating_out_of_range", "rating must be in the range 1 to 5", "rating", nil)
 		return
 	}
-	review := dto.ToDomainReview(req, userID)
+	// Load existing to preserve item & restaurant IDs
+	existing, _ := h.uc.GetReviewByID(c.Request.Context(), id)
+	itemID := ""
+	restaurantID := ""
+	if existing != nil {
+		itemID = existing.ItemID
+		restaurantID = existing.RestaurantID
+	}
+	review := dto.ToDomainReview(req, userID, itemID, restaurantID)
 	updatedReview, err := h.uc.UpdateReview(c.Request.Context(), id, userID, review)
 	if err != nil {
 		if err == domain.ErrUserNotFound {
