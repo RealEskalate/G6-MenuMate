@@ -1,3 +1,3 @@
-const String baseUrl = 'https://g6-menumate-1.onrender.com/api/v1';
+const String baseUrl = 'https://dineq.onrender.com/api/v1';
 const String accessToken =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1pdGlrdW1lbGthbXNld0BnbWFpbC5jb20iLCJleHAiOjE3NTcwNDkyMzksImlzX3ZlcmlmaWVkIjpmYWxzZSwicm9sZSI6Ik9XTkVSIiwic3RhdHVzIjoiQUNUSVZFIiwic3ViIjoiNjhiYTQ3NjNjYjE0YjNjNDUyYTFkNjU0In0.eHtQWc-8ryRL8lf4X8pXxxR0pcsWoag4Jvp9PTSAmM0';
