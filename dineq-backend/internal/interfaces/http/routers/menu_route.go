@@ -47,12 +47,9 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 		public.GET("/:restaurant_slug/:id", menuHandler.PublicGetPublishedMenuByID)
 	}
 
-	// Also provide public read endpoints under standard path for convenience
-	menusPublic := group.Group("/menus")
-	{
-		menusPublic.GET("/:restaurant_slug", menuHandler.PublicGetPublishedMenus)
-		menusPublic.GET("/:restaurant_slug/:id", menuHandler.PublicGetPublishedMenuByID)
-	}
+	// Also provide public read endpoints under standard path for convenience (no auth)
+	group.GET("/menus/:restaurant_slug", menuHandler.PublicGetPublishedMenus)
+	group.GET("/menus/:restaurant_slug/:id", menuHandler.PublicGetPublishedMenuByID)
 
 	protected := group.Group("/menus")
 	protected.Use(middleware.AuthMiddleware(*env))
