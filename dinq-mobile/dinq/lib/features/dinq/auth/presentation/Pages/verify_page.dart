@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dinq/core/util/theme.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
+import '../../../search/presentation/pages/home_page.dart';
 
 class VerifyPage extends StatefulWidget {
   const VerifyPage({super.key});
@@ -9,7 +10,8 @@ class VerifyPage extends StatefulWidget {
   State<VerifyPage> createState() => _VerifyPageState();
 }
 
-class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateMixin {
+class _VerifyPageState extends State<VerifyPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
@@ -79,6 +81,16 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.forward();
     });
+
+    // Automatically navigate to HomePage after 10 seconds
+    Future.delayed(const Duration(seconds: 10), () {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      }
+    });
   }
 
   @override
@@ -96,8 +108,8 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: MediaQuery.of(context).size.height -
-                        MediaQuery.of(context).padding.top -
-                        MediaQuery.of(context).padding.bottom,
+                  MediaQuery.of(context).padding.top -
+                  MediaQuery.of(context).padding.bottom,
             ),
             child: AnimatedBuilder(
               animation: _controller,
@@ -127,7 +139,7 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
                                 ),
                               ],
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.verified,
                               size: 50,
                               color: Colors.white,
@@ -141,7 +153,7 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
                           position: _textSlideAnimation,
                           child: FadeTransition(
                             opacity: _fadeAnimation,
-                            child: Text(
+                            child: const Text(
                               "Your request is submitted successfully!",
                               textAlign: TextAlign.center,
                               style: TextStyle(
@@ -149,13 +161,6 @@ class _VerifyPageState extends State<VerifyPage> with SingleTickerProviderStateM
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
-                                shadows: [
-                                  Shadow(
-                                    blurRadius: 10,
-                                    color: Colors.black.withOpacity(0.1),
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
                               ),
                             ),
                           ),

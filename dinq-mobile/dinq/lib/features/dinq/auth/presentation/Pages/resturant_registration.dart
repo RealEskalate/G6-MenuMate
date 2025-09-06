@@ -7,7 +7,7 @@ import '../../../search/presentation/pages/home_page.dart';
 import '../bloc/manger/manger__event.dart';
 import '../bloc/manger/manger_bloc.dart';
 import '../bloc/manger/manger_state.dart';
-import 'email_verfiction.dart';
+import 'email_verfyfication.dart';
 import 'verify_page.dart'; // make sure you import the state
 
 class ResturantRegistration extends StatefulWidget {
@@ -114,35 +114,57 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: BlocConsumer<MangerBloc, MangerState>(
-        listener: (context, state) {
-          if (state is MangerRegistered) {
-            Navigator.pushReplacementNamed(context, '/verify');
-          } else if (state is MangerError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.white,
+    body: BlocListener<MangerBloc, MangerState>(
+      listener: (context, state) {
+        print('MangerBloc state changed: $state');
+
+        if (state is MangerRegistered) {
+          print('Restaurant registered successfully: ${state.manger.resturant_name}');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Restaurant registered successfully! Redirecting to verification...',
               ),
-            );
-          }
-        },
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+
+          Future.delayed(const Duration(seconds: 3), () {
+            Navigator.pushReplacementNamed(context, '/verify');
+          });
+        } else if (state is MangerError) {
+          print('Error during registration: ${state.message}');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        } else if (state is MangerLoading) {
+          print('Restaurant registration in progress...');
+        }
+      },
+      child: BlocBuilder<MangerBloc, MangerState>(
         builder: (context, state) {
           if (state is MangerLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // your form stays unchanged
+          // keep your form as-is
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 30),
-                Text(
+                const Text(
                   "Restaurant Information",
                   style: TextStyle(
                     fontFamily: 'Roboto',
@@ -152,7 +174,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text(
+                const Text(
                   "Basic Information",
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
@@ -275,8 +297,9 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ---------- Helpers ----------
   Widget _buildUploadButton(String text, VoidCallback onPressed) {
