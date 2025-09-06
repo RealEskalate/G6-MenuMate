@@ -51,7 +51,7 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 	if len(menuDto.Items) == 0 && len(menuDto.MenuItems) > 0 {
 		menuDto.Items = menuDto.MenuItems
 	}
-	menuDto.RestaurantID = slug
+	menuDto.RestaurantSlug = slug
 	if err := validate.Struct(menuDto); err != nil {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
@@ -93,7 +93,7 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
-	menuDto.RestaurantID = slug
+	menuDto.RestaurantSlug = slug
 	if menuDto.Name == "" && len(menuDto.Items) == 0 && len(menuDto.MenuItems) == 0 {
 		dto.WriteValidationError(c, "payload", "nothing to update", "invalid_request", nil)
 		return
@@ -191,4 +191,46 @@ func (h *MenuHandler) GetMenuByID(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menu": dto.MenuToResponse(menu)}})
+}
+
+// MenuItemUpdate updates a specific menu item within a menu
+func (h *MenuHandler) MenuItemUpdate(c *gin.Context) {
+	restaurantSlug := c.Param("restaurant_slug")
+	userID := c.GetString("user_id")
+	menuSlug := c.Param("menu_slug")
+
+	if !h.ensureOwnership(c, restaurantSlug, userID) {
+		return
+	}
+
+	var itemDto dto.ItemRequest
+	if err := c.ShouldBindJSON(&itemDto); err != nil {
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
+		return
+	}
+	if itemDto.Name == "" && itemDto.Description == "" && itemDto.Price == 0 {
+		dto.WriteValidationError(c, "payload", "nothing to update", "invalid_request", nil)
+		return
+	}
+	item := dto.RequestToItem(&itemDto)
+	if err := h.UseCase.MenuItemUpdate(menuSlug, item); err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgUpdated, Data: gin.H{"item": dto.ItemToResponse(item)}})
+}
+
+// GetMenuItemBySlug retrieves a menu item by its slug
+func (h *MenuHandler) GetMenuItemBySlug(c *gin.Context) {
+	restaurantSlug := c.Param("restaurant_slug")
+	menuSlug := c.Param("menu_slug")
+	itemSlug := c.Param("item_slug")
+
+	item, err := h.UseCase.GetMenuItemBySlug(restaurantSlug, menuSlug, itemSlug)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"item": dto.ItemToResponse(item)}})
 }

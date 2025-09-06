@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -172,6 +173,7 @@ type IndexConfig struct {
 
 // EnsureIndexes centralizes creation of all indexes using the given configuration.
 func EnsureIndexes(client Client, dbName string, cfg IndexConfig) {
+	fmt.Println("Ensuring indexes for DB:", dbName, client)
 	if client == nil {
 		return
 	}
