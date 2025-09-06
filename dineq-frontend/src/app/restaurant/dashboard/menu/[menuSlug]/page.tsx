@@ -21,7 +21,7 @@ export default function MenuEditorPage() {
     error: errorRestaurant,
   } = useRestaurant(token);
 
-  const restaurantSlug = restaurantData?.restaurants?.[0]?.slug;
+  const restaurantSlug = restaurantData.slug;
 
   // Get all menus for this restaurant
   const {

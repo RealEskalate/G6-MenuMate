@@ -21,6 +21,7 @@ const nextConfig = {
       },
     ],
     
+    domains: ['placehold.co', 'example.com', "res.cloudinary.com"],
   },
 }
 

@@ -1,4 +1,6 @@
-"use client"
+"use client";
+import { Toaster } from "react-hot-toast";
+
 import Sidebar from "@/components/restaurant/SideBar";
 import Navbar from "@/components/common/NavBar";
 import { useSession } from "next-auth/react";
@@ -9,26 +11,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { data: session, status } = useSession();
   const { data, isLoading, error } = useRestaurant(session?.accessToken);
 
-  const restaurant = data?.restaurants?.[0];
+  const restaurant = data;
+  console.log(data)
 
   return (
     <MenuProvider>
       <div className="">
+        <Toaster position="top-right" />
         <Navbar role="MANAGER" />
         <div className="flex gap-8">
           <Sidebar />
-          <section className="mt-8 pt-2 bg-white rounded-lg shadow-sm max-w-4xl w-full">
-            {status === "loading" || isLoading ? (
-              <p>Loading restaurant...</p>
-            ) : error ? (
-              <p>Error loading restaurant</p>
-            ) : !restaurant ? (
-              <p>No restaurant found</p>
-            ) : (
-              children
-            )}
-          </section>
-        </div>
+        <section className="mt-8 pt-2 bg-white rounded-lg shadow-sm max-w-4xl w-full">
+          {status === "loading" || isLoading ? (
+            <p>Loading restaurant...</p>
+          ) : error ? (
+            <p>Error loading restaurant</p>
+          ) : !restaurant ? (
+            <p>No restaurant found</p>
+          ) : (
+            children
+          )}
+        </section>
+      </div>
       </div>
     </MenuProvider>
   );

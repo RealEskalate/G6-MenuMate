@@ -20,14 +20,15 @@ export default function Dashboard() {
   const { data: restaurantData, isLoading: isLoadingRestaurant } =
     useRestaurant(token);
 
-  const restaurantSlug = restaurantData?.restaurants?.[0]?.slug;
+  const restaurantSlug = restaurantData.slug;
+  console.log(restaurantSlug, restaurantData)
 
   // Get all menus
   const { data: menus, isLoading: isLoadingMenus } = useMenus(
     restaurantSlug!,
     token
   );
-
+  console.log("menus:", menus)
   if (isLoadingRestaurant || isLoadingMenus) return <div>Loading...</div>;
 
   return (
@@ -49,6 +50,7 @@ export default function Dashboard() {
           {/* Menu cards */}
           <div className="flex flex-col md:flex-row gap-6">
             {menus?.map((menu) => (
+              
               <div
                 key={menu.id}
                 className="relative w-full md:w-96 bg-white text-black rounded-xl border border-orange-400 p-4 shadow-md"
@@ -108,7 +110,7 @@ export default function Dashboard() {
                   <button className="border border-[#FD7E14] bg-white text-[#FD7E14] px-4 py-2 rounded-md hover:bg-gray-100 font-semibold">
                     Manage QR
                   </button>
-                  <Link href={`/restaurant/dashboard/menu/${menu.slug}`}>
+                  <Link href={`/restaurant/dashboard/menu/${menu.id}`}>
                     <button className="bg-[#FD7E14] text-white px-4 py-2 rounded-md hover:bg-orange-600 flex items-center gap-1">
                       <Image
                         src="/icons/edit.png"

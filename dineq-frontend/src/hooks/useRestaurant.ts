@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-const API_BASE = "https://g6-menumate-1.onrender.com/api/v1";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+console.log(API_BASE)
 
 export async function fetchRestaurantMe(token: string) {
   console.log("Fetching restaurant with token:", token);
@@ -11,7 +12,7 @@ export async function fetchRestaurantMe(token: string) {
   });
 
   const data = await res.json();
-  console.log("Restaurant data fetched:", data);
+  // console.log("Restaurant data fetched:", data);
 
   if (!res.ok) throw new Error("Failed to fetch restaurant");
   return data;
