@@ -12,7 +12,7 @@ function SideBar() {
     { name: "Menus", href: "/restaurant/dashboard/menu", icon: "/icons/menu.svg" },
     { name: "QR Manager", href: "/restaurant/dashboard/qr-manager", icon: "/icons/qr.png" },
     { name: "Settings", href: "/restaurant/dashboard/settings", icon: "/icons/setting.png" },
-    { name: "Analytics", href: "/dashboard/analytics", icon: "/icons/Analytics.png", pro: true },
+    { name: "Analytics", href: "/restaurant/dashboard/analytics", icon: "/icons/Analytics.png", pro: true },
   ];
 
   return (

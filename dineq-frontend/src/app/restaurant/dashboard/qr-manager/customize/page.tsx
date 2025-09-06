@@ -141,7 +141,7 @@ const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       console.log("Image URL:", imageUrl);
 
       setTimeout(() => {
-      router.push("/qr-manager");
+      router.push("/restaurant/dashboard/qr-manager");
     }, 1500); 
 
     } catch (error) {

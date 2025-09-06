@@ -34,17 +34,17 @@ interface NutritionalInfo {
 
 export interface MenuItem {
   name: string;
-  name_am?: string;
+  name_am?: string|"";
   image: string | File | null;
   price: number | string;
   currency?: string;
   ingredients: string[];
   description: string;
-  description_am?: string;
+  description_am?: string | "";
   tab_tags?: string[];
-  tab_tags_am?: string[];
+  tab_tags_am?: string[] | "";
   allergies?: string;
-  allergies_am?: string;
+  allergies_am?: string | "";
   nutritional_info?: NutritionalInfo;
   preparation_time?: number;
   how_to_eat: string;
@@ -253,7 +253,9 @@ const ManualMenu = () => {
     const restaurantData = await fetchRestaurantMe(
       session?.accessToken as string
     );
-    const restaurantSlug = restaurantData?.restaurants?.[0]?.slug;
+    console.log("Fetched restaurant data:", restaurantData);
+    const restaurantSlug = restaurantData?.slug;
+    console.log("Fetched restaurant slug:", restaurantSlug);
 
     if (!restaurantSlug) {
       alert("Restaurant slug is missing!");
@@ -462,25 +464,7 @@ const ManualMenu = () => {
                           }
                         />
                       </div>
-                      <div>
-                        <Label htmlFor={`itemNameAmharic-${sIndex}-${iIndex}`}>
-                          Item Name (Amharic)
-                        </Label>
-                        <Input
-                          id={`itemNameAmharic-${sIndex}-${iIndex}`}
-                          type="text"
-                          value={item.name_am}
-                          placeholder="Item name (Amharic)"
-                          onChange={(e) =>
-                            updateItem(
-                              sIndex,
-                              iIndex,
-                              "name_am",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
+                   
                     </div>
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
@@ -536,27 +520,7 @@ const ManualMenu = () => {
                         rows={3}
                       />
                     </div>
-                    <div>
-                      <Label
-                        htmlFor={`itemDescriptionAmharic-${sIndex}-${iIndex}`}
-                      >
-                        Description (Amharic)
-                      </Label>
-                      <Textarea
-                        id={`itemDescriptionAmharic-${sIndex}-${iIndex}`}
-                        value={item.description_am}
-                        placeholder="Description (Amharic)"
-                        onChange={(e) =>
-                          updateItem(
-                            sIndex,
-                            iIndex,
-                            "description_am",
-                            e.target.value
-                          )
-                        }
-                        rows={3}
-                      />
-                    </div>
+                   
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor={`itemAllergies-${sIndex}-${iIndex}`}>
@@ -577,27 +541,7 @@ const ManualMenu = () => {
                           }
                         />
                       </div>
-                      <div>
-                        <Label
-                          htmlFor={`itemAllergiesAmharic-${sIndex}-${iIndex}`}
-                        >
-                          Allergies (Amharic)
-                        </Label>
-                        <Input
-                          id={`itemAllergiesAmharic-${sIndex}-${iIndex}`}
-                          type="text"
-                          value={item.allergies_am}
-                          placeholder="Allergies (Amharic)"
-                          onChange={(e) =>
-                            updateItem(
-                              sIndex,
-                              iIndex,
-                              "allergies_am",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
+                    
                     </div>
                     <div>
                       <Label htmlFor={`itemPrepTime-${sIndex}-${iIndex}`}>
@@ -637,27 +581,7 @@ const ManualMenu = () => {
                         rows={3}
                       />
                     </div>
-                    <div>
-                      <Label
-                        htmlFor={`itemHowToEatAmharic-${sIndex}-${iIndex}`}
-                      >
-                        Instructions (Amharic)
-                      </Label>
-                      <Textarea
-                        id={`itemHowToEatAmharic-${sIndex}-${iIndex}`}
-                        value={item.how_to_eat_am}
-                        placeholder="Instructions (Amharic)"
-                        onChange={(e) =>
-                          updateItem(
-                            sIndex,
-                            iIndex,
-                            "how_to_eat_am",
-                            e.target.value
-                          )
-                        }
-                        rows={3}
-                      />
-                    </div>
+                   
                     <div>
                       <Label htmlFor={`itemVoiceUrl-${sIndex}-${iIndex}`}>
                         Voice URL
@@ -862,47 +786,7 @@ const ManualMenu = () => {
                     </div>
 
                     {/* Tab Tags Amharic */}
-                    <div>
-                      <h4 className="font-medium mb-2">Tab Tags (Amharic)</h4>
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {item.tab_tags_am?.map((tag, tagIndex) => (
-                          <Badge key={tagIndex} variant="secondary">
-                            {tag}
-                            <Button
-                              onClick={() =>
-                                removeArrayItem(
-                                  sIndex,
-                                  iIndex,
-                                  "tab_tags_am",
-                                  tagIndex
-                                )
-                              }
-                              variant="ghost"
-                              size="icon"
-                              className="ml-2 h-4 w-4"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </Badge>
-                        ))}
-                      </div>
-                      <Input
-                        type="text"
-                        placeholder="Add tab tag (Amharic)"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            addArrayItem(
-                              sIndex,
-                              iIndex,
-                              "tab_tags_am",
-                              e.currentTarget.value
-                            );
-                            e.currentTarget.value = "";
-                            e.preventDefault();
-                          }
-                        }}
-                      />
-                    </div>
+                 
 
                     {/* Image Upload */}
                     <div>
