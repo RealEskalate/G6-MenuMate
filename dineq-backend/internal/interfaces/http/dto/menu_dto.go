@@ -13,7 +13,7 @@ type MenuRequest struct {
 	Version      int           `json:"version,omitempty"`
 	IsPublished  bool          `json:"is_published,omitempty"`
 	Items        []ItemRequest `json:"items"`
-	MenuItems    []ItemRequest `json:"menu_items,omitempty"` 
+	MenuItems    []ItemRequest `json:"menu_items,omitempty"`
 }
 
 // MenuResponse represents the structure for menu responses.
@@ -49,7 +49,7 @@ func RequestToMenu(dto *MenuRequest) *domain.Menu {
 		items[i] = *RequestToItem(&itemDTO)
 	}
 	return &domain.Menu{
-		Name:        dto.Name,
+		Name:         dto.Name,
 		RestaurantID: dto.RestaurantID,
 		Version:      dto.Version,
 		IsPublished:  dto.IsPublished,

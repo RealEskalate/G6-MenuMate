@@ -30,6 +30,10 @@ func CreateIndexes(db Database, collection string) error {
 			Keys:    bson.D{{Key: "previous_slugs", Value: 1}},
 			Options: options.Index().SetName("ix_previous_slugs"),
 		},
+		{
+			Keys:    bson.D{{Key: "location", Value: "2dsphere"}},
+			Options: options.Index().SetName("ix_location_2dsphere"),
+		},
 	}
 
 	names, err := idxView.CreateMany(ctx, models)

@@ -40,7 +40,7 @@ func NewAuthRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database) 
 	)
 
 	// reset password repository
-	resetPasswordRepo := repositories.NewPasswordResetRepository(db, env.PasswordResetCollection)
+	resetPasswordRepo := repositories.NewPasswordResetRepository(db, env.PasswordResetCollection, env.PasswordResetSessionCollection)
 
 	// password reset usecase
 	passwordResetUsecase := usecase.NewPasswordResetUsecase(
@@ -48,6 +48,7 @@ func NewAuthRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database) 
 		userRepo,
 		emailService,
 		time.Duration(env.PasswordResetExpiry)*time.Minute,
+		env.ResetURL,
 	)
 
 	// otp usecase and otp repository
@@ -87,7 +88,8 @@ func NewAuthRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database) 
 		auth.POST("/login", authController.LoginRequest)
 		auth.POST("/logout", authController.LogoutRequest)
 		auth.POST("/forgot-password", authController.ForgotPasswordRequest)
-		auth.POST("/reset-password", authController.ResetPasswordRequest)
+		auth.POST("/verify-reset-token", authController.VerifyResetToken)
+		auth.POST("/reset-password", authController.ResetPassword)
 		auth.POST("/refresh", authController.RefreshToken)
 
 		auth.GET("/google/login", authController.GoogleLogin)

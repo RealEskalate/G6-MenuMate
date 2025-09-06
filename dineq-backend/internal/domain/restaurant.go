@@ -12,12 +12,20 @@ type Restaurant struct {
 	RestaurantName     string
 	ManagerID          string
 	RestaurantPhone    string
-	Location           Address
+	Location           *Address
 	About              *string
 	LogoImage          *string
 	Tags               []string
 	VerificationStatus VerificationStatus
 	VerificationDocs   *string
+	Schedule           []Schedule
+	SpecialDays        []SpecialDay
+	PrimaryColor       string
+	AccentColor        string
+	DefaultCurrency    string
+	DefaultLanguage    string
+	DefaultVat         float64
+	TaxId              string
 	CoverImage         *string
 	AverageRating      float64
 	ViewCount          int64
@@ -27,13 +35,21 @@ type Restaurant struct {
 }
 
 type Address struct {
-	Street     string
-	City       string
-	State      string
-	PostalCode string
-	Country    string
-	Latitude   *float64
-	Longitude  *float64
+	Type        string
+	Coordinates [2]float64 // [longitude, latitude]
+}
+type Schedule struct {
+	Day       string
+	IsOpen    bool
+	StartTime string
+	EndTime   string
+}
+
+type SpecialDay struct {
+	Date      string
+	IsOpen    bool
+	StartTime string
+	EndTime   string
 }
 
 type VerificationStatus string
@@ -52,7 +68,9 @@ type IRestaurantRepo interface {
 	Delete(ctx context.Context, id string, manager string) error
 	ListAllBranches(ctx context.Context, slug string, page, pageSize int) ([]*Restaurant, int64, error)
 	ListUniqueRestaurants(ctx context.Context, page, pageSize int) ([]*Restaurant, int64, error)
-	ListRestaurantsByManager(ctx context.Context, managerId string) ([]*Restaurant, error)
+	FindNearby(ctx context.Context, lat, lng float64, maxDistance int, page, pageSize int) ([]*Restaurant, int64, error)
+	ListRestaurantsByName(ctx context.Context, name string, page, pageSize int) ([]*Restaurant, int64, error)
+	GetByManagerId(ctx context.Context, manager string) (*Restaurant, error)
 }
 
 type IRestaurantUsecase interface {
@@ -63,5 +81,7 @@ type IRestaurantUsecase interface {
 	GetRestaurantByOldSlug(ctx context.Context, slug string) (*Restaurant, error)
 	ListBranchesBySlug(ctx context.Context, slug string, page, pageSize int) ([]*Restaurant, int64, error)
 	ListUniqueRestaurants(ctx context.Context, page, pageSize int) ([]*Restaurant, int64, error)
-	ListRestaurantsByManager(ctx context.Context, managerId string) ([]*Restaurant, error)
+	FindNearby(ctx context.Context, lng, lat float64, maxDistance int, page, pageSize int) ([]*Restaurant, int64, error)
+	GetRestaurantByName(ctx context.Context, name string, page, pageSize int) ([]*Restaurant, int64, error)
+	GetRestaurantByManagerId(ctx context.Context, manager string) (*Restaurant, error)
 }

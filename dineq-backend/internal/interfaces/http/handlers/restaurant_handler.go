@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,47 +14,30 @@ import (
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 // RestaurantHandler handles HTTP requests related to restaurants.
 type RestaurantHandler struct {
 	RestaurantUsecase domain.IRestaurantUsecase
+	UserUsecase       domain.IUserUsecase
 }
 
-// GetMyRestaurants returns all restaurants managed by the authenticated user (owner/manager).
-func (h *RestaurantHandler) GetMyRestaurants(c *gin.Context) {
-	userId := c.GetString("user_id")
-	fmt.Printf("[DEBUG] /api/v1/restaurants/me called by userId: %s\n", userId)
-	if userId == "" || !IsValidObjectID(userId) {
-		dto.WriteValidationError(c, "user_id", "invalid or missing user_id in token", "invalid_user_id", nil)
-		return
-	}
-	restaurants, err := h.RestaurantUsecase.ListRestaurantsByManager(c.Request.Context(), userId)
-	if err != nil {
-		dto.WriteError(c, err)
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{
-		"userId": userId,
-		"restaurants": dto.ToRestaurantResponseList(restaurants),
-	})
-}
-
-// GetRestaurantsByManager returns all restaurants managed by a user (owner/manager).
+// GetRestaurantsByManager returns the restaurant managed by a user (owner/manager).
 func (h *RestaurantHandler) GetRestaurantsByManager(c *gin.Context) {
 	userId := c.Param("userId")
 	if userId == "" || !IsValidObjectID(userId) {
 		dto.WriteValidationError(c, "userId", "invalid or missing userId", "invalid_user_id", nil)
 		return
 	}
-	restaurants, err := h.RestaurantUsecase.ListRestaurantsByManager(c.Request.Context(), userId)
+	restaurants, err := h.RestaurantUsecase.GetRestaurantByManagerId(c.Request.Context(), userId)
 	if err != nil {
 		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"userId": userId,
-		"restaurants": dto.ToRestaurantResponseList(restaurants),
+		"userId":      userId,
+		"restaurants": dto.ToRestaurantResponse(restaurants),
 	})
 }
 
@@ -74,86 +58,89 @@ func IsValidObjectID(id string) bool {
 // CreateRestaurant handles the creation of a new restaurant, supporting both JSON and multipart form data.
 func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 	manager := c.GetString("user_id")
-
-	// Validate manager_id from context
 	if manager == "" || !IsValidObjectID(manager) {
 		dto.WriteValidationError(c, "manager_id", "invalid or missing manager_id", "invalid_manager_id", nil)
 		return
 	}
 
-	// Use a single domain.Restaurant object to consolidate data
-	r := &domain.Restaurant{ManagerID: manager}
-
-	files := make(map[string][]byte)
-
-	contentType := c.GetHeader("Content-Type")
-	if strings.HasPrefix(contentType, "application/json") {
-		// Handle JSON request
-		var input dto.RestaurantResponse
-		if err := c.ShouldBindJSON(&input); err != nil {
-			dto.WriteValidationError(c, "payload", "invalid JSON body", "invalid_json", err)
-			return
-		}
-		r.RestaurantName = input.Name
-		r.RestaurantPhone = input.Phone
-		r.About = input.About
-
-	} else if strings.HasPrefix(contentType, "multipart/form-data") {
-		// ensure form is parsed (limit ~10MB)
-		if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
-			dto.WriteValidationError(c, "form", "failed to parse multipart form", "multipart_parse_failed", err)
-			return
-		}
-		// Handle multipart/form-data request
-		name := c.PostForm("restaurant_name")
-		if name == "" { // allow fallback to generic name key
-			name = c.PostForm("name")
-		}
-		if name == "" {
-			dto.WriteValidationError(c, "restaurant_name", "restaurant_name (or name) is required", "restaurant_name_required", nil)
-			return
-		}
-		r.RestaurantName = name
-		r.RestaurantPhone = c.PostForm("restaurant_phone")
-		if r.RestaurantPhone == "" { // fallback key
-			r.RestaurantPhone = c.PostForm("phone")
-		}
-		// collect tags (repeated keys, tags[] or single CSV string)
-		r.Tags = collectTags(c)
-		about := c.PostForm("about")
-		if about != "" {
-			r.About = &about
-		}
-
-		// Read files into []byte
-		for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
-			fileHeader, err := c.FormFile(field)
-			if err != nil {
-				if err != http.ErrMissingFile {
-					dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
-					return
-				}
-				continue
-			}
-
-			file, err := fileHeader.Open()
-			if err != nil {
-				dto.WriteValidationError(c, field, fmt.Sprintf("failed to open %s", field), "file_open_failed", err)
-				return
-			}
-			defer file.Close()
-
-			data, err := io.ReadAll(file)
-			if err != nil {
-				dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
-				return
-			}
-			files[field] = data
-		}
-
-	} else {
-		dto.WriteValidationError(c, "content_type", "unsupported content type", "unsupported_content_type", nil)
+	if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to parse form: " + err.Error()})
 		return
+	}
+
+	r := &domain.Restaurant{
+		ManagerID: manager,
+		Schedule:  dto.ToDomainSchedule(dto.DefaultSchedule()),
+	}
+
+	// Required field
+	r.RestaurantName = c.PostForm("restaurant_name")
+	if r.RestaurantName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "restaurant_name is required"})
+		return
+	}
+
+	// Optional fields
+	r.RestaurantPhone = c.PostForm("restaurant_phone")
+	if about := c.PostForm("about"); about != "" {
+		r.About = &about
+	}
+	r.DefaultLanguage = c.DefaultPostForm("default_language", "English")
+	r.VerificationStatus = domain.VerificationStatus(c.DefaultPostForm("verification_status", string(domain.VerificationPending)))
+	r.DefaultCurrency = c.DefaultPostForm("default_currency", "ETB")
+	r.PrimaryColor = c.DefaultPostForm("primary_color", "#89643E")
+	r.AccentColor = c.DefaultPostForm("accent_color", "#DD3424")
+	VatStr := c.DefaultPostForm("default_vat", "15")
+	if vat, err := strconv.ParseFloat(VatStr, 64); err == nil {
+		r.DefaultVat = vat
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid default_vat"})
+		return
+	}
+
+	// Optional coordinates
+	latStr, lngStr := c.PostForm("lat"), c.PostForm("lng")
+	if latStr != "" && lngStr != "" {
+		lat, err1 := strconv.ParseFloat(latStr, 64)
+		lng, err2 := strconv.ParseFloat(lngStr, 64)
+		if err1 != nil || err2 != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid lat/lng"})
+			return
+		}
+		r.Location = &domain.Address{
+			Type:        "Point",
+			Coordinates: [2]float64{lng, lat}, // GeoJSON expects [lng, lat]
+		}
+	}
+	if tags := collectTags(c); len(tags) > 0 {
+		r.Tags = tags
+	}
+
+	// Read optional files
+	files := make(map[string][]byte)
+	for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
+		fileHeader, err := c.FormFile(field)
+		if err != nil {
+			if err != http.ErrMissingFile {
+				c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("failed to read %s: %v", field, err)})
+				return
+			}
+			continue
+		}
+
+		file, err := fileHeader.Open()
+		if err != nil {
+			dto.WriteValidationError(c, field, fmt.Sprintf("failed to open %s", field), "file_open_failed", err)
+			return
+		}
+		defer file.Close()
+
+		data, err := io.ReadAll(file)
+		if err != nil {
+			dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
+			return
+		}
+		files[field] = data
 	}
 
 	// generate slug if not yet set
@@ -164,6 +151,7 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 		dto.WriteError(c, err)
 		return
 	}
+
 	c.JSON(http.StatusCreated, dto.ToRestaurantResponse(r))
 }
 
@@ -186,6 +174,93 @@ func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
 		c.JSON(http.StatusPermanentRedirect, gin.H{"redirect_to": old.Slug})
 		return
 	}
+	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
+}
+
+// GetRestaurant retrieves a restaurant by its slug.
+func (h *RestaurantHandler) SearchRestaurants(c *gin.Context) {
+	slug := c.Query("slug")
+	name := c.Query("name")
+	page, pageSize := 1, 10
+	if p := c.Query("page"); p != "" {
+		if val, _ := strconv.Atoi(p); val > 0 {
+			page = val
+		}
+	}
+	if ps := c.Query("pageSize"); ps != "" {
+		if val, _ := strconv.Atoi(ps); val > 0 {
+			pageSize = val
+		}
+	}
+
+	if slug == "" && name == "" {
+		dto.WriteValidationError(c, "slug/name", "either slug or name must be provided", "missing_slug_name", nil)
+		return
+	}
+	if slug != "" {
+
+		r, err := h.RestaurantUsecase.GetRestaurantBySlug(c.Request.Context(), slug)
+		if err != nil {
+			if err == domain.ErrRestaurantDeleted {
+				// Use standardized error
+				dto.WriteError(c, domain.ErrRestaurantDeleted)
+				return
+			}
+			old, oldErr := h.RestaurantUsecase.GetRestaurantByOldSlug(c.Request.Context(), slug)
+			if oldErr != nil {
+				dto.WriteError(c, err)
+				return
+			}
+			c.Header("Location", "/api/v1/restaurants/"+old.Slug)
+			c.JSON(http.StatusPermanentRedirect, gin.H{"redirect_to": old.Slug})
+			return
+		}
+		c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
+		return
+	}
+	if name != "" {
+		r, total, err := h.RestaurantUsecase.GetRestaurantByName(c.Request.Context(), name, page, pageSize)
+		if err != nil {
+			if err == domain.ErrRestaurantDeleted {
+				dto.WriteError(c, domain.ErrRestaurantDeleted)
+				return
+			} else {
+				dto.WriteError(c, domain.ErrNotFound)
+			}
+
+		}
+		if r == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "restaurant not found"})
+			return
+		}
+
+		totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
+
+		c.JSON(http.StatusOK, gin.H{
+			"page":        page,
+			"pageSize":    pageSize,
+			"total":       total,
+			"totalPages":  totalPages,
+			"restaurants": dto.ToRestaurantResponseList(r),
+		})
+	}
+}
+
+// GetRestaurantByManagerId retrieves the restaurant managed by the authenticated user.
+
+func (h *RestaurantHandler) GetRestaurantByManagerId(c *gin.Context) {
+	manager := c.GetString("user_id")
+	r, err := h.RestaurantUsecase.GetRestaurantByManagerId(c.Request.Context(), manager)
+	if err != nil {
+		if err == domain.ErrRestaurantDeleted {
+			c.JSON(http.StatusGone, gin.H{"error": "restaurant deleted"})
+			return
+		} else {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		}
+
+	}
+
 	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
 }
 
@@ -213,80 +288,104 @@ func (h *RestaurantHandler) UpdateRestaurant(c *gin.Context) {
 
 	files := make(map[string][]byte)
 
-	// Determine request type
-	contentType := c.ContentType()
+	if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+		dto.WriteValidationError(c, "form", "failed to parse form", "multipart_parse_failed", err)
+		return
+	}
 
-	if contentType == "application/json" {
-		var input dto.RestaurantResponse
-		if err := c.ShouldBindJSON(&input); err != nil {
-			dto.WriteValidationError(c, "payload", "invalid JSON body", "invalid_json", err)
+	// Merge mutable fields from multipart form
+	if name := c.PostForm("name"); name != "" && name != existing.RestaurantName {
+		updateSlug(existing, name)
+	}
+	if phone := c.PostForm("phone"); phone != "" {
+		existing.RestaurantPhone = phone
+	}
+	if about := c.PostForm("about"); about != "" {
+		existing.About = &about
+	}
+	if status := c.PostForm("verification_status"); status != "" {
+		existing.VerificationStatus = domain.VerificationStatus(status)
+	}
+	if lang := c.PostForm("default_language"); lang != "" {
+		existing.DefaultLanguage = lang
+	}
+	if currency := c.PostForm("default_currency"); currency != "" {
+		existing.DefaultCurrency = currency
+	}
+	if primaryColor := c.PostForm("primary_color"); primaryColor != "" {
+		existing.PrimaryColor = primaryColor
+	}
+	if accentColor := c.PostForm("accent_color"); accentColor != "" {
+		existing.AccentColor = accentColor
+	}
+	if taxId := c.PostForm("tax_id"); taxId != "" {
+		existing.TaxId = taxId
+	}
+	if vatstr := c.PostForm("default_vat"); vatstr != "" {
+		vat, err := strconv.ParseFloat(vatstr, 64)
+		if err != nil {
+			dto.WriteValidationError(c, "default_vat", "vat value not a number", "Bad request", err)
+		}
+		existing.DefaultVat = vat
+	}
+	// tags update (supports csv)
+	if tags := collectTags(c); len(tags) > 0 {
+		existing.Tags = tags
+	}
+
+	// Update coordinates if provided
+	latStr := c.PostForm("lat")
+	lngStr := c.PostForm("lng")
+	fmt.Println("Updated coordinates:", latStr, lngStr)
+	if latStr != "" && lngStr != "" {
+		lat, err1 := strconv.ParseFloat(latStr, 64)
+		lng, err2 := strconv.ParseFloat(lngStr, 64)
+		if err1 == nil && err2 == nil {
+			existing.Location.Coordinates = [2]float64{lng, lat} // GeoJSON expects [lng, lat]
+		}
+	}
+	if scheduleStr := c.PostForm("schedule"); scheduleStr != "" {
+		var schedules []domain.Schedule
+		if err := json.Unmarshal([]byte(scheduleStr), &schedules); err != nil {
+			dto.WriteValidationError(c, "schedule", "invalid schedule format", "invalid_schedule", err)
 			return
 		}
-		// Merge mutable fields from JSON
-		if input.Name != "" && input.Name != existing.RestaurantName {
-			updateSlug(existing, input.Name)
-		}
-		if input.Phone != "" {
-			existing.RestaurantPhone = input.Phone
-		}
-		if input.About != nil {
-			existing.About = input.About
-		}
+		existing.Schedule = schedules
+	}
 
-		if input.VerificationStatus != "" {
-			existing.VerificationStatus = domain.VerificationStatus(input.VerificationStatus)
-		}
-	} else if c.Request.MultipartForm != nil || contentType == "multipart/form-data" {
-		if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
-			dto.WriteValidationError(c, "form", "failed to parse form", "multipart_parse_failed", err)
+	if specialsStr := c.PostForm("special_days"); specialsStr != "" {
+		var specials []domain.SpecialDay
+		if err := json.Unmarshal([]byte(specialsStr), &specials); err != nil {
+			dto.WriteValidationError(c, "special_days", "invalid special_days format", "invalid_special_days", err)
 			return
 		}
-		// Merge mutable fields from multipart form
-		if name := c.PostForm("name"); name != "" && name != existing.RestaurantName {
-			updateSlug(existing, name)
-		}
-		if phone := c.PostForm("phone"); phone != "" {
-			existing.RestaurantPhone = phone
-		}
-		if about := c.PostForm("about"); about != "" {
-			existing.About = &about
-		}
-		if status := c.PostForm("verification_status"); status != "" {
-			existing.VerificationStatus = domain.VerificationStatus(status)
-		}
-		// tags update (supports csv)
-		if tags := collectTags(c); len(tags) > 0 {
-			existing.Tags = tags
-		}
-		// Read files from multipart form
-		for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
-			fileHeader, err := c.FormFile(field)
-			if err != nil {
-				if err != http.ErrMissingFile {
-					dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
-					return
-				}
-				continue
-			}
+		existing.SpecialDays = specials
+	}
 
-			file, err := fileHeader.Open()
-			if err != nil {
-				dto.WriteValidationError(c, field, fmt.Sprintf("failed to open %s", field), "file_open_failed", err)
-				return
-			}
-			defer file.Close()
-
-			data, err := io.ReadAll(file)
-			if err != nil {
+	// Read files from multipart form
+	for _, field := range []string{"logo_image", "verification_docs", "cover_image"} {
+		fileHeader, err := c.FormFile(field)
+		if err != nil {
+			if err != http.ErrMissingFile {
 				dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
 				return
 			}
-			files[field] = data
+			continue
 		}
 
-	} else {
-		dto.WriteValidationError(c, "content_type", "unsupported content type", "unsupported_content_type", nil)
-		return
+		file, err := fileHeader.Open()
+		if err != nil {
+			dto.WriteValidationError(c, field, fmt.Sprintf("failed to open %s", field), "file_open_failed", err)
+			return
+		}
+		defer file.Close()
+
+		data, err := io.ReadAll(file)
+		if err != nil {
+			dto.WriteValidationError(c, field, fmt.Sprintf("failed to read %s", field), "file_read_failed", err)
+			return
+		}
+		files[field] = data
 	}
 
 	existing.ManagerID = manager
@@ -431,6 +530,50 @@ func (h *RestaurantHandler) GetUniqueRestaurants(c *gin.Context) {
 		return
 	}
 
+	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
+
+	c.JSON(http.StatusOK, gin.H{
+		"page":        page,
+		"pageSize":    pageSize,
+		"total":       total,
+		"totalPages":  totalPages,
+		"restaurants": dto.ToRestaurantResponseList(restaurants),
+	})
+}
+func (h *RestaurantHandler) GetNearby(c *gin.Context) {
+	latStr := c.Query("lat") //latitiude string
+	lngStr := c.Query("lng") //longitude string
+	disStr := c.DefaultQuery("distance", "2000")
+
+	page, pageSize := 1, 10
+	if p := c.Query("page"); p != "" {
+		if val, _ := strconv.Atoi(p); val > 0 {
+			page = val
+		}
+	}
+
+	if ps := c.Query("pageSize"); ps != "" {
+		if val, _ := strconv.Atoi(ps); val > 0 {
+			pageSize = val
+		}
+	}
+
+	lat, err1 := strconv.ParseFloat(latStr, 64)
+	lng, err2 := strconv.ParseFloat(lngStr, 64)
+	distance, err3 := strconv.Atoi(disStr)
+
+	if err1 != nil || err2 != nil || err3 != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid lng/lat/distance"})
+		return
+	}
+	log.Info().Float64("lng", lng).Float64("lat", lat).Int("distance", distance).Msg("FindNearby query")
+
+	restaurants, total, err := h.RestaurantUsecase.FindNearby(c.Request.Context(), lat, lng, distance, page, pageSize)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
 
 	c.JSON(http.StatusOK, gin.H{
