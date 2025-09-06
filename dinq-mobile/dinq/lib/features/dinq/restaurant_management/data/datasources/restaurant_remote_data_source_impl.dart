@@ -97,6 +97,86 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   }
 
   @override
+  Future<List<RestaurantModel>> searchRestaurants({
+    required String name,
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    print('🔍 [DATASOURCE] searchRestaurants called with:');
+    print('   📝 name: "$name"');
+    print('   📄 page: $page');
+    print('   📏 pageSize: $pageSize');
+
+    try {
+      final uri = Uri.parse('$baseUrl/restaurants/search').replace(
+        queryParameters: {
+          'name': name,
+          'page': page.toString(),
+          'pageSize': pageSize.toString(),
+        },
+      );
+
+      print('🌐 [DATASOURCE] Full URL: $uri');
+      print('📡 [DATASOURCE] Making GET request...');
+
+      final response = await dio.getUri(uri);
+
+      print('📊 [DATASOURCE] Response status: ${response.statusCode}');
+      print('📋 [DATASOURCE] Response data type: ${response.data.runtimeType}');
+      print('📄 [DATASOURCE] Raw response: ${response.data}');
+
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        print('✅ [DATASOURCE] Status 200 - parsing response...');
+
+        // Check if response.data is a Map and has 'restaurants' key
+        if (response.data is Map && (response.data as Map).containsKey('restaurants')) {
+          print('📦 [DATASOURCE] Found restaurants key in response');
+          final data = response.data['restaurants'] as List<dynamic>;
+          print('🍽️ [DATASOURCE] Found ${data.length} restaurants in response');
+
+          final restaurants = data.map((json) {
+            print('🏪 [DATASOURCE] Parsing restaurant: $json');
+            return RestaurantModel.fromMap(json);
+          }).toList();
+
+          print('✅ [DATASOURCE] Successfully parsed ${restaurants.length} restaurants');
+          return restaurants;
+        } else {
+          print('❌ [DATASOURCE] No restaurants key found in response');
+          print('🔍 [DATASOURCE] Available keys: ${(response.data as Map?)?.keys.toList() ?? "Not a Map"}');
+          return [];
+        }
+      } else {
+        print('❌ [DATASOURCE] HTTP Error: $statusCode');
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'searching restaurants',
+          ),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      print('💥 [DATASOURCE] DioException: ${e.message}');
+      print('🔍 [DATASOURCE] DioException response: ${e.response?.data}');
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'searching restaurants',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      print('💥 [DATASOURCE] Unexpected error: $e');
+      throw ServerException(
+        'Unexpected error occurred while searching restaurants: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
   Future<RestaurantModel> getRestaurantBySlug(String slug) async {
     try {
       final response = await dio.get(
