@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import Description from "./Description";
+// import Description from "./Description";
 import FoodTip from "./HowToEat";
 import ReviewForm from "./WriteReview";
 import Review from "./Review";
@@ -74,8 +74,8 @@ export default function FoodDetails() {
         )}
       </div>
     </div>
-  );
-// }
+  );  
+}
 // "use client";
 // import { useState } from "react";
 // import Description from "./Description";

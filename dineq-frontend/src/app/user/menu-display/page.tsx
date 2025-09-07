@@ -1,8 +1,6 @@
 "use client"
 import React from 'react'
 import Image from 'next/image'
-import foods from '@/data/food'
-import { FoodType } from '../../../Types/foods'
 
 
 
