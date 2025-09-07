@@ -6,6 +6,7 @@ import '../../../../../core/routing/app_route.dart';
 import './home_page.dart';
 import '../../../search/domain/usecases/get_menu.dart';
 import '../../../search/domain/entities/menu.dart' as models;
+import 'item_details_page.dart';
 
 class ScannedMenuPage extends StatefulWidget {
   final String slug;
@@ -87,6 +88,7 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
 
         for (final item in category.items) {
           sectionItems.add({
+            'item': item, // Store the original item object for navigation
             'name': item.name,
             'price': '${item.currency}${item.price}',
             'description': item.description ?? 'No description available',
@@ -306,11 +308,22 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
 
       for (final item in section['items']) {
         widgets.add(
-          MenuItemCard(
-            imageUrl: item['imageUrl'],
-            name: item['name'],
-            price: item['price'],
-            description: item['description'],
+          GestureDetector(
+            onTap: () {
+              // Navigate to item details page with the original item object
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ItemDetailsPage(item: item['item']),
+                ),
+              );
+            },
+            child: MenuItemCard(
+              imageUrl: item['imageUrl'],
+              name: item['name'],
+              price: item['price'],
+              description: item['description'],
+            ),
           ),
         );
       }
