@@ -128,7 +128,7 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
           final menuItems = response['data']['results']['menu_items'];
           print('🍽️ Menu items received: ${menuItems.length} items');
 
-          // Navigate to EditUploadedMenuPage with real data
+          // Navigate to EditUploadedMenuPage with real data for user editing
           if (mounted) {
             Navigator.push(
               context,
@@ -180,6 +180,7 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -40,17 +40,26 @@ Future<Map<String, dynamic>> post(
 }) async {
   try {
     final uri = Uri.parse('$baseUrl$endpoint');
+    print('🌐 POST Request URL: $uri');
 
     final requestHeaders = await _withDefaultHeaders(headers);
+    print('📋 Request headers: $requestHeaders');
+
+    final requestBody = body != null ? json.encode(body) : null;
+    print('📤 Request body: $requestBody');
 
     final response = await client.post(
       uri,
       headers: requestHeaders,
-      body: body != null ? json.encode(body) : null,
+      body: requestBody,
     );
+
+    print('📥 POST Response - Status: ${response.statusCode}');
+    print('📄 POST Response body: ${response.body}');
 
     return _handleResponse(response);
   } catch (e) {
+    print('❌ POST Request failed: $e');
     throw _handleError(e);
   }
 }
@@ -61,7 +70,7 @@ Future<Map<String, dynamic>> post(
     };
 
     // Add Authorization header if token exists
-    final authHeaders = await TokenManager.getAuthHeaders();
+    final authHeaders = await TokenManager.getAuthHeadersWithContentType();
     if (authHeaders != null) {
       defaultHeaders.addAll(authHeaders);
     }
