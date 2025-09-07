@@ -86,7 +86,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     );
     result.fold((failure) => emit(UserError(failure.message)), (tokens) {
       emit(UserLoggedIn(
-          accessToken: tokens['accessToken'], refreshToken: tokens['refreshToken']));
+          accessToken: tokens['access_token'], refreshToken: tokens['refresh_token']));
     });
   }
 

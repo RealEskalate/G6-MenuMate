@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../../../injection_container.dart' as di;
 import '../../domain/usecases/user/login_user_usecase.dart';
+import '../bloc/user_bloc.dart';
+import '../bloc/user_event.dart';
 import '../widgets/Login_TextFields.dart';
 import '../widgets/Login_button.dart';
 import 'Register_page.dart';
@@ -156,46 +159,21 @@ class _LoginPageState extends State<LoginPage>
   }
 
   void _handleLogin() {
-    if (_validateForm()) {
-      // All validations passed, proceed with login
-      final LoginUserUseCase usecase = di.sl<LoginUserUseCase>();
-      // perform login
-      usecase
-          .call(
+      if (_validateForm()) {
+      context.read<UserBloc>().add(
+            LoginUserEvent(
               identifier: _emailController.text.trim(),
-              password: _passwordController.text)
-          .then((either) {
-        // either is expected to have fold(left, right)
-        try {
-          either.fold((failure) {
-            final message = failure.toString().isNotEmpty
-                ? failure.toString()
-                : 'Login failed';
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message), backgroundColor: Colors.red),
-            );
-          }, (res) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('Login successful!'),
-                  backgroundColor: Colors.green),
-            );
-            Navigator.pushReplacementNamed(context, AppRoute.explore);
-          });
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Login error: ${e.toString()}'),
-                backgroundColor: Colors.red),
+              password: _passwordController.text,
+            ),
           );
-        }
-      }).catchError((e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Login error: ${e.toString()}'),
-              backgroundColor: Colors.red),
-        );
-      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fix the validation errors'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -329,10 +307,7 @@ class _LoginPageState extends State<LoginPage>
                     child: Opacity(
                       opacity: _loginButtonAnimation.value,
                       child: Center(
-                        child: GestureDetector(
-                          onTap: _handleLogin,
-                          child: const LoginButton(buttonname: 'Login'),
-                        ),
+                        child: LoginButton(buttonname: 'Login', onPressed: _handleLogin,),
                       ),
                     ),
                   );

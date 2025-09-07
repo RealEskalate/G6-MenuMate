@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.dinq"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "29.0.13846066"
+    // ndkVersion = "29.0.13846066"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
