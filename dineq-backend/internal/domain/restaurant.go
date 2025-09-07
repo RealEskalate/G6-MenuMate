@@ -35,8 +35,8 @@ type Restaurant struct {
 }
 
 type Address struct {
-	Type        string
-	Coordinates [2]float64 // [longitude, latitude]
+	Type        string     `bson:"type" json:"type"`
+	Coordinates [2]float64 `bson:"coordinates" json:"coordinates"` // [longitude, latitude]
 }
 type Schedule struct {
 	Day       string

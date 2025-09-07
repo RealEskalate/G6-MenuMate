@@ -17,7 +17,7 @@ type Item struct {
 	ThumbnailImages []string         `json:"thumbnail_images"`
 	Price           float64          `json:"price"`
 	Currency        string           `json:"currency"`
-	Allergies       []string         `json:"allergies"`
+	Allergies       []string       `json:"allergies"`
 	AllergiesAm     string           `json:"allergies_am"`
 	UserImages      []string         `json:"user_images"`
 	TabTags         []string         `json:"tab_tags"`
