@@ -55,6 +55,7 @@ type IItemRepository interface {
 	DeleteItem(ctx context.Context, id string) error
 	AddReview(ctx context.Context, itemID, reviewID string) error
 	GetItems(ctx context.Context, menuSlug string) ([]Item, error)
+	IncrementItemViewCount(ctx context.Context, id string) error
 }
 
 type IItemUseCase interface {
@@ -64,4 +65,5 @@ type IItemUseCase interface {
 	GetItemByID(id string) (*Item, error)
 	AddReview(itemID, reviewID string) error
 	DeleteItem(id string) error
+	IncrementItemViewCount(id string) error
 }

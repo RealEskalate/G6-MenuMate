@@ -38,7 +38,10 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 	cloudinaryStorage = services.NewCloudinaryStorage(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinarySecret)
 	restaurantUsecase := usecase.NewRestaurantUsecase(restaurantRepo, ctxTimeout, cloudinaryStorage)
 
-	menuHandler := handler.NewMenuHandler(menuUsecase, qrUsecase, restaurantUsecase, notifUc)
+	// View events repository for logging views
+	viewEventRepo := repositories.NewViewEventRepository(db, env.ViewEventCollection)
+
+	menuHandler := handler.NewMenuHandler(menuUsecase, qrUsecase, restaurantUsecase, notifUc, viewEventRepo)
 
 	// Public (unauthenticated) menu routes - only expose published menus
 	public := group.Group("/public/menus")
