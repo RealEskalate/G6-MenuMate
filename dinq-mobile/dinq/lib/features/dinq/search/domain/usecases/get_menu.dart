@@ -248,9 +248,8 @@ class GetMenuUseCase {
           ],
         ),
       ],
-      createdAt: DateTime.now().subtract(const Duration(days: 30)),
-      updatedAt: DateTime.now().subtract(const Duration(days: 5)),
-      updatedBy: 'user-123',
+      // No duplicate named arguments
+      // Fields already set in the constructor
     );
   }
 }

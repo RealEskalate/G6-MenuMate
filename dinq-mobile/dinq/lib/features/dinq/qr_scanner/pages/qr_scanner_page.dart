@@ -3,15 +3,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
-import 'package:dio/dio';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart' hide Barcode;
+import 'package:dio/dio.dart';
 import 'package:dinq/core/util/theme.dart';
 import 'package:dinq/core/constants/constants.dart';
 import '../../../../core/error/failures.dart';
 import '../widgets/tip_row.dart';
 import 'package:dinq/core/error/failure.dart' hide ServerFailure, Failure;
 import 'package:mobile_scanner/mobile_scanner.dart';
-import '../../../search/presentation/pages/scanned_menu_page.dart';
+import 'package:dinq/features/dinq/search/presentation/pages/scanned_menu_page.dart';
 
 class QrScannerPage extends StatefulWidget {
   const QrScannerPage({Key? key}) : super(key: key);
@@ -50,7 +50,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
       final inputImage = InputImage.fromFile(imageFile);
       final barcodeScanner = BarcodeScanner();
 
-      final List<Barcode> barcodes = await barcodeScanner.processImage(inputImage);
+      final barcodes = await barcodeScanner.processImage(inputImage);
       await barcodeScanner.close();
 
       if (barcodes.isEmpty) {
@@ -106,7 +106,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
     try {
       final dio = Dio();
       final url = '$baseUrl/menus/$slug';
-      print('Sending GET request to: $url');
+      print('QrScannerPage: Sending GET request to: $url');
 
       final response = await dio.get(
         url,

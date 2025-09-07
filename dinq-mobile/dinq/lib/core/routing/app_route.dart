@@ -89,7 +89,9 @@ class AppRoute {
           builder: (_) => RestaurantPage(restaurantId: restaurantId),
         );
       case scannedMenu:
-        return MaterialPageRoute(builder: (_) => const ScannedMenuPage());
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        final slug = args['slug'] as String? ?? 'default-menu';
+        return MaterialPageRoute(builder: (_) => ScannedMenuPage(slug: slug));
       case profile:
         return MaterialPageRoute(builder: (_) => const ProfilePage());
 

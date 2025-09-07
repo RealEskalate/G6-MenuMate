@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
 import '../widgets/bottom_navbar.dart';
 import '../../../search/domain/usecases/get_menu.dart';
-import '../../../search/domain/entities/Menu.dart' as models;
+import '../../../search/domain/entities/menu.dart' as models;
 
 class ScannedMenuPage extends StatefulWidget {
   final String slug;

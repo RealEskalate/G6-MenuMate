@@ -61,12 +61,22 @@ class _RestaurantPageState extends State<RestaurantPage>
 
   Future<void> _loadMenu() async {
     try {
-      final menu = await _getMenuUseCase.execute(widget.restaurantId);
-      setState(() {
-        _menu = menu;
-        _isLoading = false;
-        _tabController = TabController(length: menu.tabs.length, vsync: this);
-      });
+      final menuResult = await _getMenuUseCase.execute(widget.restaurantId);
+      menuResult.fold(
+        (failure) {
+          setState(() {
+            _isLoading = false;
+            // Handle failure
+          });
+        },
+        (menuData) {
+          setState(() {
+            _menu = menuData;
+            _isLoading = false;
+            _tabController = TabController(length: menuData.tabs.length, vsync: this);
+          });
+        },
+      );
     } catch (e) {
       setState(() {
         _isLoading = false;
