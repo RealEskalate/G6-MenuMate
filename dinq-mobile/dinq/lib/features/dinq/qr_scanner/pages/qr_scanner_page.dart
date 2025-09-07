@@ -147,28 +147,28 @@ class _QrScannerPageState extends State<QrScannerPage> {
   // Handle barcode detection from live camera
   void _onBarcodeDetected(BarcodeCapture capture) async {
     if (!_isScanning) return; // Skip if not in scanning mode
-    
+
     final List<Barcode> barcodes = capture.barcodes;
     if (barcodes.isEmpty) return;
-    
+
     // Get first QR code value
     final qrContent = barcodes.first.rawValue;
     print('QrScannerPage: Barcode detected: $qrContent');
-    
+
     if (qrContent == null) {
       print('QrScannerPage: Barcode value is null');
       _showFailure(NotFoundFailure('QR code has no content.'));
       return;
     }
-    
+
     // Pause scanning to prevent multiple detections
     _scannerController.stop();
     setState(() => _isScanning = false);
-    
+
     // Extract restaurant slug (last part of URL)
     final slug = extractRestaurantSlug(qrContent);
     print('QrScannerPage: Extracted slug: $slug');
-    
+
     if (slug == null) {
       _showFailure(NotFoundFailure('Restaurant slug not found in QR code.'));
       // Resume scanning
@@ -176,7 +176,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
       setState(() => _isScanning = true);
       return;
     }
-    
+
     try {
       // Send GET request to backend to verify the menu exists
       final result = await getMenuBySlug(slug);
@@ -187,7 +187,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
         setState(() => _isScanning = true);
         return;
       }
-      
+
       // Navigate to scanned menu page with the slug
       if (!mounted) return;
       Navigator.push(

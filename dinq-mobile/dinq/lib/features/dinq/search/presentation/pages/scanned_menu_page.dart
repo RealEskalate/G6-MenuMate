@@ -2,12 +2,14 @@ import '../widgets/scanned_menu.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
 import '../widgets/bottom_navbar.dart';
+import '../../../../../core/routing/app_route.dart';
+import './home_page.dart';
 import '../../../search/domain/usecases/get_menu.dart';
 import '../../../search/domain/entities/menu.dart' as models;
 
 class ScannedMenuPage extends StatefulWidget {
   final String slug;
-  
+
   const ScannedMenuPage({super.key, required this.slug});
 
   @override
@@ -18,27 +20,27 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
-  
+
   // Restaurant info
   String _restaurantName = '';
   String _restaurantType = '';
-  
+
   // Menu data
   List<dynamic> _menuSections = [];
-  
+
   final GetMenuUseCase _getMenuUseCase = GetMenuUseCase();
-  
+
   @override
   void initState() {
     super.initState();
     _fetchMenuData();
   }
-  
+
   Future<void> _fetchMenuData() async {
     print('ScannedMenuPage: Fetching menu data for slug: ${widget.slug}');
     try {
       final result = await _getMenuUseCase.execute(widget.slug);
-      
+
       result.fold(
         (failure) {
           print('ScannedMenuPage: Error fetching menu: ${failure.message}');
@@ -63,26 +65,26 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
       });
     }
   }
-  
+
   void _processMenuData(models.Menu menu) {
     print('ScannedMenuPage: Processing menu data');
     // Extract restaurant info from the first tab if available
     final restaurantId = menu.restaurantId;
-    
+
     // For now, use mock restaurant name and type
     // In a real app, you would fetch this from the restaurant API
     _restaurantName = 'Restaurant $restaurantId';
     _restaurantType = 'Fine Dining';
-    
+
     // Process menu sections from tabs
     final sections = <Map<String, dynamic>>[];
-    
+
     for (final tab in menu.tabs) {
       print('ScannedMenuPage: Processing tab: ${tab.name}');
-      
+
       for (final category in tab.categories) {
         final sectionItems = <Map<String, dynamic>>[];
-        
+
         for (final item in category.items) {
           sectionItems.add({
             'name': item.name,
@@ -93,7 +95,7 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
                 : 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
           });
         }
-        
+
         if (sectionItems.isNotEmpty) {
           sections.add({
             'name': category.name ?? tab.name,
@@ -103,13 +105,13 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
         }
       }
     }
-    
+
     setState(() {
       _menuSections = sections;
       _isLoading = false;
     });
   }
-  
+
   IconData _getIconForCategory(String categoryName) {
     final name = categoryName.toLowerCase();
     if (name.contains('appetizer') || name.contains('starter')) {
@@ -136,7 +138,12 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const HomePage()),
+              (route) => false,
+            );
+          },
         ),
         title: const Text(
           'Menu Preview',
@@ -159,7 +166,7 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
       ),
     );
   }
-  
+
   Widget _buildBody() {
     if (_isLoading) {
       return const Center(
@@ -173,7 +180,7 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
         ),
       );
     }
-    
+
     if (_hasError) {
       return Center(
         child: Column(
@@ -200,7 +207,7 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
         ),
       );
     }
-    
+
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       children: [
@@ -225,7 +232,8 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
               children: [
                 Text(
                   _restaurantName,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -282,10 +290,10 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
       ],
     );
   }
-  
+
   List<Widget> _buildMenuSections() {
     final widgets = <Widget>[];
-    
+
     for (int i = 0; i < _menuSections.length; i++) {
       final section = _menuSections[i];
       widgets.add(
@@ -295,7 +303,7 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
         ),
       );
       widgets.add(const SizedBox(height: 10));
-      
+
       for (final item in section['items']) {
         widgets.add(
           MenuItemCard(
@@ -306,12 +314,12 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
           ),
         );
       }
-      
+
       if (i < _menuSections.length - 1) {
         widgets.add(const SizedBox(height: 18));
       }
     }
-    
+
     return widgets;
   }
 }
