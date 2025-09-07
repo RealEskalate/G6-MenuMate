@@ -78,10 +78,10 @@ export default function Dashboard() {
           ) : (
             <div className="w-full text-center bg-white border border-dashed border-orange-300 rounded-xl p-8 shadow-sm">
               <p className="text-gray-600 text-lg font-medium mb-2">
-                Currently no published menus
+                There is no published menu
               </p>
               <p className="text-gray-500 mb-4">
-                Scan with OCR or add manually to publish your menus
+                Scan with OCR or add manually to publish your menu
               </p>
             </div>
           )}

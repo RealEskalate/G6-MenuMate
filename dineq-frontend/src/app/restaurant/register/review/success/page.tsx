@@ -7,9 +7,6 @@ import Link from "next/link";
 export default function SuccessPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* Navbar always at top */}
-      <NavBar role="MANAGER" />
-
       {/* Main content fills remaining space and centers */}
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6">
         <div className="bg-white rounded-xl shadow-md p-6 sm:p-8 md:p-10 text-center w-full max-w-md">

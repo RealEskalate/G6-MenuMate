@@ -21,14 +21,23 @@ export default function BasicInfoForm() {
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!data.restaurant || !data.phone || !location || !businessLicense) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-    setError(null);
-    router.push("/restaurant/register/review");
-  };
+  e.preventDefault();
+
+  if (
+    !data.restaurant?.trim() ||
+    !data.phone?.trim() ||
+    !data.lat ||
+    !data.lng ||
+    !data.businessLicense
+  ) {
+    setError("Please fill in all required fields.");
+    return;
+  }
+
+  setError(null);
+  router.push("/restaurant/register/review");
+};
+
 
   const handleFileChange = (file: UploadedFile | null, key: "logo_image" | "businessLicense" | "cover_image") => {
     if (file) {
@@ -88,6 +97,8 @@ export default function BasicInfoForm() {
               value={data.phone}
               onChange={(e) => updateData({ phone: e.target.value })}
               placeholder="Enter phone number"
+              pattern="\+?[0-9]+$"
+              inputMode="numeric"
               className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm
                          focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
@@ -147,8 +158,13 @@ export default function BasicInfoForm() {
 
         {/* Location */}
         <LocationPicker
-          value={location}
-          onChange={(v) => updateData({ address: v })}
+          value={{ lat: data.lat ?? null, lng: data.lng ?? null }}
+          onChange={(loc) =>
+            updateData({
+              lat: loc.lat,
+              lng: loc.lng,
+            })
+          }
           compact={true}
         />
 
