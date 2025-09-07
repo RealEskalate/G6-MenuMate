@@ -6,9 +6,12 @@ import Description from "./Description";
 import FoodTip from "./HowToEat";
 import Review from "./Review";
 import ReviewForm from "./WriteReview";
-import { MenuItem } from "@/store/menuSlice";
-
-export default function FoodMiniNavBar({ item }: { item: MenuItem }) {
+import { MenuItem } from "@/app/user/menu-handling/menuApi";
+interface FoodMiniNavBarProps {
+  item: MenuItem;
+  id : string | null;
+}
+export default function FoodMiniNavBar({ item , id }: FoodMiniNavBarProps) {
   const [activeTab, setActiveTab] = useState<
     "description" | "howtoeat" | "reviews" | "writeReview"
   >("description");
@@ -43,8 +46,8 @@ export default function FoodMiniNavBar({ item }: { item: MenuItem }) {
       <div className="mt-6">
         {activeTab === "description" && <Description item={item} />}
         {activeTab === "howtoeat" && <FoodTip item={item} />}
-        {activeTab === "reviews" && <Review  />}
-        {activeTab === "writeReview" && <ReviewForm  />}
+        {activeTab === "reviews" && <Review id = {id} />}
+        {activeTab === "writeReview" && <ReviewForm id = {id}  />}
       </div>
     </div>
   );

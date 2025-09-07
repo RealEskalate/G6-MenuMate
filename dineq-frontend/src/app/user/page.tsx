@@ -84,7 +84,7 @@ const Restaurants = () => {
   );
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border border-gray-200 rounded-lg bg-gray-50">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 ">
       {/* Sticky Search Bar */}
       <div className="w-full sticky top-0 bg-gray-50 z-10 py-4 -mt-4 mb-6">
         <div className="w-full flex justify-center">

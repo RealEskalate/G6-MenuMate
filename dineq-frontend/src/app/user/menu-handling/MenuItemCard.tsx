@@ -8,15 +8,16 @@ import { MenuItem } from "./menuApi";
 interface MenuItemCardProps {
   item: MenuItem;
   onClick: () => void;
+  id : string;
 }
 
-export default function MenuItemCard({ item, onClick }: MenuItemCardProps) {
+export default function MenuItemCard({ item, onClick , id }: MenuItemCardProps) {
   const imageUrl = item.image && item.image.length > 0 ? item.image[0] : "/sambusa.png";
 
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer 
+      className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer  border-[var(--color-primary)]
                  hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300"
     >
       <div className="relative w-full h-48">

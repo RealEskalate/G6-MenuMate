@@ -11,12 +11,15 @@ export default function FoodDisplay() {
   const searchParams = useSearchParams();
   const [item, setItem] = useState<MenuItem | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [restaurantSlug, setRestaurantSlug] = useState<string | null>(null);
 
   useEffect(() => {
     const itemData = searchParams.get("item");
+    const slugData = searchParams.get("restaurantSlug");
     if (itemData) {
       try {
         const parsedItem: MenuItem = JSON.parse(decodeURIComponent(itemData));
+        setRestaurantSlug(slugData);
         setItem(parsedItem);
       } catch (e) {
         console.error("Failed to parse menu item data:", e);
@@ -53,7 +56,7 @@ export default function FoodDisplay() {
         isFavorite={false}
         onFavorite={() => alert(`Toggling favorite for ${item.name}`)}
       />
-      <FoodMiniNavBar item={item} />
+      <FoodMiniNavBar item={item} id = {restaurantSlug}/>
     </div>
   );
 }

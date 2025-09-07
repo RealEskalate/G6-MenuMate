@@ -95,7 +95,7 @@ export default function SingleRestaurant() {
 
           {/* Menu Section */}
           <div className="w-full max-w-5xl mt-8">
-            <MenuSection restaurantSlug={restaurant.slug} />
+            <MenuSection id = {id} restaurantSlug={restaurant.slug} />
           </div>
         </div>
       )}

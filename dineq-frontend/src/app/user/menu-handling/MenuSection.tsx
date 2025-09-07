@@ -9,9 +9,10 @@ import MenuItemCard from "./MenuItemCard";
 interface MenuSectionProps {
   restaurantSlug: string;
   token?: string;
+  id : string;
 }
 
-export default function MenuSection({ restaurantSlug, token }: MenuSectionProps) {
+export default function MenuSection({ restaurantSlug, token , id}: MenuSectionProps) {
   const router = useRouter();
   const [menus, setMenus] = useState<Menu[]>([]);
   const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
@@ -39,9 +40,9 @@ export default function MenuSection({ restaurantSlug, token }: MenuSectionProps)
 
   const handleItemClick = (item: MenuItem) => {
     const encodedItem = encodeURIComponent(JSON.stringify(item));
-    router.push(`/user/restaurant-display/food-display?item=${encodedItem}`);
+    // Add the restaurantSlug as a new query parameter
+    router.push(`/user/restaurant-display/food-display?item=${encodedItem}&restaurantSlug=${restaurantSlug}`);
   };
-
   return (
     <section className="mt-8">
       <h2 className="text-3xl font-bold mb-6 text-gray-800">Explore Our Menus</h2>
@@ -82,7 +83,7 @@ export default function MenuSection({ restaurantSlug, token }: MenuSectionProps)
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {selectedMenu.items.map((item) => (
-                <MenuItemCard key={item.id} item={item} onClick={() => handleItemClick(item)} />
+                <MenuItemCard key={item.id} id = {id} item={item} onClick={() => handleItemClick(item)} />
               ))}
             </div>
           )}
