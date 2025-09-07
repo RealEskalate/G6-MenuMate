@@ -235,7 +235,7 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 18),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 2), 
                 Text(
                   _restaurantType,
                   style: const TextStyle(color: Colors.grey, fontSize: 14),
