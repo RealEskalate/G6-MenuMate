@@ -16,6 +16,15 @@ import 'features/dinq/restaurant_management/domain/usecases/restaurant/update_re
 import 'features/dinq/restaurant_management/domain/usecases/review/delete_review.dart';
 import 'features/dinq/restaurant_management/domain/usecases/review/get_reviews.dart';
 import 'features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+
+// Auth imports
+import 'features/dinq/auth/data/repository/auth_repository_impl.dart';
+import 'features/dinq/auth/domain/repository/customer_reg_repo.dart';
+import 'features/dinq/auth/domain/repository/resturant_reg_repo.dart';
+import 'features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
+import 'features/dinq/auth/presentation/bloc/manger/manger_bloc.dart';
+import 'core/network/api_client.dart';
+
 import 'core/constants/constants.dart';
 import 'core/network/network_info.dart';
 
@@ -63,7 +72,33 @@ Future<void> init() async {
   // Configure Dio with base options so injected callers reuse same client
   sl.registerLazySingleton(() => Dio(BaseOptions(baseUrl: baseUrl)));
   sl.registerLazySingleton(() => InternetConnectionChecker.createInstance());
+  
+  // ApiClient for auth
+  sl.registerLazySingleton(() => ApiClient(baseUrl: baseUrl));
+
+  // Auth Repository
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(apiClient: sl()),
+  );
+
+  // Auth BLoC
+  sl.registerFactory(
+    () => AuthBloc(authRepository: sl()),
+  );
+
+  // ResturantRegRepo (same as AuthRepositoryImpl since it implements both)
+  sl.registerLazySingleton<ResturantRegRepo>(
+    () => AuthRepositoryImpl(apiClient: sl()),
+  );
+  
+
+  // Manger BLoC
+  sl.registerFactory(
+    () => MangerBloc(repo: sl()),
+  );
 
   // Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
 }
+
+

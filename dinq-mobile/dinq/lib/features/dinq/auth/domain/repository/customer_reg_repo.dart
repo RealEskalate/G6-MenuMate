@@ -20,14 +20,6 @@ abstract class AuthRepository {
   });
 
 
-  // reg resturant
-  Future<ResturantModel> registerRestaurant({
-    required String resturantname,
-    required String returantphone,
-    required PlatformFile verification_docs,
-    PlatformFile? logo_image,
-    PlatformFile? cover_image,
-  });
 
   // Authentication
   Future<UserModel> login({

@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dinq/core/network/api_client.dart';
-import 'package:dinq/core/network/api_endpoints.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/data/repository/auth_repository_impl.dart';
-import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart';
 import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
 import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_event.dart';
 import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_state.dart';
@@ -37,15 +33,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   String? _emailError;
   String? _passwordError;
 
-  // BLoC instance
-  late AuthBloc _authBloc;
-
   @override
   void initState() {
     super.initState();
-
-    // Initialize BLoC
-    _authBloc = _createAuthBloc();
 
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1000),
@@ -123,13 +113,6 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     super.dispose();
   }
 
-  // Create AuthBloc with your actual repository
-  AuthBloc _createAuthBloc() {
-    final apiClient = ApiClient(baseUrl: ApiEndpoints.baseUrl);
-    final AuthRepository authRepository = AuthRepositoryImpl(apiClient: apiClient);
-    return AuthBloc(authRepository: authRepository);
-  }
-
   bool _validateForm() {
     bool isValid = true;
 
@@ -170,9 +153,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     return isValid;
   }
 
-  void _handleLogin() {
+  void _handleLogin(BuildContext context) {
     if (_validateForm()) {
-      _authBloc.add(
+      context.read<AuthBloc>().add(
         LoginUserEvent(
           email: _emailController.text.trim(),
           password: _passwordController.text,
@@ -183,9 +166,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: _authBloc,
-      child: BlocListener<AuthBloc, AuthState>(
+    return BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthLoggedIn) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -337,7 +318,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 ? const CircularProgressIndicator()
                                 : LoginButton(
                                     buttonname: "Login",
-                                    onPressed: _handleLogin,
+                                    onPressed: () => _handleLogin(context),
                                   );
                           },
                         ),
@@ -485,8 +466,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           ),
         ),
       ),
-        ),
-      ),
+    )
     );
   }
 }

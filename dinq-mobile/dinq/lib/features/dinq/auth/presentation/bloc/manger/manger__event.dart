@@ -13,7 +13,7 @@ class ResturantEvent extends MangerEvent {
   final String resturant_name;
   final String resturant_phone;
   final PlatformFile? logo_image;
-  final PlatformFile verification_docs;
+  final PlatformFile? verification_docs;
   final PlatformFile?  cover_image;
   
 
@@ -22,7 +22,7 @@ class ResturantEvent extends MangerEvent {
    required this.resturant_name,
    required this.resturant_phone,
    this.logo_image,
-   required this.verification_docs,
+   this.verification_docs,
    this.cover_image,
   });
 
@@ -31,7 +31,7 @@ class ResturantEvent extends MangerEvent {
         resturant_name,
         resturant_phone,
         logo_image ?? Image.asset('logo.png'),
-        verification_docs,
+        verification_docs ?? Image.asset('logo.png'),
         cover_image ?? Image.asset('logo.png'),
         
       ];

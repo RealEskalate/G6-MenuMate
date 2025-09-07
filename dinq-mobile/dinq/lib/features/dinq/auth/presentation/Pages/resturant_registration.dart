@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:dinq/core/util/theme.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/resturant_data.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../search/presentation/pages/home_page.dart';
 import '../bloc/manger/manger__event.dart';
 import '../bloc/manger/manger_bloc.dart';
 import '../bloc/manger/manger_state.dart';
-import 'email_verfyfication.dart';
-import 'verify_page.dart'; // make sure you import the state
+// Removed unused imports
 
 class ResturantRegistration extends StatefulWidget {
   const ResturantRegistration({super.key});
@@ -24,7 +22,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  // Removed unused form key
 
   String? _nameError;
   String? _phoneError;
@@ -79,20 +77,10 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
 
   void _submitForm() {
     if (_validateForm()) {
-      if (_verificationDoc == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please upload one document'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-
       context.read<MangerBloc>().add(ResturantEvent(
             resturant_name: _nameController.text.trim(),
             resturant_phone: _phoneController.text.trim(),
-            verification_docs: _verificationDoc!,
+            verification_docs: _verificationDoc,
             logo_image: _logoFile,
             cover_image: _coverFile,
           ));
@@ -114,10 +102,8 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
   }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.white,
-    body: BlocListener<MangerBloc, MangerState>(
+  Widget build(BuildContext context) {
+    return BlocListener<MangerBloc, MangerState>(
       listener: (context, state) {
         print('MangerBloc state changed: $state');
 
@@ -151,155 +137,156 @@ Widget build(BuildContext context) {
           print('Restaurant registration in progress...');
         }
       },
-      child: BlocBuilder<MangerBloc, MangerState>(
-        builder: (context, state) {
-          if (state is MangerLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: BlocBuilder<MangerBloc, MangerState>(
+          builder: (context, state) {
+            if (state is MangerLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          // keep your form as-is
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 30),
-                const Text(
-                  "Restaurant Information",
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Basic Information",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 15),
-
-                // Name
-                TextField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: "Restaurant Name",
-                    hintText: "Enter Restaurant name",
-                    errorText: _nameError,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Phone
-                TextField(
-                  controller: _phoneController,
-                  decoration: InputDecoration(
-                    labelText: "Phone Number",
-                    hintText: "+251",
-                    errorText: _phoneError,
-                  ),
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 30),
-
-                // ---------- Legal Document ----------
-                Text("Upload Your Legal Documents",
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 30),
+                  const Text(
+                    "Restaurant Information",
                     style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Colors.black87)),
-                const SizedBox(height: 10),
-                if (_verificationDoc == null)
-                  _buildUploadButton("Browse File", () {
-                    _pickFile((file) => setState(() => _verificationDoc = file));
-                  })
-                else
-                  _buildFileItem(_verificationDoc!, _removeVerificationDoc),
-
-                const SizedBox(height: 30),
-
-                // ---------- Logo ----------
-                Text("Upload Logo",
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Colors.black87)),
-                const SizedBox(height: 10),
-                if (_logoFile == null)
-                  _buildUploadButton("Browse Logo (optional)", () {
-                    _pickFile((file) => setState(() => _logoFile = file));
-                  })
-                else
-                  _buildFileItem(_logoFile!, _removeLogo),
-
-                const SizedBox(height: 30),
-
-                // ---------- Cover Image ----------
-                Text("Upload Cover Image (optional)",
-                    style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Colors.black87)),
-                const SizedBox(height: 10),
-                if (_coverFile == null)
-                  _buildUploadButton("Browse Cover", () {
-                    _pickFile((file) => setState(() => _coverFile = file));
-                  })
-                else
-                  _buildFileItem(_coverFile!, _removeCover),
-
-                const SizedBox(height: 30),
-
-                // Submit button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _submitForm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      "Save and continue ->",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      fontFamily: 'Roboto',
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Basic Information",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
 
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: TextButton(
-                    onPressed: _skipForNow,
-                    child: Text(
-                      "Skip for now",
+                  // Name
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: "Restaurant Name",
+                      hintText: "Enter Restaurant name",
+                      errorText: _nameError,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Phone
+                  TextField(
+                    controller: _phoneController,
+                    decoration: InputDecoration(
+                      labelText: "Phone Number",
+                      hintText: "+251",
+                      errorText: _phoneError,
+                    ),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 30),
+
+                  // ---------- Legal Document ----------
+                  Text("Upload Your Legal Documents",
                       style: TextStyle(
-                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w600,
                           fontSize: 16,
-                          fontFamily: 'Inter'),
+                          color: Colors.black87)),
+                  const SizedBox(height: 10),
+                  if (_verificationDoc == null)
+                    _buildUploadButton("Browse File", () {
+                      _pickFile((file) => setState(() => _verificationDoc = file));
+                    })
+                  else
+                    _buildFileItem(_verificationDoc!, _removeVerificationDoc),
+
+                  const SizedBox(height: 30),
+
+                  // ---------- Logo ----------
+                  Text("Upload Logo",
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Colors.black87)),
+                  const SizedBox(height: 10),
+                  if (_logoFile == null)
+                    _buildUploadButton("Browse Logo (optional)", () {
+                      _pickFile((file) => setState(() => _logoFile = file));
+                    })
+                  else
+                    _buildFileItem(_logoFile!, _removeLogo),
+
+                  const SizedBox(height: 30),
+
+                  // ---------- Cover Image ----------
+                  const Text("Upload Cover Image (optional)",
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                          color: Colors.black87)),
+                  const SizedBox(height: 10),
+                  if (_coverFile == null)
+                    _buildUploadButton("Browse Cover", () {
+                      _pickFile((file) => setState(() => _coverFile = file));
+                    })
+                  else
+                    _buildFileItem(_coverFile!, _removeCover),
+
+                  const SizedBox(height: 30),
+
+                  // Submit button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _submitForm,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        "Save and continue ->",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: _skipForNow,
+                      child: Text(
+                        "Skip for now",
+                        style: TextStyle(
+                            color: AppColors.primaryColor,
+                            fontSize: 16,
+                            fontFamily: 'Inter'),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   // ---------- Helpers ----------
   Widget _buildUploadButton(String text, VoidCallback onPressed) {

@@ -1,7 +1,7 @@
 // lib/core/network/api_endpoints.dart - TEMPORARY
 class ApiEndpoints {
   // Temporary CORS proxy solution
-  static const String baseUrl = 'https://g6-menumate.onrender.com/api/v1';
+  static const String baseUrl = 'https://dineq.onrender.com/api/v1';
 
   // Or alternative proxies:
   // static const String baseUrl = 'https://api.allorigins.win/raw?url=https://g6-menumate.onrender.com/api/v1';

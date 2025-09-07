@@ -51,7 +51,8 @@ class _VerifyPageState extends State<VerifyPage>
     ]).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 0.5, curve: Curves.elasticOut),
+        // Keep t within [0,1] for TweenSequence by using a non-overshooting curve
+        curve: const Interval(0.0, 0.5, curve: Curves.linear),
       ),
     );
 
@@ -172,7 +173,7 @@ class _VerifyPageState extends State<VerifyPage>
                           position: _textSlideAnimation,
                           child: FadeTransition(
                             opacity: _fadeAnimation,
-                            child: Text(
+                            child: const Text(
                               "We will contact you through your email after we reviewed your documents. Feel free to explore our features until then",
                               textAlign: TextAlign.center,
                               style: TextStyle(
@@ -193,7 +194,17 @@ class _VerifyPageState extends State<VerifyPage>
                             opacity: _fadeAnimation,
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                              child: LoginButton(buttonname: "Back to home"),
+                              child: LoginButton(
+                                buttonname: "Back to home",
+                                onPressed: () {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const HomePage(),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),

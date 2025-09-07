@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:dinq/core/network/token_manager.dart';
 
 import '../../../../../core/constants/constants.dart';
 import '../../../../../core/error/exceptions.dart';
@@ -19,13 +20,16 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   @override
   Future<RestaurantModel> createRestaurant(FormData restaurant) async {
     try {
+      // Retrieve latest access token saved during login
+      final token = await TokenManager.getAccessToken();
+
       final response = await dio.post(
         '$baseUrl/restaurants',
         data: restaurant,
         options: Options(
           headers: {
-            'Content-Type': content,
-            'Authorization': 'Bearer $accessToken',
+            if (token != null) 'Authorization': 'Bearer $token',
+            // Do not set Content-Type for FormData; Dio will set multipart boundary automatically
           },
         ),
       );

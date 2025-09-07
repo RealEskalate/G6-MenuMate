@@ -3,11 +3,10 @@ import 'package:dinq/core/network/api_client.dart';
 import 'package:dinq/core/network/api_endpoints.dart';
 import 'package:dinq/core/network/api_exceptions.dart';
 import 'package:dinq/core/network/token_manager.dart';
-import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart';
+import 'package:dinq/features/dinq/auth/domain/repository/customer_reg_repo.dart';
 import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
 import 'package:file_picker/file_picker.dart';
 
-import '../../../restaurant_management/data/model/restaurant_model.dart';
 import '../../domain/repository/resturant_reg_repo.dart';
 import '../models/resturant_model.dart';
 
@@ -70,30 +69,42 @@ class AuthRepositoryImpl implements AuthRepository ,ResturantRegRepo{
       final response =
           await _apiClient.post(ApiEndpoints.login, body: loginData);
 
-      // API returns tokens nested under 'data' key
-      final data = response['data'] as Map<String, dynamic>?;
-      if (data != null &&
-          data.containsKey('access_token') &&
-          data.containsKey('refresh_token')) {
+      // API returns tokens nested under 'tokens' key
+      final tokens = response['tokens'] as Map<String, dynamic>?;
+      if (tokens != null &&
+          tokens.containsKey('access_token') &&
+          tokens.containsKey('refresh_token')) {
         // Store tokens
         await TokenManager.saveTokens(
-          data['access_token'],
-          data['refresh_token'],
+          tokens['access_token'],
+          tokens['refresh_token'],
         );
 
-        // Return a minimal UserModel with just the identifier
-        // In a real app, you might want to fetch user profile separately
-        return UserModel(
-          id: 'temp_id', // Temporary ID since we don't have user data
-          username: email, // Use email as username for now
-          email: email,
-          password: '', // Don't store password
-          role: 'CUSTOMER',
-          authprovider: 'EMAIL',
-        );
+        // Extract user data from response
+        final userData = response['user'] as Map<String, dynamic>?;
+        if (userData != null) {
+          return UserModel(
+            id: userData['id'] ?? 'temp_id',
+            username: userData['username'] ?? email,
+            email: userData['email'] ?? email,
+            password: '', // Don't store password
+            role: userData['role'] ?? 'CUSTOMER',
+            authprovider: 'EMAIL',
+          );
+        } else {
+          // Fallback if user data is not available
+          return UserModel(
+            id: 'temp_id',
+            username: email,
+            email: email,
+            password: '',
+            role: 'CUSTOMER',
+            authprovider: 'EMAIL',
+          );
+        }
       } else {
         throw ApiException(
-          message: 'Invalid login response format - missing tokens',
+          message: 'Invalid login response format - missing tokens in response',
           statusCode: 500,
         );
       }
@@ -252,22 +263,22 @@ class AuthRepositoryImpl implements AuthRepository ,ResturantRegRepo{
   Future<ResturantModel> registerRestaurant({
     required String resturantname,
     required String returantphone,
-    required PlatformFile verification_docs,
+    PlatformFile? verification_docs,
     PlatformFile? logo_image,
     PlatformFile? cover_image,
   }) async {
     try {
       // Prepare files map
       final files = <String, PlatformFile?>{
-        'verification_docs': verification_docs,
-        'logo_image': logo_image,
-        'cover_image': cover_image,
+        if (verification_docs != null) 'verification_docs': verification_docs,
+        if (logo_image != null) 'logo_image': logo_image,
+        if (cover_image != null) 'cover_image': cover_image,
       };
 
-      // Prepare body data
+      // Prepare body data with backend-expected keys
       final body = {
-        'resturant_name': resturantname,
-        'resturant_phone': returantphone,
+        'restaurant_name': resturantname,
+        'restaurant_phone': returantphone,
       };
 
       // Call API (assuming postMultipart exists in your ApiClient)

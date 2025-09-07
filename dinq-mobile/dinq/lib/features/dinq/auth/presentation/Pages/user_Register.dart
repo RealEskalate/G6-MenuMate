@@ -13,7 +13,9 @@ import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
 import 'package:dinq/features/dinq/auth/domain/repository/customer_reg_repo.dart';
 
 class UserRegister extends StatefulWidget {
-  const UserRegister({super.key});
+  final String? intendedRole;
+
+  const UserRegister({super.key, this.intendedRole});
 
   @override
   State<UserRegister> createState() => _UserRegisterState();
@@ -136,7 +138,7 @@ class _UserRegisterState extends State<UserRegister>
           email: _emailController.text.trim(),
           password: _passwordController.text,
           authProvider: 'EMAIL',
-          role: 'CUSTOMER', // Explicitly set role for customer registration
+          role: widget.intendedRole ?? 'CUSTOMER',
         ),
       );
     } else {
@@ -467,3 +469,4 @@ class AnimatedTextField extends StatelessWidget {
     );
   }
 }
+
