@@ -25,16 +25,15 @@ func NewReactionRepo(database mongo.Database, reactionCol string) domain.IReacti
 	}
 }
 
-func (r *ReactionRepo) GetReactionStats(ctx context.Context, itemID, userID string) (int64, int64, *domain.Reaction, error) {
-	fmt.Printf("Creating index on DB: %q, Collection: %q\n", r.db, r.ReactionCol)
+// GetReactionStats now aggregates reactions per review (not per item).
+// The first parameter is treated as reviewID for backward compatibility with interface.
+func (r *ReactionRepo) GetReactionStats(ctx context.Context, reviewID, userID string) (int64, int64, *domain.Reaction, error) {
 	coll := r.db.Collection(r.ReactionCol)
 
-	matchStage := bson.D{
-		{Key: "$match", Value: bson.D{
-			{Key: "itemId", Value: itemID},
-			{Key: "isDeleted", Value: false},
-		}},
-	}
+	matchStage := bson.D{{Key: "$match", Value: bson.D{
+		{Key: "reviewId", Value: reviewID},
+		{Key: "isDeleted", Value: false},
+	}}}
 	groupStage := bson.D{
 		{Key: "$group", Value: bson.D{
 			{Key: "_id", Value: "$type"},
@@ -69,7 +68,7 @@ func (r *ReactionRepo) GetReactionStats(ctx context.Context, itemID, userID stri
 		return 0, 0, nil, err
 	}
 
-	userReaction, err := r.GetUserReaction(ctx, itemID, userID)
+	userReaction, err := r.GetUserReaction(ctx, reviewID, userID)
 	if err != nil {
 		return 0, 0, nil, err
 	}
@@ -77,12 +76,13 @@ func (r *ReactionRepo) GetReactionStats(ctx context.Context, itemID, userID stri
 	return likeCount, dislikeCount, userReaction, nil
 }
 
-func (r *ReactionRepo) GetUserReaction(ctx context.Context, itemID, userID string) (*domain.Reaction, error) {
+// GetUserReaction now fetches by reviewId + userId (instead of itemId + userId).
+// The first argument is interpreted as reviewID.
+func (r *ReactionRepo) GetUserReaction(ctx context.Context, reviewID, userID string) (*domain.Reaction, error) {
 	coll := r.db.Collection(r.ReactionCol)
 	filter := bson.D{
-		{Key: "itemId", Value: itemID},
+		{Key: "reviewId", Value: reviewID},
 		{Key: "userId", Value: userID},
-		// {Key: "isDeleted", Value: false},
 	}
 	type reactionDB struct {
 		ID        bson.ObjectID `bson:"_id"`
@@ -164,10 +164,10 @@ func (r *ReactionRepo) InsertReaction(ctx context.Context, reaction *domain.Reac
 
 func (r *ReactionRepo) UpdateReaction(ctx context.Context, reaction *domain.Reaction) error {
 	coll := r.db.Collection(r.ReactionCol)
+	// Uniqueness per (reviewId, userId)
 	filter := bson.D{
-		{Key: "itemId", Value: reaction.ItemID},
-		{Key: "userId", Value: reaction.UserID},
 		{Key: "reviewId", Value: reaction.ReviewID},
+		{Key: "userId", Value: reaction.UserID},
 	}
 	update := bson.D{
 		{Key: "$set", Value: bson.D{
