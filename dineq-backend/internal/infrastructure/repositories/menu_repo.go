@@ -8,6 +8,7 @@ import (
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database/mapper"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database/mapper/utils"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
@@ -208,4 +209,48 @@ func (r *MenuRepository) GetByRestaurantID(ctx context.Context, restaurantID str
 		menus[i] = mapper.ToDomainMenu(&dbMenu)
 	}
 	return menus, nil
+}
+
+func (r *MenuRepository) MenuItemUpdate(ctx context.Context, itemSlug string, menuItem *domain.Item) error {
+	filter := bson.M{
+		"menu.slug": menuItem.MenuSlug,
+		"items.slug": itemSlug,
+	}
+
+	fields := bson.M{}
+	data, _ := bson.Marshal(menuItem)
+	_ = bson.Unmarshal(data, &fields)
+
+	update := utils.BuildNestedUpdate("menu.items.$.", fields)
+
+	_, err := r.database.Collection(r.coll).UpdateOne(ctx, filter, update)
+	return err
+}
+
+// get menu item by slug
+func (r *MenuRepository) GetMenuItemBySlug(ctx context.Context, menuSlug string, itemSlug string) (*domain.Item, error) {
+	filter := bson.M{
+		"slug": menuSlug,
+		"items": bson.M{
+			"$elemMatch": bson.M{
+				"slug":      itemSlug,
+				"isDeleted": false,
+			},
+		},
+	}
+
+	var dbMenu mapper.MenuDB
+	err := r.database.Collection(r.coll).FindOne(ctx, filter).Decode(&dbMenu)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, dbItem := range dbMenu.Items {
+		if dbItem.Slug == itemSlug && !dbItem.IsDeleted {
+			item := mapper.ToDomainItem(&dbItem)
+			return item, nil
+		}
+	}
+
+	return nil, mongo.ErrNoDocuments()
 }

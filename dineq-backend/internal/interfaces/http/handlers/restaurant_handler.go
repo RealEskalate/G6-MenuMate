@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -21,6 +22,7 @@ import (
 type RestaurantHandler struct {
 	RestaurantUsecase domain.IRestaurantUsecase
 	UserUsecase       domain.IUserUsecase
+	ViewEventRepo     domain.IViewEventRepository
 }
 
 // GetRestaurantsByManager returns the restaurant managed by a user (owner/manager).
@@ -42,8 +44,8 @@ func (h *RestaurantHandler) GetRestaurantsByManager(c *gin.Context) {
 }
 
 // NewRestaurantHandler creates a new RestaurantHandler instance.
-func NewRestaurantHandler(u domain.IRestaurantUsecase) *RestaurantHandler {
-	return &RestaurantHandler{RestaurantUsecase: u}
+func NewRestaurantHandler(u domain.IRestaurantUsecase, v domain.IViewEventRepository) *RestaurantHandler {
+	return &RestaurantHandler{RestaurantUsecase: u, ViewEventRepo: v}
 }
 
 // IsValidObjectID checks if a string is a valid 24-character MongoDB ObjectID.
@@ -161,7 +163,6 @@ func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
 	r, err := h.RestaurantUsecase.GetRestaurantBySlug(c.Request.Context(), slug)
 	if err != nil {
 		if err == domain.ErrRestaurantDeleted {
-			// Use standardized error
 			dto.WriteError(c, domain.ErrRestaurantDeleted)
 			return
 		}
@@ -174,6 +175,16 @@ func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
 		c.JSON(http.StatusPermanentRedirect, gin.H{"redirect_to": old.Slug})
 		return
 	}
+	// Increment view count and log view event
+	_ = h.RestaurantUsecase.IncrementRestaurantViewCount(r.ID)
+	h.ViewEventRepo.LogView(&domain.ViewEvent{
+		EntityType: "restaurant",
+		EntityID:   r.ID,
+		UserID:     getUserID(c),
+		Timestamp:  time.Now(),
+		IP:         c.ClientIP(),
+		UserAgent:  c.Request.UserAgent(),
+	})
 	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
 }
 

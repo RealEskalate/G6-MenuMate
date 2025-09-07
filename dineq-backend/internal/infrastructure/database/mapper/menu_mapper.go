@@ -10,7 +10,7 @@ import (
 type MenuDB struct {
 	ID           bson.ObjectID `bson:"_id,omitempty"`
 	Name         string        `bson:"name"`
-	RestaurantID string        `bson:"restaurantId"`
+	RestaurantSlug string        `bson:"RestaurantSlug"`
 	Slug         string        `bson:"slug"`
 	Version      int           `bson:"version"`
 	IsPublished  bool          `bson:"isPublished"`
@@ -42,7 +42,7 @@ func NewMenuDBFromDomain(menu *domain.Menu) *MenuDB {
 	return &MenuDB{
 		ID:           menuId,
 		Name:         menu.Name,
-		RestaurantID: menu.RestaurantID,
+		RestaurantSlug: menu.RestaurantSlug,
 		Slug:         menu.Slug,
 		Version:      1, // start at version 1
 		IsPublished:  menu.IsPublished,
@@ -68,11 +68,11 @@ func MergeMenuUpdate(updated *domain.Menu) *MenuDB {
 	}
 
 	return &MenuDB{
-		RestaurantID: updated.RestaurantID,
-		Slug:         updated.Slug,
-		Name:         updated.Name,
-		IsPublished:  updated.IsPublished,
-		PublishedAt:  updated.PublishedAt,
+		RestaurantSlug: updated.RestaurantSlug,
+		Slug:          updated.Slug,
+		Name:          updated.Name,
+		IsPublished:   updated.IsPublished,
+		PublishedAt:   updated.PublishedAt,
 		Items:        items,
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
@@ -94,13 +94,13 @@ func ToDomainMenu(menu *MenuDB) *domain.Menu {
 	}
 
 	return &domain.Menu{
-		ID:           menu.ID.Hex(),
-		Name:         menu.Name,
-		RestaurantID: menu.RestaurantID,
-		Slug:         menu.Slug,
-		Version:      menu.Version,
-		IsPublished:  menu.IsPublished,
-		PublishedAt:  menu.PublishedAt,
+		ID:            menu.ID.Hex(),
+		Name:          menu.Name,
+		RestaurantSlug: menu.RestaurantSlug,
+		Slug:          menu.Slug,
+		Version:       menu.Version,
+		IsPublished:   menu.IsPublished,
+		PublishedAt:   menu.PublishedAt,
 		Items:        items,
 		CreatedAt:    menu.CreatedAt,
 		UpdatedAt:    menu.UpdatedAt,
@@ -119,3 +119,4 @@ func idempotentID(id string) bson.ObjectID {
 	objID, _ := bson.ObjectIDFromHex(id)
 	return objID
 }
+
