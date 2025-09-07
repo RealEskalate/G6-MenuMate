@@ -12,7 +12,8 @@ function QrManager() {
   const { data: session } = useSession();
   const token = session?.accessToken || "your-token-here";
 
-  const { data: restaurant, isLoading: loadingRestaurant } = useRestaurant(token);
+  const { data: restaurant, isLoading: loadingRestaurant } =
+    useRestaurant(token);
   const slug = restaurant?.slug;
 
   const { data: menus } = useMenus(slug, token);

@@ -5,14 +5,31 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-function SideBar() {
+function SideBar() { 
   const pathname = usePathname();
 
   const links = [
-    { name: "Menus", href: "/restaurant/dashboard/menu", icon: "/icons/menu.svg" },
-    { name: "QR Manager", href: "/restaurant/dashboard/qr-manager", icon: "/icons/qr.png" },
-    { name: "Settings", href: "/restaurant/dashboard/settings", icon: "/icons/setting.png" },
-    { name: "Analytics", href: "/restaurant/dashboard/analytics", icon: "/icons/Analytics.png", pro: true },
+    {
+      name: "Menus",
+      href: "/restaurant/dashboard/menu",
+      icon: "/icons/menu.svg",
+    },
+    {
+      name: "QR Manager",
+      href: "/restaurant/dashboard/qr-manager",
+      icon: "/icons/qr.png",
+    },
+    {
+      name: "Settings",
+      href: "/restaurant/dashboard/settings",
+      icon: "/icons/setting.png",
+    },
+    {
+      name: "Analytics",
+      href: "/restaurant/dashboard/analytics",
+      icon: "/icons/Analytics.png",
+      pro: true,
+    },
   ];
 
   return (
@@ -26,7 +43,9 @@ function SideBar() {
               key={link.name}
               href={link.href}
               className={`flex items-center gap-3 font-medium transition-colors ${
-                active ? "text-orange-600" : "text-gray-600 hover:text-orange-600"
+                active
+                  ? "text-orange-600"
+                  : "text-gray-600 hover:text-orange-600"
               }`}
             >
               <Image src={link.icon} alt={link.name} width={18} height={18} />

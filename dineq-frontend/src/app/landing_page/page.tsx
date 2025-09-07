@@ -13,7 +13,7 @@ import Footer from "@/components/common/Footer";
 export default function LandingPage() {
   return (
     <div className="bg-white z-11">
-      <div className="relative h-210 mb-84 bg-orange-100 m-5 rounded-2xl z-5">
+      <div className="relative h-210 mb-40 bg-orange-100 m-5 rounded-2xl z-5">
         <Header />
         <Hero />
       </div>

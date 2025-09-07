@@ -26,6 +26,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.12",
     "jsqr": "^1.4.0",
+    "html5-qrcode": "^2.3.8",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.542.0",
     "next": "15.5.0",
@@ -39,6 +40,7 @@
     "react-leaflet": "^5.0.0",
     "react-qrcode-logo": "^4.0.0",
     "react-redux": "^9.2.0",
+    "recharts": "^3.1.2",
     "tailwind-merge": "^3.3.1",
     "tinycolor2": "^1.6.0",
     "zod": "^4.1.3"
