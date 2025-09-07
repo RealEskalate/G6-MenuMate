@@ -56,19 +56,22 @@ export default function BasicInfoForm() {
   return (
     <div className="flex items-center justify-center px-4 py-4">
       <form
-        className="bg-white rounded-lg p-6 w-full max-w-3xl space-y-4"
+        className="bg-white rounded-lg p-6 w-full max-w-3xl space-y-4
+             [&_input]:py-3 [&_input]:text-base 
+             [&_textarea]:py-3 [&_textarea]:text-base 
+             [&_label]:text-xl [&_label]:font-medium [&_label]:mb-2 "
         onSubmit={handleSubmit}
       >
         {/* Heading */}
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 text-left">
+        <div className="mt-4 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-900 text-left">
             Restaurant Information
           </h2>
         </div>
 
         {/* Restaurant Name */}
         <div>
-          <label className="block text-md font-medium text-gray-700 mb-1 text-left">
+          <label className="block text-xl font-medium text-gray-700 mb-1 text-left">
             Restaurant Name
           </label>
           <div className="relative w-full">
@@ -88,7 +91,7 @@ export default function BasicInfoForm() {
 
         {/* Phone Number */}
         <div>
-          <label className="block text-md font-medium text-gray-700 mb-1 text-left">
+          <label className="block text-xl font-medium text-gray-700 mb-1 text-left">
             Phone Number
           </label>
           <div className="relative w-full">
@@ -174,7 +177,7 @@ export default function BasicInfoForm() {
           required={false}
           file={logoImage}
           onFileChange={(file) => handleFileChange(file, "logo_image")}
-          compact={true}
+          compact={false}
         />
 
         {/* Banner Upload */}
@@ -183,7 +186,7 @@ export default function BasicInfoForm() {
           required={false}
           file={coverImage}
           onFileChange={(file) => handleFileChange(file, "cover_image")}
-          compact={true}
+          compact={false}
         />
 
         {/* License Upload */}
@@ -192,7 +195,7 @@ export default function BasicInfoForm() {
           required
           file={businessLicense}
           onFileChange={(file) => handleFileChange(file, "businessLicense")}
-          compact={true}
+          compact={false}
         />
 
         

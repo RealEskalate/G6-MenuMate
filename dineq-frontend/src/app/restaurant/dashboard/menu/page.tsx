@@ -12,6 +12,8 @@ import { useRestaurant } from "@/hooks/useRestaurant"
 import MenuCardSkeleton from "@/components/restaurant/skeletons/MenuEditorSkeleton";
 import { useQrCode } from "@/hooks/useQrCode";
 import MenuCard from "@/components/restaurant/menu/MenuCard";
+// import Modal from "@/components/restaurant/PreviewModal";
+// import SingleRestaurant from "../../../user/restaurant-display/[id]/page";
 
 
 export default function Dashboard() {
@@ -19,6 +21,8 @@ export default function Dashboard() {
   const token = session?.accessToken;
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
 
   // Get restaurant data
   const { data: restaurantData, isLoading: isLoadingRestaurant } =
@@ -35,6 +39,7 @@ export default function Dashboard() {
   console.log("menus:", menus)
 
   const { data: qrImageUrl } = useQrCode(restaurantSlug!, token!);
+  
 
   
   if (isLoadingRestaurant || isLoadingMenus) {
@@ -55,14 +60,25 @@ export default function Dashboard() {
           {/* Header */}
           <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-[0_4px_12px_#ffead4]">
             <div className="font-bold text-2xl">Menus</div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-[#FD7E14] text-white px-6 flex py-2 rounded"
-            >
-              <Plus size={16} />
-              Add Menu
-            </button>
+
+            <div className="flex gap-3">
+              {/* <button
+                onClick={() => setIsPreviewOpen(true)}
+                className="bg-blue-600 text-white px-6 py-2 rounded shadow hover:opacity-90"
+              >
+                Preview Restaurant
+              </button> */}
+
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-[#FD7E14] text-white px-6 flex py-2 rounded"
+              >
+                <Plus size={16} />
+                Add Menu
+              </button>
+            </div>
           </div>
+
 
           {/* Menu cards */}
           <div className="flex flex-col md:flex-row gap-6">
@@ -95,6 +111,19 @@ export default function Dashboard() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
+
+      {/* Preview Modal */}
+      {/* <Modal isOpen={isPreviewOpen} onClose={() => setIsPreviewOpen(false)}>
+        {restaurantData?.id ? (
+          <iframe
+            src={`/user/restaurant-display/${restaurantData.id}`}
+            className="w-full h-[90vh] rounded-lg border-0"
+          />
+        ) : (
+          <p className="p-4 text-center">No restaurant data to preview</p>
+        )}
+      </Modal> */}
+
     </div>
-  );
+  )
 }

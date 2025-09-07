@@ -38,18 +38,24 @@ export default function FileUploadBox({
 
   return (
     <div className="bg-white">
-      <div className="flex justify-between items-center mb-1">
-        <label className={`font-medium ${compact ? "text-md" : "text-lg"}`}>
+      {/* Label */}
+      <div className="flex justify-between items-center mb-2">
+        <label className={`text-base font-normal ${compact ? "text-sm" : "text-base"}`}>
           {label} {required && <span className="text-red-500">*</span>}
         </label>
-        {file && <CheckCircle className={`${compact ? "w-4 h-4" : "w-5 h-5"} text-green-500`} />}
+        {file && (
+          <CheckCircle className={`${compact ? "w-4 h-4" : "w-5 h-5"} text-green-500`} />
+        )}
       </div>
 
+      {/* Uploaded file preview */}
       {file ? (
-        <div className={`flex items-center justify-between bg-green-50 border border-green-200 px-3 rounded ${
-          compact ? "py-2" : "py-3"
-        }`}>
-          <span className={`text-gray-800 ${compact ? "text-xs" : "text-sm"}`}>
+        <div
+          className={`flex items-center justify-between bg-green-50 border border-green-200 px-3 rounded ${
+            compact ? "py-2" : "py-3"
+          }`}
+        >
+          <span className={`text-gray-800 ${compact ? "text-xs" : "text-base"} font-normal`}>
             {file.name} ({file.size} MB)
           </span>
           <button
@@ -61,20 +67,28 @@ export default function FileUploadBox({
           </button>
         </div>
       ) : (
-        <label className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 text-center text-gray-500 ${
-          compact ? "py-2 h-20 text-xs" : "py-4 h-28 text-sm"
-        }`}>
-          <Upload className={`mb-1 text-gray-400 ${compact ? "w-4 h-4" : "w-6 h-6"}`} />
-          Drag and drop your file here, or{" "}
-          <span className="text-blue-600 underline">click to browse</span>
+        // File drop area
+        <label
+          className={`flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 text-center text-gray-500 ${
+            compact ? "py-2 h-20 text-xs" : "py-4 h-24 text-base font-normal"
+          }`}
+        >
+          <Upload className={`mb-2 text-gray-400 ${compact ? "w-4 h-4" : "w-6 h-6"}`} />
+          <span className={`${compact ? "text-xs" : "text-base font-normal"}`}>
+            Drag and drop your file here, or{" "}
+            <span className="text-blue-600 underline">click to browse</span>
+          </span>
           <input
             type="file"
             className="hidden"
             accept={accept}
             onChange={handleFileUpload}
           />
-          <p className={`text-gray-400 mt-1 ${compact ? "text-xs" : "text-xs"}`}>PDF, JPG, PNG up to 10MB</p>
+          <p className={`text-gray-400 mt-2 ${compact ? "text-xs" : "text-sm font-normal"}`}>
+            PDF, JPG, PNG up to 10MB
+          </p>
         </label>
+
       )}
     </div>
   );
