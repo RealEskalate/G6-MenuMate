@@ -14,7 +14,7 @@ abstract class UserRepository {
     String? role,
   });
 
-  Future<Either<Failure, Map<String, dynamic>>> loginUser({
+  Future<Either<Failure, User>> loginUser({
     required String identifier,
     required String password,
   });

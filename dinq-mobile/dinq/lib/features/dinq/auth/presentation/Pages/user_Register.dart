@@ -135,6 +135,7 @@ class _UserRegisterState extends State<UserRegister>
               authProvider: 'EMAIL',
             ),
           );
+      Navigator.pushNamed(context, AppRoute.mainShell);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

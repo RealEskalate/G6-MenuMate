@@ -36,13 +36,12 @@ class UserError extends UserState {
 }
 
 class UserLoggedIn extends UserState {
-  final String accessToken;
-  final String refreshToken;
+  final User user;
 
-  const UserLoggedIn({required this.accessToken, required this.refreshToken});
+  const UserLoggedIn(this.user);
 
   @override
-  List<Object?> get props => [accessToken, refreshToken];
+  List<Object?> get props => [user];
 }
 
 class UserLoggedOut extends UserState {

@@ -3,8 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
-import '../../../../../injection_container.dart' as di;
-import '../../domain/usecases/user/login_user_usecase.dart';
 import '../bloc/user_bloc.dart';
 import '../bloc/user_event.dart';
 import '../widgets/Login_TextFields.dart';
@@ -159,13 +157,14 @@ class _LoginPageState extends State<LoginPage>
   }
 
   void _handleLogin() {
-      if (_validateForm()) {
+    if (_validateForm()) {
       context.read<UserBloc>().add(
             LoginUserEvent(
               identifier: _emailController.text.trim(),
               password: _passwordController.text,
             ),
           );
+      Navigator.pushNamed(context, AppRoute.mainShell);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -307,7 +306,10 @@ class _LoginPageState extends State<LoginPage>
                     child: Opacity(
                       opacity: _loginButtonAnimation.value,
                       child: Center(
-                        child: LoginButton(buttonname: 'Login', onPressed: _handleLogin,),
+                        child: LoginButton(
+                          buttonname: 'Login',
+                          onPressed: _handleLogin,
+                        ),
                       ),
                     ),
                   );

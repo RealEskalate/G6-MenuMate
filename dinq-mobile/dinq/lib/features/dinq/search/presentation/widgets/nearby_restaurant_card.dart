@@ -35,16 +35,25 @@ class NearbyRestaurantCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (restaurant.tags != null && restaurant.tags!.isNotEmpty)
-              ListView.builder(
+              SizedBox(
+                height: 20, // adjust as needed
+                child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: restaurant.tags?.length,
+                  itemCount: restaurant.tags!.length,
                   itemBuilder: (context, index) {
-                    return Text(restaurant.tags![index],
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Text(
+                        restaurant.tags![index],
                         style:
-                            const TextStyle(fontSize: 13, color: Colors.grey));
+                            const TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                    );
                   },
                   shrinkWrap: true,
-                  padding: EdgeInsets.zero),
+                  padding: EdgeInsets.zero,
+                ),
+              ),
             Row(
               children: [
                 const Icon(Icons.star, color: Colors.orange, size: 16),

@@ -94,7 +94,7 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> loginUser({
+  Future<Either<Failure, User>> loginUser({
     required String identifier,
     required String password,
   }) async {
@@ -129,7 +129,9 @@ class UserRepositoryImpl implements UserRepository {
             }
           } catch (_) {}
         } catch (_) {}
-        return Right(res);
+        final userMap = (res['user'] ?? {}) as Map<String, dynamic>;
+        final userModel = UserModel.fromMap(userMap);
+        return Right(userModel.toEntity());
       } catch (e) {
         return Left(ExceptionMapper.toFailure(e as Exception));
       }

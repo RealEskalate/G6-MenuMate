@@ -21,6 +21,7 @@ import '../../features/dinq/restaurant_management/presentation/pages/settings_pa
 import '../../features/dinq/search/presentation/pages/favourites_page.dart';
 import '../../features/dinq/search/presentation/pages/home_page.dart';
 import '../../features/dinq/search/presentation/pages/item_details_page.dart';
+import '../../features/dinq/search/presentation/pages/main_shell.dart';
 import '../../features/dinq/search/presentation/pages/profile_page.dart';
 import '../../features/dinq/search/presentation/pages/restaurant_page.dart';
 import '../../features/dinq/search/presentation/pages/scanned_menu_page.dart';
@@ -56,12 +57,16 @@ class AppRoute {
   static const String analytics = '/analytics';
   static const String digitizeMenu = '/digitize-menu';
   static const String editMenuItem = '/edit-menu-item';
+  static const String mainShell = '/mainShell';
+
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       // Search routes
       case onboarding:
         return MaterialPageRoute(builder: (_) => const OnboardingFirst());
+      case mainShell:
+        return MaterialPageRoute(builder: (_) => const MainShell());
       case explore:
         return MaterialPageRoute(builder: (_) => const HomePage());
       case favorites:

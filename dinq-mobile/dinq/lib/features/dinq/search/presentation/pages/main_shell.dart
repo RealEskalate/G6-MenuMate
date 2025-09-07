@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import '../widgets/bottom_navbar.dart';
-import 'home_page.dart';
-import 'favourites_page.dart';
-import 'profile_page.dart';
-import '../../../restaurant_management/domain/entities/restaurant.dart';
+
 import '../../../restaurant_management/domain/entities/item.dart';
+import '../../../restaurant_management/domain/entities/restaurant.dart';
+import '../widgets/bottom_navbar.dart';
+import 'favourites_page.dart';
+import 'home_page.dart';
+import 'profile_page.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});

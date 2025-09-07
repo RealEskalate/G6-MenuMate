@@ -1,24 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/util/theme.dart';
 import '../../../../../core/routing/app_route.dart';
+import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/domain/entities/menu.dart';
-import '../../../restaurant_management/domain/entities/restaurant.dart'
-    as restmodels;
-import '../../../restaurant_management/domain/entities/item.dart' as itemmodels;
 import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
 import '../widgets/bottom_navbar.dart';
 import 'item_details_page.dart';
 
-class _LocalFavoritesStore {
-  final Set<String> restaurantIds = <String>{};
-}
+
 
 class RestaurantPage extends StatefulWidget {
-  final restmodels.Restaurant restaurant;
+  final Restaurant restaurant;
 
   const RestaurantPage({super.key, required this.restaurant});
 
