@@ -1,127 +1,106 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import { getMenusByRestaurantSlug, getMenuByRestaurantAndId, Menu } from "./menuApi";
+import { getMenusByRestaurantSlug, getMenuItemsBySlug, Menu, MenuItem } from "./menuApi";
 import MenuItemCard from "./MenuItemCard";
 
 interface MenuSectionProps {
   restaurantSlug: string;
+  token?: string;
 }
 
-const MenuSection: React.FC<MenuSectionProps> = ({ restaurantSlug }) => {
-  const { data: session, status } = useSession();
-
+export default function MenuSection({ restaurantSlug, token }: MenuSectionProps) {
   const [menus, setMenus] = useState<Menu[]>([]);
   const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
-  const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
+  const [items, setItems] = useState<MenuItem[]>([]);
+  const [loadingMenus, setLoadingMenus] = useState(true);
+  const [loadingItems, setLoadingItems] = useState(false);
 
-  const [loadingMenus, setLoadingMenus] = useState(false);
-  const [loadingMenuDetails, setLoadingMenuDetails] = useState(false);
-  const [errorMenus, setErrorMenus] = useState<string | null>(null);
-  const [errorMenuDetails, setErrorMenuDetails] = useState<string | null>(null);
-
-  // Fetch menus
   useEffect(() => {
-    const fetchMenus = async () => {
-      if (!restaurantSlug || status !== "authenticated" || !session?.accessToken) return;
-
-      setLoadingMenus(true);
-      setErrorMenus(null);
-
+    async function fetchMenus() {
       try {
-        const menusData = await getMenusByRestaurantSlug(restaurantSlug, session.accessToken);
+        setLoadingMenus(true);
+        const menusData = await getMenusByRestaurantSlug(restaurantSlug, token);
         setMenus(menusData);
-        if (menusData.length > 0) setSelectedMenuId(menusData[0].id);
-      } catch (err: any) {
-        setErrorMenus(err.message || "Failed to fetch menus");
+        if (menusData.length > 0) {
+          setSelectedMenu(menusData[0]);
+        }
+      } catch (err) {
+        console.error("Failed to load menus:", err);
       } finally {
         setLoadingMenus(false);
       }
-    };
+    }
 
     fetchMenus();
-  }, [restaurantSlug, session?.accessToken, status]);
+  }, [restaurantSlug, token]);
 
-  // Fetch selected menu details
+  // fetch items whenever selectedMenu changes
   useEffect(() => {
-    const fetchMenuDetails = async () => {
-      if (!selectedMenuId || status !== "authenticated" || !session?.accessToken) return;
+    if (!selectedMenu) return;
 
-      setLoadingMenuDetails(true);
-      setErrorMenuDetails(null);
-
+    async function fetchItems() {
       try {
-        const menuData = await getMenuByRestaurantAndId(
-          restaurantSlug,
-          selectedMenuId,
-          session.accessToken
-        );
-        setSelectedMenu(menuData);
-      } catch (err: any) {
-        setErrorMenuDetails(err.message || "Failed to fetch menu details");
-        setSelectedMenu(null);
+        setLoadingItems(true);
+        if (!selectedMenu) return;
+        const itemsData = await getMenuItemsBySlug(selectedMenu.slug, token);
+        setItems(itemsData);
+      } catch (err) {
+        console.error("Failed to load items:", err);
+        setItems([]);
       } finally {
-        setLoadingMenuDetails(false);
+        setLoadingItems(false);
       }
-    };
+    }
 
-    fetchMenuDetails();
-  }, [selectedMenuId, restaurantSlug, session?.accessToken, status]);
-
-  if (status === "unauthenticated") {
-    return <p className="text-center p-4">Please log in to view menus.</p>;
-  }
-
-  if (loadingMenus) {
-    return <p className="text-center p-4">Loading menus...</p>;
-  }
-
-  if (errorMenus) {
-    return <p className="text-red-600 text-center p-4">{errorMenus}</p>;
-  }
-
-  if (!menus) {
-    return <p className="text-center p-4">No menus available for this restaurant.</p>;
-  }
+    fetchItems();
+  }, [selectedMenu, token]);
 
   return (
-    <div className="w-full max-w-5xl mx-auto">
+    <section className="mt-8">
       <h2 className="text-2xl font-bold mb-4">Menus</h2>
 
-      {/* Menu List */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        {menus.map((menu) => (
-          <button
-            key={menu.id}
-            className={`px-4 py-2 rounded-lg ${
-              selectedMenuId === menu.id
-                ? "bg-[var(--color-primary)] text-white"
-                : "bg-gray-100"
-            }`}
-            onClick={() => setSelectedMenuId(menu.id)}
-          >
-            {menu.name}
-          </button>
-        ))}
-      </div>
+      {/* Menus tabs */}
+      {loadingMenus ? (
+        <p>Loading menus...</p>
+      ) : menus.length === 0 ? (
+        <p>No menus available for this restaurant.</p>
+      ) : (
+        <div className="flex gap-3 mb-6 flex-wrap">
+          {menus.map((menu) => (
+            <button
+              key={menu.id}
+              onClick={() => setSelectedMenu(menu)}
+              className={`px-4 py-2 rounded-lg border ${
+                selectedMenu?.id === menu.id
+                  ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
+                  : "bg-[var(--color-primary)] text-gray-700 border-[var(--color-primary)]"
+              }`}
+            >
+              {menu.name}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* Menu Details */}
-      {loadingMenuDetails && <p className="p-4">Loading menu details...</p>}
-      {errorMenuDetails && <p className="text-red-600 p-4">{errorMenuDetails}</p>}
-      {selectedMenu?.categories && selectedMenu.categories.length > 0 &&
-        selectedMenu.categories.map((category) => (
-          <div key={category.name} className="mb-6">
-            <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {category.items?.map((item) => (
+      {/* Items for selected menu */}
+      {selectedMenu && (
+        <div>
+          <h3 className="text-xl font-semibold mb-4">{selectedMenu.name}</h3>
+          {loadingItems ? (
+            <p>Loading items...</p>
+          ) : items.length === 0 ? (
+            <p>No items found for this menu.</p>
+          ) : (
+            <div className="flex flex-wrap justify-center gap-6">
+              {items.map((item) => (
                 <MenuItemCard key={item.id} item={item} />
               ))}
             </div>
-          </div>
-        ))}
-    </div>
-  );
-};
 
-export default MenuSection;
+          )}
+        </div>
+      )}
+    </section>
+  );
+}

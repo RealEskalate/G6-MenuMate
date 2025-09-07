@@ -9,28 +9,33 @@ interface MenuCardProps {
 }
 
 const MenuCard: React.FC<MenuCardProps> = ({ menu, onMenuClick }) => {
-  const totalItems =
-    menu.categories?.reduce((acc, cat) => acc + (cat.items?.length || 0), 0) || 0;
-
   return (
     <div
-      className="border border-[var(--color-primary)] rounded-lg cursor-pointer hover:shadow-lg hover:-translate-y-1 transform transition-all duration-200 p-4"
+      className="flex w-[535.25px] h-[110.86px] border border-[var(--color-primary)] rounded-lg cursor-pointer hover:shadow-lg hover:-translate-y-1 transform transition-all duration-200 p-[10px]"
       onClick={() => onMenuClick?.(menu)}
     >
-      <div className="flex flex-col">
-        {/* Menu Title */}
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">{menu.name}</h3>
+      {/* Info Section */}
+      <div className="flex flex-col justify-between flex-1 ml-[10px]">
+        {/* Title and Status */}
+        <div className="flex justify-between items-start">
+          <h3 className="text-[20px] font-semibold leading-[23.35px] text-gray-800">
+            {menu.name}
+          </h3>
+          <span
+            className={`text-xs font-medium ${
+              menu.is_published ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {menu.is_published ? "Published" : "Unpublished"}
+          </span>
+        </div>
 
-        {/* Number of Items */}
-        <p className="text-sm text-gray-600 mb-2">{totalItems} items</p>
-
-        {/* Categories Preview */}
-        {menu.categories && menu.categories.length > 0 && (
-          <div className="text-sm text-gray-500">
-            Categories: {menu.categories.map((c) => c.name).join(", ")}
-          </div>
-        )}
+        {/* Slug or Additional Info */}
+        <p className="text-xs text-gray-500 mt-2 line-clamp-1">Slug: {menu.slug}</p>
       </div>
+
+      {/* Optional Right Side Preview (like image placeholder) */}
+      <div className="w-[152.43px] h-[97px] bg-gray-100 rounded-lg flex-shrink-0 ml-[10px]" />
     </div>
   );
 };
