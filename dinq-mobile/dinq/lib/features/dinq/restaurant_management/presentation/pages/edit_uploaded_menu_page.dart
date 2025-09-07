@@ -75,14 +75,34 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
   }
 
   Map<String, List<Map<String, dynamic>>> _processMenuItems(List<dynamic> menuItems) {
-    // Group menu items by category or just put them all in one section
-    return {
-      'Menu Items': menuItems.map((item) => {
+    // Group menu items by tab_tags or just put them all in one section
+    Map<String, List<Map<String, dynamic>>> sections = {};
+
+    for (var item in menuItems) {
+      // Get the first tab tag as the section name, or use 'General' as default
+      String sectionName = 'General';
+      if (item['tab_tags'] != null && item['tab_tags'] is List && item['tab_tags'].isNotEmpty) {
+        sectionName = item['tab_tags'][0];
+      }
+
+      if (!sections.containsKey(sectionName)) {
+        sections[sectionName] = [];
+      }
+
+      sections[sectionName]!.add({
         'name': item['name'] ?? '',
         'desc': item['description'] ?? '',
         'price': item['price']?.toString() ?? '0',
-      }).toList(),
-    };
+        'currency': item['currency'] ?? 'ETB',
+        'allergies': item['allergies'] ?? '',
+        'preparation_time': item['preparation_time'] ?? 0,
+        'nutritional_info': item['nutritional_info'] ?? {},
+        'name_am': item['name_am'] ?? '',
+        'description_am': item['description_am'] ?? '',
+      });
+    }
+
+    return sections;
   }
 
   void _simulateExtraction() {
@@ -218,7 +238,7 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              section.key,
+                              section.key == 'General' ? 'Menu Items' : section.key,
                               style: Theme.of(
                                 context,
                               ).textTheme.headlineSmall?.copyWith(fontSize: 16),
@@ -331,6 +351,26 @@ class _EditableMenuItemState extends State<_EditableMenuItem> {
                       color: Colors.grey,
                     ),
                   ),
+                  if (widget.item['allergies'] != null && widget.item['allergies'].toString().isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Allergies: ${widget.item['allergies']}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 11,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ],
+                  if (widget.item['preparation_time'] != null && widget.item['preparation_time'] > 0) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Prep time: ${widget.item['preparation_time']} min',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 11,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -351,7 +391,7 @@ class _EditableMenuItemState extends State<_EditableMenuItem> {
                       ),
                     ),
                     Text(
-                      'ETB',
+                      widget.item['currency'] ?? 'ETB',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         fontSize: 12,

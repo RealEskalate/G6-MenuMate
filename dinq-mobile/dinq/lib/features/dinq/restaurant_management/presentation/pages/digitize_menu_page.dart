@@ -19,12 +19,15 @@ class DigitizeMenuPage extends StatefulWidget {
 class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
+  bool _isUploading = false;
+  String? _errorMessage;
 
   Future<void> _takePhoto() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
+        _errorMessage = null; // Clear any previous errors
       });
     }
   }
@@ -34,6 +37,7 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
+        _errorMessage = null; // Clear any previous errors
       });
     }
   }
@@ -41,17 +45,58 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
   Future<void> _performOCR() async {
     if (_imageFile == null) return;
 
+    print('📸 Starting OCR process...');
+
+    // Validate file before upload
+    final fileSize = await _imageFile!.length();
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (fileSize > maxSize) {
+      setState(() {
+        _errorMessage = 'File size exceeds 5MB limit. Current size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB';
+      });
+      return;
+    }
+    print('✅ File size validation passed: ${(fileSize / 1024).toStringAsFixed(2)}KB');
+
+    // Validate file type
+    final fileName = _imageFile!.path.split('/').last.toLowerCase();
+    final validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+    final hasValidExtension = validExtensions.any((ext) => fileName.endsWith(ext));
+
+    if (!hasValidExtension) {
+      setState(() {
+        _errorMessage = 'Invalid file format. Supported formats: JPG, PNG, GIF, BMP, WebP';
+      });
+      return;
+    }
+    print('✅ File format validation passed: $fileName');
+
+    setState(() {
+      _isUploading = true;
+      _errorMessage = null;
+    });
+
     final apiClient = ApiClient(baseUrl: baseUrl);
+    print('🌐 Using API client with base URL: $baseUrl');
 
     try {
       // Step 1: Upload image to /ocr/upload
-      final uploadResponse = await apiClient.uploadFile('/ocr/upload', _imageFile!);
+      print('📤 Step 1: Uploading image to /ocr/upload');
+      final uploadResponse = await apiClient.uploadFile('/ocr/upload', _imageFile!, fieldName: 'menuImage');
+      print('📥 Upload response: $uploadResponse');
+
       final jobId = uploadResponse['data']['job_id'];
+      print('🎯 Job ID received: $jobId');
 
       // Step 2: Poll for completion
+      print('🔄 Step 2: Starting polling for completion');
       await _pollOCRStatus(apiClient, jobId);
     } catch (e) {
-      // Handle error
+      print('❌ OCR process failed: $e');
+      setState(() {
+        _isUploading = false;
+        _errorMessage = 'OCR failed: $e';
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('OCR failed: $e')),
       );
@@ -60,37 +105,78 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
 
   Future<void> _pollOCRStatus(ApiClient apiClient, String jobId) async {
     const pollInterval = Duration(seconds: 5);
+    const maxPolls = 60; // Maximum 5 minutes of polling
+    int pollCount = 0;
 
-    while (true) {
+    print('🔄 Starting OCR status polling for job: $jobId');
+
+    while (pollCount < maxPolls) {
       try {
+        print('📡 Poll attempt ${pollCount + 1}/${maxPolls}');
         final response = await apiClient.get('/ocr/$jobId');
+        print('📥 Poll response: $response');
+
         final status = response['data']['status'];
+        print('📊 Current status: $status');
 
         if (status == 'completed') {
-          final menuItems = response['data']['structured_menu']['menu_items'];
+          print('✅ OCR completed successfully!');
+          setState(() {
+            _isUploading = false;
+          });
+
+          final menuItems = response['data']['results']['menu_items'];
+          print('🍽️ Menu items received: ${menuItems.length} items');
+
           // Navigate to EditUploadedMenuPage with real data
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EditUploadedMenuPage(
-                uploadedImage: _imageFile!,
-                menuItems: menuItems,
+          if (mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EditUploadedMenuPage(
+                  uploadedImage: _imageFile!,
+                  menuItems: menuItems,
+                ),
               ),
-            ),
-          );
+            );
+          }
           break;
         } else if (status == 'processing') {
           // Continue polling
+          print('⏳ Still processing, waiting ${pollInterval.inSeconds} seconds...');
+          pollCount++;
           await Future.delayed(pollInterval);
+        } else if (status == 'failed') {
+          throw Exception('OCR processing failed on server');
         } else {
           // Handle other statuses or errors
           throw Exception('OCR processing failed with status: $status');
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Polling failed: $e')),
-        );
+        print('❌ Polling failed: $e');
+        setState(() {
+          _isUploading = false;
+          _errorMessage = 'OCR processing failed: $e';
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('OCR processing failed: $e')),
+          );
+        }
         break;
+      }
+    }
+
+    if (pollCount >= maxPolls) {
+      print('⏰ OCR polling timed out after ${maxPolls * pollInterval.inSeconds} seconds');
+      setState(() {
+        _isUploading = false;
+        _errorMessage = 'OCR processing timed out. Please try again.';
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('OCR processing timed out. Please try again.')),
+        );
       }
     }
   }
@@ -272,6 +358,33 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
             text: 'Make sure text is clear and readable',
           ),
           const SizedBox(height: 32),
+
+          // Error message display
+          if (_errorMessage != null) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.error, color: Colors.red),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red, fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
           // Digitize Menu Button
           _imageFile != null
               ? Padding(
@@ -280,7 +393,7 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
+                        backgroundColor: _isUploading ? Colors.grey : AppColors.primaryColor,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -288,14 +401,36 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      onPressed: _performOCR,
-                      child: const Text(
-                        'Digitize Menu',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
+                      onPressed: _isUploading ? null : _performOCR,
+                      child: _isUploading
+                          ? const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Processing...',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : const Text(
+                              'Digitize Menu',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
                     ),
                   ),
                 )
