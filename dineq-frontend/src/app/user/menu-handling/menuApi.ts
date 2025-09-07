@@ -22,7 +22,41 @@ export interface Menu {
   is_published: boolean;
   view_count?: number;
   average_rating?: number;
+  items : MenuItem[]
 }
+export interface NutritionalInfo {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface MenuItem {
+  id: string;
+  name: string;
+  name_am: string;
+  description1: string;
+  description_am: string;
+  how_to_eat: string;
+  how_to_eat_am: string;
+  allergies1: string[];
+  allergies_am: string;
+  average_rating: number;
+  created_at: string;   // ISO date string
+  updated_at: string;   // ISO date string
+  is_deleted: boolean;
+  menu_slug: string;
+  slug: string;
+  currency1: string;
+  price: number;
+  preparation_time: number;
+  nutritional_info: NutritionalInfo;
+  review_ids: string[];
+  tab_tags1: string[];
+  tab_tags_am: string[];
+  view_count: number;
+}
+
 
 /** Fetch all menus for a restaurant by slug */
 export async function getMenusByRestaurantSlug(

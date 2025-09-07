@@ -89,11 +89,11 @@ export default function MenuSection({ restaurantSlug, token }: MenuSectionProps)
           <h3 className="text-xl font-semibold mb-4">{selectedMenu.name}</h3>
           {loadingItems ? (
             <p>Loading items...</p>
-          ) : items.length === 0 ? (
+          ) : selectedMenu.items.length === 0 ? (
             <p>No items found for this menu.</p>
           ) : (
             <div className="flex flex-wrap justify-center gap-6">
-              {items.map((item) => (
+              {selectedMenu.items.map((item) => (
                 <MenuItemCard key={item.id} item={item} />
               ))}
             </div>
