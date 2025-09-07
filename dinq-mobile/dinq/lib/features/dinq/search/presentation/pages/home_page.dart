@@ -100,7 +100,6 @@ class _HomePageState extends State<HomePage> {
       averageRating: 4.5,
       reviewIds: [],
     );
-
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
@@ -138,8 +137,9 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
 
-            // Main scrollable area
+            // Main content split: Restaurants (scrollable) + Popular dishes (fixed)
             Expanded(
+              flex: 3,
               child: BlocBuilder<RestaurantBloc, RestaurantState>(
                 builder: (context, state) {
                   if (state is RestaurantInitial ||
@@ -153,80 +153,69 @@ class _HomePageState extends State<HomePage> {
                   if (state is RestaurantsLoaded) {
                     final restaurants = state.restaurants;
 
-                    if (restaurants.isNotEmpty && !_requestedPopularMenu) {
-                      _requestedPopularMenu = true;
-                      context.read<RestaurantBloc>().add(
-                          LoadMenu(restaurantSlug: restaurants.first.slug));
-                    }
-
                     return ListView(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
                       children: [
                         const SizedBox(height: 12),
-                        const Text('Nearby Restaurants',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 17)),
+                        const Text(
+                          'Nearby Restaurants',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 17,
+                          ),
+                        ),
                         const SizedBox(height: 12),
                         ...restaurants
                             .map((r) => NearbyRestaurantCard(restaurant: r)),
-                        const SizedBox(height: 28),
-                        const Text('Popular Dishes',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 17)),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 220,
-                          child: BlocBuilder<RestaurantBloc, RestaurantState>(
-                            builder: (context, blocState) {
-                              List<Item> popularItems = [];
-                              if (blocState is MenuLoaded) {
-                                popularItems =
-                                    blocState.menu.items.take(10).toList();
-                              }
-
-                              if (popularItems.isEmpty) {
-                                popularItems = [
-                                  const Item(
-                                    id: '1',
-                                    name: 'Demo Item',
-                                    nameAm: 'Demo Item',
-                                    slug: 'demo-item',
-                                    menuSlug: 'menu-1',
-                                    description: 'Demo Description',
-                                    images: [],
-                                    price: 0,
-                                    currency: '\$',
-                                    viewCount: 0,
-                                    averageRating: 0,
-                                    reviewIds: [],
-                                  )
-                                ];
-                              }
-
-                              return ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: popularItems.length,
-                                itemBuilder: (context, index) {
-                                  final item = popularItems[index];
-                                  return PopularDishCard(
-                                    item: item,
-                                    onTap: () => Navigator.pushNamed(
-                                      context,
-                                      AppRoute.itemDetail,
-                                      arguments: {'item': item},
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
                       ],
                     );
                   }
 
                   return const Center(child: Text('No restaurants available'));
                 },
+              ),
+            ),
+
+            // Popular Dishes (always visible, not scrolling with restaurants)
+            Expanded(
+              flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Popular Dishes',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: 3,
+                        itemBuilder: (context, index) {
+                          final popularItems = [
+                            salmonSashimi,
+                            margheritaPizza,
+                            cheeseburger,
+                          ];
+                          final item = popularItems[index];
+                          return PopularDishCard(
+                            item: item,
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              AppRoute.itemDetail,
+                              arguments: {'item': item},
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

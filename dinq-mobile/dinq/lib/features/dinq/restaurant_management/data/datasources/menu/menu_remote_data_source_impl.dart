@@ -140,8 +140,9 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
         ApiEndpoints.menusForRestaurant(restaurantSlug),
         options: Options(headers: getHeaders),
       );
-
+      print(response);
       final statusCode = response.statusCode;
+
       if (statusCode == 200) {
         final responseData = response.data;
         Map<String, dynamic>? menuMap;
@@ -149,7 +150,7 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
         if (responseData is Map<String, dynamic>) {
           final dataSection = responseData['data'];
           if (dataSection is Map<String, dynamic>) {
-            final menuList = dataSection['menu'];
+            final menuList = dataSection['menus'];
             if (menuList is List && menuList.isNotEmpty) {
               final first = menuList.first;
               if (first is Map<String, dynamic>) {
@@ -159,11 +160,11 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
           }
 
           if (menuMap == null) {
-            if (responseData['menu'] is Map<String, dynamic>) {
-              menuMap = responseData['menu'] as Map<String, dynamic>;
+            if (responseData['menus'] is Map<String, dynamic>) {
+              menuMap = responseData['menus'] as Map<String, dynamic>;
             } else if (responseData['data'] is Map<String, dynamic> &&
-                responseData['data']['menu'] is Map<String, dynamic>) {
-              menuMap = responseData['data']['menu'] as Map<String, dynamic>;
+                responseData['data']['menus'] is Map<String, dynamic>) {
+              menuMap = responseData['data']['menus'] as Map<String, dynamic>;
             }
           }
         }
@@ -223,7 +224,7 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
         if (responseData is Map<String, dynamic>) {
           final dataSection = responseData['data'];
           if (dataSection is Map<String, dynamic>) {
-            final menuList = dataSection['menu'];
+            final menuList = dataSection['menus'];
             if (menuList is List && menuList.isNotEmpty) {
               final first = menuList.first;
               if (first is Map<String, dynamic>) {
@@ -233,11 +234,11 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
           }
 
           if (menuMap == null) {
-            if (responseData['menu'] is Map<String, dynamic>) {
-              menuMap = responseData['menu'] as Map<String, dynamic>;
+            if (responseData['menus'] is Map<String, dynamic>) {
+              menuMap = responseData['menus'] as Map<String, dynamic>;
             } else if (responseData['data'] is Map<String, dynamic> &&
-                responseData['data']['menu'] is Map<String, dynamic>) {
-              menuMap = responseData['data']['menu'] as Map<String, dynamic>;
+                responseData['data']['menus'] is Map<String, dynamic>) {
+              menuMap = responseData['data']['menus'] as Map<String, dynamic>;
             }
           }
         }
@@ -297,7 +298,7 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
         if (responseData is Map<String, dynamic>) {
           final dataSection = responseData['data'];
           if (dataSection is Map<String, dynamic>) {
-            final menuList = dataSection['menu'];
+            final menuList = dataSection['menus'];
             if (menuList is List && menuList.isNotEmpty) {
               final first = menuList.first;
               if (first is Map<String, dynamic>) {
@@ -307,11 +308,11 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
           }
 
           if (menuMap == null) {
-            if (responseData['menu'] is Map<String, dynamic>) {
-              menuMap = responseData['menu'] as Map<String, dynamic>;
+            if (responseData['menus'] is Map<String, dynamic>) {
+              menuMap = responseData['menus'] as Map<String, dynamic>;
             } else if (responseData['data'] is Map<String, dynamic> &&
-                responseData['data']['menu'] is Map<String, dynamic>) {
-              menuMap = responseData['data']['menu'] as Map<String, dynamic>;
+                responseData['data']['menus'] is Map<String, dynamic>) {
+              menuMap = responseData['data']['menus'] as Map<String, dynamic>;
             }
           }
         }
@@ -458,15 +459,15 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
         if (responseData is Map<String, dynamic>) {
           final dataSection = responseData['data'];
           if (dataSection is Map<String, dynamic>) {
-            final menuObj = dataSection['menu'];
+            final menuObj = dataSection['menus'];
             if (menuObj is Map<String, dynamic>) {
               menuMap = menuObj;
             }
           }
 
           if (menuMap == null) {
-            if (responseData['menu'] is Map<String, dynamic>) {
-              menuMap = responseData['menu'] as Map<String, dynamic>;
+            if (responseData['menus'] is Map<String, dynamic>) {
+              menuMap = responseData['menus'] as Map<String, dynamic>;
             }
           }
         }

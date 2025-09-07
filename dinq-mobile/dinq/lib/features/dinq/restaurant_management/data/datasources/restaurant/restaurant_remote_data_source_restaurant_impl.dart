@@ -24,10 +24,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
         options: Options(headers: headers),
       );
       final statusCode = response.statusCode;
-      // debug: log datasource call and status
-      // ignore: avoid_print
-      print(
-          'RestaurantRemoteDataSourceImpl.createRestaurant called - status: $statusCode');
       if (statusCode == 201 || statusCode == 200) {
         return RestaurantModel.fromMap(response.data);
       } else {
@@ -64,10 +60,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       );
       final response = await dio.getUri(uri);
       final statusCode = response.statusCode;
-      // debug: log datasource call and status
-      // ignore: avoid_print
-      print(
-          'RestaurantRemoteDataSourceImpl.getRestaurants called - status: $statusCode');
       if (statusCode == 200) {
         final data = response.data['restaurants'] as List<dynamic>;
         return data.map((json) => RestaurantModel.fromMap(json)).toList();
@@ -106,10 +98,6 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
         options: Options(headers: headers),
       );
       final statusCode = response.statusCode;
-      // debug: log datasource call and status
-      // ignore: avoid_print
-      print(
-          'RestaurantRemoteDataSourceImpl.getRestaurantBySlug called - status: $statusCode');
       if (statusCode == 200) {
         return RestaurantModel.fromMap(response.data);
       } else {

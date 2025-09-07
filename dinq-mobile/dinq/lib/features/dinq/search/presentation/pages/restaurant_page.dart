@@ -1,54 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
-import '../../../restaurant_management/domain/entities/menu.dart';
+import '../../../restaurant_management/domain/entities/item.dart' as itemmodels;
+import '../../../restaurant_management/domain/entities/restaurant.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
-import '../widgets/bottom_navbar.dart';
 import 'item_details_page.dart';
-
-
 
 class RestaurantPage extends StatefulWidget {
   final Restaurant restaurant;
-
   const RestaurantPage({super.key, required this.restaurant});
 
   @override
-  State<RestaurantPage> createState() => _RestaurantPageState();
+  State<RestaurantPage> createState() =>
+      _RestaurantPageState(restaurant: restaurant);
 }
 
 class _RestaurantPageState extends State<RestaurantPage> {
-  Menu? _menu;
-  bool _isFavorite = false;
+  final Restaurant restaurant;
 
-  // Local lightweight favorites store to avoid importing private helpers
-  static final _LocalFavoritesStore _localFavorites = _LocalFavoritesStore();
-
-  void _onTabSelected(BottomNavTab tab) {
-    if (tab == BottomNavTab.explore) {
-      Navigator.pushReplacementNamed(context, AppRoute.explore);
-    } else if (tab == BottomNavTab.favorites) {
-      Navigator.pushReplacementNamed(context, AppRoute.favorites);
-    } else if (tab == BottomNavTab.profile) {
-      Navigator.pushReplacementNamed(context, AppRoute.profile);
-    }
-  }
-
-  void _toggleFavorite() {
-    setState(() {
-      _isFavorite = !_isFavorite;
-    });
-    // simple local storage: update the favorites store if available
-    if (_isFavorite) {
-      _localFavorites.restaurantIds.add(widget.restaurant.id);
-    } else {
-      _localFavorites.restaurantIds.remove(widget.restaurant.id);
-    }
-  }
+  _RestaurantPageState({required this.restaurant});
 
   @override
   void initState() {
@@ -60,106 +33,68 @@ class _RestaurantPageState extends State<RestaurantPage> {
     });
   }
 
-  List<restmodels.Restaurant> get allRestaurants => [widget.restaurant];
-
-  List<itemmodels.Item> get allDishes {
-    if (_menu == null) return [];
-    return _menu!.items;
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RestaurantBloc, RestaurantState>(
-      builder: (context, state) {
-        if (state is RestaurantLoading) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(color: AppColors.primaryColor),
-            ),
-          );
-        }
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildRestaurantHeader(restaurant),
 
-        if (state is RestaurantError) {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('Menu'),
-              backgroundColor: AppColors.primaryColor,
-            ),
-            body: Center(child: Text('Failed to load menu: ${state.message}')),
-          );
-        }
-
-        if (state is MenuLoaded) {
-          // initialize menu once
-          _menu ??= state.menu;
-
-          return Scaffold(
-            body: SafeArea(
-              child: Column(
-                children: [
-                  _buildRestaurantHeader(),
-                  // Render menu items as a simple list (Menu.items exists in domain)
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(0),
-                      itemCount: _menu!.items.length,
+            // Menu section
+            Expanded(
+              child: BlocBuilder<RestaurantBloc, RestaurantState>(
+                builder: (context, state) {
+                  if (state is RestaurantLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (state is RestaurantError) {
+                    return Center(child: Text(state.message));
+                  } else if (state is MenuLoaded) {
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(10),
+                      itemCount: state.menu.items.length,
                       itemBuilder: (context, index) {
-                        final item = _menu!.items[index];
+                        final item = state.menu.items[index];
                         return _buildMenuItem(item);
                       },
-                    ),
-                  ),
-                ],
+                    );
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
               ),
             ),
-            bottomNavigationBar: BottomNavBar(
-              selectedTab: BottomNavTab.explore,
-              onTabSelected: _onTabSelected,
-            ),
-          );
-        }
-
-        // default fallback
-        return const Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(color: AppColors.primaryColor),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildRestaurantHeader() {
-    // If you later add a real banner image to your model, use it here.
-    const String bannerUrl =
-        'https://plus.unsplash.com/premium_photo-1661883237884-263e8de8869b?q=80&w=889&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; // fallback
+  Widget _buildRestaurantHeader(Restaurant restaurant) {
+    // Fallback cover image
+    String bannerUrl = restaurant.coverImage ??
+        'https://plus.unsplash.com/premium_photo-1661883237884-263e8de8869b?q=80&w=889&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Banner + overlays
+        // Banner
         SizedBox(
           height: 260,
           width: double.infinity,
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // Banner image
-              ClipRRect(
-                child: Image.network(
-                  bannerUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      Container(color: Colors.grey[300]),
-                ),
+              Image.network(
+                bannerUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                    Container(color: Colors.grey[300]),
               ),
 
-              // Bottom gradient for text readability
+              // Gradient overlay
               Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
@@ -170,13 +105,11 @@ class _RestaurantPageState extends State<RestaurantPage> {
                 ),
               ),
 
-              // Top actions (back / share)
+              // Top actions
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8.0,
-                    vertical: 8.0,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -190,8 +123,8 @@ class _RestaurantPageState extends State<RestaurantPage> {
                 ),
               ),
 
-              // Name + subtitle (bottom-left)
-              const Positioned(
+              // Restaurant name
+              Positioned(
                 left: 16,
                 bottom: 16,
                 right: 16,
@@ -199,16 +132,16 @@ class _RestaurantPageState extends State<RestaurantPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Addis Red Sea',
-                      style: TextStyle(
+                      restaurant.restaurantName,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
+                    const SizedBox(height: 4),
+                    const Text(
                       'Traditional Ethiopian cuisine',
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
@@ -218,8 +151,10 @@ class _RestaurantPageState extends State<RestaurantPage> {
             ],
           ),
         ),
+
         const SizedBox(height: 8),
-        // Floating info card overlapping the banner bottom
+
+        // Info card
         Transform.translate(
           offset: const Offset(0, -20),
           child: Padding(
@@ -230,7 +165,7 @@ class _RestaurantPageState extends State<RestaurantPage> {
 
         const SizedBox(height: 4),
 
-        // Digital Menu row (kept as-is, just placed after the card)
+        // Menu header row
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
@@ -344,13 +279,14 @@ class _RestaurantPageState extends State<RestaurantPage> {
     );
   }
 
-  // TabBar removed; menu now renders as a simple list using Menu.items
   Widget _buildMenuItem(itemmodels.Item item) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ItemDetailsPage(item: item)),
+          MaterialPageRoute(
+            builder: (context) => ItemDetailsPage(item: item),
+          ),
         );
       },
       child: Container(
@@ -385,7 +321,8 @@ class _RestaurantPageState extends State<RestaurantPage> {
                       width: 100,
                       height: 100,
                       color: Colors.grey[300],
-                      child: const Icon(Icons.restaurant, color: Colors.grey),
+                      child:
+                          const Icon(Icons.restaurant, color: Colors.grey),
                     );
                   },
                 ),
@@ -450,6 +387,12 @@ class _RestaurantPageState extends State<RestaurantPage> {
           ],
         ),
       ),
+    );
+  }
+
+  void _toggleFavorite() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Saved to favorites!')),
     );
   }
 }
