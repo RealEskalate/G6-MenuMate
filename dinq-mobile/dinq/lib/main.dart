@@ -3,6 +3,7 @@ import 'package:dinq/features/dinq/auth/presentation/Pages/email_verfiction.dart
 import 'package:dinq/features/dinq/auth/presentation/Pages/verify_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // import 'core/injection.dart' as di;
 // import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
@@ -15,6 +16,8 @@ import 'injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Load .env file before anything else
+  await dotenv.load(fileName: ".env");
   // ConfigPresets.developmentDemo();
   await di.init();
   runApp(const MyApp());
