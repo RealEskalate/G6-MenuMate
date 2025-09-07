@@ -7,10 +7,22 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../../core/routing/app_route.dart';
+import '../../../../../core/network/api_client.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../data/datasources/qr_code_remote_data_source.dart';
+import '../../data/repositories/qr_code_repository_impl.dart';
+import '../../domain/usecases/qr_code/generate_qr_code.dart';
 import 'generated_qr_page.dart';
 
 class QrCustomizationPage extends StatefulWidget {
-  const QrCustomizationPage({Key? key}) : super(key: key);
+  final String? menuId;
+  final String? restaurantSlug;
+
+  const QrCustomizationPage({
+    Key? key,
+    this.menuId,
+    this.restaurantSlug,
+  }) : super(key: key);
 
   @override
   State<QrCustomizationPage> createState() => _QrCustomizationPageState();
@@ -49,8 +61,77 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
   double _fontSize = 12;
 
   Future<String?> _sendCustomizationAndGetQr() async {
-    await Future.delayed(const Duration(seconds: 2));
-    return 'assets/images/sample_qr.png';
+    try {
+      // Check if we have the required parameters
+      if (widget.menuId == null || widget.restaurantSlug == null) {
+        print('❌ Missing menuId or restaurantSlug');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Missing menu or restaurant information')),
+        );
+        return null;
+      }
+
+      // Prepare customization data
+      final customizationData = {
+        'background_color': _bgController.text,
+        'foreground_color': _fgController.text,
+        'gradient_from_color': _gradientFromController.text,
+        'gradient_to_color': _gradientToController.text,
+        'gradient_direction': _gradientDirection.toLowerCase().replaceAll(' ', '_'),
+        'label_text': _labelController.text,
+        'label_color': _labelColorController.text,
+        'label_font_size': _fontSize,
+        'logo_size_percentage': _logoSize,
+        'margin': _margin,
+        'has_logo': _logoFile != null,
+      };
+
+      print('🎨 Sending customization data: $customizationData');
+
+      // Initialize API client and services
+      final apiClient = ApiClient(baseUrl: baseUrl);
+      final qrDataSource = QrCodeRemoteDataSourceImpl(apiClient: apiClient);
+      final qrRepository = QrCodeRepositoryImpl(remoteDataSource: qrDataSource);
+      final generateQrCode = GenerateQrCode(qrRepository);
+
+      // Call the API
+      final result = await generateQrCode(
+        restaurantSlug: widget.restaurantSlug!,
+        menuId: widget.menuId!,
+        customizationData: customizationData,
+      );
+
+      return result.fold(
+        (failure) {
+          print('❌ QR generation failed: ${failure.message}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to generate QR code: ${failure.message}')),
+          );
+          return null;
+        },
+        (response) {
+          print('✅ QR generation successful: $response');
+
+          // Extract the QR code image URL from the response
+          final qrData = response['data']?['qr_code'];
+          if (qrData != null && qrData['image_url'] != null) {
+            return qrData['image_url'] as String;
+          } else {
+            print('❌ No image URL in response');
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('No QR code image received from server')),
+            );
+            return null;
+          }
+        },
+      );
+    } catch (e) {
+      print('❌ QR generation error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error generating QR code: $e')),
+      );
+      return null;
+    }
   }
 
   Future<void> _pickLogo() async {
@@ -496,14 +577,12 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
                             final qrPath = await _sendCustomizationAndGetQr();
                             setState(() => _loading = false);
                             if (qrPath != null && mounted) {
-                              // Navigate or handle generated QR here.
+                              // Navigate to generated QR page with the image URL
                               Navigator.of(context).pushNamed(
                                 AppRoute.generatedQr,
-                                // arguments: {
-                                //   // Replace with actual QR image path after generation
-                                //   'qrImagePath':
-                                //       'assets/images/qr_placeholder.png',
-                                // },
+                                arguments: {
+                                  'qrImagePath': qrPath,
+                                },
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(

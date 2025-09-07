@@ -203,8 +203,8 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
         Navigator.of(context).pushNamed(
           AppRoute.qrcustomization,
           arguments: {
-            'qrImagePath': 'assets/images/qr_placeholder.png',
             'menuId': menuId,
+            'restaurantSlug': restaurantSlug,
           },
         );
       }

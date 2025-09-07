@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
 
 import '../../../../../core/util/theme.dart';
 
@@ -34,18 +36,33 @@ class _GeneratedQrPageState extends State<GeneratedQrPage> {
       final downloadsDir = Directory('/storage/emulated/0/Download');
       final fileName = 'qr_code_${DateTime.now().millisecondsSinceEpoch}';
 
-      if (_selectedFormat == '.png') {
-        // Copy the PNG file to Downloads
+      // Get image bytes (handle both network and local images)
+      Uint8List imageBytes;
+      if (widget.qrImagePath.startsWith('http')) {
+        // Network image
+        final response = await http.get(Uri.parse(widget.qrImagePath));
+        if (response.statusCode == 200) {
+          imageBytes = response.bodyBytes;
+        } else {
+          throw Exception('Failed to download image: ${response.statusCode}');
+        }
+      } else {
+        // Local file
         final file = File(widget.qrImagePath);
+        imageBytes = await file.readAsBytes();
+      }
+
+      if (_selectedFormat == '.png') {
+        // Save as PNG
         final newPath = '${downloadsDir.path}/$fileName.png';
-        await file.copy(newPath);
+        final pngFile = File(newPath);
+        await pngFile.writeAsBytes(imageBytes);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('QR Code saved as PNG in Downloads')),
         );
       } else if (_selectedFormat == '.pdf') {
         // Create a PDF with the QR image
         final pdf = pw.Document();
-        final imageBytes = await File(widget.qrImagePath).readAsBytes();
         final image = pw.MemoryImage(imageBytes);
 
         pdf.addPage(
@@ -87,15 +104,41 @@ class _GeneratedQrPageState extends State<GeneratedQrPage> {
         children: [
           const SizedBox(height: 32),
           Center(
-            child: Image.asset(
-              widget.qrImagePath,
-              width: 200,
-              height: 200,
-              fit: BoxFit.contain,
-            ),
+            child: widget.qrImagePath.startsWith('http')
+                ? Image.network(
+                    widget.qrImagePath,
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const SizedBox(
+                        width: 200,
+                        height: 200,
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const SizedBox(
+                        width: 200,
+                        height: 200,
+                        child: Center(
+                          child: Icon(Icons.error, size: 50, color: Colors.red),
+                        ),
+                      );
+                    },
+                  )
+                : Image.asset(
+                    widget.qrImagePath,
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.contain,
+                  ),
           ),
           const SizedBox(height: 40),
-          
+
           // Download button with dropdown
           Center(
             child: SizedBox(
