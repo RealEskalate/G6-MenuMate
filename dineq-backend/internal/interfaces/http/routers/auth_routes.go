@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"strings"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
@@ -80,6 +81,7 @@ func NewAuthRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database) 
 		CookieSecure:         env.CookieSecure,
 		CookieDomain:         env.CookieDomain,
 		FrontendBaseURL:      env.FrontendBaseURL,
+	CookieHTTPOnly:       strings.ToLower(env.AppEnv) != "development",
 	}
 
 	auth := api.Group("/auth/")
