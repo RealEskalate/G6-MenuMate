@@ -69,6 +69,8 @@ func UserFromDomain(user *domain.User) *UserModel {
 		Role:         string(user.Role),
 		Status:       string(user.Status),
 		Preferences:  user.Preferences,
+	CreatedAt:    user.CreatedAt,
+	UpdatedAt:    user.UpdatedAt,
 	}
 }
 

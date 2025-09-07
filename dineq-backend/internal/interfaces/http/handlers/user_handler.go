@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
@@ -21,19 +22,19 @@ func NewUserController(userUC domain.IUserUsecase, notificationUC domain.INotifi
 	return &UserController{userUC: userUC, notificationUC: notificationUC}
 }
 
-// GetAvatarOptions returns selectable avatar image URLs.
-// Query param: gender=male|female (optional). If omitted returns combined list.
+
 func (ctrl *UserController) GetAvatarOptions(c *gin.Context) {
 	gender := c.Query("gender")
 	numParam := c.Query("number")
 	base := "https://avatar.iran.liara.run/public"
-	// Ranges: male 1-20, female 50-69 (20 each)
+	// Ranges as per requirements
 	type avatar struct {
 		ID     int    `json:"id"`
 		URL    string `json:"url"`
 		Gender string `json:"gender"`
 	}
-	var list []avatar
+	// ensure empty array [] instead of null when no results
+	list := make([]avatar, 0)
 	includeMale := gender == "" || gender == "male"
 	includeFemale := gender == "" || gender == "female"
 	if gender != "" && gender != "male" && gender != "female" {
@@ -41,22 +42,31 @@ func (ctrl *UserController) GetAvatarOptions(c *gin.Context) {
 		return
 	}
 
-	maleEndDefault := 10
-	femaleSpanDefault := 10
-	var maleEnd int = maleEndDefault
-	var femaleEnd int = 50 + femaleSpanDefault - 1
+	// Defaults if number not provided
+	defaultCount := 10
+	// Male range
+	maleStart, maleMax := 1, 49
+	maleEnd := maleStart + defaultCount - 1
+	if maleEnd > maleMax {
+		maleEnd = maleMax
+	}
+	// Female range
+	femaleStart, femaleMax := 50, 100
+	femaleEnd := femaleStart + defaultCount - 1
+	if femaleEnd > femaleMax {
+		femaleEnd = femaleMax
+	}
 	if numParam != "" {
 		if n, err := strconv.Atoi(numParam); err == nil && n > 0 {
-			// For male example: number=30 -> 1..30
-			maleEnd = n
-			// For female example: number=40 -> 50..(50+40)
-			femaleEnd = 50 + n
-			// basic upper bounds to avoid runaway
-			if maleEnd > 49 {
-				maleEnd = 49
+			// For male: 1..min(1+n-1,49)
+			maleEnd = maleStart + n - 1
+			if maleEnd > maleMax {
+				maleEnd = maleMax
 			}
-			if femaleEnd > 49 {
-				femaleEnd = 49
+			// For female: 50..min(50+n-1,100)
+			femaleEnd = femaleStart + n - 1
+			if femaleEnd > femaleMax {
+				femaleEnd = femaleMax
 			}
 		}
 	}
@@ -67,7 +77,7 @@ func (ctrl *UserController) GetAvatarOptions(c *gin.Context) {
 		}
 	}
 	if includeFemale {
-		for i := 50; i <= femaleEnd; i++ {
+		for i := femaleStart; i <= femaleEnd; i++ {
 			list = append(list, avatar{ID: i, URL: fmt.Sprintf("%s/%d", base, i), Gender: "female"})
 		}
 	}
@@ -123,10 +133,18 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 	}
 
 	var req dto.UserUpdateProfileRequest
-	if err := c.ShouldBind(&req); err != nil { // auto-detect multipart
-		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
+	var bindErr error
+	// First, try to bind JSON body safely (keeps a copy of body for later use if needed)
+	if err := c.ShouldBindBodyWithJSON(&req); err != nil {
+		// Fallback to generic binding (form/multipart)
+		bindErr = c.ShouldBind(&req)
+	}
+	if bindErr != nil {
+		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", bindErr)
 		return
 	}
+	// Debug: show what was bound
+	fmt.Printf("[UpdateProfile] bound: first_name=%q last_name=%q profile_image=%q contentType=%q\n", req.FirstName, req.LastName, req.ProfileImageURL, c.GetHeader("Content-Type"))
 	if err := validate.Struct(&req); err != nil {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidInput.Error(), "invalid_input", err)
 		return
@@ -157,7 +175,14 @@ func (ctrl *UserController) UpdateProfile(c *gin.Context) {
 		fileName = fileHeader.Filename
 	}
 
-	update := domain.UserProfileUpdate{AvatarData: avatarData, FirstName: req.FirstName, LastName: req.LastName}
+	// Normalize inputs
+	fn := strings.TrimSpace(req.FirstName)
+	ln := strings.TrimSpace(req.LastName)
+	update := domain.UserProfileUpdate{AvatarData: avatarData, FirstName: fn, LastName: ln}
+	// If JSON provided a profile_image URL and no file, use it
+	if len(avatarData) == 0 && req.ProfileImageURL != "" {
+		update.AvatarURL = req.ProfileImageURL
+	}
 	updatedUser, err := ctrl.userUC.UpdateProfile(uid, update, fileName)
 	if err == domain.ErrUserNotFound {
 		dto.WriteError(c, domain.ErrUserNotFound)

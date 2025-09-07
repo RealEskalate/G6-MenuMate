@@ -19,8 +19,8 @@ type UserRequest struct {
 	Email        string      `json:"email" validate:"omitempty,email"`
 	PhoneNumber  string      `json:"phone_number" validate:"omitempty,e164"`
 	Password     string      `json:"password" validate:"omitempty,min=6,max=100"`
-	FirstName    string      `json:"first_name" validate:"omitempty,alpha,min=2,max=50"`
-	LastName     string      `json:"last_name" validate:"omitempty,alpha,min=2,max=50"`
+	FirstName    string      `json:"first_name" validate:"omitempty,min=2,max=50"`
+	LastName     string      `json:"last_name" validate:"omitempty,min=2,max=50"`
 	FullName     string      `json:"full_name" validate:"omitempty,min=2,max=100"`
 	Role         string      `json:"role" validate:"omitempty,oneof=OWNER MANAGER STAFF CUSTOMER ADMIN"`
 	AuthProvider string      `json:"auth_provider" validate:"omitempty,oneof=EMAIL GOOGLE PHONE"`
@@ -111,10 +111,11 @@ func ToUserResponseList(users []*domain.User) []UserResponse {
 // / 	USER UPDATE REQUEST
 // user update profile request
 type UserUpdateProfileRequest struct {
-	Bio          string                `form:"bio" validate:"omitempty,max=500"`
-	FirstName    string                `form:"first_name" validate:"omitempty,alpha,min=2,max=50"`
-	LastName     string                `form:"last_name" validate:"omitempty,alpha,min=2,max=50"`
+	Bio          string                `form:"bio" json:"bio" validate:"omitempty,max=500"`
+	FirstName    string                `form:"first_name" json:"first_name" validate:"omitempty,min=2,max=50"`
+	LastName     string                `form:"last_name" json:"last_name" validate:"omitempty,min=2,max=50"`
 	ProfileImage *multipart.FileHeader `form:"profile_image" validate:"omitempty"`
+	ProfileImageURL string             `json:"profile_image" validate:"omitempty,url"`
 }
 
 // change password request
