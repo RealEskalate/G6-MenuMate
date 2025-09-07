@@ -124,7 +124,13 @@ class AppRoute {
       case editMenu:
         return MaterialPageRoute(builder: (_) => const EditMenuPage());
       case qrcustomization:
-        return MaterialPageRoute(builder: (_) => const QrCustomizationPage());
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => QrCustomizationPage(
+            menuId: args?['menuId'],
+            restaurantSlug: args?['restaurantSlug'] ?? 'the-italian-corner-4b144298',
+          ),
+        );
       case editSingleMenu:
         // Pass menuData as arguments if needed
         final args = settings.arguments as Map<String, dynamic>?;
