@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
@@ -16,10 +17,11 @@ type MenuHandler struct {
 	QrUseCase           domain.IQRCodeUseCase
 	NotificationUseCase domain.INotificationUseCase
 	RestaurantUseCase   domain.IRestaurantUsecase
+	ViewEventRepo       domain.IViewEventRepository
 }
 
-func NewMenuHandler(uc domain.IMenuUseCase, qc domain.IQRCodeUseCase, rc domain.IRestaurantUsecase, nc domain.INotificationUseCase) *MenuHandler {
-	return &MenuHandler{UseCase: uc, QrUseCase: qc, RestaurantUseCase: rc, NotificationUseCase: nc}
+func NewMenuHandler(uc domain.IMenuUseCase, qc domain.IQRCodeUseCase, rc domain.IRestaurantUsecase, nc domain.INotificationUseCase, v domain.IViewEventRepository) *MenuHandler {
+	return &MenuHandler{UseCase: uc, QrUseCase: qc, RestaurantUseCase: rc, NotificationUseCase: nc, ViewEventRepo: v}
 }
 
 func (h *MenuHandler) ensureOwnership(c *gin.Context, slug string, userID string) bool {
@@ -108,12 +110,37 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 // GetMenuByID retrieves a menu by ID
 func (h *MenuHandler) GetMenus(c *gin.Context) {
 	id := c.Param("restaurant_slug")
-	menu, err := h.UseCase.GetByRestaurantID(id)
+	// Try to load restaurant by slug to safely increment its view count
+	rest, _ := h.RestaurantUseCase.GetRestaurantBySlug(c.Request.Context(), id)
+	menus, err := h.UseCase.GetByRestaurantID(id)
 	if err != nil {
 		dto.WriteError(c, domain.ErrNotFound)
 		return
 	}
-	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menu": dto.MenuResponseList(menu)}})
+	// Increment view count for restaurant and all menus, log view events
+	if rest != nil && rest.ID != "" {
+		_ = h.RestaurantUseCase.IncrementRestaurantViewCount(rest.ID)
+		h.ViewEventRepo.LogView(&domain.ViewEvent{
+			EntityType: "restaurant",
+			EntityID:   rest.ID,
+			UserID:     getUserID(c),
+			Timestamp:  time.Now(),
+			IP:         c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+		})
+	}
+	for _, m := range menus {
+		h.UseCase.IncrementMenuViewCount(m.ID)
+		h.ViewEventRepo.LogView(&domain.ViewEvent{
+			EntityType: "menu",
+			EntityID:   m.ID,
+			UserID:     getUserID(c),
+			Timestamp:  time.Now(),
+			IP:         c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+		})
+	}
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"menu": dto.MenuResponseList(menus)}})
 }
 
 // UpdateMenu updates an existing menu's details
@@ -269,6 +296,28 @@ func (h *MenuHandler) GetMenuItemBySlug(c *gin.Context) {
 	if err != nil {
 		dto.WriteError(c, err)
 		return
+	}
+	// Increment view count for item and parent menu, log view events
+	h.UseCase.IncrementMenuViewCount(menuSlug)
+	h.ViewEventRepo.LogView(&domain.ViewEvent{
+		EntityType: "menu",
+		EntityID:   menuSlug,
+		UserID:     getUserID(c),
+		Timestamp:  time.Now(),
+		IP:         c.ClientIP(),
+		UserAgent:  c.Request.UserAgent(),
+	})
+	// If item has an ID
+	if item != nil && item.ID != "" {
+		// You may want to add an IncrementItemViewCount method
+		h.ViewEventRepo.LogView(&domain.ViewEvent{
+			EntityType: "item",
+			EntityID:   item.ID,
+			UserID:     getUserID(c),
+			Timestamp:  time.Now(),
+			IP:         c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+		})
 	}
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"item": dto.ItemToResponse(item)}})
 }

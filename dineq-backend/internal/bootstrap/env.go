@@ -126,6 +126,9 @@ type Env struct {
 	ItemCollection   string `mapstructure:"ITEM_COLLECTION"`
 	QRCodeContent    string `mapstructure:"QR_CODE_CONTENT"`
 
+	// view event collection
+	ViewEventCollection string `mapstructure:"VIEW_EVENT_COLLECTION"`
+
 	// reset password session expiry
 	PasswordResetSessionExpiry     int    `mapstructure:"PASSWORD_RESET_SESSION_EXPIRE_MINUTES"` // in minutes
 	PasswordResetSessionCollection string `mapstructure:"PASSWORD_RESET_SESSION_COLLECTION"`
@@ -203,6 +206,7 @@ func NewEnv() (*Env, error) {
 	env.MenuCollection = os.Getenv("MENU_COLLECTION")
 	env.QRCodeCollection = os.Getenv("QR_CODE_COLLECTION")
 	env.ItemCollection = os.Getenv("ITEM_COLLECTION")
+	env.ViewEventCollection = os.Getenv("VIEW_EVENT_COLLECTION")
 	env.CookieSecure = strings.ToLower(os.Getenv("COOKIE_SECURE")) == "true"
 	env.CookieDomain = os.Getenv("COOKIE_DOMAIN")
 	env.CORSAllowedOriginsRaw = os.Getenv("CORS_ALLOWED_ORIGINS")

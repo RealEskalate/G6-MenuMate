@@ -25,7 +25,8 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 
 	restaurantRepo := repositories.NewRestaurantRepo(db, env.RestaurantCollection)
 	restaurantUsecase := usecase.NewRestaurantUsecase(restaurantRepo, ctxTimeout, cloudinaryStorage)
-	restaurantHandler := handler.NewRestaurantHandler(restaurantUsecase)
+	viewEventRepo := repositories.NewViewEventRepository(db, env.ViewEventCollection)
+	restaurantHandler := handler.NewRestaurantHandler(restaurantUsecase, viewEventRepo)
 
 	// Public endpoints (no auth required)
 	pub := group.Group("/restaurants")

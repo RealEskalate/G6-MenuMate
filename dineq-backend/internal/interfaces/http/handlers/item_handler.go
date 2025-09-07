@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
@@ -10,10 +11,11 @@ import (
 
 type ItemHandler struct {
 	UseCase domain.IItemUseCase
+	ViewEventRepo domain.IViewEventRepository
 }
 
-func NewItemHandler(uc domain.IItemUseCase) *ItemHandler {
-	return &ItemHandler{UseCase: uc}
+func NewItemHandler(uc domain.IItemUseCase, v domain.IViewEventRepository) *ItemHandler {
+	return &ItemHandler{UseCase: uc, ViewEventRepo: v}
 }
 
 // CreateItem handles the creation of a new item
@@ -47,6 +49,15 @@ func (h *ItemHandler) GetItemByID(c *gin.Context) {
 		dto.WriteError(c, domain.ErrNotFound)
 		return
 	}
+	// Increment view count and log view event
+	h.ViewEventRepo.LogView(&domain.ViewEvent{
+		EntityType: "item",
+		EntityID:   id,
+		UserID:     getUserID(c),
+		Timestamp:  time.Now(),
+		IP:         c.ClientIP(),
+		UserAgent:  c.Request.UserAgent(),
+	})
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgRetrieved, Data: gin.H{"item": item}})
 }
 
@@ -59,7 +70,25 @@ func (h *ItemHandler) GetItems(c *gin.Context) {
 		dto.WriteError(c, err)
 		return
 	}
+	// Log view event for menu
+	h.ViewEventRepo.LogView(&domain.ViewEvent{
+		EntityType: "menu",
+		EntityID:   menuSlug,
+		UserID:     getUserID(c),
+		Timestamp:  time.Now(),
+		IP:         c.ClientIP(),
+		UserAgent:  c.Request.UserAgent(),
+	})
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgRetrieved, Data: gin.H{"items": dto.ItemToResponseList(items)}})
+}
+// Helper to extract user ID from context (if available)
+func getUserID(c *gin.Context) string {
+	if uid, ok := c.Get("user_id"); ok {
+		if s, ok := uid.(string); ok {
+			return s
+		}
+	}
+	return ""
 }
 
 // UpdateItem updates an existing item's details
