@@ -79,9 +79,9 @@ class _RestaurantPageState extends State<RestaurantPage>
     // When creating a Restaurant for UI display:
     models.Restaurant(
       id: widget.restaurantId,
-      name: 'Addis Red Sea',
+      name: 'Bella Italia',
       bannerUrl:
-          'https://plus.unsplash.com/premium_photo-1661883237884-263e8de8869b?q=80&w=889&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+          'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
       verificationStatus:
           models.VerificationStatus.verified, // required, pick any
       contact: models.Contact(
@@ -91,7 +91,7 @@ class _RestaurantPageState extends State<RestaurantPage>
       ), // required, dummy
       ownerId: '',
       branchIds: [],
-      averageRating: 4.5,
+      averageRating: 4.8,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     ),
@@ -135,19 +135,22 @@ class _RestaurantPageState extends State<RestaurantPage>
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildRestaurantHeader(),
-            _buildTabBar(),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: _menu!.tabs
-                    .map((menuTab) => _buildTabContent(menuTab))
-                    .toList(),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              _buildRestaurantHeader(),
+              _buildTabBar(),
+              SizedBox(
+                height: 600, // Fixed height for tab content
+                child: TabBarView(
+                  controller: _tabController,
+                  children: _menu!.tabs
+                      .map((menuTab) => _buildTabContent(menuTab))
+                      .toList(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomNavBar(
@@ -222,7 +225,7 @@ class _RestaurantPageState extends State<RestaurantPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Addis Red Sea',
+                      'Bella Italia',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 24,
@@ -232,7 +235,7 @@ class _RestaurantPageState extends State<RestaurantPage>
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Traditional Ethiopian cuisine',
+                      'Authentic Italian cuisine',
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                   ],

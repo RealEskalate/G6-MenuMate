@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import '../constants/constants.dart';
 
 class TokenManager {
   static const String _accessTokenKey = 'access_token';
@@ -16,7 +17,14 @@ class TokenManager {
 
   static Future<String?> getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_accessTokenKey);
+    String? token = prefs.getString(_accessTokenKey);
+
+    // If no token in SharedPreferences, use the hardcoded token from constants
+    if (token == null || token.isEmpty) {
+      token = accessToken;
+    }
+
+    return token;
   }
 
   static Future<String?> getRefreshToken() async {
@@ -41,9 +49,21 @@ class TokenManager {
   }
 
   static Future<Map<String, String>?> getAuthHeaders() async {
-    final token = await getAccessToken();
-    if (token == null) return null;
+    String? token = await getAccessToken();
+    print('🔍 TokenManager.getAuthHeaders - SharedPreferences token: ${token != null ? token.substring(0, 20) + "..." : "null"}');
 
+    // If no token in SharedPreferences, use the hardcoded token from constants
+    if (token == null || token.isEmpty) {
+      token = accessToken;
+      print('🔄 Using hardcoded token from constants: ${token != null ? token.substring(0, 20) + "..." : "null"}');
+    }
+
+    if (token == null || token.isEmpty) {
+      print('❌ No token available!');
+      return null;
+    }
+
+    print('✅ Using token: ${token.substring(0, 20)}...');
     return {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json',
