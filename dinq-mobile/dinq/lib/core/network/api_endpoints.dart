@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ApiEndpoints {
   // private base URL
   static String get _baseUrl =>
-      dotenv.env['BASE_URL'] ?? 'https://dineq.onrender.com/api/v1';
+      dotenv.env['BASE_URL']!;
   // Public root accessor when the raw base URL is required (kept minimal)
   static String get root => _baseUrl;
 

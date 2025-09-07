@@ -15,8 +15,8 @@ import '../widgets/rest_menu_card.dart';
 // For navigation, if needed
 
 class MenusPage extends StatelessWidget {
-  final String restaurantId;
-  const MenusPage({super.key, required this.restaurantId});
+  final String restaurantSlug;
+  const MenusPage({super.key, required this.restaurantSlug});
 
   void _showDigitizeMenuDialog(BuildContext context) {
     showDialog(
@@ -60,7 +60,7 @@ class MenusPage extends StatelessWidget {
                     Navigator.pushNamed(
                       context,
                       '/create-menu-manually',
-                      arguments: {'restaurantId': restaurantId},
+                      arguments: {'restaurantId': restaurantSlug},
                     );
                   },
                 ),
@@ -75,7 +75,7 @@ class MenusPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<RestaurantBloc>(
-      create: (_) => sl<RestaurantBloc>()..add(LoadMenu(restaurantId)),
+      create: (_) => sl<RestaurantBloc>()..add(LoadMenu(restaurantSlug: restaurantSlug)),
       child: Scaffold(
         backgroundColor: AppColors.whiteColor,
         appBar: AppBar(
@@ -150,7 +150,7 @@ class MenusPage extends StatelessWidget {
         bottomNavigationBar: OwnerNavBar(
           isRestaurantOwner: true,
           currentIndex: 3,
-          restaurantId: restaurantId,
+          restaurantId: restaurantSlug,
         ),
       ),
     );

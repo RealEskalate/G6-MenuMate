@@ -57,7 +57,7 @@ class _RestaurantPageState extends State<RestaurantPage> {
     super.initState();
     // Ask the RestaurantBloc to load the menu for this restaurant
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<RestaurantBloc>().add(LoadMenu(widget.restaurantId));
+      context.read<RestaurantBloc>().add(LoadMenu(restaurantSlug: widget.restaurantId));
     });
   }
 

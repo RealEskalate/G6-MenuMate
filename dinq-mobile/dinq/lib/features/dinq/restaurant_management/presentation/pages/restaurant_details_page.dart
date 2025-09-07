@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../domain/entities/restaurant.dart';
+
 class RestaurantDetailsPage extends StatefulWidget {
-  const RestaurantDetailsPage({super.key});
+  final Restaurant restaurant;
+  const RestaurantDetailsPage({super.key, required this.restaurant});
 
   @override
   State<RestaurantDetailsPage> createState() => _RestaurantDetailsPageState();

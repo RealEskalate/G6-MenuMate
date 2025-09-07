@@ -5,9 +5,9 @@ import 'resturant_registration.dart';
 import '../widgets/Login_TextFields.dart';
 import '../widgets/Login_button.dart';
 import '../widgets/checkbox.dart';
-import '../../presentation/bloc/user_bloc.dart';
-import '../../presentation/bloc/user_event.dart';
-import '../../presentation/bloc/user_state.dart';
+import '../bloc/user_bloc.dart';
+import '../bloc/user_event.dart';
+import '../bloc/user_state.dart';
 
 class MangerRegistration extends StatefulWidget {
   const MangerRegistration({super.key});

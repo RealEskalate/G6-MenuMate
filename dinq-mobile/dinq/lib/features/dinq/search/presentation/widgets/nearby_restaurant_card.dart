@@ -1,25 +1,12 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
+import '../../../restaurant_management/domain/entities/restaurant.dart';
 
 class NearbyRestaurantCard extends StatelessWidget {
-  final String imageUrl;
-  final String name;
-  final String cuisine;
-  final String distance;
-  final double rating;
-  final int reviews;
-  final VoidCallback? onViewMenu;
+  final Restaurant restaurant;
 
-  const NearbyRestaurantCard({
-    super.key,
-    required this.imageUrl,
-    required this.name,
-    required this.cuisine,
-    required this.distance,
-    required this.rating,
-    required this.reviews,
-    this.onViewMenu,
-  });
+  const NearbyRestaurantCard({super.key, required this.restaurant});
 
   @override
   Widget build(BuildContext context) {
@@ -34,28 +21,40 @@ class NearbyRestaurantCard extends StatelessWidget {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.network(
-            imageUrl,
+            restaurant.logoImage ??
+                'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
             width: 56,
             height: 56,
             fit: BoxFit.cover,
           ),
         ),
-        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(restaurant.restaurantName,
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('$cuisine • $distance', style: const TextStyle(fontSize: 13)),
+            if (restaurant.tags != null && restaurant.tags!.isNotEmpty)
+              ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: restaurant.tags?.length,
+                  itemBuilder: (context, index) {
+                    return Text(restaurant.tags![index],
+                        style:
+                            const TextStyle(fontSize: 13, color: Colors.grey));
+                  },
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero),
             Row(
               children: [
                 const Icon(Icons.star, color: Colors.orange, size: 16),
                 const SizedBox(width: 2),
                 Text(
-                  '$rating',
+                  '${restaurant.averageRating}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '($reviews)',
+                  '(${restaurant.viewCount})',
                   style: const TextStyle(fontSize: 13, color: Colors.grey),
                 ),
               ],
@@ -72,7 +71,9 @@ class NearbyRestaurantCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             elevation: 0,
           ),
-          onPressed: onViewMenu,
+          onPressed: () {
+            Navigator.pushNamed(context, AppRoute.restaurant);
+          },
           child: const Text('View Menu'),
         ),
       ),

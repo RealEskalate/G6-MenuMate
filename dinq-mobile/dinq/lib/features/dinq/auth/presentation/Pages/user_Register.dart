@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/util/theme.dart';
-import '../../presentation/bloc/user_bloc.dart';
-import '../../presentation/bloc/user_event.dart';
-import '../../presentation/bloc/user_state.dart';
+import '../bloc/user_bloc.dart';
+import '../bloc/user_event.dart';
+import '../bloc/user_state.dart';
 import '../widgets/Login_TextFields.dart';
 import '../widgets/Login_button.dart';
 import 'login_page.dart';
+import '../../../../../core/routing/app_route.dart';
 
 class UserRegister extends StatefulWidget {
   const UserRegister({super.key});
@@ -145,12 +146,7 @@ class _UserRegisterState extends State<UserRegister>
     }
   }
 
-  void _navigateToLoginPage() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
-  }
+  // navigation handled in BlocListener
 
   @override
   Widget build(BuildContext context) {
@@ -159,14 +155,15 @@ class _UserRegisterState extends State<UserRegister>
         if (state is UserRegistered) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content:
-                  Text('Registration successful! Please login to continue.'),
+              content: Text('Registration successful!'),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 3),
+              duration: Duration(seconds: 2),
             ),
           );
-          Future.delayed(
-              const Duration(seconds: 2), () => _navigateToLoginPage());
+          // navigate to home/explore
+          Future.delayed(const Duration(milliseconds: 800), () {
+            Navigator.pushReplacementNamed(context, AppRoute.explore);
+          });
         } else if (state is UserError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
@@ -271,23 +268,15 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                 ),
                 const SizedBox(height: 30),
-                BlocBuilder<UserBloc, UserState>(
-                  builder: (context, state) {
-                    return ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: state is UserLoading
-                            ? const CircularProgressIndicator()
-                            : GestureDetector(
-                                onTap: _registerUser,
-                                child: const LoginButton(
-                                  buttonname: 'Register',
-                                ),
-                              ),
-                      ),
-                    );
-                  },
+                ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: LoginButton(
+                      buttonname: 'Register',
+                      onPressed: _registerUser,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 30),
                 FadeTransition(

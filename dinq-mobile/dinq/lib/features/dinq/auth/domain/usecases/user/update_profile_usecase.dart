@@ -9,6 +9,6 @@ class UpdateProfileUseCase {
   UpdateProfileUseCase(this.repository);
 
   Future<Either<Failure, Map<String, dynamic>>> call(
-    Map<String, dynamic> updates,
-  ) => repository.updateProfile(updates);
+          {required Map<String, dynamic> updates}) =>
+      repository.updateProfile(updates);
 }

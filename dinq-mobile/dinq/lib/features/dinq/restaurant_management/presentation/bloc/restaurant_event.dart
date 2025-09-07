@@ -20,12 +20,12 @@ class LoadRestaurants extends RestaurantEvent {
 }
 
 class LoadMenu extends RestaurantEvent {
-  final String restaurantId;
+  final String restaurantSlug;
 
-  const LoadMenu(this.restaurantId);
+  const LoadMenu({required this.restaurantSlug});
 
   @override
-  List<Object?> get props => [restaurantId];
+  List<Object?> get props => [restaurantSlug];
 }
 
 // class LoadCategories extends RestaurantEvent {

@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../domain/usecases/menu/upload_menu.dart';
 
 import '../../../../../core/util/theme.dart';
-import '../../../../dinq/restaurant_management/data/model/menu_create_model.dart';
+import '../../data/model/menu_create_model.dart';
 import '../../../../../injection_container.dart' as di;
 
 class DigitizeMenuPage extends StatefulWidget {

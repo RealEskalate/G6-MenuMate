@@ -9,6 +9,8 @@ import 'core/util/theme.dart';
 import 'features/dinq/auth/presentation/Pages/login_page.dart';
 import 'features/dinq/auth/presentation/bloc/user_bloc.dart';
 import 'features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import 'features/dinq/restaurant_management/presentation/bloc/restaurant_event.dart';
+import 'features/dinq/search/presentation/pages/home_page.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -17,8 +19,19 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<RestaurantBloc>().add(const LoadRestaurants(page: 1, pageSize: 20));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +46,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         // start at login and use centralized route generator
-        home: const LoginPage(),
+        home: const HomePage(),
         onGenerateRoute: AppRoute.onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: appTheme,

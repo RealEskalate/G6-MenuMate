@@ -1,12 +1,29 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'core/network/api_endpoints.dart';
-import 'core/network/token_manager.dart';
 import 'core/network/auth_interceptor.dart';
 import 'core/network/network_info.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'core/network/token_manager.dart';
+import 'features/dinq/auth/data/datasources/user_remote_data_source.dart';
+import 'features/dinq/auth/data/datasources/user_remote_data_source_impl.dart';
+import 'features/dinq/auth/data/repositories/user_repository_impl.dart';
+import 'features/dinq/auth/domain/repositories/user_repository.dart';
+import 'features/dinq/auth/domain/usecases/user/change_password_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/forgot_password_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/get_google_redirect_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/handle_google_callback_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/login_user_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/register_user_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/resend_otp_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/reset_password_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/update_profile_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/verify_email_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/verify_otp_usecase.dart';
+import 'features/dinq/auth/presentation/bloc/user_bloc.dart';
 import 'features/dinq/restaurant_management/data/datasources/menu/menu_remote_data_source.dart';
 import 'features/dinq/restaurant_management/data/datasources/menu/menu_remote_data_source_impl.dart';
 import 'features/dinq/restaurant_management/data/datasources/restaurant/restaurant_remote_data_source_restaurant.dart';
@@ -35,17 +52,13 @@ import 'features/dinq/restaurant_management/domain/usecases/review/delete_review
 import 'features/dinq/restaurant_management/domain/usecases/review/get_reviews.dart';
 import 'features/dinq/restaurant_management/domain/usecases/review/get_user_images.dart';
 import 'features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
-import 'features/dinq/auth/presentation/bloc/user_bloc.dart';
-import 'features/dinq/auth/domain/usecases/user/register_user_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/login_user_usecase.dart';
-import 'features/dinq/auth/data/datasources/user_remote_data_source.dart';
-import 'features/dinq/auth/data/datasources/user_remote_data_source_impl.dart';
-import 'features/dinq/auth/data/repositories/user_repository_impl.dart';
-import 'features/dinq/auth/domain/repositories/user_repository.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
+  // Load environment variables and register dotenv for DI
+  await dotenv.load(fileName: '.env');
+  sl.registerLazySingleton<DotEnv>(() => dotenv);
   // BLoC
   sl.registerFactory(
     () => RestaurantBloc(
@@ -65,7 +78,8 @@ Future<void> init() async {
       deleteRestaurant: sl(),
     ),
   );
-
+  // BLoC for registration flow
+  // (UserBloc registration moved down after usecase registrations)
   // Use cases
   sl.registerLazySingleton(() => GetRestaurants(sl()));
   sl.registerLazySingleton(() => GetMenu(sl()));
@@ -83,6 +97,35 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateRestaurant(sl()));
   sl.registerLazySingleton(() => DeleteRestaurant(sl()));
 
+  // BLoC for user flows (register/login/profile/google auth/etc)
+  sl.registerFactory(
+    () => UserBloc(
+      registerUser: sl(),
+      loginUser: sl(),
+      verifyOtp: sl(),
+      resendOtp: sl(),
+      verifyEmail: sl(),
+      forgotPassword: sl(),
+      resetPassword: sl(),
+      changePassword: sl(),
+      updateProfile: sl(),
+      getGoogleRedirect: sl(),
+      handleGoogleCallback: sl(),
+    ),
+  );
+
+  // -- Auth (User) use cases (registered before UserBloc)
+  sl.registerLazySingleton(() => RegisterUserUseCase(sl()));
+  sl.registerLazySingleton(() => LoginUserUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyOtpUseCase(sl()));
+  sl.registerLazySingleton(() => ResendOtpUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyEmailUseCase(sl()));
+  sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
+  sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
+  sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
+  sl.registerLazySingleton(() => GetGoogleRedirectUseCase(sl()));
+  sl.registerLazySingleton(() => HandleGoogleCallbackUseCase(sl()));
   // -- Auth (User) feature registrations
   // Data source and repository
   sl.registerLazySingleton<UserRemoteDataSource>(
@@ -93,14 +136,6 @@ Future<void> init() async {
         network: sl(),
         tokenManager: sl(),
       ));
-
-  // Use cases
-  sl.registerLazySingleton(() => RegisterUserUseCase(sl()));
-  sl.registerLazySingleton(() => LoginUserUseCase(sl()));
-
-  // BLoC for registration flow
-  sl.registerFactory(() => UserBloc(registerUser: sl()));
-
   // Repository
   // Data sources
   sl.registerLazySingleton<MenuRemoteDataSource>(
@@ -142,14 +177,15 @@ Future<void> init() async {
       () => TokenManager(secureStorage: const FlutterSecureStorage()));
 
   // register refreshDio and AuthInterceptor
-  sl.registerLazySingleton(() => refreshDio);
-  sl.registerLazySingleton<AuthInterceptor>(
-      () => AuthInterceptor(tokenManager: sl(), refreshDio: sl()));
+  // register main Dio explicitly
+  sl.registerLazySingleton<Dio>(() => dio);
+  // register a separate named Dio instance for refresh calls
+  sl.registerLazySingleton<Dio>(() => refreshDio, instanceName: 'refreshDio');
 
+  sl.registerLazySingleton<AuthInterceptor>(() => AuthInterceptor(
+      tokenManager: sl(), refreshDio: sl<Dio>(instanceName: 'refreshDio')));
   // add interceptor to main dio
   dio.interceptors.add(sl<AuthInterceptor>());
-
-  sl.registerLazySingleton(() => dio);
   sl.registerLazySingleton(() => InternetConnectionChecker.createInstance());
 
   // Core

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../features/dinq/auth/presentation/Pages/onboarding_first.dart';
 import '../../features/dinq/qr_scanner/pages/qr_scanner_page.dart';
+import '../../features/dinq/restaurant_management/domain/entities/restaurant.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/analytics_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/billing_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/branding_preferences_page.dart';
@@ -91,7 +92,7 @@ class AppRoute {
       case restaurantProfile:
         return MaterialPageRoute(builder: (_) => const RestaurantProfilePage());
       case restaurantDetails:
-        return MaterialPageRoute(builder: (_) => const RestaurantDetailsPage());
+        return MaterialPageRoute(builder: (_) => RestaurantDetailsPage(restaurant: settings.arguments as Restaurant));
       case legalInfo:
         return MaterialPageRoute(builder: (_) => const LegalInfoPage());
       case brandingPreferences:
@@ -107,9 +108,9 @@ class AppRoute {
       // Menu management routes
       case menus:
         final args = settings.arguments as Map<String, dynamic>?;
-        final restaurantId = args?['restaurantId'] ?? '';
+        final restaurantSlug = args?['restaurantId'] ?? '';
         return MaterialPageRoute(
-          builder: (_) => MenusPage(restaurantId: restaurantId),
+          builder: (_) => MenusPage(restaurantSlug: restaurantSlug),
         );
       case editMenu:
         return MaterialPageRoute(builder: (_) => const EditMenuPage());

@@ -34,3 +34,50 @@ class UserError extends UserState {
   @override
   List<Object?> get props => [message];
 }
+
+class UserLoggedIn extends UserState {
+  final String accessToken;
+  final String refreshToken;
+
+  const UserLoggedIn({required this.accessToken, required this.refreshToken});
+
+  @override
+  List<Object?> get props => [accessToken, refreshToken];
+}
+
+class UserLoggedOut extends UserState {
+  const UserLoggedOut();
+}
+
+class OtpVerified extends UserState {
+  const OtpVerified();
+}
+
+class OtpSent extends UserState {
+  const OtpSent();
+}
+
+class EmailVerified extends UserState {
+  const EmailVerified();
+}
+
+class PasswordResetDone extends UserState {
+  const PasswordResetDone();
+}
+
+class ProfileUpdated extends UserState {
+  const ProfileUpdated();
+}
+
+class GoogleRedirectUrl extends UserState {
+  final String url;
+
+  const GoogleRedirectUrl(this.url);
+
+  @override
+  List<Object?> get props => [url];
+}
+
+class GoogleAuthHandled extends UserState {
+  const GoogleAuthHandled();
+}

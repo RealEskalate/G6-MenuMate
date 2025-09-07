@@ -3,9 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
-import '../../../restaurant_management/domain/entities/item.dart' as models;
-import '../../../restaurant_management/domain/entities/restaurant.dart'
-    as restmodels;
+
+import 'package:dinq/features/dinq/restaurant_management/domain/entities/item.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
@@ -38,7 +37,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     // Small sample items using the domain Item entity (match required params)
-    final margheritaPizza = models.Item(
+    final margheritaPizza = const Item(
       id: '1',
       name: 'Margherita Pizza',
       nameAm: 'Margherita Pizza',
@@ -59,10 +58,10 @@ class _HomePageState extends State<HomePage> {
       nutritionalInfo: null,
       viewCount: 0,
       averageRating: 4.8,
-      reviewIds: const [],
+      reviewIds: [],
     );
 
-    final salmonSashimi = models.Item(
+    final salmonSashimi = const Item(
       id: '2',
       name: 'Salmon Sashimi',
       nameAm: 'Salmon Sashimi',
@@ -83,10 +82,10 @@ class _HomePageState extends State<HomePage> {
       nutritionalInfo: null,
       viewCount: 0,
       averageRating: 4.6,
-      reviewIds: const [],
+      reviewIds: [],
     );
 
-    final cheeseburger = models.Item(
+    final cheeseburger = const Item(
       id: '3',
       name: 'Cheeseburger',
       nameAm: 'Cheeseburger',
@@ -107,7 +106,7 @@ class _HomePageState extends State<HomePage> {
       nutritionalInfo: null,
       viewCount: 0,
       averageRating: 4.5,
-      reviewIds: const [],
+      reviewIds: [],
     );
 
     return Scaffold(
@@ -121,231 +120,159 @@ class _HomePageState extends State<HomePage> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                List<restmodels.Restaurant> restaurants = [];
                 if (state is RestaurantsLoaded) {
-                  restaurants = state.restaurants;
-                }
+                  final restaurants = state.restaurants;
 
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-                  children: [
-                    // Logo
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          'assets/images/brand.png', // Make sure this exists!
-                          height: 38,
-                          errorBuilder: (_, __, ___) =>
-                              const FlutterLogo(size: 38),
-                        ),
-                      ],
-                    ),
+                  // request popular menu for first restaurant only once
+                  if (restaurants.isNotEmpty && !_requestedPopularMenu) {
+                    _requestedPopularMenu = true;
+                    context
+                        .read<RestaurantBloc>()
+                        .add(LoadMenu(restaurantSlug: restaurants.first.slug));
+                  }
 
-                    const SizedBox(height: 18),
-                    // Search Bar
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
+                  return ListView(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                    children: [
+                      // Logo / header row
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Image.asset(
+                            'assets/images/brand.png',
+                            height: 38,
+                            errorBuilder: (_, __, ___) =>
+                                const FlutterLogo(size: 38),
+                          ),
+                        ],
                       ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 4),
-                      child: const TextField(
-                        decoration: InputDecoration(
-                          border: InputBorder.none,
-                          icon: Icon(Icons.search, color: Colors.grey),
-                          hintText: 'Search by restaurant or dish',
-                          hintStyle: TextStyle(color: Colors.grey),
+                      const SizedBox(height: 18),
+
+                      // Search bar
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 4),
+                        child: const TextField(
+                          decoration: InputDecoration(
+                            border: InputBorder.none,
+                            icon: Icon(Icons.search, color: Colors.grey),
+                            hintText: 'Search by restaurant or dish',
+                            hintStyle: TextStyle(color: Colors.grey),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Nearby Restaurants
-                    const Text('Nearby Restaurants',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 17)),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 24),
 
-                    // Render restaurants from state or fallback to demo cards
-                    if (restaurants.isNotEmpty)
+                      // Nearby title
+                      const Text('Nearby Restaurants',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 17)),
+                      const SizedBox(height: 12),
+
+                      // Nearby restaurants list
                       ...restaurants.map((r) {
-                        final name = r.restaurantName;
-                        final slug = r.slug;
-                        final imageUrl = r.coverImage ??
-                            'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80';
+                        return NearbyRestaurantCard(restaurant: r);
+                      }).toList(),
 
-                        return NearbyRestaurantCard(
-                          imageUrl: imageUrl,
-                          name: name,
-                          cuisine: 'Various',
-                          distance: 'Nearby',
-                          rating: r.averageRating,
-                          reviews: 42,
-                          onViewMenu: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoute.restaurant,
-                              arguments: {'restaurantId': slug},
-                            );
-                          },
-                        );
-                      }).toList()
-                    else ...[
-                      NearbyRestaurantCard(
-                        imageUrl:
-                            'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
-                        name: 'Bella Italia',
-                        cuisine: 'Italian',
-                        distance: '0.5 km away',
-                        rating: 4.8,
-                        reviews: 120,
-                        onViewMenu: () {
-                          Navigator.pushNamed(
-                            context,
-                            AppRoute.restaurant,
-                            arguments: {'restaurantId': 'bella-italia'},
-                          );
-                        },
-                      ),
-                      NearbyRestaurantCard(
-                        imageUrl:
-                            'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
-                        name: 'Sakura Sushi',
-                        cuisine: 'Japanese',
-                        distance: '0.8 km away',
-                        rating: 4.6,
-                        reviews: 89,
-                        onViewMenu: () {
-                          Navigator.pushNamed(
-                            context,
-                            AppRoute.restaurant,
-                            arguments: {'restaurantId': 'sakura-sushi'},
-                          );
-                        },
-                      ),
-                      NearbyRestaurantCard(
-                        imageUrl:
-                            'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
-                        name: 'Burger Haven',
-                        cuisine: 'American',
-                        distance: '1.2 km away',
-                        rating: 4.5,
-                        reviews: 156,
-                        onViewMenu: () {
-                          Navigator.pushNamed(
-                            context,
-                            AppRoute.restaurant,
-                            arguments: {'restaurantId': 'burger-haven'},
-                          );
-                        },
-                      ),
-                    ],
-                    const SizedBox(height: 28),
-                    // Popular Dishes (driven by menu loaded in RestaurantBloc)
-                    const Text('Popular Dishes',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 17)),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 220,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Builder(builder: (context) {
-                          // If restaurants are loaded, request menu for first restaurant once
-                          if (state is RestaurantsLoaded &&
-                              state.restaurants.isNotEmpty &&
-                              !_requestedPopularMenu) {
-                            _requestedPopularMenu = true;
-                            context
-                                .read<RestaurantBloc>()
-                                .add(LoadMenu(state.restaurants.first.slug));
-                          }
+                      const SizedBox(height: 28),
 
-                          List<models.Item> popularItems = [];
-                          if (state is MenuLoaded) {
-                            popularItems = state.menu.items.take(10).toList();
-                          }
+                      // Popular Dishes title
+                      const Text('Popular Dishes',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 17)),
+                      const SizedBox(height: 12),
 
-                          if (popularItems.isNotEmpty) {
-                            return Row(
-                              children: popularItems.map((item) {
-                                return PopularDishCard(
-                                  rating: item.averageRating,
-                                  imageUrl: item.images != null &&
-                                          item.images!.isNotEmpty
-                                      ? item.images![0]
-                                      : '',
-                                  name: item.name,
-                                  restaurant: '',
-                                  price:
-                                      '${item.currency}${item.price.toStringAsFixed(2)}',
+                      // Horizontal popular list
+                      SizedBox(
+                        height: 220,
+                        child: BlocBuilder<RestaurantBloc, RestaurantState>(
+                          builder: (context, blocState) {
+                            List<Item> popularItems = [];
+                            if (blocState is MenuLoaded) {
+                              popularItems =
+                                  blocState.menu.items.take(10).toList();
+                            }
+
+                            if (popularItems.isNotEmpty) {
+                              return ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: popularItems.map((item) {
+                                  return PopularDishCard(
+                                    rating: item.averageRating,
+                                    imageUrl: item.images != null &&
+                                            item.images!.isNotEmpty
+                                        ? item.images![0]
+                                        : '',
+                                    name: item.name,
+                                    restaurant: '',
+                                    price:
+                                        '${item.currency}${item.price.toStringAsFixed(2)}',
+                                    onTap: () {
+                                      Navigator.pushNamed(
+                                          context, AppRoute.itemDetail,
+                                          arguments: {'item': item});
+                                    },
+                                  );
+                                }).toList(),
+                              );
+                            }
+
+                            // fallback demo list
+                            return ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: [
+                                const SizedBox(width: 4),
+                                PopularDishCard(
+                                  rating: 4,
+                                  imageUrl: margheritaPizza.images![0],
+                                  name: margheritaPizza.name,
+                                  restaurant: 'Bella Italia',
+                                  price: '\$18.99',
                                   onTap: () {
                                     Navigator.pushNamed(
-                                      context,
-                                      AppRoute.itemDetail,
-                                      arguments: {'item': item},
-                                    );
+                                        context, AppRoute.itemDetail,
+                                        arguments: {'item': margheritaPizza});
                                   },
-                                );
-                              }).toList(),
+                                ),
+                                PopularDishCard(
+                                  rating: 4,
+                                  imageUrl: salmonSashimi.images![0],
+                                  name: salmonSashimi.name,
+                                  restaurant: 'Sakura Sushi',
+                                  price: '\$24.99',
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                        context, AppRoute.itemDetail,
+                                        arguments: {'item': salmonSashimi});
+                                  },
+                                ),
+                                PopularDishCard(
+                                  rating: 4,
+                                  imageUrl: cheeseburger.images![0],
+                                  name: cheeseburger.name,
+                                  restaurant: 'Burger Haven',
+                                  price: '\$15.99',
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                        context, AppRoute.itemDetail,
+                                        arguments: {'item': cheeseburger});
+                                  },
+                                ),
+                              ],
                             );
-                          }
-
-                          // fallback demo list
-                          return Row(
-                            children: [
-                              const SizedBox(width: 4),
-                              PopularDishCard(
-                                rating: 4,
-                                imageUrl: margheritaPizza.images![0],
-                                name: margheritaPizza.name,
-                                restaurant: 'Bella Italia',
-                                price: '\$18.99',
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    AppRoute.itemDetail,
-                                    arguments: {'item': margheritaPizza},
-                                  );
-                                },
-                              ),
-                              PopularDishCard(
-                                rating: 4,
-                                imageUrl: salmonSashimi.images![0],
-                                name: salmonSashimi.name,
-                                restaurant: 'Sakura Sushi',
-                                price: '\$24.99',
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    AppRoute.itemDetail,
-                                    arguments: {'item': salmonSashimi},
-                                  );
-                                },
-                              ),
-                              PopularDishCard(
-                                rating: 4,
-                                imageUrl: cheeseburger.images![0],
-                                name: cheeseburger.name,
-                                restaurant: 'Burger Haven',
-                                price: '\$15.99',
-                                onTap: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    AppRoute.itemDetail,
-                                    arguments: {'item': cheeseburger},
-                                  );
-                                },
-                              ),
-                            ],
-                          );
-                        }),
+                          },
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 80),
-                  ],
-                );
+                    ],
+                  );
+                }
+
+                // fallback for other states
+                return const Center(child: Text('No restaurants available'));
               },
             ),
             // Floating QR Button
