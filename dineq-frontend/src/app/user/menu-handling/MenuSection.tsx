@@ -1,7 +1,9 @@
+// src/app/user/menu-handling/MenuSection.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getMenusByRestaurantSlug, getMenuItemsBySlug, Menu, MenuItem } from "./menuApi";
+import { useRouter } from "next/navigation";
+import { getMenusByRestaurantSlug, Menu, MenuItem } from "./menuApi";
 import MenuItemCard from "./MenuItemCard";
 
 interface MenuSectionProps {
@@ -10,6 +12,7 @@ interface MenuSectionProps {
 }
 
 export default function MenuSection({ restaurantSlug, token }: MenuSectionProps) {
+  const router = useRouter();
   const [menus, setMenus] = useState<Menu[]>([]);
   const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
   const [items, setItems] = useState<MenuItem[]>([]);
@@ -31,50 +34,33 @@ export default function MenuSection({ restaurantSlug, token }: MenuSectionProps)
         setLoadingMenus(false);
       }
     }
-
     fetchMenus();
   }, [restaurantSlug, token]);
 
-  // fetch items whenever selectedMenu changes
-  useEffect(() => {
-    if (!selectedMenu) return;
-
-    async function fetchItems() {
-      try {
-        setLoadingItems(true);
-        if (!selectedMenu) return;
-        const itemsData = await getMenuItemsBySlug(selectedMenu.slug, token);
-        setItems(itemsData);
-      } catch (err) {
-        console.error("Failed to load items:", err);
-        setItems([]);
-      } finally {
-        setLoadingItems(false);
-      }
-    }
-
-    fetchItems();
-  }, [selectedMenu, token]);
+  const handleItemClick = (item: MenuItem) => {
+    const encodedItem = encodeURIComponent(JSON.stringify(item));
+    router.push(`/user/restaurant-display/food-display?item=${encodedItem}`);
+  };
 
   return (
     <section className="mt-8">
-      <h2 className="text-2xl font-bold mb-4">Menus</h2>
+      <h2 className="text-3xl font-bold mb-6 text-gray-800">Explore Our Menus</h2>
 
-      {/* Menus tabs */}
+      {/* Menus Tabs */}
       {loadingMenus ? (
-        <p>Loading menus...</p>
+        <p className="text-gray-500">Loading menus...</p>
       ) : menus.length === 0 ? (
-        <p>No menus available for this restaurant.</p>
+        <p className="text-gray-500">No menus available for this restaurant.</p>
       ) : (
-        <div className="flex gap-3 mb-6 flex-wrap">
+        <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
           {menus.map((menu) => (
             <button
               key={menu.id}
               onClick={() => setSelectedMenu(menu)}
-              className={`px-4 py-2 rounded-lg border ${
+              className={`flex-shrink-0 px-6 py-3 rounded-full font-medium transition-all duration-300 transform ${
                 selectedMenu?.id === menu.id
-                  ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                  : "bg-[var(--color-primary)] text-gray-700 border-[var(--color-primary)]"
+                  ? "bg-[var(--color-primary)] text-white shadow-lg scale-105"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
               {menu.name}
@@ -85,19 +71,20 @@ export default function MenuSection({ restaurantSlug, token }: MenuSectionProps)
 
       {/* Items for selected menu */}
       {selectedMenu && (
-        <div>
-          <h3 className="text-xl font-semibold mb-4">{selectedMenu.name}</h3>
+        <div className="bg-white p-6 rounded-2xl shadow-xl">
+          <h3 className="text-2xl font-semibold mb-6 text-gray-800 border-b-2 border-gray-200 pb-2">
+            {selectedMenu.name}
+          </h3>
           {loadingItems ? (
-            <p>Loading items...</p>
+            <p className="text-gray-500">Loading items...</p>
           ) : selectedMenu.items.length === 0 ? (
-            <p>No items found for this menu.</p>
+            <p className="text-gray-500">No items found for this menu.</p>
           ) : (
-            <div className="flex flex-wrap justify-center gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {selectedMenu.items.map((item) => (
-                <MenuItemCard key={item.id} item={item} />
+                <MenuItemCard key={item.id} item={item} onClick={() => handleItemClick(item)} />
               ))}
             </div>
-
           )}
         </div>
       )}

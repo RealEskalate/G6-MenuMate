@@ -2,16 +2,7 @@
 export const BASE_URL = "https://dineq.onrender.com/api/v1";
 
 /** Menu item shape */
-export interface MenuItem {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  currency?: string;
-  image?: string;
-  allergies?: string[];
-  tab_tags?: string[];
-}
+
 
 /** Menu shape (without items at first) */
 export interface Menu {
@@ -34,25 +25,26 @@ export interface NutritionalInfo {
 export interface MenuItem {
   id: string;
   name: string;
+  image?: string[];
   name_am: string;
-  description1: string;
-  description_am: string;
-  how_to_eat: string;
-  how_to_eat_am: string;
-  allergies1: string[];
+  description: string;
+  description_am?: string;
+  how_to_eat?: string;
+  how_to_eat_am?: string;
+  allergies: string[];
   allergies_am: string;
   average_rating: number;
   created_at: string;   // ISO date string
   updated_at: string;   // ISO date string
-  is_deleted: boolean;
+  is_deleted?: boolean;
   menu_slug: string;
   slug: string;
-  currency1: string;
-  price: number;
-  preparation_time: number;
-  nutritional_info: NutritionalInfo;
-  review_ids: string[];
-  tab_tags1: string[];
+  currency?: string;
+  price?: number;
+  preparation_time?: number;
+  nutritional_info?: NutritionalInfo;
+  review_ids?: string[];
+  tab_tags?: string[];
   tab_tags_am: string[];
   view_count: number;
 }
