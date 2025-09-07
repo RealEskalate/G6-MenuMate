@@ -383,3 +383,21 @@ func (repo *RestaurantRepo) GetByManagerId(ctx context.Context, manager string) 
 
 	return model.ToDomain(), nil
 }
+
+
+// IncrementRestaurantViewCount increments the view count for a restaurant by 1
+func (repo *RestaurantRepo) IncrementRestaurantViewCount(ctx context.Context, id string) error {
+	oid, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	update := bson.M{"$inc": bson.M{"viewCount": 1}, "$set": bson.M{"updatedAt": time.Now()}}
+	result, err := repo.db.Collection(repo.restaurantCol).UpdateOne(ctx, bson.M{"_id": oid}, update)
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("restaurant not found")
+	}
+	return nil
+}

@@ -102,7 +102,7 @@ func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string
 			return nil, lastErr
 		}
 		// Build menu
-		menu := &domain.Menu{ID: bson.NewObjectID().Hex(), RestaurantID: bson.NewObjectID().Hex(), Version: 1, CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()}
+		menu := &domain.Menu{ID: bson.NewObjectID().Hex(), RestaurantSlug: bson.NewObjectID().Hex(), Version: 1, CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()}
 		tabIndex := map[string]*domain.Tab{}
 		for _, mi := range results.MenuItems {
 			if strings.TrimSpace(mi.Name) == "" {

@@ -18,8 +18,9 @@ func NewItemRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database, 
 
 	itemRepo := repositories.NewItemRepository(db, env.ItemCollection)
 	itemUseCase := usecase.NewItemUseCase(itemRepo, ctxTimeout)
+	viewEventRepo := repositories.NewViewEventRepository(db, env.ViewEventCollection)
 
-	handler := handler.NewItemHandler(itemUseCase)
+	handler := handler.NewItemHandler(itemUseCase, viewEventRepo)
 
 	// Public item routes (read-only)
 	public := api.Group("/menu-items")
