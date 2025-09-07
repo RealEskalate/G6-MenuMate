@@ -1,21 +1,60 @@
 import '../entities/menu.dart' as models;
+import 'package:dio/dio.dart';
+import '../../../../../core/constants/constants.dart';
+import '../../../../../core/error/failures.dart';
+import 'package:dartz/dartz.dart';
 
 class GetMenuUseCase {
-  Future<models.Menu> execute(String restaurantId) async {
-    // This is a mock implementation that would be replaced with actual API call
-    // In a real implementation, this would call a repository method
-    return _getMockMenu(restaurantId);
+  final Dio _dio = Dio();
+  
+  // Updated to use slug instead of restaurantId
+  Future<Either<Failure, models.Menu>> execute(String slug) async {
+    print('GetMenuUseCase: Fetching menu with slug: $slug');
+    try {
+      final url = '$baseUrl/menus/$slug';
+      print('GetMenuUseCase: Sending GET request to: $url');
+      
+      final response = await _dio.get(
+        url,
+        options: Options(
+          headers: {'Authorization': 'Bearer $accessToken'},
+        ),
+      );
+      
+      print('GetMenuUseCase: Response status: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        // TODO: Parse the actual response data
+        // For now, returning mock data
+        print('GetMenuUseCase: Successfully fetched menu data');
+        return Right(_getMockMenu(slug));
+      } else if (response.statusCode == 404) {
+        print('GetMenuUseCase: Menu not found');
+        return Left(NotFoundFailure('No menu found for this restaurant.'));
+      } else {
+        print('GetMenuUseCase: Server error: ${response.statusCode}');
+        return Left(ServerFailure('Server error: ${response.statusCode}'));
+      }
+    } catch (e) {
+      print('GetMenuUseCase: GET request error: $e');
+      return Left(ServerFailure('Failed to connect to server: $e'));
+    }
   }
 
   // Mock data for testing UI
-  models.Menu _getMockMenu(String restaurantId) {
+  models.Menu _getMockMenu(String slug) {
+    print('GetMenuUseCase: Creating mock menu for slug: $slug');
     return models.Menu(
       id: 'menu-123',
-      restaurantId: restaurantId,
+      restaurantId: 'restaurant-$slug',
       branchId: 'branch-1',
       version: 1,
       isPublished: true,
       publishedAt: DateTime.now().subtract(const Duration(days: 5)),
+      createdAt: DateTime.now().subtract(const Duration(days: 10)),
+      updatedAt: DateTime.now().subtract(const Duration(days: 2)),
+      updatedBy: 'admin',
+      isDeleted: false,
+      viewCount: 120,
       tabs: [
         models.Tab(
           id: 'tab-1',
@@ -40,6 +79,10 @@ class GetMenuUseCase {
                   ingredients: ['Bread', 'Tomatoes', 'Garlic', 'Basil', 'Olive Oil'],
                   createdAt: DateTime.now(),
                   updatedAt: DateTime.now(),
+                  isDeleted: false,
+                  viewCount: 0,
+                  averageRating: 4.5,
+                  reviewIds: ['review-1', 'review-2'],
                 ),
                 models.Item(
                   id: 'item-2',

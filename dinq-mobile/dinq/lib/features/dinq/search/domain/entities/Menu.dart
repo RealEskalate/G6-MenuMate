@@ -6,9 +6,9 @@ class Menu {
   final bool isPublished;
   final DateTime? publishedAt;
   final List<Tab> tabs;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final String updatedBy;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final String? updatedBy;
   final bool isDeleted;
   final int viewCount;
 
@@ -20,9 +20,9 @@ class Menu {
     required this.isPublished,
     this.publishedAt,
     required this.tabs,
-    required this.createdAt,
-    required this.updatedAt,
-    required this.updatedBy,
+    this.createdAt,
+    this.updatedAt,
+    this.updatedBy,
     this.isDeleted = false,
     this.viewCount = 0,
   });
@@ -74,8 +74,8 @@ class Item {
   final List<String>? ingredients;
   final int? preparationTime;
   final dynamic howToEat;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final bool isDeleted;
   final int viewCount;
   final double? averageRating;
@@ -97,8 +97,8 @@ class Item {
     this.ingredients,
     this.preparationTime,
     this.howToEat,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
     this.isDeleted = false,
     this.viewCount = 0,
     this.averageRating,

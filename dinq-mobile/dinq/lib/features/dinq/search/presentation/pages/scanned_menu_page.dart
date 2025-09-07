@@ -2,9 +2,130 @@ import '../widgets/scanned_menu.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
 import '../widgets/bottom_navbar.dart';
+import '../../../search/domain/usecases/get_menu.dart';
+import '../../../search/domain/entities/Menu.dart' as models;
 
-class ScannedMenuPage extends StatelessWidget {
-  const ScannedMenuPage({super.key});
+class ScannedMenuPage extends StatefulWidget {
+  final String slug;
+  
+  const ScannedMenuPage({super.key, required this.slug});
+
+  @override
+  State<ScannedMenuPage> createState() => _ScannedMenuPageState();
+}
+
+class _ScannedMenuPageState extends State<ScannedMenuPage> {
+  bool _isLoading = true;
+  bool _hasError = false;
+  String _errorMessage = '';
+  
+  // Restaurant info
+  String _restaurantName = '';
+  String _restaurantType = '';
+  
+  // Menu data
+  List<dynamic> _menuSections = [];
+  
+  final GetMenuUseCase _getMenuUseCase = GetMenuUseCase();
+  
+  @override
+  void initState() {
+    super.initState();
+    _fetchMenuData();
+  }
+  
+  Future<void> _fetchMenuData() async {
+    print('ScannedMenuPage: Fetching menu data for slug: ${widget.slug}');
+    try {
+      final result = await _getMenuUseCase.execute(widget.slug);
+      
+      result.fold(
+        (failure) {
+          print('ScannedMenuPage: Error fetching menu: ${failure.message}');
+          setState(() {
+            _isLoading = false;
+            _hasError = true;
+            _errorMessage = failure.message;
+          });
+        },
+        (menu) {
+          print('ScannedMenuPage: Successfully fetched menu data');
+          // Process menu data
+          _processMenuData(menu);
+        },
+      );
+    } catch (e) {
+      print('ScannedMenuPage: Exception fetching menu: $e');
+      setState(() {
+        _isLoading = false;
+        _hasError = true;
+        _errorMessage = 'An unexpected error occurred: $e';
+      });
+    }
+  }
+  
+  void _processMenuData(models.Menu menu) {
+    print('ScannedMenuPage: Processing menu data');
+    // Extract restaurant info from the first tab if available
+    final restaurantId = menu.restaurantId;
+    
+    // For now, use mock restaurant name and type
+    // In a real app, you would fetch this from the restaurant API
+    _restaurantName = 'Restaurant $restaurantId';
+    _restaurantType = 'Fine Dining';
+    
+    // Process menu sections from tabs
+    final sections = <Map<String, dynamic>>[];
+    
+    for (final tab in menu.tabs) {
+      print('ScannedMenuPage: Processing tab: ${tab.name}');
+      
+      for (final category in tab.categories) {
+        final sectionItems = <Map<String, dynamic>>[];
+        
+        for (final item in category.items) {
+          sectionItems.add({
+            'name': item.name,
+            'price': '${item.currency}${item.price}',
+            'description': item.description ?? 'No description available',
+            'imageUrl': item.images?.isNotEmpty == true
+                ? item.images!.first
+                : 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
+          });
+        }
+        
+        if (sectionItems.isNotEmpty) {
+          sections.add({
+            'name': category.name ?? tab.name,
+            'icon': _getIconForCategory(category.name ?? tab.name),
+            'items': sectionItems,
+          });
+        }
+      }
+    }
+    
+    setState(() {
+      _menuSections = sections;
+      _isLoading = false;
+    });
+  }
+  
+  IconData _getIconForCategory(String categoryName) {
+    final name = categoryName.toLowerCase();
+    if (name.contains('appetizer') || name.contains('starter')) {
+      return Icons.emoji_food_beverage;
+    } else if (name.contains('main') || name.contains('entree')) {
+      return Icons.local_dining;
+    } else if (name.contains('dessert')) {
+      return Icons.icecream;
+    } else if (name.contains('drink') || name.contains('beverage')) {
+      return Icons.local_bar;
+    } else if (name.contains('pizza')) {
+      return Icons.local_pizza;
+    } else {
+      return Icons.restaurant_menu;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,138 +150,7 @@ class ScannedMenuPage extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        children: [
-          // Restaurant Info
-          Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(12),
-                child: const Icon(
-                  Icons.restaurant_menu,
-                  color: AppColors.primaryColor,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(width: 14),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Bella Vista',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    'Italian Restaurant',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          const Divider(height: 1, thickness: 1, color: Color(0xFFEAEAEA)),
-          const SizedBox(height: 18),
-
-          // Appetizers Section
-          const _SectionHeader(
-            icon: Icons.emoji_food_beverage,
-            label: 'Appetizers',
-          ),
-          const SizedBox(height: 10),
-          const MenuItemCard(
-            imageUrl:
-                'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
-            name: 'Bruschetta Classica',
-            price: '350br',
-            description: 'Fresh tomatoes, basil, garlic on toasted bread',
-          ),
-          const MenuItemCard(
-            imageUrl:
-                'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
-            name: 'Antipasto Misto',
-            price: '300br',
-            description: 'Selection of cured meats, cheese, and olives',
-          ),
-          const SizedBox(height: 18),
-
-          // Main Courses Section
-          const _SectionHeader(icon: Icons.local_pizza, label: 'Main Courses'),
-          const SizedBox(height: 10),
-          const MenuItemCard(
-            imageUrl:
-                'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
-            name: 'Spaghetti Carbonara',
-            price: '560br',
-            description:
-                'Traditional Roman pasta with eggs, pancetta, and pecorino',
-          ),
-          const MenuItemCard(
-            imageUrl:
-                'https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=crop&w=400&q=80',
-            name: 'Pizza Margherita',
-            price: '670br',
-            description: 'San Marzano tomatoes, fresh mozzarella, basil',
-          ),
-          const MenuItemCard(
-            imageUrl:
-                'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
-            name: 'Grilled Salmon',
-            price: '\$22.00',
-            description: 'Atlantic salmon with seasonal vegetables and lemon',
-          ),
-          const SizedBox(height: 18),
-
-          // Desserts Section
-          const _SectionHeader(icon: Icons.icecream, label: 'Desserts'),
-          const SizedBox(height: 10),
-          const MenuItemCard(
-            imageUrl:
-                'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
-            name: 'Tiramisu',
-            price: '\$7.50',
-            description: 'Classic Italian dessert with mascarpone and coffee',
-          ),
-          const MenuItemCard(
-            imageUrl:
-                'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
-            name: 'Panna Cotta',
-            price: '\$6.50',
-            description: 'Vanilla cream dessert with mixed berry coulis',
-          ),
-          const SizedBox(height: 24),
-          // Save & Share Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.share, color: Colors.white),
-              label: const Text(
-                'Save & Share Digital Menu',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
-              onPressed: () {
-                // TODO: Implement share functionality
-              },
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
+      body: _buildBody(),
       bottomNavigationBar: BottomNavBar(
         selectedTab: BottomNavTab.explore,
         onTabSelected: (tab) {
@@ -168,6 +158,161 @@ class ScannedMenuPage extends StatelessWidget {
         },
       ),
     );
+  }
+  
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: AppColors.primaryColor),
+            SizedBox(height: 16),
+            Text('Loading menu...', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+      );
+    }
+    
+    if (_hasError) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: Colors.red),
+            SizedBox(height: 16),
+            Text('Error: $_errorMessage', style: TextStyle(fontSize: 16)),
+            SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _isLoading = true;
+                  _hasError = false;
+                });
+                _fetchMenuData();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+              ),
+              child: const Text('Try Again'),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      children: [
+        // Restaurant Info
+        Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(12),
+              child: const Icon(
+                Icons.restaurant_menu,
+                color: AppColors.primaryColor,
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _restaurantName,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _restaurantType,
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        const Divider(height: 1, thickness: 1, color: Color(0xFFEAEAEA)),
+        const SizedBox(height: 18),
+
+        // Menu sections
+        if (_menuSections.isEmpty)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Text(
+                'No menu items found',
+                style: TextStyle(fontSize: 18, color: Colors.grey),
+              ),
+            ),
+          )
+        else
+          ..._buildMenuSections(),
+
+        const SizedBox(height: 24),
+        // Save & Share Button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.share, color: Colors.white),
+            label: const Text(
+              'Save & Share Digital Menu',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              elevation: 0,
+            ),
+            onPressed: () {
+              // TODO: Implement share functionality
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+  
+  List<Widget> _buildMenuSections() {
+    final widgets = <Widget>[];
+    
+    for (int i = 0; i < _menuSections.length; i++) {
+      final section = _menuSections[i];
+      widgets.add(
+        _SectionHeader(
+          icon: section['icon'],
+          label: section['name'],
+        ),
+      );
+      widgets.add(const SizedBox(height: 10));
+      
+      for (final item in section['items']) {
+        widgets.add(
+          MenuItemCard(
+            imageUrl: item['imageUrl'],
+            name: item['name'],
+            price: item['price'],
+            description: item['description'],
+          ),
+        );
+      }
+      
+      if (i < _menuSections.length - 1) {
+        widgets.add(const SizedBox(height: 18));
+      }
+    }
+    
+    return widgets;
   }
 }
 
