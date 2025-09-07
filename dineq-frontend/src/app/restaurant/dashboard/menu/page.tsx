@@ -24,12 +24,12 @@ export default function Dashboard() {
   const { data: restaurantData, isLoading: isLoadingRestaurant } =
     useRestaurant(token);
 
-  const restaurantSlug = restaurantData.slug;
+  const restaurantSlug = restaurantData?.slug;
   console.log(restaurantSlug, restaurantData)
 
   // Get all menus
   const { data: menus, isLoading: isLoadingMenus } = useMenus(
-    restaurantSlug!,
+    restaurantSlug ?? "",
     token
   );
   console.log("menus:", menus)
@@ -66,13 +66,27 @@ export default function Dashboard() {
 
           {/* Menu cards */}
           <div className="flex flex-col md:flex-row gap-6">
-            {menus?.map((menu) => (
-              <MenuCard key={menu.id} menu={menu} token={token!}
-              restaurantSlug={restaurantSlug!}
-               />
-              
-            ))}
-          </div>
+          {menus && menus.length > 0 ? (
+            menus.map((menu) => (
+              <MenuCard
+                key={menu.id}
+                menu={menu}
+                token={token!}
+                restaurantSlug={restaurantSlug!}
+              />
+            ))
+          ) : (
+            <div className="w-full text-center bg-white border border-dashed border-orange-300 rounded-xl p-8 shadow-sm">
+              <p className="text-gray-600 text-lg font-medium mb-2">
+                Currently no published menus
+              </p>
+              <p className="text-gray-500 mb-4">
+                Scan with OCR or add manually to publish your menus
+              </p>
+            </div>
+          )}
+        </div>
+
         </main>
       </div>
 

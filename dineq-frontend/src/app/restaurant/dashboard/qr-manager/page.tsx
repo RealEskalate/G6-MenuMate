@@ -6,6 +6,7 @@ import React from "react";
 import { useRestaurant } from "@/hooks/useRestaurant";
 import { useQrCode } from "@/hooks/useQrCode";
 import { useSession } from "next-auth/react"; // Adjust if not using next-auth
+import { useMenus } from "@/hooks/useMenu";
 
 function QrManager() {
   const { data: session } = useSession();
@@ -13,6 +14,10 @@ function QrManager() {
 
   const { data: restaurant, isLoading: loadingRestaurant } = useRestaurant(token);
   const slug = restaurant?.slug;
+
+  const { data: menus } = useMenus(slug, token);
+  const menuId = menus?.[0]?.id; 
+
 
   const {
     data: qrImageUrl,
@@ -57,7 +62,7 @@ function QrManager() {
               <span>Share</span>
             </button>
 
-            <Link href="/restaurant/dashboard/qr-manager/customize">
+            <Link href={`/restaurant/dashboard/qr-manager/customize?slug=${slug}&menu=${menuId}`}>
               <button className="flex items-center rounded-lg bg-orange-500 text-white px-3 py-2 hover:shadow-orange-500 transition">
                 <Image
                   src="/icons/edit.png"

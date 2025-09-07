@@ -60,7 +60,7 @@ export default function MenuCard({ menu, token, restaurantSlug }: MenuCardProps)
             <Image
               src={qrImageUrl}
               alt={`${menu.name} QR`}
-              width={110}
+              width={150}
               height={110}
               className="pt-2"
             />

@@ -6,6 +6,8 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { getGradientFromColor } from "@/utils/colorGradient";
+
 
 
 export default function QRCustomizer() {
@@ -37,10 +39,15 @@ export default function QRCustomizer() {
   const restaurantSlug = searchParams.get("slug");
   const menuId = searchParams.get("menu");
 
-  // Static gradient data
-  const gradientFrom = "#0F172A";
-  const gradientTo = "#64748B";
+  //  gradient data
+
+  const { light, dark } = getGradientFromColor(foreground);
+
+  const gradientFrom = light;
+  const gradientTo = dark
   const gradientDirection = "vertical";
+
+  
 
   
 
