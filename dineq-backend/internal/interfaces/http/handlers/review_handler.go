@@ -22,11 +22,12 @@ func reviewError(c *gin.Context, status int, code, message string, field string,
 }
 
 type ReviewHandler struct {
-	uc domain.IReviewUsecase
+	uc     domain.IReviewUsecase
+	userUC domain.IUserUsecase
 }
 
-func NewReviewHandler(uc domain.IReviewUsecase) *ReviewHandler {
-	return &ReviewHandler{uc: uc}
+func NewReviewHandler(uc domain.IReviewUsecase, userUC domain.IUserUsecase) *ReviewHandler {
+	return &ReviewHandler{uc: uc, userUC: userUC}
 }
 
 // Create a new review for an item
@@ -52,6 +53,13 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 		return
 	}
 	review := dto.ToDomainReview(req, userID, itemID, restaurantID)
+	// enrich with denormalized user data
+	if h.userUC != nil {
+		if u, uErr := h.userUC.FindUserByID(userID); uErr == nil && u != nil {
+			review.Username = u.Username
+			review.UserProfileImage = u.ProfileImage
+		}
+	}
 	if err := h.uc.CreateReview(c.Request.Context(), review); err != nil {
 		reviewError(c, http.StatusInternalServerError, "create_review_failed", "Failed to create review", "", err)
 		return
@@ -61,9 +69,15 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 		reviewError(c, http.StatusInternalServerError, "fetch_review_failed", "Failed to fetch created review", "", err)
 		return
 	}
+	var user *domain.User
+	if h.userUC != nil {
+		if u, uErr := h.userUC.FindUserByID(createdReview.UserID); uErr == nil {
+			user = u
+		}
+	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "Review created successfully",
-		"review":  dto.ToReviewResponse(createdReview, nil),
+		"review":  dto.ToReviewResponse(createdReview, user),
 	})
 }
 
@@ -75,7 +89,13 @@ func (h *ReviewHandler) GetReviewByID(c *gin.Context) {
 		reviewError(c, http.StatusNotFound, "review_not_found", "Review not found", "id", err)
 		return
 	}
-	c.JSON(http.StatusOK, dto.ToReviewResponse(review, nil))
+	var user *domain.User
+	if h.userUC != nil {
+		if u, uErr := h.userUC.FindUserByID(review.UserID); uErr == nil {
+			user = u
+		}
+	}
+	c.JSON(http.StatusOK, dto.ToReviewResponse(review, user))
 }
 
 // List reviews for a specific item (with pagination)
@@ -90,11 +110,13 @@ func (h *ReviewHandler) ListReviewsByItem(c *gin.Context) {
 		return
 	}
 
+	// Directly map without additional user lookups (denormalized fields already present)
+	responses := dto.ToReviewResponseList(reviews, nil)
 	c.JSON(http.StatusOK, gin.H{
 		"total":   total,
 		"page":    page,
 		"limit":   limit,
-		"reviews": dto.ToReviewResponseList(reviews, nil),
+		"reviews": responses,
 	})
 }
 
