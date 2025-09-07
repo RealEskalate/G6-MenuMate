@@ -20,6 +20,9 @@ export interface RegisterData {
   logo_image?: UploadedFile | null;
   businessLicense?: UploadedFile | null;
   cover_image?: UploadedFile | null;
+  lat?: number | null;
+  lng: number | null;
+
 }
 
 interface RegisterContextType {
@@ -42,6 +45,8 @@ export const RegisterProvider = ({ children }: { children: ReactNode }) => {
     logo_image: null,
     businessLicense: null,
     cover_image: null,
+    lat: null,
+    lng: null,
   });
 
   const updateData = (newData: Partial<RegisterData>) => {
@@ -60,6 +65,8 @@ export const RegisterProvider = ({ children }: { children: ReactNode }) => {
       logo_image: null,
       businessLicense: null,
       cover_image: null,
+      lat: null,
+      lng: null,
     });
   };
 

@@ -1,9 +1,10 @@
 export interface NutritionalInfo {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
 }
+
 
 export interface MenuItem {
   id: string;

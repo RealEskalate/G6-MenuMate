@@ -31,14 +31,8 @@ async function fetchMenus(
 async function fetchMenuById(
   restaurantSlug: string,
   id: string,
-  token?: string
 ): Promise<Menu> {
-  const res = await fetch(`${API_BASE}/menus/${restaurantSlug}/${id}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
+  const res = await fetch(`${API_BASE}/menus/${restaurantSlug}/${id}`,);
 
   const data = await res.json();
 
@@ -137,7 +131,7 @@ export function useMenus(restaurantSlug: string, token?: string) {
 export function useMenu(restaurantSlug?: string, id?: string, token?: string) {
   return useQuery({
     queryKey: ["menu", restaurantSlug, id],
-    queryFn: () => fetchMenuById(restaurantSlug!, id!, token),
+    queryFn: () => fetchMenuById(restaurantSlug!, id!),
     enabled: !!(restaurantSlug && id), // Only fetch when both are available
   });
 }

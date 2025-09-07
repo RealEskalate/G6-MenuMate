@@ -6,6 +6,9 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { getGradientFromColor } from "@/utils/colorGradient";
+import BackButton from "@/components/common/BackButton";
+
 
 
 export default function QRCustomizer() {
@@ -37,10 +40,15 @@ export default function QRCustomizer() {
   const restaurantSlug = searchParams.get("slug");
   const menuId = searchParams.get("menu");
 
-  // Static gradient data
-  const gradientFrom = "#0F172A";
-  const gradientTo = "#64748B";
+  //  gradient data
+
+  const { light, dark } = getGradientFromColor(foreground);
+
+  const gradientFrom = light;
+  const gradientTo = dark
   const gradientDirection = "vertical";
+
+  
 
   
 
@@ -152,7 +160,11 @@ const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
   };
 
   return (
-    <div>
+    <div className="relative w-full">
+    {/* Back button top-right */}
+    <div className="w-full flex justify-start px-6 pt-4">
+      <BackButton />
+    </div>
       <div className="flex">
         <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6 p-6 w-full items-start">
           {/* Left side - Customization */}
@@ -277,6 +289,7 @@ const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 
           {/* Right side - Preview */}
           <div className="p-6 border rounded-2xl shadow-sm flex flex-col items-center">
+            
             <h2 className="text-lg font-semibold mb-4">Preview</h2>
             <div
               ref={qrWrapperRef}

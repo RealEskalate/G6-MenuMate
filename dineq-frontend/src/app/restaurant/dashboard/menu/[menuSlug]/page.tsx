@@ -1,11 +1,13 @@
 "use client";
 
 import { useMenu, useMenus } from "@/hooks/useMenu";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { MenuItem } from "@/Types/menu";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useRestaurant } from "@/hooks/useRestaurant";
+import MenuItemCard from "../../../../user/menu-handling/MenuItemCard"
+import BackButton from "@/components/common/BackButton";
 
 export default function MenuEditorPage() {
   const { data: session } = useSession();
@@ -14,29 +16,25 @@ export default function MenuEditorPage() {
   const params = useParams<{ menuSlug: string }>();
   const menuSlugParam = params?.menuSlug;
 
-  // Get restaurant data
   const {
     data: restaurantData,
     isLoading: isLoadingRestaurant,
     error: errorRestaurant,
   } = useRestaurant(token);
 
-  const restaurantSlug = restaurantData.slug;
+  const restaurantSlug = restaurantData?.slug;
 
-  // Get all menus for this restaurant
   const {
     data: menus,
     isLoading: isLoadingMenus,
     error: errorMenus,
   } = useMenus(restaurantSlug!, token);
 
-  // Select menu based on URL param, fallback to first menu
   const selectedMenu =
     menus?.find((m) => m.slug === menuSlugParam) ?? menus?.[0];
   const menuId = selectedMenu?.id;
   const menuSlug = selectedMenu?.slug;
 
-  // Get full menu data
   const {
     data: menu,
     isLoading: isLoadingMenu,
@@ -69,15 +67,11 @@ export default function MenuEditorPage() {
 
   return (
     <div className="p-6">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center text-gray-600 hover:text-gray-800 mb-4"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back
-      </button>
+      <div className="flex items-center justify-between mb-6">
+      <h1 className="text-2xl font-semibold">Edit Menu</h1>
+      <BackButton />
+    </div>
 
-      <h1 className="text-2xl font-semibold mb-6">Edit Menu</h1>
 
       {Object.entries(sections).map(([sectionName, items]) => (
         <div key={sectionName} className="mb-8">
@@ -86,28 +80,22 @@ export default function MenuEditorPage() {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="relative border rounded-lg p-3 bg-white flex items-start"
+                className="relative cursor-pointer group"
+                onClick={() =>
+                  menuSlug &&
+                  router.push(`/restaurant/dashboard/menu/${menuSlug}/${item.id}`)
+                }
               >
-                {item.image_url && (
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-20 h-20 rounded-md object-cover"
-                  />
-                )}
-                <div className="ml-3 flex-1">
-                  <h5 className="font-medium">{item.name}</h5>
-                  <p className="text-sm text-gray-600">{item.description}</p>
-                  <p className="text-orange-500 font-semibold mt-1">
-                    {item.currency} {item.price}
-                  </p>
+                <MenuItemCard item={{
+                  ...item,
+                  allergies:
+                    typeof item.allergies === "string" ? [item.allergies] : item.allergies,
+                }} />
+
+                {/* Optional Pencil Icon on Hover */}
+                <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  ✏️
                 </div>
-                <Pencil
-                  className="w-4 h-4 text-gray-500 absolute top-2 right-2 cursor-pointer"
-                  onClick={() =>
-                    menuSlug && router.push(`/restaurant/dashboard/menu/${menuSlug}/${item.id}`)
-                  }
-                />
               </div>
             ))}
           </div>
