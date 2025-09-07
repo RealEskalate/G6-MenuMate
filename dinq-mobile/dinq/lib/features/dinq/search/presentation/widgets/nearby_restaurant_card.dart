@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/routing/app_route.dart';
+import '../pages/restaurant_page.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/domain/entities/restaurant.dart';
 
@@ -72,7 +73,11 @@ class NearbyRestaurantCard extends StatelessWidget {
             elevation: 0,
           ),
           onPressed: () {
-            Navigator.pushNamed(context, AppRoute.restaurant);
+            Navigator.pushNamed(
+              context,
+              AppRoute.restaurant,
+              arguments: restaurant,
+            );
           },
           child: const Text('View Menu'),
         ),

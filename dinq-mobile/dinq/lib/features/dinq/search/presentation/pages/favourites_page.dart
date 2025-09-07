@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/domain/entities/item.dart';
 import '../../../restaurant_management/domain/entities/restaurant.dart';
@@ -18,10 +19,15 @@ class FavouritesPage extends StatefulWidget {
   final List<Restaurant> allRestaurants;
   final List<Item> allDishes;
 
+  /// When embedded inside a shell that provides its own navigation bar,
+  /// set this to false to avoid rendering the owner nav bar duplicate.
+  final bool showOwnerNavBar;
+
   const FavouritesPage({
     super.key,
     required this.allRestaurants,
     required this.allDishes,
+    this.showOwnerNavBar = true,
   });
 
   @override
@@ -43,7 +49,6 @@ class _FavouritesPageState extends State<FavouritesPage>
     _tabController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -180,10 +185,12 @@ class _FavouritesPageState extends State<FavouritesPage>
           ),
         ],
       ),
-      bottomNavigationBar: const OwnerNavBar(
-        currentIndex: 1,
-        isRestaurantOwner: true,
-      ),
+      bottomNavigationBar: widget.showOwnerNavBar
+          ? const OwnerNavBar(
+              currentIndex: 1,
+              isRestaurantOwner: true,
+            )
+          : null,
       // bottomNavigationBar: BottomNavBar(
       //   selectedTab: BottomNavTab.favorites,
       //   onTabSelected: _onTabSelected,
@@ -249,12 +256,10 @@ class _FavouritesPageState extends State<FavouritesPage>
             elevation: 0,
           ),
           onPressed: () {
-            Navigator.push(
+            Navigator.pushNamed(
               context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    RestaurantPage(restaurantId: restaurant.id),
-              ),
+              AppRoute.restaurant,
+              arguments: restaurant,
             );
           },
           child: const Text('View Menu'),

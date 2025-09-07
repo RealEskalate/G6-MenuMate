@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/util/theme.dart';
+import '../../../../../core/routing/app_route.dart';
 import '../../../restaurant_management/domain/entities/menu.dart';
 import '../../../restaurant_management/domain/entities/restaurant.dart'
     as restmodels;
@@ -12,14 +13,14 @@ import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
 import '../widgets/bottom_navbar.dart';
 import 'item_details_page.dart';
 
-class _FavoritesStore {
-  static final Set<String> restaurantIds = <String>{};
+class _LocalFavoritesStore {
+  final Set<String> restaurantIds = <String>{};
 }
 
 class RestaurantPage extends StatefulWidget {
-  final String restaurantId;
+  final restmodels.Restaurant restaurant;
 
-  const RestaurantPage({super.key, required this.restaurantId});
+  const RestaurantPage({super.key, required this.restaurant});
 
   @override
   State<RestaurantPage> createState() => _RestaurantPageState();
@@ -27,28 +28,30 @@ class RestaurantPage extends StatefulWidget {
 
 class _RestaurantPageState extends State<RestaurantPage> {
   Menu? _menu;
+  bool _isFavorite = false;
 
-  void _toggleFavorite() {
-    setState(() {
-      if (_FavoritesStore.restaurantIds.contains(widget.restaurantId)) {
-        _FavoritesStore.restaurantIds.remove(widget.restaurantId);
-      } else {
-        _FavoritesStore.restaurantIds.add(widget.restaurantId);
-      }
-    });
-  }
+  // Local lightweight favorites store to avoid importing private helpers
+  static final _LocalFavoritesStore _localFavorites = _LocalFavoritesStore();
 
   void _onTabSelected(BottomNavTab tab) {
     if (tab == BottomNavTab.explore) {
-      Navigator.pushReplacementNamed(context, '/explore');
+      Navigator.pushReplacementNamed(context, AppRoute.explore);
     } else if (tab == BottomNavTab.favorites) {
-      Navigator.pushReplacementNamed(
-        context,
-        '/favorites',
-        arguments: {'allRestaurants': allRestaurants, 'allDishes': allDishes},
-      );
+      Navigator.pushReplacementNamed(context, AppRoute.favorites);
     } else if (tab == BottomNavTab.profile) {
-      Navigator.pushReplacementNamed(context, '/profile');
+      Navigator.pushReplacementNamed(context, AppRoute.profile);
+    }
+  }
+
+  void _toggleFavorite() {
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+    // simple local storage: update the favorites store if available
+    if (_isFavorite) {
+      _localFavorites.restaurantIds.add(widget.restaurant.id);
+    } else {
+      _localFavorites.restaurantIds.remove(widget.restaurant.id);
     }
   }
 
@@ -57,25 +60,12 @@ class _RestaurantPageState extends State<RestaurantPage> {
     super.initState();
     // Ask the RestaurantBloc to load the menu for this restaurant
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<RestaurantBloc>().add(LoadMenu(restaurantSlug: widget.restaurantId));
+      final slug = widget.restaurant.slug;
+      context.read<RestaurantBloc>().add(LoadMenu(restaurantSlug: slug));
     });
   }
 
-  List<restmodels.Restaurant> get allRestaurants => [
-        restmodels.Restaurant(
-          id: widget.restaurantId,
-          slug: 'addis-red-sea',
-          restaurantName: 'Addis Red Sea',
-          managerId: '',
-          restaurantPhone: '',
-          previousSlugs: const [],
-          verificationStatus: 'verified',
-          averageRating: 4.5,
-          viewCount: 0.0,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-      ];
+  List<restmodels.Restaurant> get allRestaurants => [widget.restaurant];
 
   List<itemmodels.Item> get allDishes {
     if (_menu == null) return [];

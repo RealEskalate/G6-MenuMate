@@ -61,7 +61,7 @@ class AppRoute {
     switch (settings.name) {
       // Search routes
       case onboarding:
-         return MaterialPageRoute(builder: (_) => const OnboardingFirst());
+        return MaterialPageRoute(builder: (_) => const OnboardingFirst());
       case explore:
         return MaterialPageRoute(builder: (_) => const HomePage());
       case favorites:
@@ -79,9 +79,32 @@ class AppRoute {
         return MaterialPageRoute(builder: (_) => ItemDetailsPage(item: item));
       case restaurant:
         final args = settings.arguments as Map<String, dynamic>? ?? {};
+        // Prefer a full Restaurant instance if provided
+        final maybeRestaurant = args['restaurant'] as Restaurant?;
+        if (maybeRestaurant != null) {
+          return MaterialPageRoute(
+            builder: (_) => RestaurantPage(restaurant: maybeRestaurant),
+          );
+        }
+
+        // Fallback: accept a restaurantId and construct a minimal Restaurant
         final restaurantId = args['restaurantId'] as String? ?? '';
+        final stub = Restaurant(
+          id: restaurantId,
+          slug: restaurantId,
+          restaurantName: 'Restaurant',
+          managerId: '',
+          restaurantPhone: '',
+          previousSlugs: const [],
+          verificationStatus: 'unknown',
+          averageRating: 0.0,
+          viewCount: 0.0,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+
         return MaterialPageRoute(
-          builder: (_) => RestaurantPage(restaurantId: restaurantId),
+          builder: (_) => RestaurantPage(restaurant: stub),
         );
       case scannedMenu:
         return MaterialPageRoute(builder: (_) => const ScannedMenuPage());
@@ -92,7 +115,9 @@ class AppRoute {
       case restaurantProfile:
         return MaterialPageRoute(builder: (_) => const RestaurantProfilePage());
       case restaurantDetails:
-        return MaterialPageRoute(builder: (_) => RestaurantDetailsPage(restaurant: settings.arguments as Restaurant));
+        return MaterialPageRoute(
+            builder: (_) => RestaurantDetailsPage(
+                restaurant: settings.arguments as Restaurant));
       case legalInfo:
         return MaterialPageRoute(builder: (_) => const LegalInfoPage());
       case brandingPreferences:

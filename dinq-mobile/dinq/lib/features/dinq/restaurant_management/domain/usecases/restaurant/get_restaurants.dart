@@ -12,6 +12,9 @@ class GetRestaurants {
     int page = 1,
     int pageSize = 1,
   }) async {
-    return await repository.getRestaurants();
+    // debug: log usecase invocation
+    // ignore: avoid_print
+    print('GetRestaurants called - page: $page, pageSize: $pageSize');
+    return await repository.getRestaurants(page: page, pageSize: pageSize);
   }
 }

@@ -47,8 +47,17 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
     int pageSize = 20,
   }) async {
     final connected = await network.isConnected;
+    // debug: log network connectivity
+    // ignore: avoid_print
+    print(
+        'RestaurantRepositoryImpl.getRestaurants - network.isConnected: $connected');
+
     if (connected) {
       try {
+        // debug: indicate remote datasource will be called
+        // ignore: avoid_print
+        print(
+            'RestaurantRepositoryImpl.getRestaurants - calling remote datasource');
         final restaurants = await restRemoteDataSource.getRestaurants(
             page: page, pageSize: pageSize);
         return Right(restaurants.map((model) => model.toEntity()).toList());

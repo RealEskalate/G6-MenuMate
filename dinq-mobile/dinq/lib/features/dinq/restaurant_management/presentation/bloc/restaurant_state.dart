@@ -32,19 +32,11 @@ class RestaurantsLoaded extends RestaurantState {
 
 class MenuLoaded extends RestaurantState {
   final Menu menu;
-  final Map<String, List<dynamic>> categories;
 
-  const MenuLoaded(this.menu, {this.categories = const {}});
-
-  MenuLoaded copyWith({Menu? menu, Map<String, List<dynamic>>? categories}) {
-    return MenuLoaded(
-      menu ?? this.menu,
-      categories: categories ?? this.categories,
-    );
-  }
+  const MenuLoaded(this.menu);
 
   @override
-  List<Object?> get props => [menu, categories];
+  List<Object?> get props => [menu];
 }
 
 // class CategoriesLoaded extends RestaurantState {

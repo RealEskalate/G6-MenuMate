@@ -5,7 +5,11 @@ import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  /// When embedded inside a shell that provides its own navigation bar,
+  /// set this to false to avoid rendering the owner nav bar duplicate.
+  final bool showOwnerNavBar;
+
+  const ProfilePage({super.key, this.showOwnerNavBar = true});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -61,7 +65,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,7 +77,6 @@ class _ProfilePageState extends State<ProfilePage> {
           'Profile',
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-
         centerTitle: true,
         actions: [
           IconButton(
@@ -218,11 +220,12 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      bottomNavigationBar: const OwnerNavBar(
-        currentIndex: 2,
-        isRestaurantOwner: true,
-      ),
-      
+      bottomNavigationBar: widget.showOwnerNavBar
+          ? const OwnerNavBar(
+              currentIndex: 2,
+              isRestaurantOwner: true,
+            )
+          : null,
     );
   }
 }

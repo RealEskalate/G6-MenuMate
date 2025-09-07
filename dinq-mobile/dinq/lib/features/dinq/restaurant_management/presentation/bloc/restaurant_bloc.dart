@@ -228,14 +228,27 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     LoadRestaurants event,
     Emitter<RestaurantState> emit,
   ) async {
+    // debug: log that handler was invoked
+    // ignore: avoid_print
+    print(
+        '_onLoadRestaurants invoked - page: ${event.page}, pageSize: ${event.pageSize}');
     emit(const RestaurantLoading());
     final result = await getRestaurants(
       page: event.page,
       pageSize: event.pageSize,
     );
     result.fold(
-      (failure) => emit(RestaurantError(failure.message)),
-      (restaurants) => emit(RestaurantsLoaded(restaurants)),
+      (failure) {
+        // ignore: avoid_print
+        print('_onLoadRestaurants result: failure - ${failure.message}');
+        emit(RestaurantError(failure.message));
+      },
+      (restaurants) {
+        // ignore: avoid_print
+        print(
+            '_onLoadRestaurants result: success - ${restaurants.length} restaurants');
+        emit(RestaurantsLoaded(restaurants));
+      },
     );
   }
 

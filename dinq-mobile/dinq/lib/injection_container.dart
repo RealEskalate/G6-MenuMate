@@ -8,8 +8,11 @@ import 'core/network/api_endpoints.dart';
 import 'core/network/auth_interceptor.dart';
 import 'core/network/network_info.dart';
 import 'core/network/token_manager.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'features/dinq/auth/data/datasources/user_remote_data_source.dart';
 import 'features/dinq/auth/data/datasources/user_remote_data_source_impl.dart';
+import 'features/dinq/auth/data/datasources/user_local_data_source.dart';
+import 'features/dinq/auth/data/datasources/user_local_data_source_impl.dart';
 import 'features/dinq/auth/data/repositories/user_repository_impl.dart';
 import 'features/dinq/auth/domain/repositories/user_repository.dart';
 import 'features/dinq/auth/domain/usecases/user/change_password_usecase.dart';
@@ -60,24 +63,7 @@ Future<void> init() async {
   await dotenv.load(fileName: '.env');
   sl.registerLazySingleton<DotEnv>(() => dotenv);
   // BLoC
-  sl.registerFactory(
-    () => RestaurantBloc(
-      getRestaurants: sl(),
-      getMenu: sl(),
-      createMenu: sl(),
-      updateMenu: sl(),
-      deleteMenu: sl(),
-      uploadMenu: sl(),
-      publishMenu: sl(),
-      generateMenuQr: sl(),
-      getReviews: sl(),
-      getUserImages: sl(),
-      getRestaurantBySlug: sl(),
-      createRestaurant: sl(),
-      updateRestaurant: sl(),
-      deleteRestaurant: sl(),
-    ),
-  );
+  // BLoC registrations are done after usecases to ensure dependencies are available
   // BLoC for registration flow
   // (UserBloc registration moved down after usecase registrations)
   // Use cases
@@ -96,6 +82,26 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CreateRestaurant(sl()));
   sl.registerLazySingleton(() => UpdateRestaurant(sl()));
   sl.registerLazySingleton(() => DeleteRestaurant(sl()));
+
+  // Now register BLoC (after usecases)
+  sl.registerFactory(
+    () => RestaurantBloc(
+      getRestaurants: sl(),
+      getMenu: sl(),
+      createMenu: sl(),
+      updateMenu: sl(),
+      deleteMenu: sl(),
+      uploadMenu: sl(),
+      publishMenu: sl(),
+      generateMenuQr: sl(),
+      getReviews: sl(),
+      getUserImages: sl(),
+      getRestaurantBySlug: sl(),
+      createRestaurant: sl(),
+      updateRestaurant: sl(),
+      deleteRestaurant: sl(),
+    ),
+  );
 
   // BLoC for user flows (register/login/profile/google auth/etc)
   sl.registerFactory(
@@ -131,10 +137,17 @@ Future<void> init() async {
   sl.registerLazySingleton<UserRemoteDataSource>(
       () => UserRemoteDataSourceImpl(dio: sl()));
 
+  // SharedPreferences and local user datasource (used by UserRepository)
+  final sharedPrefs = await SharedPreferences.getInstance();
+  sl.registerLazySingleton<SharedPreferences>(() => sharedPrefs);
+  sl.registerLazySingleton<UserLocalDataSource>(
+      () => UserLocalDataSourceImpl(prefs: sl()));
+
   sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(
         remoteDataSource: sl(),
         network: sl(),
         tokenManager: sl(),
+        userLocalDataSource: sl(),
       ));
   // Repository
   // Data sources
@@ -165,6 +178,9 @@ Future<void> init() async {
 
   // Core
   // External
+  // SharedPreferences for local caching
+  // SharedPreferences instance will be created and registered later once core is configured
+
   // Configure Dio with base options so injected callers reuse same client
   // Use ApiEndpoints.root as the base URL provider
   final dio = Dio(BaseOptions(baseUrl: ApiEndpoints.root));
@@ -190,4 +206,7 @@ Future<void> init() async {
 
   // Core
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+
+  // SharedPreferences and local user datasource
+  // (already registered above)
 }

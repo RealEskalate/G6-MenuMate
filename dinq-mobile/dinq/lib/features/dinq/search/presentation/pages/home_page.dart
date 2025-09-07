@@ -3,12 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
-
-import 'package:dinq/features/dinq/restaurant_management/domain/entities/item.dart';
+import '../../../restaurant_management/domain/entities/item.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
-import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 // ...existing code... (bottom_navbar not needed in HomePage as OwnerNavBar is used)
 import '../widgets/nearby_restaurant_card.dart';
 import '../widgets/popular_dish_card.dart';
@@ -24,12 +22,6 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // Request restaurants when the page loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context
-          .read<RestaurantBloc>()
-          .add(const LoadRestaurants(page: 1, pageSize: 20));
-    });
   }
 
   bool _requestedPopularMenu = false;
@@ -112,192 +104,168 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
-        child: Stack(
-          children: [
-            BlocBuilder<RestaurantBloc, RestaurantState>(
-              builder: (context, state) {
-                if (state is RestaurantLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+        child: BlocBuilder<RestaurantBloc, RestaurantState>(
+          builder: (context, state) {
+            if (state is RestaurantInitial) {
+              // dispatch initial load now that builder has a valid context
+              context
+                  .read<RestaurantBloc>()
+                  .add(const LoadRestaurants(page: 1, pageSize: 20));
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                if (state is RestaurantsLoaded) {
-                  final restaurants = state.restaurants;
+            if (state is RestaurantLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-                  // request popular menu for first restaurant only once
-                  if (restaurants.isNotEmpty && !_requestedPopularMenu) {
-                    _requestedPopularMenu = true;
-                    context
-                        .read<RestaurantBloc>()
-                        .add(LoadMenu(restaurantSlug: restaurants.first.slug));
-                  }
+            if (state is RestaurantsLoaded) {
+              final restaurants = state.restaurants;
 
-                  return ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              // request popular menu for first restaurant only once
+              if (restaurants.isNotEmpty && !_requestedPopularMenu) {
+                _requestedPopularMenu = true;
+                context
+                    .read<RestaurantBloc>()
+                    .add(LoadMenu(restaurantSlug: restaurants.first.slug));
+              }
+
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                children: [
+                  // Logo / header row
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Logo / header row
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Image.asset(
-                            'assets/images/brand.png',
-                            height: 38,
-                            errorBuilder: (_, __, ___) =>
-                                const FlutterLogo(size: 38),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 18),
-
-                      // Search bar
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 4),
-                        child: const TextField(
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            icon: Icon(Icons.search, color: Colors.grey),
-                            hintText: 'Search by restaurant or dish',
-                            hintStyle: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Nearby title
-                      const Text('Nearby Restaurants',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 17)),
-                      const SizedBox(height: 12),
-
-                      // Nearby restaurants list
-                      ...restaurants.map((r) {
-                        return NearbyRestaurantCard(restaurant: r);
-                      }).toList(),
-
-                      const SizedBox(height: 28),
-
-                      // Popular Dishes title
-                      const Text('Popular Dishes',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 17)),
-                      const SizedBox(height: 12),
-
-                      // Horizontal popular list
-                      SizedBox(
-                        height: 220,
-                        child: BlocBuilder<RestaurantBloc, RestaurantState>(
-                          builder: (context, blocState) {
-                            List<Item> popularItems = [];
-                            if (blocState is MenuLoaded) {
-                              popularItems =
-                                  blocState.menu.items.take(10).toList();
-                            }
-
-                            if (popularItems.isNotEmpty) {
-                              return ListView(
-                                scrollDirection: Axis.horizontal,
-                                children: popularItems.map((item) {
-                                  return PopularDishCard(
-                                    rating: item.averageRating,
-                                    imageUrl: item.images != null &&
-                                            item.images!.isNotEmpty
-                                        ? item.images![0]
-                                        : '',
-                                    name: item.name,
-                                    restaurant: '',
-                                    price:
-                                        '${item.currency}${item.price.toStringAsFixed(2)}',
-                                    onTap: () {
-                                      Navigator.pushNamed(
-                                          context, AppRoute.itemDetail,
-                                          arguments: {'item': item});
-                                    },
-                                  );
-                                }).toList(),
-                              );
-                            }
-
-                            // fallback demo list
-                            return ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: [
-                                const SizedBox(width: 4),
-                                PopularDishCard(
-                                  rating: 4,
-                                  imageUrl: margheritaPizza.images![0],
-                                  name: margheritaPizza.name,
-                                  restaurant: 'Bella Italia',
-                                  price: '\$18.99',
-                                  onTap: () {
-                                    Navigator.pushNamed(
-                                        context, AppRoute.itemDetail,
-                                        arguments: {'item': margheritaPizza});
-                                  },
-                                ),
-                                PopularDishCard(
-                                  rating: 4,
-                                  imageUrl: salmonSashimi.images![0],
-                                  name: salmonSashimi.name,
-                                  restaurant: 'Sakura Sushi',
-                                  price: '\$24.99',
-                                  onTap: () {
-                                    Navigator.pushNamed(
-                                        context, AppRoute.itemDetail,
-                                        arguments: {'item': salmonSashimi});
-                                  },
-                                ),
-                                PopularDishCard(
-                                  rating: 4,
-                                  imageUrl: cheeseburger.images![0],
-                                  name: cheeseburger.name,
-                                  restaurant: 'Burger Haven',
-                                  price: '\$15.99',
-                                  onTap: () {
-                                    Navigator.pushNamed(
-                                        context, AppRoute.itemDetail,
-                                        arguments: {'item': cheeseburger});
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        ),
+                      Image.asset(
+                        'assets/images/brand.png',
+                        height: 38,
+                        errorBuilder: (_, __, ___) =>
+                            const FlutterLogo(size: 38),
                       ),
                     ],
-                  );
-                }
+                  ),
+                  const SizedBox(height: 18),
 
-                // fallback for other states
-                return const Center(child: Text('No restaurants available'));
-              },
-            ),
-            // Floating QR Button
-            Positioned(
-              bottom: 50,
-              right: 24,
-              child: FloatingActionButton(
-                backgroundColor: AppColors.primaryColor,
-                onPressed: () {
-                  // TODO: Implement QR scan
-                  Navigator.pushNamed(context, AppRoute.qrcode);
-                },
-                child: const Icon(
-                  Icons.qr_code_scanner,
-                  size: 32,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
+                  // Search bar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                    child: const TextField(
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        icon: Icon(Icons.search, color: Colors.grey),
+                        hintText: 'Search by restaurant or dish',
+                        hintStyle: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Nearby title
+                  const Text('Nearby Restaurants',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                  const SizedBox(height: 12),
+
+                  // Nearby restaurants list
+                  ...restaurants.map((r) {
+                    return NearbyRestaurantCard(restaurant: r);
+                  }),
+
+                  const SizedBox(height: 28),
+
+                  // Popular Dishes title
+                  const Text('Popular Dishes',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                  const SizedBox(height: 12),
+
+                  // Horizontal popular list
+                  SizedBox(
+                    height: 220,
+                    child: BlocBuilder<RestaurantBloc, RestaurantState>(
+                      builder: (context, blocState) {
+                        List<Item> popularItems = [];
+                        if (blocState is MenuLoaded) {
+                          popularItems = blocState.menu.items.take(10).toList();
+                        }
+
+                        if (popularItems.isNotEmpty) {
+                          return ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: popularItems.length,
+                            itemBuilder: (context, index) {
+                              final item = popularItems[index];
+                              return PopularDishCard(
+                                item: item,
+                                onTap: () {
+                                  Navigator.pushNamed(
+                                      context, AppRoute.itemDetail,
+                                      arguments: {'item': item});
+                                },
+                              );
+                            },
+                          );
+                        }
+
+                        // fallback demo list
+                        return ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            const SizedBox(width: 4),
+                            PopularDishCard(
+                              item: margheritaPizza,
+                              onTap: () {
+                                Navigator.pushNamed(
+                                    context, AppRoute.itemDetail,
+                                    arguments: {'item': margheritaPizza});
+                              },
+                            ),
+                            PopularDishCard(
+                              item: salmonSashimi,
+                              onTap: () {
+                                Navigator.pushNamed(
+                                    context, AppRoute.itemDetail,
+                                    arguments: {'item': salmonSashimi});
+                              },
+                            ),
+                            PopularDishCard(
+                              item: cheeseburger,
+                              onTap: () {
+                                Navigator.pushNamed(
+                                    context, AppRoute.itemDetail,
+                                    arguments: {'item': cheeseburger});
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            // fallback for other states
+            return const Center(child: const Text('No restaurants available'));
+          },
         ),
       ),
-      bottomNavigationBar: const OwnerNavBar(
-        isRestaurantOwner: true,
-        currentIndex: 0,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryColor,
+        onPressed: () {
+          // TODO: Implement QR scan
+          Navigator.pushNamed(context, AppRoute.qrcode);
+        },
+        child: const Icon(
+          Icons.qr_code_scanner,
+          size: 32,
+          color: Colors.white,
+        ),
       ),
     );
   }

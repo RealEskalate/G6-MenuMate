@@ -1,68 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/domain/entities/item.dart';
-import '../widgets/bottom_navbar.dart';
 import 'add_review_page.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
 
-// Add this at the top of item_details_page.dart or in a shared file
-class _FavoritesStore {
-  static final Set<String> dishIds = <String>{};
-}
-
-class ItemDetailsPage extends StatefulWidget {
+class ItemDetailsPage extends StatelessWidget {
   final Item item;
 
   const ItemDetailsPage({super.key, required this.item});
 
-  @override
-  State<ItemDetailsPage> createState() => _ItemDetailsPageState();
-}
-
-class _ItemDetailsPageState extends State<ItemDetailsPage> {
-  static final Set<String> _favoriteDishIds = {}; // For UI only
-  bool _reviewsRequested = false;
-
-  bool get isFavorite => _favoriteDishIds.contains(widget.item.id);
-
-  void _toggleFavorite() {
-    setState(() {
-      if (_FavoritesStore.dishIds.contains(widget.item.id)) {
-        _FavoritesStore.dishIds.remove(widget.item.id);
-      } else {
-        _FavoritesStore.dishIds.add(widget.item.id);
-      }
-    });
+  void _loadReviews(BuildContext context) {
+    context.read<RestaurantBloc>().add(LoadReviews(item.id));
   }
 
-  void _onTabSelected(BottomNavTab tab) {
-    if (tab == BottomNavTab.explore) {
-      Navigator.pushReplacementNamed(context, AppRoute.explore);
-    } else if (tab == BottomNavTab.favorites) {
-      Navigator.pushReplacementNamed(context, AppRoute.favorites);
-    } else if (tab == BottomNavTab.profile) {
-      Navigator.pushReplacementNamed(context, AppRoute.profile);
-    }
-  }
+  // No local tab navigation or favorites toggling here; keep page stateless.
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.item.name),
+        title: Text(item.name),
         backgroundColor: AppColors.primaryColor,
-        actions: [
-          IconButton(
-            onPressed: _toggleFavorite,
-            icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
-            color: Colors.white,
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -72,19 +34,18 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
             _buildItemImage(),
             const SizedBox(height: 16),
             Text(
-              widget.item.name,
+              item.name,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            if (widget.item.description != null) Text(widget.item.description!),
+            if (item.description != null) Text(item.description!),
             const SizedBox(height: 12),
 
-            if (widget.item.allergies != null &&
-                widget.item.allergies!.isNotEmpty) ...[
+            if (item.allergies != null && item.allergies!.isNotEmpty) ...[
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: widget.item.allergies!
+                children: item.allergies!
                     .map(
                       (allergy) => Chip(
                         label: Text(allergy),
@@ -104,19 +65,19 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${widget.item.nutritionalInfo?.calories ?? '-'} calories',
+                  '${item.nutritionalInfo?.calories ?? '-'} calories',
                   style: const TextStyle(fontSize: 16),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            if (widget.item.preparationTime != null) ...[
+            if (item.preparationTime != null) ...[
               Row(
                 children: [
                   const Icon(Icons.access_time, color: Colors.blue),
                   const SizedBox(width: 8),
                   Text(
-                    'Preparation time: ${widget.item.preparationTime} minutes',
+                    'Preparation time: ${item.preparationTime} minutes',
                     style: const TextStyle(fontSize: 16),
                   ),
                 ],
@@ -135,7 +96,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                 ),
                 const SizedBox(width: 8),
                 ...List.generate(5, (index) {
-                  final rating = widget.item.averageRating;
+                  final rating = item.averageRating;
                   return Icon(
                     index < rating.floor()
                         ? Icons.star
@@ -147,7 +108,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                 }),
                 const SizedBox(width: 8),
                 Text(
-                  '${widget.item.averageRating}',
+                  '${item.averageRating}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -174,10 +135,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
             ),
             const SizedBox(height: 4),
             Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 10,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(12),
@@ -197,40 +155,43 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
             ),
             const SizedBox(height: 24),
 
-            // Reviews Section header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Reviews',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+            // Reviews Section header (tap title to load reviews)
+            GestureDetector(
+              onTap: () => _loadReviews(context),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Reviews',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 6,
-                    ),
-                    elevation: 0,
                   ),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const AddReviewPage(),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                    );
-                  },
-                  child: const Text('Add Review'),
-                ),
-              ],
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 6,
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const AddReviewPage(),
+                        ),
+                      );
+                    },
+                    child: const Text('Add Review'),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 12),
 
@@ -261,17 +222,9 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                   );
                 }
 
-                // ask bloc to load reviews once
-                if (!_reviewsRequested) {
-                  _reviewsRequested = true;
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    context
-                        .read<RestaurantBloc>()
-                        .add(LoadReviews(widget.item.id));
-                  });
-                }
-
-                return const Center(child: CircularProgressIndicator());
+                // initial state - prompt user to tap Reviews header to load
+                return const Center(
+                    child: Text('Tap "Reviews" above to load reviews'));
               },
             ),
 
@@ -321,10 +274,6 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavBar(
-        selectedTab: BottomNavTab.explore,
-        onTabSelected: _onTabSelected,
-      ),
     );
   }
 
@@ -335,9 +284,9 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
           height: 250,
           width: double.infinity,
           color: Colors.grey[300],
-          child: widget.item.images != null && widget.item.images!.isNotEmpty
+          child: item.images != null && item.images!.isNotEmpty
               ? Image.network(
-                  widget.item.images![0],
+                  item.images![0],
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => const Center(
                     child: Icon(Icons.restaurant, size: 80, color: Colors.grey),
@@ -361,7 +310,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                 const Icon(Icons.star, color: Colors.amber, size: 16),
                 const SizedBox(width: 4),
                 Text(
-                  widget.item.averageRating.toStringAsFixed(1),
+                  item.averageRating.toStringAsFixed(1),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],

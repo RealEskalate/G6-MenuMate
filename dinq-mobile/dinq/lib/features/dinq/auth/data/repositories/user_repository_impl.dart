@@ -5,6 +5,7 @@ import '../../../../../core/error/failures.dart';
 import '../../../../../core/network/network_info.dart';
 import '../../../../../core/network/token_manager.dart';
 import '../../domain/entities/user.dart';
+import '../datasources/user_local_data_source.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../datasources/user_remote_data_source.dart';
 import '../model/user_model.dart';
@@ -13,11 +14,13 @@ class UserRepositoryImpl implements UserRepository {
   final UserRemoteDataSource remoteDataSource;
   final NetworkInfo network;
   final TokenManager tokenManager;
+  final UserLocalDataSource? userLocalDataSource;
 
   UserRepositoryImpl({
     required this.remoteDataSource,
     required this.network,
     required this.tokenManager,
+    this.userLocalDataSource,
   });
 
   @override
@@ -55,6 +58,23 @@ class UserRepositoryImpl implements UserRepository {
               refreshToken: tokens['refresh_token']!,
             );
           }
+          // cache user JSON and favorites locally if local datasource is available
+          try {
+            final userJson = (res['user'] ?? {}) is Map
+                ? (res['user'] as Map).cast<String, dynamic>().toString()
+                : res['user']?.toString();
+            if (userJson != null &&
+                userJson.isNotEmpty &&
+                userLocalDataSource != null) {
+              await userLocalDataSource?.cacheUserJson(userJson);
+              // if server returns favorites, persist them
+              final favs = (res['user'] ?? {})['favorites'] as List<dynamic>?;
+              if (favs != null) {
+                final ids = favs.map((e) => e.toString()).toList();
+                await userLocalDataSource?.saveFavoriteRestaurantIds(ids);
+              }
+            }
+          } catch (_) {}
         } catch (_) {}
 
         // parse user entity from response
@@ -91,6 +111,22 @@ class UserRepositoryImpl implements UserRepository {
               refreshToken: refresh,
             );
           }
+          // cache user JSON and favorites locally if available
+          try {
+            final userJson = (res['user'] ?? {}) is Map
+                ? (res['user'] as Map).cast<String, dynamic>().toString()
+                : res['user']?.toString();
+            if (userJson != null &&
+                userJson.isNotEmpty &&
+                userLocalDataSource != null) {
+              await userLocalDataSource!.cacheUserJson(userJson);
+              final favs = (res['user'] ?? {})['favorites'] as List<dynamic>?;
+              if (favs != null) {
+                final ids = favs.map((e) => e.toString()).toList();
+                await userLocalDataSource!.saveFavoriteRestaurantIds(ids);
+              }
+            }
+          } catch (_) {}
         } catch (_) {}
         return Right(res);
       } catch (e) {
