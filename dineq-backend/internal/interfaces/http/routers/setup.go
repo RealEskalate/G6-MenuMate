@@ -2,8 +2,8 @@ package routers
 
 import (
 	"net/http"
-	"time"
 	"sort"
+	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
 	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
@@ -49,7 +49,7 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 		NewQRCodeRoutes(env, api, db, notificationUseCase)
 		NewUploadRoutes(env, api)
 		NewItemRoutes(env, api, db, notifySvc)
-		NewReviewRoutes(env, api,db)
+		NewReviewRoutes(env, api, db)
 
 		// Temporary route enumerator for debugging 404 issue on nested review route
 		api.GET("/_routes", func(c *gin.Context) {
@@ -110,9 +110,9 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 				"GET /api/v1/menu-items/:menu_slug/:id",
 				"POST /api/v1/menu-items/:menu_slug/:id/reviews",
 				"DELETE /api/v1/menu-items/:menu_slug/:id",
-				"POST /api/v1/restaurants/:restaurant_id/items/:item_id/reviews", // EXPECTED NEW ROUTE
+				"POST /api/v1/restaurants/:restaurant_id/items/:item_id/reviews",  // EXPECTED NEW ROUTE
 				"POST /api/v1/restaurants/:restaurant_id/items/:item_id/reviews/", // trailing variant
-				"POST /api/v1/reviews", // legacy
+				"POST /api/v1/reviews",                                            // legacy
 				"PATCH /api/v1/reviews/:id",
 				"DELETE /api/v1/reviews/:id",
 				"GET /api/v1/reviews/:id",
