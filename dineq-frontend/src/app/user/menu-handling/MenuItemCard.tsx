@@ -1,64 +1,44 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { MenuItem } from "./menuApi";
-import SafeImage from "@/components/common/SafeImage";
 
 interface MenuItemCardProps {
   item: MenuItem;
 }
 
-const MenuItemCard: React.FC<MenuItemCardProps> = ({ item }) => {
+export default function MenuItemCard({ item }: MenuItemCardProps) {
   return (
-    <div className="border border-[var(--color-primary)] rounded-lg hover:shadow-lg hover:-translate-y-1 transform transition-all duration-200">
-      <div className="flex p-3">
-        {/* Image */}
-        <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden flex-shrink-0">
-          <SafeImage
-            src={item.image || "/Background.png"}
+    <div className="flex w-[535.25px] h-[110.86px] border border-[var(--color-primary)] rounded-lg">
+      {/* Image */}
+      <div className="h-[97px] w-[152.43px] relative rounded-lg m-[5px] overflow-hidden">
+        {item.image ? (
+          <Image
+            src={item.image}
             alt={item.name}
             fill
-            style={{ objectFit: "cover" }}
+            objectFit="cover"
             className="rounded-lg"
           />
+        ) : (
+          <div className="bg-gray-200 w-full h-full rounded-lg" />
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="w-[354.9px] h-[87.76px] pt-[10.78px] pr-[12.7px] pb-[23.64px] pl-[11.93px] flex flex-col gap-y-[9.34px]">
+        <div className="flex justify-between h-[24px] pt-[10.74px]">
+          <p className="font-semibold text-[20px] leading-[23.35px]">{item.name}</p>
+          <p className="font-semibold text-[20px] leading-[23.35px]">
+            {item.price} {item.currency ?? "ETB"}
+          </p>
         </div>
 
-        {/* Info */}
-        <div className="flex-1 ml-3 flex flex-col justify-between">
-          <div>
-            <div className="flex items-start justify-between">
-              <h4 className="text-sm md:text-base font-semibold text-gray-800 line-clamp-1">
-                {item.name}
-              </h4>
-              <span className="text-sm md:text-base font-bold text-[var(--color-primary)] ml-2">
-                {item.currency ?? "$"} {item.price}
-              </span>
-            </div>
-
-            {item.description && (
-              <p className="text-xs md:text-sm text-gray-600 mt-1 line-clamp-2">
-                {item.description}
-              </p>
-            )}
-          </div>
-
-          {/* Tags */}
-          <div className="flex flex-wrap items-center gap-2 mt-2">
-            {(item.allergies?.length ?? 0) > 0 && (
-              <span className="px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
-                {item.allergies?.join(", ")}
-              </span>
-            )}
-            {(item.dietary_info?.length ?? 0) > 0 && (
-              <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                {item.dietary_info?.join(", ")}
-              </span>
-            )}
-          </div>
+        <div className="h-[20px] w-[330.26px]">
+          <p>{item.description}</p>
         </div>
       </div>
     </div>
   );
-};
-
-export default MenuItemCard;
+}

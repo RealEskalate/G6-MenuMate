@@ -74,7 +74,7 @@ export default function FoodDetails() {
         )}
       </div>
     </div>
-  );  
+  );
 }
 // "use client";
 // import { useState } from "react";

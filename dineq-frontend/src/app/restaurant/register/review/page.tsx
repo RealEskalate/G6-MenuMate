@@ -13,12 +13,15 @@ export default function ReviewPage() {
 
 
   const basicInfo = {
-    Restaurant: data.restaurant,
-    Address: data.address,
-    Phone: data.phone,
-    About: data.about || "N/A",
-    Tags: data.tags?.join(", ") || "None",
-  };
+  Restaurant: data.restaurant,
+  Address: data.address,
+  Phone: data.phone,
+  Latitude: data.lat ?? "N/A",
+  Longitude: data.lng ?? "N/A",
+  About: data.about || "N/A",
+  Tags: data.tags?.join(", ") || "None",
+};
+
 
   const logoFile = data.logo_image;
   const documents = data.businessLicense ? [data.businessLicense] : [];
@@ -41,6 +44,9 @@ export default function ReviewPage() {
       formData.append("restaurant_name", data.restaurant);
       formData.append("restaurant_phone", data.phone);
       formData.append("about", data.about || "");
+
+      if (data.lat) formData.append("lat", String(data.lat));
+      if (data.lng) formData.append("lng", String(data.lng));
 
       if (data.tags && data.tags.length > 0) {
         data.tags.forEach((tag: string) => {
