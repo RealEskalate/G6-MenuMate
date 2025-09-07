@@ -60,79 +60,161 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
   final _labelController = TextEditingController();
   double _fontSize = 12;
 
+  // Future<String?> _sendCustomizationAndGetQr() async {
+  //   try {
+  //     // Check if we have the required parameters
+  //     if (widget.menuId == null || widget.restaurantSlug == null) {
+  //       print('❌ Missing menuId or restaurantSlug');
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Missing menu or restaurant information')),
+  //       );
+  //       return null;
+  //     }
+
+  //     // Prepare customization data
+  //     final customizationData = {
+  //       'background_color': _bgController.text,
+  //       'foreground_color': _fgController.text,
+  //       'gradient_from_color': _gradientFromController.text,
+  //       'gradient_to_color': _gradientToController.text,
+  //       'gradient_direction': _gradientDirection.toLowerCase().replaceAll(' ', '_'),
+  //       'label_text': _labelController.text,
+  //       'label_color': _labelColorController.text,
+  //       'label_font_size': _fontSize,
+  //       'logo_size_percentage': _logoSize,
+  //       'margin': _margin,
+  //       'has_logo': _logoFile != null,
+  //     };
+
+  //     print('🎨 Sending customization data: $customizationData');
+
+  //     // Initialize API client and services
+  //     final apiClient = ApiClient(baseUrl: baseUrl);
+  //     final qrDataSource = QrCodeRemoteDataSourceImpl(apiClient: apiClient);
+  //     final qrRepository = QrCodeRepositoryImpl(remoteDataSource: qrDataSource);
+  //     final generateQrCode = GenerateQrCode(qrRepository);
+
+  //     // Call the API
+  //     final result = await generateQrCode(
+  //       restaurantSlug: widget.restaurantSlug!,
+  //       menuId: widget.menuId!,
+  //       customizationData: customizationData,
+  //     );
+
+  //     return result.fold(
+  //       (failure) {
+  //         print('❌ QR generation failed: ${failure.message}');
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(content: Text('Failed to generate QR code: ${failure.message}')),
+  //         );
+  //         return null;
+  //       },
+  //       (response) {
+  //         print('✅ QR generation successful: $response');
+
+  //         // Extract the QR code image URL from the response
+  //         final qrData = response['data']?['qr_code'];
+  //         if (qrData != null && qrData['image_url'] != null) {
+  //           return qrData['image_url'] as String;
+  //         } else {
+  //           print('❌ No image URL in response');
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             const SnackBar(content: Text('No QR code image received from server')),
+  //           );
+  //           return null;
+  //         }
+  //       },
+  //     );
+  //   } catch (e) {
+  //     print('❌ QR generation error: $e');
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Error generating QR code: $e')),
+  //     );
+  //     return null;
+  //   }
+  // }
   Future<String?> _sendCustomizationAndGetQr() async {
-    try {
-      // Check if we have the required parameters
-      if (widget.menuId == null || widget.restaurantSlug == null) {
-        print('❌ Missing menuId or restaurantSlug');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Missing menu or restaurant information')),
-        );
-        return null;
-      }
-
-      // Prepare customization data
-      final customizationData = {
-        'background_color': _bgController.text,
-        'foreground_color': _fgController.text,
-        'gradient_from_color': _gradientFromController.text,
-        'gradient_to_color': _gradientToController.text,
-        'gradient_direction': _gradientDirection.toLowerCase().replaceAll(' ', '_'),
-        'label_text': _labelController.text,
-        'label_color': _labelColorController.text,
-        'label_font_size': _fontSize,
-        'logo_size_percentage': _logoSize,
-        'margin': _margin,
-        'has_logo': _logoFile != null,
-      };
-
-      print('🎨 Sending customization data: $customizationData');
-
-      // Initialize API client and services
-      final apiClient = ApiClient(baseUrl: baseUrl);
-      final qrDataSource = QrCodeRemoteDataSourceImpl(apiClient: apiClient);
-      final qrRepository = QrCodeRepositoryImpl(remoteDataSource: qrDataSource);
-      final generateQrCode = GenerateQrCode(qrRepository);
-
-      // Call the API
-      final result = await generateQrCode(
-        restaurantSlug: widget.restaurantSlug!,
-        menuId: widget.menuId!,
-        customizationData: customizationData,
-      );
-
-      return result.fold(
-        (failure) {
-          print('❌ QR generation failed: ${failure.message}');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to generate QR code: ${failure.message}')),
-          );
-          return null;
-        },
-        (response) {
-          print('✅ QR generation successful: $response');
-
-          // Extract the QR code image URL from the response
-          final qrData = response['data']?['qr_code'];
-          if (qrData != null && qrData['image_url'] != null) {
-            return qrData['image_url'] as String;
-          } else {
-            print('❌ No image URL in response');
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('No QR code image received from server')),
-            );
-            return null;
-          }
-        },
-      );
-    } catch (e) {
-      print('❌ QR generation error: $e');
+  try {
+    if (widget.menuId == null || widget.restaurantSlug == null) {
+      print('❌ Missing menuId or restaurantSlug');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error generating QR code: $e')),
+        const SnackBar(content: Text('Missing menu or restaurant information')),
       );
       return null;
     }
+
+    // Build the body in the structure the backend expects
+    final body = {
+      'format': "png",
+      "size": 600,
+      "quality": 92,
+      "include_label": true,
+      "customization": {
+        "background_color": _bgController.text,
+        "foreground_color": _fgController.text,
+        "gradient_from": _gradientFromController.text,
+        "gradient_to": _gradientToController.text,
+        "gradient_direction":
+            _gradientDirection.toLowerCase().replaceAll(' ', '_'),
+        // ⚠️ Use an uploaded logo URL here if you have one
+        "logo": _logoFile != null
+            ? "https://res.cloudinary.com/dmahwet/image/upload/v1757007077/dineQ/general/huafbulre2yxgkxi0flu.png"
+            : null,
+        "logo_size_percent": _logoSize / 100, // backend expects 0.xx not %
+        "margin": _margin.toInt(),
+        "label_text": _labelController.text,
+        "label_color": _labelColorController.text,
+        "label_font_size": _fontSize.toInt(),
+        "label_font_url":
+            "https://github.com/google/fonts/raw/main/apache/opensans/OpenSans-SemiBold.ttf"
+      }
+    };
+
+    print('📤 Sending request body: $body');
+
+    // Initialize API client and services
+    final apiClient = ApiClient(baseUrl: baseUrl);
+    final qrDataSource = QrCodeRemoteDataSourceImpl(apiClient: apiClient);
+    final qrRepository = QrCodeRepositoryImpl(remoteDataSource: qrDataSource);
+    final generateQrCode = GenerateQrCode(qrRepository);
+
+    // Call the API
+    final result = await generateQrCode(
+      restaurantSlug: widget.restaurantSlug!,
+      menuId: widget.menuId!,
+      customizationData: body,
+    );
+
+    return result.fold(
+      (failure) {
+        print('❌ QR generation failed: ${failure.message}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to generate QR code: ${failure.message}')),
+        );
+        return null;
+      },
+      (response) {
+        print('✅ QR generation successful: $response');
+        final qrData = response['data']?['qr_code'];
+        if (qrData != null && qrData['image_url'] != null) {
+          return qrData['image_url'] as String;
+        } else {
+          print('❌ No image URL in response');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No QR code image received from server')),
+          );
+          return null;
+        }
+      },
+    );
+  } catch (e) {
+    print('❌ QR generation error: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error generating QR code: $e')),
+    );
+    return null;
   }
+}
 
   Future<void> _pickLogo() async {
     final picker = ImagePicker();
