@@ -5,8 +5,8 @@ import '../../../../../core/error/failures.dart';
 import '../../../../../core/network/network_info.dart';
 import '../../../../../core/network/token_manager.dart';
 import '../../domain/entities/user.dart';
-import '../datasources/user_local_data_source.dart';
 import '../../domain/repositories/user_repository.dart';
+import '../datasources/user_local_data_source_impl.dart';
 import '../datasources/user_remote_data_source.dart';
 import '../model/user_model.dart';
 
@@ -14,13 +14,13 @@ class UserRepositoryImpl implements UserRepository {
   final UserRemoteDataSource remoteDataSource;
   final NetworkInfo network;
   final TokenManager tokenManager;
-  final UserLocalDataSource? userLocalDataSource;
+  final UserLocalDataSourceImpl userLocalDataSource;
 
   UserRepositoryImpl({
     required this.remoteDataSource,
     required this.network,
     required this.tokenManager,
-    this.userLocalDataSource,
+    required this.userLocalDataSource,
   });
 
   @override
@@ -113,6 +113,9 @@ class UserRepositoryImpl implements UserRepository {
           }
           // cache user JSON and favorites locally if available
           try {
+            print('here');
+            userLocalDataSource.clearCachedUser();
+            userLocalDataSource.clearFavorites();
             final userJson = (res['user'] ?? {}) is Map
                 ? (res['user'] as Map).cast<String, dynamic>().toString()
                 : res['user']?.toString();
