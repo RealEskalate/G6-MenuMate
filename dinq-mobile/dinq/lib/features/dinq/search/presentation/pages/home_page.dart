@@ -1,11 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../../../restaurant_management/data/model/restaurant_model.dart';
 import '../../../restaurant_management/data/datasources/restaurant_remote_data_source.dart';
+import '../../../restaurant_management/domain/entities/restaurant.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
 import '../widgets/bottom_navbar.dart';
 import '../widgets/nearby_restaurant_card.dart';
 import '../widgets/popular_dish_card.dart';
@@ -25,6 +30,9 @@ class _HomePageState extends State<HomePage> {
   bool _isSearching = false;
   String _currentSearchQuery = '';
   Timer? _debounceTimer;
+  bool _isLoadingRestaurants = true;
+  List<Restaurant> _restaurants = [];
+  String _errorMessage = '';
 
   late final margheritaPizza = models.Item(
     id: '1',
@@ -76,6 +84,17 @@ class _HomePageState extends State<HomePage> {
     updatedAt: DateTime.now(),
     averageRating: 4.5,
   );
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRestaurants();
+  }
+
+  void _loadRestaurants() {
+    final restaurantBloc = BlocProvider.of<RestaurantBloc>(context);
+    restaurantBloc.add(const LoadRestaurants(page: 1, pageSize: 10));
+  }
 
   @override
   void dispose() {
@@ -204,209 +223,269 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
-        child: Stack(
-          children: [
-            ListView(
-              padding: const EdgeInsets.fromLTRB(
-                16,
-                8,
-                16,
-                100,
-              ), // extra bottom padding
-              children: [
-                // Logo
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/images/brand.png', // Make sure this exists!
-                      height: 38,
-                      errorBuilder: (_, __, ___) => const FlutterLogo(size: 38),
-                    ),
-                  ],
-                ),
+        child: BlocListener<RestaurantBloc, RestaurantState>(
+          listener: (context, state) {
+            if (state is RestaurantsLoaded) {
+              setState(() {
+                _restaurants = state.restaurants;
+                _isLoadingRestaurants = false;
+                _errorMessage = '';
+              });
+            } else if (state is RestaurantError) {
+              setState(() {
+                _errorMessage = state.message;
+                _isLoadingRestaurants = false;
+              });
+            } else if (state is RestaurantLoading) {
+              setState(() {
+                _isLoadingRestaurants = true;
+              });
+            }
+          },
+          child: Stack(
+            children: [
+              ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  16,
+                  8,
+                  16,
+                  100,
+                ), // extra bottom padding
+                children: [
+                  // Logo
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/images/brand.png', // Make sure this exists!
+                        height: 38,
+                        errorBuilder: (_, __, ___) => const FlutterLogo(size: 38),
+                      ),
+                    ],
+                  ),
 
-                const SizedBox(height: 18),
-                // Search Bar
-                Container(
-                  decoration: BoxDecoration(
+                  const SizedBox(height: 18),
+                  // Search Bar
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 4,
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        icon: const Icon(Icons.search, color: Colors.grey),
+                        hintText: 'Search by restaurant or dish',
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        suffixIcon: _isSearching
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear, color: Colors.grey),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _onSearchChanged('');
+                                    },
+                                  )
+                                : null,
+                      ),
+                      onChanged: _onSearchChanged,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Nearby Restaurants
+                  const Text(
+                    'Nearby Restaurants',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Show loading indicator or error message
+                  if (_isLoadingRestaurants)
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  else if (_errorMessage.isNotEmpty)
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          'Error: $_errorMessage',
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    )
+                  // Show restaurants from API
+                  else if (_restaurants.isNotEmpty)
+                    ..._restaurants.map((restaurant) => NearbyRestaurantCard(
+                          imageUrl: restaurant.logoImage ?? 
+                              'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
+                          name: restaurant.restaurantName,
+                          cuisine: restaurant.tags?.isNotEmpty == true ? restaurant.tags!.first : 'Restaurant',
+                          distance: '${(restaurant.viewCount / 100).toStringAsFixed(1)} km away',
+                          rating: restaurant.averageRating,
+                          reviews: (restaurant.averageRating * 20).round(),
+                          onViewMenu: () {
+                            Navigator.pushNamed(
+                              context,
+                              AppRoute.restaurant,
+                              arguments: {'restaurantId': restaurant.slug},
+                            );
+                          },
+                        )).toList()
+                  // Fallback to hardcoded restaurants if API returns empty list
+                  else
+                    ...[                  
+                      NearbyRestaurantCard(
+                        imageUrl:
+                            'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
+                        name: 'Bella Italia',
+                        cuisine: 'Italian',
+                        distance: '0.5 km away',
+                        rating: 4.8,
+                        reviews: 120,
+                        onViewMenu: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoute.restaurant,
+                            arguments: {'restaurantId': 'bella-italia'},
+                          );
+                        },
+                      ),
+                      NearbyRestaurantCard(
+                        imageUrl:
+                            'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
+                        name: 'Sakura Sushi',
+                        cuisine: 'Japanese',
+                        distance: '0.8 km away',
+                        rating: 4.6,
+                        reviews: 89,
+                        onViewMenu: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoute.restaurant,
+                            arguments: {'restaurantId': 'sakura-sushi'},
+                          );
+                        },
+                      ),
+                      NearbyRestaurantCard(
+                        imageUrl:
+                            'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
+                        name: 'Burger Haven',
+                        cuisine: 'American',
+                        distance: '1.2 km away',
+                        rating: 4.5,
+                        reviews: 156,
+                        onViewMenu: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoute.restaurant,
+                            arguments: {'restaurantId': 'burger-haven'},
+                          );
+                        },
+                      ),
+                    ],
+                  const SizedBox(height: 28),
+                  // Popular Dishes
+                  const Text(
+                    'Popular Dishes',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 220,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 4),
+                          PopularDishCard(
+                            rating: 4,
+                            imageUrl: margheritaPizza.images![0],
+                            name: margheritaPizza.name,
+                            restaurant: 'Bella Italia',
+                            price: '\$18.99',
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                AppRoute.itemDetail,
+                                arguments: {'item': margheritaPizza},
+                              );
+                            },
+                          ),
+                          PopularDishCard(
+                            rating: 4,
+                            imageUrl: salmonSashimi.images![0],
+                            name: salmonSashimi.name,
+                            restaurant: 'Sakura Sushi',
+                            price: '\$24.99',
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                AppRoute.itemDetail,
+                                arguments: {'item': salmonSashimi},
+                              );
+                            },
+                          ),
+                          PopularDishCard(
+                            rating: 4,
+                            imageUrl: cheeseburger.images![0],
+                            name: cheeseburger.name,
+                            restaurant: 'Burger Haven',
+                            price: '\$15.99',
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                AppRoute.itemDetail,
+                                arguments: {'item': cheeseburger},
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 80),
+                ],
+              ),
+              // Floating QR Button
+              Positioned(
+                bottom: 50,
+                right: 24,
+                child: FloatingActionButton(
+                  backgroundColor: AppColors.primaryColor,
+                  onPressed: () {
+                    // TODO: Implement QR scan
+                    Navigator.pushNamed(context, AppRoute.qrcode);
+                  },
+                  child: const Icon(
+                    Icons.qr_code_scanner,
+                    size: 32,
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 4,
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      icon: const Icon(Icons.search, color: Colors.grey),
-                      hintText: 'Search by restaurant or dish',
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      suffixIcon: _isSearching
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear, color: Colors.grey),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    _onSearchChanged('');
-                                  },
-                                )
-                              : null,
-                    ),
-                    onChanged: _onSearchChanged,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Nearby Restaurants
-                const Text(
-                  'Nearby Restaurants',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                ),
-                const SizedBox(height: 12),
-                NearbyRestaurantCard(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
-                  name: 'Bella Italia',
-                  cuisine: 'Italian',
-                  distance: '0.5 km away',
-                  rating: 4.8,
-                  reviews: 120,
-                  onViewMenu: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRoute.restaurant,
-                      arguments: {'restaurantId': 'bella-italia'},
-                    );
-                  },
-                ),
-                NearbyRestaurantCard(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
-                  name: 'Sakura Sushi',
-                  cuisine: 'Japanese',
-                  distance: '0.8 km away',
-                  rating: 4.6,
-                  reviews: 89,
-                  onViewMenu: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRoute.restaurant,
-                      arguments: {'restaurantId': 'sakura-sushi'},
-                    );
-                  },
-                ),
-                NearbyRestaurantCard(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
-                  name: 'Burger Haven',
-                  cuisine: 'American',
-                  distance: '1.2 km away',
-                  rating: 4.5,
-                  reviews: 156,
-                  onViewMenu: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRoute.restaurant,
-                      arguments: {'restaurantId': 'burger-haven'},
-                    );
-                  },
-                ),
-                const SizedBox(height: 28),
-                // Popular Dishes
-                const Text(
-                  'Popular Dishes',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 220,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        const SizedBox(width: 4),
-                        PopularDishCard(
-                          rating: 4,
-                          imageUrl: margheritaPizza.images![0],
-                          name: margheritaPizza.name,
-                          restaurant: 'Bella Italia',
-                          price: '\$18.99',
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoute.itemDetail,
-                              arguments: {'item': margheritaPizza},
-                            );
-                          },
-                        ),
-                        PopularDishCard(
-                          rating: 4,
-                          imageUrl: salmonSashimi.images![0],
-                          name: salmonSashimi.name,
-                          restaurant: 'Sakura Sushi',
-                          price: '\$24.99',
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoute.itemDetail,
-                              arguments: {'item': salmonSashimi},
-                            );
-                          },
-                        ),
-                        PopularDishCard(
-                          rating: 4,
-                          imageUrl: cheeseburger.images![0],
-                          name: cheeseburger.name,
-                          restaurant: 'Burger Haven',
-                          price: '\$15.99',
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoute.itemDetail,
-                              arguments: {'item': cheeseburger},
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 80),
-              ],
-            ),
-            // Floating QR Button
-            Positioned(
-              bottom: 50,
-              right: 24,
-              child: FloatingActionButton(
-                backgroundColor: AppColors.primaryColor,
-                onPressed: () {
-                  // TODO: Implement QR scan
-                  Navigator.pushNamed(context, AppRoute.qrcode);
-                },
-                child: const Icon(
-                  Icons.qr_code_scanner,
-                  size: 32,
-                  color: Colors.white,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-      bottomNavigationBar: const OwnerNavBar(
-        isRestaurantOwner: true,
-        currentIndex: 0,
+      bottomNavigationBar: BottomNavbar(
+        currentTab: BottomNavTab.explore,
+        onTabSelected: (tab) => _onTabSelected(context, tab),
       ),
     );
   }
-
 }
 
