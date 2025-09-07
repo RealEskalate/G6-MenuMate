@@ -64,8 +64,19 @@ class TokenManager {
     }
 
     print('✅ Using token: ${token.substring(0, 20)}...');
+    
+    // For multipart requests, don't include Content-Type
     return {
       'Authorization': 'Bearer $token',
+    };
+  }
+
+  static Future<Map<String, String>?> getAuthHeadersWithContentType() async {
+    final headers = await getAuthHeaders();
+    if (headers == null) return null;
+
+    return {
+      ...headers,
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };

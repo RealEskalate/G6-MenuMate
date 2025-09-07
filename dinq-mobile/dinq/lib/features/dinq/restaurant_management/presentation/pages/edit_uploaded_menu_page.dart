@@ -6,6 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
+import '../../../../../core/network/api_client.dart';
+import '../../../../../core/constants/constants.dart';
 import 'edit_menu_item_page.dart';
 
 class EditUploadedMenuPage extends StatefulWidget {
@@ -122,6 +124,113 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
     Navigator.of(context).pop(); // Go back to DigitizeMenuPage
   }
 
+  Future<void> _publishMenu() async {
+    print('🚀 Starting menu publishing process...');
+    print('🌐 Using base URL: $baseUrl');
+
+    // Show loading indicator
+    setState(() {
+      _isExtracting = true;
+    });
+
+    final apiClient = ApiClient(baseUrl: baseUrl);
+
+    try {
+      // Convert menu sections back to flat menu items list
+      List<Map<String, dynamic>> menuItems = [];
+      print('📋 Converting menu sections to flat list...');
+
+      _menuSections.forEach((sectionName, items) {
+        print('📂 Processing section: $sectionName with ${items.length} items');
+        for (var item in items) {
+          final menuItem = {
+            'name': item['name'] ?? '',
+            'name_am': item['name_am'] ?? '',
+            'description': item['desc'] ?? '',
+            'description_am': item['description_am'] ?? '',
+            'tab_tags': sectionName == 'Menu Items' ? ['General'] : [sectionName],
+            'tab_tags_am': sectionName == 'Menu Items' ? ['አጠቃላይ'] : [sectionName],
+            'price': int.tryParse(item['price']?.toString() ?? '0') ?? 0,
+            'currency': item['currency'] ?? 'ETB',
+            'allergies': item['allergies'] ?? '',
+            'allergies_am': item['allergies'] ?? '',
+            'nutritional_info': item['nutritional_info'] ?? {},
+            'preparation_time': item['preparation_time'] ?? 15,
+            'how_to_eat': item['how_to_eat'] ?? '',
+            'how_to_eat_am': item['how_to_eat_am'] ?? '',
+          };
+          menuItems.add(menuItem);
+          print('📝 Added item: ${menuItem['name']} - ${menuItem['price']} ${menuItem['currency']}');
+        }
+      });
+
+      print('✅ Converted ${menuItems.length} menu items');
+
+      // Step 1: Create menu
+      print('📝 Step 1: Creating menu with ${menuItems.length} items');
+      final menuData = {
+        "name": "OCR Generated Menu",
+        "menu_items": menuItems
+      };
+
+      print('📤 Sending menu creation request to: $baseUrl/menus/the-italian-corner-4b144298');
+      print('📋 Menu data structure: ${menuData.keys}');
+      print('🔍 First menu item sample: ${menuItems.isNotEmpty ? menuItems[0] : 'No items'}');
+
+      final createResponse = await apiClient.post('/menus/the-italian-corner-4b144298', body: menuData);
+      print('📥 Menu creation response: $createResponse');
+      print('✅ Menu creation SUCCESS!');
+
+      final menuId = createResponse['data']['menu']['id'];
+      final restaurantSlug = 'the-italian-corner-4b144298';
+
+      print('✅ Menu created with ID: $menuId');
+      print('🏪 Restaurant slug: $restaurantSlug');
+
+      // Step 2: Publish the menu
+      print('📢 Step 2: Publishing menu');
+      print('🔗 Publish URL: $baseUrl/menus/$restaurantSlug/publish/$menuId');
+
+      final publishResponse = await apiClient.post('/menus/$restaurantSlug/publish/$menuId');
+      print('📥 Menu publish response: $publishResponse');
+      print('✅ Menu publishing SUCCESS!');
+
+      print('✅ Complete workflow finished successfully!');
+
+      // Navigate to QR customization page
+      if (mounted) {
+        print('🧭 Navigating to QR customization page...');
+        Navigator.of(context).pushNamed(
+          AppRoute.qrcustomization,
+          arguments: {
+            'qrImagePath': 'assets/images/qr_placeholder.png',
+            'menuId': menuId,
+          },
+        );
+      }
+
+    } catch (e) {
+      print('❌ DETAILED ERROR in menu publishing process: $e');
+      print('❌ Error type: ${e.runtimeType}');
+      if (e.toString().contains('403')) {
+        print('🚫 403 Forbidden Error - Check authentication and permissions');
+      } else if (e.toString().contains('404')) {
+        print('🔍 404 Not Found Error - Check endpoint URL');
+      } else if (e.toString().contains('400')) {
+        print('📝 400 Bad Request Error - Check request data format');
+      }
+
+      setState(() {
+        _isExtracting = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Menu publishing failed: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -149,28 +258,36 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 24),
               ),
-              onPressed: _isExtracting
-                  ? null
-                  : () {
-                      // After publish, redirect to GeneratedQrPage using AppRoute
-                      Navigator.of(context).pushNamed(
-                        AppRoute.qrcustomization,
-                        arguments: {
-                          // Replace with actual QR image path after generation
-                          'qrImagePath': 'assets/images/qr_placeholder.png',
-                        },
-                      );
-                    },
-              child: Row(
-                children: const [
-                  Text(
-                    'Publish',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(width: 6),
-                  Icon(Icons.arrow_forward, size: 18),
-                ],
-              ),
+              onPressed: _isExtracting ? null : _publishMenu,
+              child: _isExtracting
+                  ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Publishing...',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    )
+                  : const Row(
+                      children: [
+                        Text(
+                          'Publish',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(width: 6),
+                        Icon(Icons.arrow_forward, size: 18),
+                      ],
+                    ),
             ),
           ),
         ],
