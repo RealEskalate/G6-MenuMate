@@ -10,7 +10,7 @@ export interface MenuItem {
   price: number;
   currency?: string;
   image?: string;
-  allergies?: string[];
+  allergies?:string[];
   dietary_info?: string[];
 }
 

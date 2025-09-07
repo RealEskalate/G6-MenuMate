@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import { useMenus } from "@/hooks/useMenu";
 import { Menu, MenuItem } from "@/Types/menu";
-import MenuItemCard from "@/components/user/MenuItemCard"; // adjust path
+import MenuItemCard from "../../user/menu-handling/MenuItemCard"; // new card path
 
 function extractNameFromSlug(slugOrName: string) {
   const parts = slugOrName.split(/[-\s]/);
@@ -40,9 +40,15 @@ export default function MenuPage() {
           </h2>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {menu.items.map((item: MenuItem) => (
-              <MenuItemCard key={item.id} item={item} />
-            ))}
+            {menu.items.map((item: MenuItem) => {
+                // Convert allergies to array if it's a string
+                const transformedItem = {
+                    ...item,
+                    allergies: typeof item.allergies === "string" ? [item.allergies] : item.allergies,
+                };
+
+                return <MenuItemCard key={item.id} item={transformedItem} />;
+                })}
           </div>
         </div>
       ))}
