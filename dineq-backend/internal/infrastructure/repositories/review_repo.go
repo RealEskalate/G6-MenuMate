@@ -109,9 +109,6 @@ func (r *ReviewRepository) Update(ctx context.Context, id string, userID string,
 	}
 	// Prepare the fields to update
 	updateFields := bson.M{}
-	if update.Picture != "" {
-		updateFields["picture"] = update.Picture
-	}
 	if update.Description != "" {
 		updateFields["description"] = update.Description
 	}

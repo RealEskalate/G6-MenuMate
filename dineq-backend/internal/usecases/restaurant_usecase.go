@@ -133,3 +133,10 @@ func (s *RestaurantUsecase) GetRestaurantByManagerId(ctx context.Context, manage
 	defer cancel()
 	return s.Repo.GetByManagerId(c, manager)
 }
+
+// IncrementRestaurantViewCount increments the view count for a restaurant by 1
+func (s *RestaurantUsecase) IncrementRestaurantViewCount(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), s.ctxtimeout)
+	defer cancel()
+	return s.Repo.IncrementRestaurantViewCount(ctx, id)
+}

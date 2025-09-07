@@ -38,7 +38,10 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 	cloudinaryStorage = services.NewCloudinaryStorage(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinarySecret)
 	restaurantUsecase := usecase.NewRestaurantUsecase(restaurantRepo, ctxTimeout, cloudinaryStorage)
 
-	menuHandler := handler.NewMenuHandler(menuUsecase, qrUsecase, restaurantUsecase, notifUc)
+	// View events repository for logging views
+	viewEventRepo := repositories.NewViewEventRepository(db, env.ViewEventCollection)
+
+	menuHandler := handler.NewMenuHandler(menuUsecase, qrUsecase, restaurantUsecase, notifUc, viewEventRepo)
 
 	// Public (unauthenticated) menu routes - only expose published menus
 	public := group.Group("/public/menus")
@@ -61,6 +64,9 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 		protected.DELETE("/:restaurant_slug/:id", menuHandler.DeleteMenu)
 		protected.POST("/:restaurant_slug/qrcode/:id", menuHandler.GenerateQRCode)
 		protected.POST("/:restaurant_slug/publish/:id", menuHandler.PublishMenu)
+		protected.PATCH("/item/:menu_slug", menuHandler.MenuItemUpdate)
+		protected.GET("/item/:menu_slug/:item_slug", menuHandler.GetMenuItemBySlug)
+
 	}
 
 }

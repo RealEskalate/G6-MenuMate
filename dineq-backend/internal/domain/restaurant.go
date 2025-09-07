@@ -71,6 +71,7 @@ type IRestaurantRepo interface {
 	FindNearby(ctx context.Context, lat, lng float64, maxDistance int, page, pageSize int) ([]*Restaurant, int64, error)
 	ListRestaurantsByName(ctx context.Context, name string, page, pageSize int) ([]*Restaurant, int64, error)
 	GetByManagerId(ctx context.Context, manager string) (*Restaurant, error)
+	IncrementRestaurantViewCount(ctx context.Context, id string) error
 }
 
 type IRestaurantUsecase interface {
@@ -84,4 +85,5 @@ type IRestaurantUsecase interface {
 	FindNearby(ctx context.Context, lng, lat float64, maxDistance int, page, pageSize int) ([]*Restaurant, int64, error)
 	GetRestaurantByName(ctx context.Context, name string, page, pageSize int) ([]*Restaurant, int64, error)
 	GetRestaurantByManagerId(ctx context.Context, manager string) (*Restaurant, error)
+	IncrementRestaurantViewCount(id string) error
 }
