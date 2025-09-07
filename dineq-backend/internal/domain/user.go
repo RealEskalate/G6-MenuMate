@@ -71,6 +71,7 @@ type UserProfileUpdate struct {
 	FirstName  string
 	LastName   string
 	AvatarData []byte
+	AvatarURL  string
 }
 
 type IUserUsecase interface {

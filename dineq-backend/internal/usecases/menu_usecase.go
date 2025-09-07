@@ -11,9 +11,9 @@ import (
 )
 
 type MenuUseCase struct {
-	menuRepo    domain.IMenuRepository
-	qrService   services.QRService
-	ctxTimeout  time.Duration
+	menuRepo   domain.IMenuRepository
+	qrService  services.QRService
+	ctxTimeout time.Duration
 }
 
 func NewMenuUseCase(menuRepo domain.IMenuRepository, qrService services.QRService, ctxTimeout time.Duration) domain.IMenuUseCase {
@@ -28,7 +28,7 @@ func (uc *MenuUseCase) CreateMenu(menu *domain.Menu) error {
 	// Build slug from menu name (ensure contains word 'menu') plus short uuid fragment for uniqueness
 	name := strings.TrimSpace(menu.Name)
 	if name == "" {
-		name = menu.RestaurantID + " menu"
+		name = menu.RestaurantSlug + " menu"
 	}
 	lowerName := strings.ToLower(name)
 	if !strings.Contains(lowerName, "menu") {
@@ -181,38 +181,37 @@ func (uc *MenuUseCase) GetByRestaurantID(id string) ([]*domain.Menu, error) {
 }
 
 func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *domain.QRCodeRequest) (*domain.QRCode, error) {
-  ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
-  defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
+	defer cancel()
 
-  // find menu with restaurantId
-  menu, err := uc.menuRepo.GetByID(ctx, menuId)
-  if err != nil {
-    return nil, err
-  }
-  // first it should be published
-  if !menu.IsPublished {
-    return nil, domain.ErrMenuNotPublished
-  }
+	// find menu with menuId
+	menu, err := uc.menuRepo.GetByID(ctx, menuId)
+	if err != nil {
+		return nil, err
+	}
+	// first it should be published
+	if !menu.IsPublished {
+		return nil, domain.ErrMenuNotPublished
+	}
 
-  res, err := uc.qrService.GenerateQRCode(restaurantId, req)
-  if err != nil {
-    return nil, err
-  }
+	res, err := uc.qrService.GenerateQRCode(restaurantId, req)
+	if err != nil {
+		return nil, err
+	}
 
-  qrCode := &domain.QRCode{
-    ID:            res.QRCodeID,
-    ImageURL:      res.ImageURL,
-    PublicMenuURL: res.PublicMenuURL,
-    DownloadURL:   res.DownloadURL,
-    MenuID:        menu.ID,
-    RestaurantID:  restaurantId,
-    IsActive:      res.IsActive,
-    CreatedAt:     res.CreatedAt,
-    ExpiresAt:     res.ExpiresAt,
-  }
-  return qrCode, nil
+	qrCode := &domain.QRCode{
+		ID:            res.QRCodeID,
+		ImageURL:      res.ImageURL,
+		PublicMenuURL: res.PublicMenuURL,
+		DownloadURL:   res.DownloadURL,
+		MenuID:        menu.ID,
+		RestaurantID:  restaurantId,
+		IsActive:      res.IsActive,
+		CreatedAt:     res.CreatedAt,
+		ExpiresAt:     res.ExpiresAt,
+	}
+	return qrCode, nil
 }
-
 
 func (uc *MenuUseCase) DeleteMenu(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
@@ -228,8 +227,23 @@ func (uc *MenuUseCase) GetByID(id string) (*domain.Menu, error) {
 	return uc.menuRepo.GetByID(ctx, id)
 }
 
+func (uc *MenuUseCase) MenuItemUpdate(slug string, menuItem *domain.Item) error {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
+	defer cancel()
+
+	return uc.menuRepo.MenuItemUpdate(ctx, slug, menuItem)
+}
+
 func (uc *MenuUseCase) IncrementMenuViewCount(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	defer cancel()
 	return uc.menuRepo.IncrementViewCount(ctx, id)
+}
+
+// get menu item by slug
+func (uc *MenuUseCase) GetMenuItemBySlug(menuSlug string, itemSlug string) (*domain.Item, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
+	defer cancel()
+
+	return uc.menuRepo.GetMenuItemBySlug(ctx, menuSlug, itemSlug)
 }

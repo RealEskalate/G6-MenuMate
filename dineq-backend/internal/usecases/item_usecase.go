@@ -62,3 +62,10 @@ func (uc *ItemUseCase) DeleteItem(id string) error {
 
 	return uc.repo.DeleteItem(ctx, id)
 }
+
+// IncrementItemViewCount increments the view count for an item by 1
+func (uc *ItemUseCase) IncrementItemViewCount(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
+	defer cancel()
+	return uc.repo.IncrementItemViewCount(ctx, id)
+}

@@ -6,15 +6,17 @@ import (
 )
 
 type Review struct {
-	ID           string    //`bson:"_id,omitempty" json:"id"`
-	ItemID       string    //`bson:"itemId" json:"item_id"`
-	RestaurantID string    //`bson:"restaurantId" json:"restaurant_id"`
-	UserID       string    //`bson:"userId" json:"user_id"`
-	Picture      string    //`bson:"picture,omitempty" json:"picture,omitempty"`
-	Description  string    //`bson:"description" json:"description"`
-	Rating       float64   //`bson:"rating" json:"rating"`
-	CreatedAt    time.Time //`bson:"createdAt" json:"created_at"`
-	UpdatedAt    time.Time //`bson:"updatedAt" json:"updated_at"`
+	ID               string    //`bson:"_id,omitempty" json:"id"`
+	ItemID           string    //`bson:"itemId" json:"item_id"`
+	RestaurantID     string    //`bson:"restaurantId" json:"restaurant_id"`
+	UserID           string    //`bson:"userId" json:"user_id"`
+	ImageURLs        []string  // list of additional image URLs
+	Username         string    // denormalized username for fast listing
+	UserProfileImage string    // denormalized user profile image URL
+	Description      string    //`bson:"description" json:"description"`
+	Rating           float64   //`bson:"rating" json:"rating"`
+	CreatedAt        time.Time //`bson:"createdAt" json:"created_at"`
+	UpdatedAt        time.Time //`bson:"updatedAt" json:"updated_at"`
 	// Internal fields (not exposed in API)
 	IsApproved   bool     //`bson:"isApproved" json:"-"`
 	IsDeleted    bool     //`bson:"isDeleted" json:"-"`

@@ -77,10 +77,28 @@ func (repo *UserRepository) UpdateUser(ctx context.Context, id string, user *dom
 	if err != nil {
 		return err
 	}
-	model := mapper.UserFromDomain(user)
-	model.ID = oid
-	_, err = repo.DB.Collection(repo.Collection).UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": model})
-	return err
+	// Build a minimal $set map to avoid overwriting unspecified fields with zero-values
+	set := bson.M{}
+	if user.Email != "" { set["email"] = user.Email }
+	if user.PhoneNumber != "" { set["phoneNumber"] = user.PhoneNumber }
+	if user.Username != "" { set["username"] = user.Username }
+	if user.Password != "" { set["passwordHash"] = user.Password }
+	if user.AuthProvider != "" { set["authProvider"] = string(user.AuthProvider) }
+	set["isVerified"] = user.IsVerified
+	if user.FullName != "" { set["fullName"] = user.FullName }
+	if user.FirstName != "" { set["firstName"] = user.FirstName }
+	if user.LastName != "" { set["lastName"] = user.LastName }
+	if user.ProfileImage != "" { set["profileImage"] = user.ProfileImage }
+	if user.Role != "" { set["role"] = string(user.Role) }
+	if user.Status != "" { set["status"] = string(user.Status) }
+	if user.Preferences != nil { set["preferences"] = user.Preferences }
+	set["updatedAt"] = time.Now()
+	res, err := repo.DB.Collection(repo.Collection).UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": set})
+	if err != nil {
+		return err
+	}
+	_ = res
+	return nil
 }
 
 func (repo *UserRepository) FindUserByID(ctx context.Context, id string) (*domain.User, error) {

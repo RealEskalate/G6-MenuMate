@@ -184,3 +184,20 @@ func (r *ItemRepository) GetItems(ctx context.Context, menuSlug string) ([]domai
 
 	return mapper.ItemDBToDomainList(itemsDB), nil
 }
+
+// IncrementItemViewCount increments the view count for an item by 1
+func (r *ItemRepository) IncrementItemViewCount(ctx context.Context, id string) error {
+	oid, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	update := bson.M{"$inc": bson.M{"viewCount": 1}, "$set": bson.M{"updatedAt": time.Now()}}
+	result, err := r.database.Collection(r.coll).UpdateOne(ctx, bson.M{"_id": oid}, update)
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return errors.New("item not found")
+	}
+	return nil
+}

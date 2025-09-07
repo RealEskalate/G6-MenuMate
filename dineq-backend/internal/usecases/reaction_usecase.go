@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -48,17 +47,13 @@ func (u *ReactionUsecase) setupIndex() error {
 	return nil
 }
 
-func (u *ReactionUsecase) SaveReaction(ctx context.Context, itemID, userID, reviewID string, rtype domain.ReactionType) (*domain.Reaction, error) {
-    
-    // basic validation
-	if itemID == "" {
-		return nil, errors.New("itemID is required")
+func (u *ReactionUsecase) SaveReaction(ctx context.Context, reviewID, userID string, rtype domain.ReactionType) (*domain.Reaction, error) {
+	if reviewID == "" {
+		return nil, errors.New("reviewID is required")
 	}
 	if userID == "" {
 		return nil, errors.New("userID is required")
 	}
-
-	// derive a context with timeout from the caller ctx
 	var cctx context.Context
 	var cancel context.CancelFunc
 	if u.ctxtimeout > 0 {
@@ -67,93 +62,54 @@ func (u *ReactionUsecase) SaveReaction(ctx context.Context, itemID, userID, revi
 		cctx, cancel = context.WithCancel(ctx)
 	}
 	defer cancel()
-
-	// 1. Get previous reaction (if any)
-	fmt.Println("[DEBUG][usecase] reviewID:", reviewID)
-	prev, err := u.repo.GetUserReaction(cctx, itemID, userID)
+	prev, err := u.repo.GetUserReaction(cctx, reviewID, userID)
 	if err != nil {
 		return nil, err
 	}
-
 	now := time.Now()
-
-	// 2. Business logic: toggle, update, or insert
-	if prev == nil {
+	if prev == nil { // new
 		if rtype == "" {
-			// Nothing to delete
 			return nil, nil
 		}
-		// Insert new reaction
-		fmt.Println("[DEBUG][usecase] Creating new reaction with reviewID:", reviewID)
-		reaction := &domain.Reaction{
-			ItemID:    itemID,
-			UserID:    userID,
-			ReviewID:  reviewID,
-			Type:      rtype,
-			IsDeleted: false,
-			CreatedAt: now,
-			UpdatedAt: now,
-		}
-		err := u.repo.InsertReaction(cctx, reaction)
-		if err != nil {
+		reaction := &domain.Reaction{ReviewID: reviewID, UserID: userID, Type: rtype, IsDeleted: false, CreatedAt: now, UpdatedAt: now}
+		if err := u.repo.InsertReaction(cctx, reaction); err != nil {
 			return nil, err
 		}
-		fmt.Println("[DEBUG][usecase] Inserted reaction:", reaction)
 		return reaction, nil
 	}
-
-	// If rtype is empty, soft delete
-	if rtype == "" {
-		fmt.Println("[DEBUG][usecase] Soft deleting reaction with reviewID:", prev.ReviewID)
+	if rtype == "" { // explicit remove
 		prev.IsDeleted = true
 		prev.UpdatedAt = now
-        prev.ReviewID = reviewID
-		err := u.repo.UpdateReaction(cctx, prev)
-		if err != nil {
+		if err := u.repo.UpdateReaction(cctx, prev); err != nil {
 			return nil, err
 		}
-		// Fetch and return the updated reaction
-		updated, _ := u.repo.GetUserReaction(cctx, itemID, userID)
-		fmt.Println("[DEBUG][usecase] After soft delete, updated reaction:", updated)
+		updated, _ := u.repo.GetUserReaction(cctx, reviewID, userID)
 		return updated, nil
 	}
-
-	if prev.Type == rtype && !prev.IsDeleted {
-		fmt.Println("[DEBUG][usecase] Toggling off existing reaction with reviewID:", prev.ReviewID)
-		// Toggle off: user clicked the same reaction, so remove it (soft delete)
+	if prev.Type == rtype && !prev.IsDeleted { // toggle off
 		prev.IsDeleted = true
 		prev.UpdatedAt = now
-        prev.ReviewID = reviewID
-		err := u.repo.UpdateReaction(cctx, prev)
-		if err != nil {
+		if err := u.repo.UpdateReaction(cctx, prev); err != nil {
 			return nil, err
 		}
-		updated, _ := u.repo.GetUserReaction(cctx, itemID, userID)
-		fmt.Println("[DEBUG][usecase] After toggle off, updated reaction:", updated)
-		return updated, nil
-	} else {
-		// Change type or restore deleted
-		fmt.Println("[DEBUG][usecase] Changing type/restoring deleted, reviewID:", prev.ReviewID)
-		prev.Type = rtype
-		prev.IsDeleted = false
-		prev.UpdatedAt = now
-        prev.ReviewID = reviewID
-		err := u.repo.UpdateReaction(cctx, prev)
-		if err != nil {
-			return nil, err
-		}
-		updated, _ := u.repo.GetUserReaction(cctx, itemID, userID)
-		fmt.Println("[DEBUG][usecase] After change/restore, updated reaction:", updated)
+		updated, _ := u.repo.GetUserReaction(cctx, reviewID, userID)
 		return updated, nil
 	}
+	// change / restore
+	prev.Type = rtype
+	prev.IsDeleted = false
+	prev.UpdatedAt = now
+	if err := u.repo.UpdateReaction(cctx, prev); err != nil {
+		return nil, err
+	}
+	updated, _ := u.repo.GetUserReaction(cctx, reviewID, userID)
+	return updated, nil
 }
 
-func (u *ReactionUsecase) GetReactionStats(ctx context.Context, itemID, userID string) (int64, int64, *domain.Reaction, error) {
-	if itemID == "" {
-		return 0, 0, nil, errors.New("itemID is required")
+func (u *ReactionUsecase) GetReactionStats(ctx context.Context, reviewID, userID string) (int64, int64, *domain.Reaction, error) {
+	if reviewID == "" {
+		return 0, 0, nil, errors.New("reviewID is required")
 	}
-
-	// derive context with timeout
 	var cctx context.Context
 	var cancel context.CancelFunc
 	if u.ctxtimeout > 0 {
@@ -162,6 +118,5 @@ func (u *ReactionUsecase) GetReactionStats(ctx context.Context, itemID, userID s
 		cctx, cancel = context.WithCancel(ctx)
 	}
 	defer cancel()
-
-	return u.repo.GetReactionStats(cctx, itemID, userID)
+	return u.repo.GetReactionStats(cctx, reviewID, userID)
 }

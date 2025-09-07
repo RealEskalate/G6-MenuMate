@@ -178,6 +178,9 @@ func (uc *UserUsecase) UpdateProfile(userID string, update domain.UserProfileUpd
 		}
 
 		user.ProfileImage = avatarURL
+	} else if strings.TrimSpace(update.AvatarURL) != "" {
+		// If client provided a direct image URL (e.g., avatar service), accept it
+		user.ProfileImage = update.AvatarURL
 	}
 
 	// Apply updates
@@ -188,12 +191,13 @@ func (uc *UserUsecase) UpdateProfile(userID string, update domain.UserProfileUpd
 		user.LastName = update.LastName
 	}
 
-	// Update in repository
+	// Update timestamp and persist
+	user.UpdatedAt = time.Now()
 	if err := uc.userRepo.UpdateUser(ctx, user.ID, user); err != nil {
 		uc.storageService.DeleteFile(ctx, publicId)
 		return nil, err
 	}
-
+	// Return the in-memory updated user (authoritative for this response)
 	return user, nil
 }
 
