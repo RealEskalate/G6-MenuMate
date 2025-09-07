@@ -63,14 +63,18 @@ class AuthRepositoryImpl implements AuthRepository {
       };
 
       final response = await _apiClient.post(ApiEndpoints.login, body: loginData);
+      
+      // Debug print to see the actual response structure
+      print('🔍 Login response: $response');
+      print('🔑 Response keys: ${response.keys.toList()}');
 
-      // API returns tokens nested under 'data' key
-      final data = response['data'] as Map<String, dynamic>?;
-      if (data != null && data.containsKey('access_token') && data.containsKey('refresh_token')) {
+      // API returns tokens under the 'tokens' key
+      final tokens = response['tokens'] as Map<String, dynamic>?;
+      if (tokens != null && tokens.containsKey('access_token') && tokens.containsKey('refresh_token')) {
         // Store tokens
         await TokenManager.saveTokens(
-          data['access_token'],
-          data['refresh_token'],
+          tokens['access_token'],
+          tokens['refresh_token'],
         );
 
         // Return a minimal UserModel with just the identifier
@@ -85,7 +89,7 @@ class AuthRepositoryImpl implements AuthRepository {
         );
       } else {
         throw ApiException(
-          message: 'Invalid login response format - missing tokens',
+          message: 'Invalid login response format - missing tokens in response["tokens"]',
           statusCode: 500,
         );
       }
