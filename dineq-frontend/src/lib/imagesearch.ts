@@ -45,9 +45,7 @@ export async function fetchItemImages(
   if (!query) return [];
 
   try {
-    const url = `https://dineq.onrender.com/api/v1/images/search?item=${encodeURIComponent(
-      query
-    )}&limit=${limit}`;
+    const url = `https://dineq.onrender.com/api/v1/images/search?item=${encodeURIComponent(query)}`;
     console.log("Fetching images from:", url);
 
     const res = await fetch(url, {

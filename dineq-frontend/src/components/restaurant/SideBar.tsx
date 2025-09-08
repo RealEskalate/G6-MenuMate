@@ -12,7 +12,7 @@ function SideBar() {
     {
       name: "Menus",
       href: "/restaurant/dashboard/menu",
-      icon: "/icons/menu.svg",
+      icon: "/icons/menu.png",
     },
     {
       name: "QR Manager",

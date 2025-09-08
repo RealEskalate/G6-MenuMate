@@ -170,7 +170,7 @@ export default function AnalyticsPage() {
     <div className="space-y-8">
       {/* Header */}
       <header>
-        <h1 className="text-4xl font-bold pl-3">Analytics</h1>
+        <h1 className="text-3xl font-bold p-3">Analytics</h1>
       </header>
 
       {/* Time Filter Buttons */}
