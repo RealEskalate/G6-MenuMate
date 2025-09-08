@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -26,6 +27,7 @@ func NewItemRepository(database mongo.Database, collection string) domain.IItemR
 	}
 	// Create TTL index on startup (idempotent)
 	repo.createTTLIndex(context.Background())
+	repo.createQueryIndexes(context.Background())
 	return repo
 }
 
@@ -37,6 +39,25 @@ func (r *ItemRepository) createTTLIndex(ctx context.Context) {
 	_, err := r.database.Collection(r.coll).Indexes().CreateOne(ctx, indexModel)
 	if err != nil {
 		fmt.Printf("Failed to create TTL index: %v\n", err)
+	}
+}
+
+// createQueryIndexes ensures indexes used by advanced search
+func (r *ItemRepository) createQueryIndexes(ctx context.Context) {
+	idx := r.database.Collection(r.coll).Indexes()
+	// create individually to support our IndexView wrapper
+	toCreate := []mongo.IndexModel{
+		{Keys: bson.D{{Key: "menuSlug", Value: 1}, {Key: "isDeleted", Value: 1}}, Options: options.Index().SetName("ix_menuSlug_isDeleted")},
+		{Keys: bson.D{{Key: "price", Value: 1}}, Options: options.Index().SetName("ix_price")},
+		{Keys: bson.D{{Key: "averageRating", Value: 1}}, Options: options.Index().SetName("ix_averageRating")},
+		{Keys: bson.D{{Key: "viewCount", Value: 1}}, Options: options.Index().SetName("ix_viewCount")},
+		{Keys: bson.D{{Key: "name", Value: 1}}, Options: options.Index().SetName("ix_name")},
+		{Keys: bson.D{{Key: "tabTags", Value: 1}}, Options: options.Index().SetName("ix_tabTags")},
+	}
+	for _, m := range toCreate {
+		if _, err := idx.CreateOne(ctx, m); err != nil {
+			log.Printf("ensure index failed: %v", err)
+		}
 	}
 }
 
@@ -200,4 +221,88 @@ func (r *ItemRepository) IncrementItemViewCount(ctx context.Context, id string) 
 		return errors.New("item not found")
 	}
 	return nil
+}
+
+// SearchItems returns items for a given menu using advanced filters with pagination and sorting
+func (r *ItemRepository) SearchItems(ctx context.Context, filter domain.ItemFilter) ([]domain.Item, int64, error) {
+	// Search inside menus collection's embedded items array
+	menuCollName := os.Getenv("MENU_COLLECTION")
+	if menuCollName == "" { menuCollName = "menus" }
+	coll := r.database.Collection(menuCollName)
+
+	// Validate menu slug
+	if filter.MenuSlug == "" {
+		return nil, 0, fmt.Errorf("menu_slug is required")
+	}
+
+	// pagination
+	page := filter.Page
+	size := filter.PageSize
+	if page <= 0 { page = 1 }
+	if size <= 0 { size = 10 }
+	if size > 100 { size = 100 }
+
+	// sorting
+	sortField := "createdAt"
+	switch filter.SortBy {
+	case "price":
+		sortField = "price"
+	case "rating":
+		sortField = "averageRating"
+	case "popularity":
+		sortField = "viewCount"
+	case "updated":
+		sortField = "updatedAt"
+	}
+	order := -1
+	if filter.Order == 1 { order = 1 }
+
+	// Build item-level match
+	itemMatch := bson.M{"isDeleted": false}
+	if len(filter.Tags) > 0 { itemMatch["tabTags"] = bson.M{"$in": filter.Tags} }
+	if filter.MinPrice != nil || filter.MaxPrice != nil {
+		pr := bson.M{}
+		if filter.MinPrice != nil { pr["$gte"] = *filter.MinPrice }
+		if filter.MaxPrice != nil { pr["$lte"] = *filter.MaxPrice }
+		itemMatch["price"] = pr
+	}
+	if filter.MinRating != nil { itemMatch["averageRating"] = bson.M{"$gte": *filter.MinRating} }
+	if filter.Query != "" { itemMatch["name"] = bson.M{"$regex": filter.Query, "$options": "i"} }
+
+	// Aggregation pipeline over menus -> items
+	matchMenu := bson.M{"slug": filter.MenuSlug, "isDeleted": false}
+	pipeline := []bson.D{
+		bson.D{{Key: "$match", Value: matchMenu}},
+		bson.D{{Key: "$project", Value: bson.M{"items": 1, "menuSlug": "$slug"}}},
+		bson.D{{Key: "$unwind", Value: "$items"}},
+		bson.D{{Key: "$replaceRoot", Value: bson.M{
+			"newRoot": bson.M{"$mergeObjects": bson.A{"$items", bson.M{"menuSlug": "$menuSlug"}}},
+		}}},
+		bson.D{{Key: "$match", Value: itemMatch}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: sortField, Value: order}, {Key: "_id", Value: 1}}}},
+		bson.D{{Key: "$facet", Value: bson.M{
+			"totalData": bson.A{
+				bson.D{{Key: "$skip", Value: (page - 1) * size}},
+				bson.D{{Key: "$limit", Value: size}},
+			},
+			"totalCount": bson.A{
+				bson.D{{Key: "$count", Value: "count"}},
+			},
+		}}},
+	}
+
+	cur, err := coll.Aggregate(ctx, pipeline)
+	if err != nil { return nil, 0, err }
+	defer cur.Close(ctx)
+
+	var facet []struct {
+		TotalData  []mapper.ItemDB `bson:"totalData"`
+		TotalCount []struct{ Count int64 `bson:"count"` } `bson:"totalCount"`
+	}
+	if err := cur.All(ctx, &facet); err != nil { return nil, 0, err }
+	if len(facet) == 0 { return []domain.Item{}, 0, nil }
+	total := int64(0)
+	if len(facet[0].TotalCount) > 0 { total = facet[0].TotalCount[0].Count }
+	items := mapper.ItemDBToDomainList(facet[0].TotalData)
+	return items, total, nil
 }

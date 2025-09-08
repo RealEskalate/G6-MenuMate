@@ -328,3 +328,32 @@ func ItemToResponseList(items []domain.Item) []ItemResponse {
 	}
 	return out
 }
+
+// ItemSearchQuery represents query params for filtering items within a menu
+type ItemSearchQuery struct {
+	MenuSlug string   `form:"menu_slug" binding:"required"`
+	Tags     []string `form:"tags[]"`
+	MinPrice *float64 `form:"min_price"`
+	MaxPrice *float64 `form:"max_price"`
+	MinRating *float64 `form:"min_rating"`
+	Q        string   `form:"q"`
+	SortBy   string   `form:"sort_by"`
+	Order    int      `form:"order"`
+	Page     int      `form:"page"`
+	PageSize int      `form:"pageSize"`
+}
+
+func (q *ItemSearchQuery) ToDomain() domain.ItemFilter {
+	return domain.ItemFilter{
+		MenuSlug:  q.MenuSlug,
+		Tags:      q.Tags,
+		MinPrice:  q.MinPrice,
+		MaxPrice:  q.MaxPrice,
+		MinRating: q.MinRating,
+		Query:     q.Q,
+		SortBy:    q.SortBy,
+		Order:     q.Order,
+		Page:      q.Page,
+		PageSize:  q.PageSize,
+	}
+}

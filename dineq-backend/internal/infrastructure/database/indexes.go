@@ -38,6 +38,22 @@ func CreateIndexes(db Database, collection string) error {
 			Keys:    bson.D{{Key: "location", Value: "2dsphere"}},
 			Options: options.Index().SetName("ix_location_2dsphere"),
 		},
+		{ // name lookup/sort
+			Keys:    bson.D{{Key: "name", Value: 1}},
+			Options: options.Index().SetName("ix_name"),
+		},
+		{ // tags filtering (array field)
+			Keys:    bson.D{{Key: "tags", Value: 1}},
+			Options: options.Index().SetName("ix_tags"),
+		},
+		{ // rating sort/filter
+			Keys:    bson.D{{Key: "averageRating", Value: 1}},
+			Options: options.Index().SetName("ix_averageRating"),
+		},
+		{ // view count sort/filter
+			Keys:    bson.D{{Key: "viewCount", Value: 1}},
+			Options: options.Index().SetName("ix_viewCount"),
+		},
 	}
 
 	names, err := idxView.CreateMany(ctx, models)

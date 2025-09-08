@@ -69,3 +69,10 @@ func (uc *ItemUseCase) IncrementItemViewCount(id string) error {
 	defer cancel()
 	return uc.repo.IncrementItemViewCount(ctx, id)
 }
+
+// SearchItems returns items for a given menu using advanced filters
+func (uc *ItemUseCase) SearchItems(filter domain.ItemFilter) ([]domain.Item, int64, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
+	defer cancel()
+	return uc.repo.SearchItems(ctx, filter)
+}
