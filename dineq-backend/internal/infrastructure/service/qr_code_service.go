@@ -41,7 +41,7 @@ func NewQRService() *QRService {
 	os.MkdirAll(qrDir, 0755)
 	baseURL := os.Getenv("FRONTEND_BASE_URL")
 	if baseURL == "" {
-		baseURL = "http://localhost:3000"
+		baseURL = "https://dineqmenumate.vercel.app"
 	}
 	return &QRService{qrDir: qrDir, baseURL: baseURL}
 }
