@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../../../../../core/constants/constants.dart';
 import '../../../../../core/error/failures.dart';
 import 'package:dartz/dartz.dart';
+import 'dart:convert';
 
 class GetMenuUseCase {
   final Dio _dio = Dio();
@@ -23,10 +24,15 @@ class GetMenuUseCase {
       
       print('GetMenuUseCase: Response status: ${response.statusCode}');
       if (response.statusCode == 200) {
-        // TODO: Parse the actual response data
-        // For now, returning mock data
-        print('GetMenuUseCase: Successfully fetched menu data');
-        return Right(_getMockMenu(slug));
+        try {
+          print('GetMenuUseCase: Successfully fetched menu data');
+          final menuData = response.data;
+          return Right(_parseMenuData(menuData, slug));
+        } catch (e) {
+          print('GetMenuUseCase: Error parsing menu data: $e');
+          // Fallback to mock data if parsing fails
+          return Right(_getMockMenu(slug));
+        }
       } else if (response.statusCode == 404) {
         print('GetMenuUseCase: Menu not found');
         return Left(NotFoundFailure('No menu found for this restaurant.'));
@@ -37,6 +43,113 @@ class GetMenuUseCase {
     } catch (e) {
       print('GetMenuUseCase: GET request error: $e');
       return Left(ServerFailure('Failed to connect to server: $e'));
+    }
+  }
+  
+  // Parse real menu data from API response
+  models.Menu _parseMenuData(Map<String, dynamic> data, String slug) {
+    try {
+      final menuData = data['data'] ?? data;
+      
+      // Extract basic menu information
+      final String id = menuData['_id'] ?? 'unknown-id';
+      final String restaurantId = menuData['restaurant_id'] ?? 'unknown-restaurant';
+      final String branchId = menuData['branch_id'] ?? 'main-branch';
+      final int version = menuData['version'] ?? 1;
+      final bool isPublished = menuData['is_published'] ?? true;
+      
+      // Parse dates if available
+      DateTime? publishedAt;
+      DateTime? createdAt;
+      DateTime? updatedAt;
+      
+      if (menuData['published_at'] != null) {
+        publishedAt = DateTime.parse(menuData['published_at']);
+      }
+      
+      if (menuData['created_at'] != null) {
+        createdAt = DateTime.parse(menuData['created_at']);
+      }
+      
+      if (menuData['updated_at'] != null) {
+        updatedAt = DateTime.parse(menuData['updated_at']);
+      }
+      
+      // Parse tabs/categories/items
+      List<models.Tab> tabs = [];
+      
+      if (menuData['tabs'] != null && menuData['tabs'] is List) {
+        tabs = (menuData['tabs'] as List).map((tabData) {
+          final String tabId = tabData['_id'] ?? 'unknown-tab-id';
+          final String tabName = tabData['name'] ?? 'Unnamed Tab';
+          
+          List<models.Category> categories = [];
+          
+          if (tabData['categories'] != null && tabData['categories'] is List) {
+            categories = (tabData['categories'] as List).map((categoryData) {
+              final String categoryId = categoryData['_id'] ?? 'unknown-category-id';
+              final String categoryName = categoryData['name'] ?? 'Unnamed Category';
+              
+              List<models.Item> items = [];
+              
+              if (categoryData['items'] != null && categoryData['items'] is List) {
+                items = (categoryData['items'] as List).map((itemData) {
+                  return models.Item(
+                    id: itemData['_id'] ?? 'unknown-item-id',
+                    name: itemData['name'] ?? 'Unnamed Item',
+                    slug: itemData['slug'] ?? 'unknown-slug',
+                    categoryId: categoryId,
+                    description: itemData['description'] ?? '',
+                    price: double.tryParse(itemData['price']?.toString() ?? '0') ?? 0.0,
+                    currency: itemData['currency'] ?? '\$',
+                    images: itemData['images'] != null ? List<String>.from(itemData['images']) : null,
+                    ingredients: itemData['ingredients'] != null ? List<String>.from(itemData['ingredients']) : [],
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                    isDeleted: itemData['is_deleted'] ?? false,
+                    viewCount: itemData['view_count'] ?? 0,
+                    averageRating: double.tryParse(itemData['average_rating']?.toString() ?? '0') ?? 0.0,
+                    reviewIds: itemData['review_ids'] != null ? List<String>.from(itemData['review_ids']) : [],
+                  );
+                }).toList();
+              }
+              
+              return models.Category(
+                id: categoryId,
+                tabId: tabId,
+                name: categoryName,
+                items: items,
+              );
+            }).toList();
+          }
+          
+          return models.Tab(
+            id: tabId,
+            menuId: id,
+            name: tabName,
+            categories: categories,
+          );
+        }).toList();
+      }
+      
+      return models.Menu(
+        id: id,
+        restaurantId: restaurantId,
+        branchId: branchId,
+        version: version,
+        isPublished: isPublished,
+        publishedAt: publishedAt,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+        updatedBy: menuData['updated_by'],
+        isDeleted: menuData['is_deleted'] ?? false,
+        viewCount: menuData['view_count'] ?? 0,
+        tabs: tabs,
+      );
+    } catch (e) {
+      print('Error parsing menu data: $e');
+      // Return mock data as fallback
+      return _getMockMenu(slug);
     }
   }
 

@@ -42,6 +42,21 @@ class _RestaurantPageState extends State<RestaurantPage>
     super.initState();
     _loadMenu();
   }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize tab controller once menu is loaded
+    if (_menu != null && _tabController == null) {
+      _initTabController();
+    }
+  }
+  
+  void _initTabController() {
+    if (_menu != null && _menu!.tabs.isNotEmpty) {
+      _tabController = TabController(length: _menu!.tabs.length, vsync: this);
+    }
+  }
 
   Future<void> _loadMenu() async {
     try {
@@ -51,12 +66,16 @@ class _RestaurantPageState extends State<RestaurantPage>
           setState(() {
             _isLoading = false;
             // Handle failure
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to load menu: ${failure.message}')),
+            );
           });
         },
         (menuData) {
           setState(() {
             _menu = menuData;
             _isLoading = false;
+            _initTabController();
           });
         },
       );
@@ -64,7 +83,9 @@ class _RestaurantPageState extends State<RestaurantPage>
       setState(() {
         _isLoading = false;
       });
-      // Handle error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading menu: $e')),
+      );
     }
   }
 
@@ -80,7 +101,7 @@ class _RestaurantPageState extends State<RestaurantPage>
 
   @override
   void dispose() {
-    if (_menu != null) {
+    if (_tabController != null) {
       _tabController.dispose();
     }
     super.dispose();
@@ -198,7 +219,7 @@ class _RestaurantPageState extends State<RestaurantPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Bella Italia',
+                      widget.restaurant.name,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 24,
@@ -208,7 +229,7 @@ class _RestaurantPageState extends State<RestaurantPage>
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'Authentic Italian cuisine',
+                      widget.restaurant.description ?? 'No description available',
                       style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                   ],
@@ -273,19 +294,19 @@ class _RestaurantPageState extends State<RestaurantPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.location_on, color: Colors.orange, size: 16),
-                SizedBox(width: 6),
-                Expanded(child: Text('Bole Atlas, Addis Ababa')),
+                const Icon(Icons.location_on, color: Colors.orange, size: 16),
+                const SizedBox(width: 6),
+                Expanded(child: Text(widget.restaurant.address ?? 'Address not available')),
               ],
             ),
             const SizedBox(height: 8),
-            const Row(
+            Row(
               children: [
-                Icon(Icons.access_time, color: Colors.orange, size: 16),
-                SizedBox(width: 6),
-                Expanded(child: Text('Open: 11:00 AM - 10:00 PM')),
+                const Icon(Icons.access_time, color: Colors.orange, size: 16),
+                const SizedBox(width: 6),
+                Expanded(child: Text(widget.restaurant.openingHours ?? 'Hours not available')),
               ],
             ),
             const SizedBox(height: 12),
@@ -293,9 +314,9 @@ class _RestaurantPageState extends State<RestaurantPage>
               children: [
                 const Icon(Icons.star, color: Colors.orange, size: 16),
                 const SizedBox(width: 4),
-                const Text(
-                  '4.8',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                Text(
+                  widget.restaurant.rating?.toString() ?? 'N/A',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 6),
                 const Text('(142 reviews)'),
