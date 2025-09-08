@@ -12,10 +12,12 @@ func NewImageSearchRoutes(env *bootstrap.Env, group *gin.RouterGroup) {
 	googleSvc := services.NewGoogleCustomSearchService(env.SearchAPIKey, env.SearchEngineID)
 	unsplashSvc := services.NewUnsplashSearchService(env.UnsplashAPIKey)
 	pexelsSvc := services.NewPexelsSearchService(env.PexelsAPIKey)
-	h := handler.NewImageSearchHandler(googleSvc, unsplashSvc, pexelsSvc)
+	clf := services.NewGeminiFoodClassifier(env.GeminiAPIKey, env.GeminiModelName)
+	h := handler.NewImageSearchHandler(googleSvc, unsplashSvc, pexelsSvc, clf)
 	g := group.Group("/images")
 	g.Use(middleware.AuthMiddleware(*env))
 	{
 		g.GET("/search", h.Search)
+	g.POST("/search", h.SearchPost)
 	}
 }
