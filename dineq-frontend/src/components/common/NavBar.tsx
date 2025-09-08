@@ -307,17 +307,17 @@ function NavBar({ role }: Roles) {
     { name: "Menus", href: "/dashboard/menu", icon: "/icons/menu.svg" },
     {
       name: "QR Manager",
-      href: "/dashboard/qr-manager",
+      href: "restaurant/dashboard/qr-manager",
       icon: "/icons/qr.png",
     },
     {
       name: "Settings",
-      href: "/dashboard/settings",
+      href: "restaurant/dashboard/settings",
       icon: "/icons/setting.png",
     },
     {
       name: "Analytics",
-      href: "/dashboard/analytics",
+      href: "restaurant/dashboard/analytics",
       icon: "/icons/Analytics.png",
       pro: true,
     },

@@ -10,12 +10,12 @@ import LoginImage from "@/components/auth/page";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import toast, { Toaster } from "react-hot-toast";
 
 const schema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
-
 
 type FormData = z.infer<typeof schema>;
 
@@ -37,13 +37,12 @@ export default function LoginPage() {
 
     const res = await signIn("credentials", {
       redirect: false,
-      
       identifier: data.email,
       password: data.password,
     });
 
     if (!res?.error) {
-      console.log("Login successful, redirecting...");
+      toast.success("Login successful!");
       const session = await getSession();
 
       if (session?.user?.role === "CUSTOMER") {
@@ -55,13 +54,13 @@ export default function LoginPage() {
         router.push("/auth/signin");
       }
     } else {
-      console.log("Sign-in error:", res.error);
-      setAuthError(res.error || "Invalid email or password");
+      toast.error(res.error || "Invalid email or password");
     }
   };
 
   return (
     <div className="md:space-x-5 sm:flex sm:items-center sm:space-x-1">
+      <Toaster position="top-right" />
       {/* Left side: form */}
       <div className="px-6 md:px-16 md:flex md:flex-col md:justify-center md:items-center md:w-2/3 pt-8 md:pt-0">
         <form onSubmit={handleSubmit(onSubmit)} className="max-w-md w-full">

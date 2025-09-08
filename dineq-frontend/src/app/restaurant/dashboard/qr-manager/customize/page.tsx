@@ -271,19 +271,7 @@ const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
               </div>
             </div>
             {/* Button to trigger API call */}
-            <button
-                onClick={
-                  () => {
-                  if (restaurantSlug && menuId) {
-                    generateQRCodeFromAPI(restaurantSlug, menuId);
-                  } else {
-                    toast.error("Missing restaurant or menu information.");
-                  }
-                }}
-                className="mt-6 bg-orange-500 text-white py-2 px-6 rounded-xl hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Generate QR
-              </button>
+            
 
           </div>
 
@@ -321,12 +309,18 @@ const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
               )}
             </div>
             <button
-              onClick={handleDownload}
-              className="mt-6 bg-orange-500 text-white py-2 px-6 rounded-xl hover:bg-orange-600 transition"
-            >
-              <Download className="w-4 h-4 inline-block mr-2" />
-              Download PNG
-            </button>
+                onClick={
+                  () => {
+                  if (restaurantSlug && menuId) {
+                    generateQRCodeFromAPI(restaurantSlug, menuId);
+                  } else {
+                    toast.error("Missing restaurant or menu information.");
+                  }
+                }}
+                className="mt-6 bg-orange-500 text-white py-2 px-6 rounded-xl hover:bg-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Generate QR
+              </button>
           </div>
         </div>
       </div>
