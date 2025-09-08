@@ -38,13 +38,18 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
   }
 
   Future<void> _fetchMenuData() async {
-    print('ScannedMenuPage: Fetching menu data for slug: ${widget.slug}');
+    print('ScannedMenuPage: Fetching menu data for slug: "${widget.slug}"');
     try {
+      // Check if slug is properly formatted
+      final cleanSlug = widget.slug.startsWith(':') ? widget.slug.substring(1) : widget.slug;
+      print('ScannedMenuPage: Using slug: "$cleanSlug" (original: "${widget.slug}")');
+      
       final result = await _getMenuUseCase.execute(widget.slug);
 
       result.fold(
         (failure) {
           print('ScannedMenuPage: Error fetching menu: ${failure.message}');
+          print('ScannedMenuPage: Failure type: ${failure.runtimeType}');
           setState(() {
             _isLoading = false;
             _hasError = true;
@@ -53,12 +58,19 @@ class _ScannedMenuPageState extends State<ScannedMenuPage> {
         },
         (menu) {
           print('ScannedMenuPage: Successfully fetched menu data');
+          print('ScannedMenuPage: Menu restaurantId: ${menu.restaurantId}');
+          print('ScannedMenuPage: Menu has ${menu.tabs.length} tabs');
+          for (var i = 0; i < menu.tabs.length; i++) {
+            print('ScannedMenuPage: Tab $i: ${menu.tabs[i].name} with ${menu.tabs[i].categories.length} categories');
+          }
           // Process menu data
           _processMenuData(menu);
         },
       );
     } catch (e) {
       print('ScannedMenuPage: Exception fetching menu: $e');
+      print('ScannedMenuPage: Exception type: ${e.runtimeType}');
+      print('ScannedMenuPage: Stack trace: ${StackTrace.current}');
       setState(() {
         _isLoading = false;
         _hasError = true;

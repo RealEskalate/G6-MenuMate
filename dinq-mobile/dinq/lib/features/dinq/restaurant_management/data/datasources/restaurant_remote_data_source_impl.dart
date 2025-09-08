@@ -398,18 +398,41 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<MenuModel> getMenu(String restaurantId) async {
+    print('🍽️ [RestaurantRemoteDataSource] getMenu called with restaurantId: "$restaurantId"');
     try {
       // Remove any leading colon if present
       final cleanId = restaurantId.startsWith(':') ? restaurantId.substring(1) : restaurantId;
+      print('🍽️ [RestaurantRemoteDataSource] Cleaned restaurantId: "$cleanId"');
       
+      // Debug baseUrl
+      print('🍽️ [RestaurantRemoteDataSource] Base URL: "$baseUrl"');
+      
+      final url = '$baseUrl/menus/$cleanId';
+      print('🍽️ [RestaurantRemoteDataSource] Full request URL: "$url"');
+      
+      print('🍽️ [RestaurantRemoteDataSource] Sending GET request...');
       final response = await dio.get(
-        '$baseUrl/menus/$cleanId',
-        options: Options(headers: {'Content-Type': content}),
+        url,
+        options: Options(headers: {
+          'Content-Type': content,
+          'Authorization': 'Bearer $accessToken',
+        }),
       );
+      
+      print('🍽️ [RestaurantRemoteDataSource] Response received');
+      print('🍽️ [RestaurantRemoteDataSource] Response status: ${response.statusCode}');
+      
       final statusCode = response.statusCode;
       if (statusCode == 200) {
+        print('🍽️ [RestaurantRemoteDataSource] Successfully fetched menu data');
+        print('🍽️ [RestaurantRemoteDataSource] Response data type: ${response.data.runtimeType}');
+        print('🍽️ [RestaurantRemoteDataSource] Response data keys: ${response.data is Map ? response.data.keys.toList() : "Not a map"}');
+        
         return MenuModel.fromMap(response.data);
       } else {
+        print('🍽️ [RestaurantRemoteDataSource] Error status: $statusCode');
+        print('🍽️ [RestaurantRemoteDataSource] Response body: ${response.data}');
+        
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(
             statusCode,
@@ -419,6 +442,11 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
         );
       }
     } on DioException catch (e) {
+      print('🍽️ [RestaurantRemoteDataSource] DioException: ${e.message}');
+      print('🍽️ [RestaurantRemoteDataSource] DioException type: ${e.type}');
+      print('🍽️ [RestaurantRemoteDataSource] DioException response: ${e.response?.data}');
+      print('🍽️ [RestaurantRemoteDataSource] DioException status code: ${e.response?.statusCode}');
+      
       final statusCode = e.response?.statusCode;
       throw ServerException(
         HttpErrorHandler.getExceptionMessage(
@@ -428,6 +456,10 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
         statusCode: statusCode,
       );
     } catch (e) {
+      print('🍽️ [RestaurantRemoteDataSource] Unexpected error: $e');
+      print('🍽️ [RestaurantRemoteDataSource] Error type: ${e.runtimeType}');
+      print('🍽️ [RestaurantRemoteDataSource] Stack trace: ${StackTrace.current}');
+      
       throw ServerException(
         'Unexpected error occurred while fetching menu for restaurant $restaurantId: ${e.toString()}',
       );

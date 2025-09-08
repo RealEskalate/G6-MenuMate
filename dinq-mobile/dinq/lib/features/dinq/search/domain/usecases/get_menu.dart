@@ -10,14 +10,20 @@ class GetMenuUseCase {
   
   // Updated to use slug instead of restaurantId
   Future<Either<Failure, models.Menu>> execute(String slug) async {
-    print('GetMenuUseCase: Fetching menu with slug: $slug');
+    print('GetMenuUseCase: Fetching menu with slug: "$slug"');
     try {
       // Ensure slug is properly formatted - remove any leading colons
       final cleanSlug = slug.startsWith(':') ? slug.substring(1) : slug;
+      print('GetMenuUseCase: Cleaned slug: "$cleanSlug"');
+      
+      // Debug baseUrl
+      print('GetMenuUseCase: Base URL: "$baseUrl"');
       
       final url = '$baseUrl/menus/$cleanSlug';
-      print('GetMenuUseCase: Sending GET request to: $url');
+      print('GetMenuUseCase: Full request URL: "$url"');
+      print('GetMenuUseCase: Access token: ${accessToken.substring(0, 20)}...');
       
+      print('GetMenuUseCase: Sending GET request...');
       final response = await _dio.get(
         url,
         options: Options(
@@ -25,27 +31,38 @@ class GetMenuUseCase {
         ),
       );
       
+      print('GetMenuUseCase: Response received');
       print('GetMenuUseCase: Response status: ${response.statusCode}');
+      
       if (response.statusCode == 200) {
         try {
           print('GetMenuUseCase: Successfully fetched menu data');
           final menuData = response.data;
+          print('GetMenuUseCase: Response data type: ${menuData.runtimeType}');
+          print('GetMenuUseCase: Response data keys: ${menuData is Map ? menuData.keys.toList() : "Not a map"}');
+          
           return Right(_parseMenuData(menuData, cleanSlug));
         } catch (e) {
           print('GetMenuUseCase: Error parsing menu data: $e');
+          print('GetMenuUseCase: Stack trace: ${StackTrace.current}');
           // Fallback to mock data if parsing fails
+          print('GetMenuUseCase: Falling back to mock data');
           return Right(_getMockMenu(cleanSlug));
         }
       } else if (response.statusCode == 404) {
-        print('GetMenuUseCase: Menu not found');
-        return Left(NotFoundFailure('No menu found for this restaurant.'));
+        print('GetMenuUseCase: Menu not found (404)');
+        print('GetMenuUseCase: Response body: ${response.data}');
+        return Left(NotFoundFailure('No menu found for this restaurant. Slug: $cleanSlug'));
       } else {
         print('GetMenuUseCase: Server error: ${response.statusCode}');
-        return Left(ServerFailure('Server error: ${response.statusCode}'));
+        print('GetMenuUseCase: Response body: ${response.data}');
+        return Left(ServerFailure('Server error: ${response.statusCode}. Slug: $cleanSlug'));
       }
     } catch (e) {
       print('GetMenuUseCase: GET request error: $e');
-      return Left(ServerFailure('Failed to connect to server: $e'));
+      print('GetMenuUseCase: Error type: ${e.runtimeType}');
+      print('GetMenuUseCase: Stack trace: ${StackTrace.current}');
+      return Left(ServerFailure('Failed to connect to server: $e. Slug: $slug'));
     }
   }
   

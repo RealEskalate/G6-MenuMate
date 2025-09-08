@@ -59,10 +59,24 @@ class _RestaurantPageState extends State<RestaurantPage>
   }
 
   Future<void> _loadMenu() async {
+    print('RestaurantPage: Loading menu for restaurant slug: "${widget.restaurant.slug}"');
+    print('RestaurantPage: Restaurant ID: ${widget.restaurant.id}');
+    
     try {
+      // Check if slug is properly formatted
+      final slug = widget.restaurant.slug;
+      final cleanSlug = slug.startsWith(':') ? slug.substring(1) : slug;
+      print('RestaurantPage: Using slug: "$cleanSlug" (original: "$slug")');
+      
+      print('RestaurantPage: Calling GetMenuUseCase.execute()...');
       final menuResult = await _getMenuUseCase.execute(widget.restaurant.slug);
+      
+      print('RestaurantPage: GetMenuUseCase returned result');
       menuResult.fold(
         (failure) {
+          print('RestaurantPage: Menu loading failed: ${failure.message}');
+          print('RestaurantPage: Failure type: ${failure.runtimeType}');
+          
           setState(() {
             _isLoading = false;
             // Handle failure
@@ -72,6 +86,13 @@ class _RestaurantPageState extends State<RestaurantPage>
           });
         },
         (menuData) {
+          print('RestaurantPage: Menu loaded successfully');
+          print('RestaurantPage: Menu restaurantId: ${menuData.restaurantId}');
+          print('RestaurantPage: Menu has ${menuData.tabs.length} tabs');
+          for (var i = 0; i < menuData.tabs.length; i++) {
+            print('RestaurantPage: Tab $i: ${menuData.tabs[i].name} with ${menuData.tabs[i].categories.length} categories');
+          }
+          
           setState(() {
             _menu = menuData;
             _isLoading = false;
@@ -80,6 +101,10 @@ class _RestaurantPageState extends State<RestaurantPage>
         },
       );
     } catch (e) {
+      print('RestaurantPage: Exception loading menu: $e');
+      print('RestaurantPage: Exception type: ${e.runtimeType}');
+      print('RestaurantPage: Stack trace: ${StackTrace.current}');
+      
       setState(() {
         _isLoading = false;
       });
