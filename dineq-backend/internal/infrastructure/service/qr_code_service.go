@@ -319,6 +319,7 @@ func (qs *QRService) GenerateQRCode(restaurantSlug string, menuSlug string, requ
 		CloudImageURL:    url,
 		PublicMenuURL:    publicMenuURL,
 		DownloadURL:      url,
+		IsActive:         true,
 		ExpiresAt:        time.Now().Add(365 * 24 * time.Hour),
 		LabelFontApplied: labelFontApplied,
 		CreatedAt:        time.Now(),

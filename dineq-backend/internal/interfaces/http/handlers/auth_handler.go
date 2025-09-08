@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -472,8 +473,11 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'https://dineqmenumate.vercel.app' for redirect.")
 			redir = "https://dineqmenumate.vercel.app"
 		}
-		// Redirect to the site root as requested
-		finalURL := strings.TrimRight(redir, "/") + "/"
+		// Redirect to the site root and include tokens in both query and URL hash so frontend can read them
+		base := strings.TrimRight(redir, "/") + "/"
+		qs := "?access_token=" + url.QueryEscape(response.AccessToken) + "&refresh_token=" + url.QueryEscape(response.RefreshToken)
+		hash := "#access_token=" + url.QueryEscape(response.AccessToken) + "&refresh_token=" + url.QueryEscape(response.RefreshToken)
+		finalURL := base + qs + hash
 		fmt.Printf("[DEBUG] Redirecting to: %s\n", finalURL)
 		c.Redirect(http.StatusTemporaryRedirect, finalURL)
 	       return
@@ -501,8 +505,11 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'https://dineqmenumate.vercel.app' for redirect.")
 		redir = "https://dineqmenumate.vercel.app"
 	}
-	// Redirect to the site root
-	finalURL := strings.TrimRight(redir, "/") + "/"
+	// Redirect to the site root with tokens in both query and URL hash
+	base := strings.TrimRight(redir, "/") + "/"
+	qs := "?access_token=" + url.QueryEscape(newTokens.AccessToken) + "&refresh_token=" + url.QueryEscape(newTokens.RefreshToken)
+	hash := "#access_token=" + url.QueryEscape(newTokens.AccessToken) + "&refresh_token=" + url.QueryEscape(newTokens.RefreshToken)
+	finalURL := base + qs + hash
 	fmt.Printf("[DEBUG] Redirecting to: %s\n", finalURL)
 	c.Redirect(http.StatusTemporaryRedirect, finalURL)
 }

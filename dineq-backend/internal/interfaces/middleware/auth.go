@@ -16,8 +16,8 @@ import (
 func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-        var tokenStr string
-        var err error
+	var tokenStr string
+	var err error
 
 		// Prefer Authorization header (Bearer) then fallback to cookie
 		authHeader := c.GetHeader("Authorization")
@@ -28,9 +28,24 @@ func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 				tokenStr = strings.Trim(tokenStr, "\"") // remove accidental quotes
 			}
 		}
-		if tokenStr == "" { // fallback to cookie
-			tokenStr, err = utils.GetCookie(c, "access_token")
-			if err != nil || tokenStr == "" {
+		if tokenStr == "" { // fallback to cookie(s)
+			// Try underscore style first
+			if v, e := utils.GetCookie(c, "access_token"); e == nil && v != "" {
+				tokenStr = v
+			}
+			// Try camelCase used elsewhere
+			if tokenStr == "" {
+				if v, e := utils.GetCookie(c, "accessToken"); e == nil && v != "" {
+					tokenStr = v
+				}
+			}
+			// Try generic name
+			if tokenStr == "" {
+				if v, e := utils.GetCookie(c, "token"); e == nil && v != "" {
+					tokenStr = v
+				}
+			}
+			if tokenStr == "" {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "No access token found, please login again"})
 				c.Abort()
 				return
