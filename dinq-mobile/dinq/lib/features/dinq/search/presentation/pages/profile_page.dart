@@ -188,7 +188,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Colors.grey,
                   ),
                   onTap: () {
-                    
+
                   },
                 ),
                 const Divider(
@@ -239,7 +239,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       bottomNavigationBar: const OwnerNavBar(
         currentIndex: 2,
-        isRestaurantOwner: true,
+        isRestaurantOwner: false,
       ),
     );
   }

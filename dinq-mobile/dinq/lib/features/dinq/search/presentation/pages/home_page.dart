@@ -264,7 +264,7 @@ class _HomePageState extends State<HomePage> {
         child: const Icon(Icons.qr_code_scanner, size: 32, color: Colors.white),
       ),
       bottomNavigationBar: const OwnerNavBar(
-        isRestaurantOwner: true,
+        isRestaurantOwner: false,
         currentIndex: 0,
       ),
     );
