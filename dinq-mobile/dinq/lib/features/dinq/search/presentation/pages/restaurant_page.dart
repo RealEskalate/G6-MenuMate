@@ -211,7 +211,7 @@ class _RestaurantPageState extends State<RestaurantPage>
               ),
 
               // Name + subtitle (bottom-left)
-              const Positioned(
+              Positioned(
                 left: 16,
                 bottom: 16,
                 right: 16,
@@ -219,18 +219,18 @@ class _RestaurantPageState extends State<RestaurantPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.restaurant.name,
-                      style: TextStyle(
+                      widget.restaurant.restaurantName,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      widget.restaurant.description ?? 'No description available',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      widget.restaurant.about ?? 'No description available',
+                      style: const TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                   ],
                 ),
@@ -298,7 +298,7 @@ class _RestaurantPageState extends State<RestaurantPage>
               children: [
                 const Icon(Icons.location_on, color: Colors.orange, size: 16),
                 const SizedBox(width: 6),
-                Expanded(child: Text(widget.restaurant.address ?? 'Address not available')),
+                Expanded(child: Text('Address not available')), // Restaurant entity doesn't have address property
               ],
             ),
             const SizedBox(height: 8),
@@ -306,7 +306,7 @@ class _RestaurantPageState extends State<RestaurantPage>
               children: [
                 const Icon(Icons.access_time, color: Colors.orange, size: 16),
                 const SizedBox(width: 6),
-                Expanded(child: Text(widget.restaurant.openingHours ?? 'Hours not available')),
+                Expanded(child: Text('Hours not available')), // Restaurant entity doesn't have openingHours property
               ],
             ),
             const SizedBox(height: 12),
@@ -315,7 +315,7 @@ class _RestaurantPageState extends State<RestaurantPage>
                 const Icon(Icons.star, color: Colors.orange, size: 16),
                 const SizedBox(width: 4),
                 Text(
-                  widget.restaurant.rating?.toString() ?? 'N/A',
+                  widget.restaurant.averageRating.toString(),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(width: 6),
