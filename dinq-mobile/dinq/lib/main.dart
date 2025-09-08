@@ -33,6 +33,10 @@ class MyApp extends StatelessWidget {
         BlocProvider<RestaurantBloc>(
           create: (context) => di.sl<RestaurantBloc>(),
         ),
+        providers: [
+        BlocProvider<UserBloc>(
+          create: (context) => di.sl<UserBloc>(),
+        ),
       ],
       child: MaterialApp(
         initialRoute: AppRoute.onboarding,
