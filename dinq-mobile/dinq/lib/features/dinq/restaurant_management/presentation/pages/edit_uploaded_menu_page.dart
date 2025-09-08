@@ -2,17 +2,20 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
-import '../../../../../core/network/api_client.dart';
 import '../../../../../core/constants/constants.dart';
 import 'edit_menu_item_page.dart';
+import '../bloc/restaurant_bloc.dart';
+import '../bloc/restaurant_event.dart';
 
 class EditUploadedMenuPage extends StatefulWidget {
   final File uploadedImage;
   final List<dynamic>? menuItems;
 
-  const EditUploadedMenuPage({super.key, required this.uploadedImage, this.menuItems});
+  const EditUploadedMenuPage(
+      {super.key, required this.uploadedImage, this.menuItems});
 
   @override
   State<EditUploadedMenuPage> createState() => _EditUploadedMenuPageState();
@@ -74,14 +77,17 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
     }
   }
 
-  Map<String, List<Map<String, dynamic>>> _processMenuItems(List<dynamic> menuItems) {
+  Map<String, List<Map<String, dynamic>>> _processMenuItems(
+      List<dynamic> menuItems) {
     // Group menu items by tab_tags or just put them all in one section
     Map<String, List<Map<String, dynamic>>> sections = {};
 
     for (var item in menuItems) {
       // Get the first tab tag as the section name, or use 'General' as default
       String sectionName = 'General';
-      if (item['tab_tags'] != null && item['tab_tags'] is List && item['tab_tags'].isNotEmpty) {
+      if (item['tab_tags'] != null &&
+          item['tab_tags'] is List &&
+          item['tab_tags'].isNotEmpty) {
         sectionName = item['tab_tags'][0];
       }
 
@@ -146,8 +152,10 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
             'name_am': item['name_am'] ?? '',
             'description': item['desc'] ?? '',
             'description_am': item['description_am'] ?? '',
-            'tab_tags': sectionName == 'Menu Items' ? ['General'] : [sectionName],
-            'tab_tags_am': sectionName == 'Menu Items' ? ['አጠቃላይ'] : [sectionName],
+            'tab_tags':
+                sectionName == 'Menu Items' ? ['General'] : [sectionName],
+            'tab_tags_am':
+                sectionName == 'Menu Items' ? ['አጠቃላይ'] : [sectionName],
             'price': int.tryParse(item['price']?.toString() ?? '0') ?? 0,
             'currency': item['currency'] ?? 'ETB',
             'allergies': item['allergies'] ?? '',
@@ -158,7 +166,8 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
             'how_to_eat_am': item['how_to_eat_am'] ?? '',
           };
           menuItems.add(menuItem);
-          print('📝 Added item: ${menuItem['name']} - ${menuItem['price']} ${menuItem['currency']}');
+          print(
+              '📝 Added item: ${menuItem['name']} - ${menuItem['price']} ${menuItem['currency']}');
         }
       });
 
@@ -166,16 +175,16 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
 
       // Step 1: Create menu
       print('📝 Step 1: Creating menu with ${menuItems.length} items');
-      final menuData = {
-        "name": "OCR Generated Menu",
-        "menu_items": menuItems
-      };
+      final menuData = {'name': 'OCR Generated Menu', 'menu_items': menuItems};
 
-      print('📤 Sending menu creation request to: $baseUrl/menus/the-italian-corner-4b144298');
+      print(
+          '📤 Sending menu creation request to: $baseUrl/menus/the-italian-corner-4b144298');
       print('📋 Menu data structure: ${menuData.keys}');
-      print('🔍 First menu item sample: ${menuItems.isNotEmpty ? menuItems[0] : 'No items'}');
+      print(
+          '🔍 First menu item sample: ${menuItems.isNotEmpty ? menuItems[0] : 'No items'}');
 
-      final createResponse = await apiClient.post('/menus/the-italian-corner-4b144298', body: menuData);
+      final createResponse = await apiClient
+          .post('/menus/the-italian-corner-4b144298', body: menuData);
       print('📥 Menu creation response: $createResponse');
       print('✅ Menu creation SUCCESS!');
 
@@ -189,9 +198,22 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
       print('📢 Step 2: Publishing menu');
       print('🔗 Publish URL: $baseUrl/menus/$restaurantSlug/publish/$menuId');
 
-      final publishResponse = await apiClient.post('/menus/$restaurantSlug/publish/$menuId');
+      final publishResponse =
+          await apiClient.post('/menus/$restaurantSlug/publish/$menuId');
       print('📥 Menu publish response: $publishResponse');
       print('✅ Menu publishing SUCCESS!');
+
+      // Notify RestaurantBloc that the menu was published
+      try {
+        if (mounted) {
+          context.read<RestaurantBloc>().add(
+                PublishMenuEvent(
+                    restaurantSlug: restaurantSlug, menuId: menuId),
+              );
+        }
+      } catch (e) {
+        // non-fatal: ignore if bloc not available
+      }
 
       print('✅ Complete workflow finished successfully!');
 
@@ -206,7 +228,6 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
           },
         );
       }
-
     } catch (e) {
       print('❌ DETAILED ERROR in menu publishing process: $e');
       print('❌ Error type: ${e.runtimeType}');
@@ -266,7 +287,8 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         ),
                         SizedBox(width: 8),
@@ -317,12 +339,12 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
                       children: [
                         Text(
                           'original menu',
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 15,
-                                color: Colors.grey,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 15,
+                                    color: Colors.grey,
+                                  ),
                         ),
                         const SizedBox(height: 10),
                         ClipRRect(
@@ -353,15 +375,16 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              section.key == 'General' ? 'Menu Items' : section.key,
+                              section.key == 'General'
+                                  ? 'Menu Items'
+                                  : section.key,
                               style: Theme.of(
                                 context,
                               ).textTheme.headlineSmall?.copyWith(fontSize: 16),
                             ),
                             const SizedBox(height: 8),
                             ...section.value
-                                .map((item) => _EditableMenuItem(item: item))
-                                ,
+                                .map((item) => _EditableMenuItem(item: item)),
                             const SizedBox(height: 18),
                           ],
                         );
@@ -454,36 +477,38 @@ class _EditableMenuItemState extends State<_EditableMenuItem> {
                   Text(
                     widget.item['name'] ?? '',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     _truncateDescription(widget.item['desc'] ?? ''),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontSize: 13,
-                      color: Colors.grey,
-                    ),
+                          fontSize: 13,
+                          color: Colors.grey,
+                        ),
                   ),
-                  if (widget.item['allergies'] != null && widget.item['allergies'].toString().isNotEmpty) ...[
+                  if (widget.item['allergies'] != null &&
+                      widget.item['allergies'].toString().isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       'Allergies: ${widget.item['allergies']}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
-                        color: Colors.orange,
-                      ),
+                            fontSize: 11,
+                            color: Colors.orange,
+                          ),
                     ),
                   ],
-                  if (widget.item['preparation_time'] != null && widget.item['preparation_time'] > 0) ...[
+                  if (widget.item['preparation_time'] != null &&
+                      widget.item['preparation_time'] > 0) ...[
                     const SizedBox(height: 2),
                     Text(
                       'Prep time: ${widget.item['preparation_time']} min',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontSize: 11,
-                        color: Colors.blue,
-                      ),
+                            fontSize: 11,
+                            color: Colors.blue,
+                          ),
                     ),
                   ],
                 ],
@@ -500,18 +525,18 @@ class _EditableMenuItemState extends State<_EditableMenuItem> {
                     Text(
                       (widget.item['price'] ?? '').toString(),
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: AppColors.primaryColor,
-                      ),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: AppColors.primaryColor,
+                          ),
                     ),
                     Text(
                       widget.item['currency'] ?? 'ETB',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: AppColors.primaryColor,
-                      ),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                            color: AppColors.primaryColor,
+                          ),
                     ),
                   ],
                 ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/util/theme.dart';
-import '../../../restaurant_management/domain/entities/item.dart' as itemmodels;
+import '../../../restaurant_management/domain/entities/item.dart';
 import '../../../restaurant_management/domain/entities/restaurant.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
@@ -10,147 +10,72 @@ import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
 import 'item_details_page.dart';
 
 class RestaurantPage extends StatefulWidget {
-  final Restaurant restaurant;
-  const RestaurantPage({super.key, required this.restaurant});
+  final String restaurantSlug;
+  const RestaurantPage({super.key, required this.restaurantSlug});
 
   @override
-  State<RestaurantPage> createState() =>
-      _RestaurantPageState(restaurant: restaurant);
+  State<RestaurantPage> createState() => _RestaurantPageState();
 }
 
 class _RestaurantPageState extends State<RestaurantPage> {
-  final Restaurant restaurant;
-
-  _RestaurantPageState({required this.restaurant});
-
   @override
   void initState() {
     super.initState();
-<<<<<<< HEAD
-    _loadMenu();
-  }
-
-  Future<void> _loadMenu() async {
-    try {
-      final menuResult = await _getMenuUseCase.execute(widget.restaurantId);
-      menuResult.fold(
-        (failure) {
-          setState(() {
-            _isLoading = false;
-            // Handle failure
-          });
-        },
-        (menuData) {
-          setState(() {
-            _menu = menuData;
-            _isLoading = false;
-            _tabController = TabController(length: menuData.tabs.length, vsync: this);
-          });
-        },
-      );
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      // Handle error
-    }
-  }
-
-  List<models.Restaurant> get allRestaurants => [
-    // When creating a Restaurant for UI display:
-    models.Restaurant(
-      id: widget.restaurantId,
-      name: 'Bella Italia',
-      bannerUrl:
-          'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
-      verificationStatus:
-          models.VerificationStatus.verified, // required, pick any
-      contact: models.Contact(
-        phone: '',
-        email: '',
-        social: [],
-      ), // required, dummy
-      ownerId: '',
-      branchIds: [],
-      averageRating: 4.8,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-  ];
-
-  List<models.Item> get allDishes {
-    if (_menu == null) return [];
-    return _menu!.tabs
-        .expand((tab) => tab.categories)
-        .expand((cat) => cat.items)
-        .toList();
-  }
-
-  @override
-  void dispose() {
-    if (_menu != null) {
-      _tabController.dispose();
-    }
-    super.dispose();
-=======
-    // Ask the RestaurantBloc to load the menu for this restaurant
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final slug = widget.restaurant.slug;
+      final slug = widget.restaurantSlug;
+      // Load restaurant details and menu by slug
+      context.read<RestaurantBloc>().add(LoadRestaurantBySlug(slug));
       context.read<RestaurantBloc>().add(LoadMenu(restaurantSlug: slug));
     });
->>>>>>> origin/mite-test
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-<<<<<<< HEAD
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildRestaurantHeader(),
-              _buildTabBar(),
-              SizedBox(
-                height: 600, // Fixed height for tab content
-                child: TabBarView(
-                  controller: _tabController,
-                  children: _menu!.tabs
-                      .map((menuTab) => _buildTabContent(menuTab))
-                      .toList(),
-                ),
-=======
-        child: Column(
-          children: [
-            _buildRestaurantHeader(restaurant),
+        child: BlocBuilder<RestaurantBloc, RestaurantState>(
+          builder: (context, state) {
+            // Header can be built from loaded restaurant state; fallback to empty container
+            Widget header;
+            if (state is RestaurantLoaded) {
+              header = _buildRestaurantHeader(state.restaurant);
+            } else {
+              // while loading or absent, show a placeholder header built from minimal data
+              header = Container();
+            }
 
-            // Menu section
-            Expanded(
-              child: BlocBuilder<RestaurantBloc, RestaurantState>(
-                builder: (context, state) {
-                  if (state is RestaurantLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  } else if (state is RestaurantError) {
-                    return Center(child: Text(state.message));
-                  } else if (state is MenuLoaded) {
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(10),
-                      itemCount: state.menu.items.length,
-                      itemBuilder: (context, index) {
-                        final item = state.menu.items[index];
-                        return _buildMenuItem(item);
-                      },
-                    );
-                  } else {
-                    return const SizedBox.shrink();
-                  }
-                },
->>>>>>> origin/mite-test
-              ),
-            ],
-          ),
+            Widget menuChild;
+            if (state is RestaurantLoading) {
+              menuChild = const Center(child: CircularProgressIndicator());
+            } else if (state is RestaurantError) {
+              menuChild = Center(child: Text(state.message));
+            } else if (state is MenuLoaded) {
+              final menu = state.menu;
+              final items = menu.items;
+              if (items.isEmpty) {
+                menuChild = const Center(child: Text('No menu items'));
+              } else {
+                menuChild = ListView.separated(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, idx) {
+                    final item = items[idx];
+                    return _buildMenuItem(item);
+                  },
+                );
+              }
+            } else {
+              menuChild = const Center(child: Text('No menu'));
+            }
+
+            return Column(
+              children: [
+                header,
+                Expanded(child: menuChild),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -192,8 +117,8 @@ class _RestaurantPageState extends State<RestaurantPage> {
               // Top actions
               SafeArea(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0, vertical: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -216,29 +141,17 @@ class _RestaurantPageState extends State<RestaurantPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-<<<<<<< HEAD
-                      'Bella Italia',
-                      style: TextStyle(
-=======
                       restaurant.restaurantName,
                       style: const TextStyle(
->>>>>>> origin/mite-test
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
                       ),
                     ),
-<<<<<<< HEAD
-                    SizedBox(height: 4),
-                    Text(
-                      'Authentic Italian cuisine',
-=======
                     const SizedBox(height: 4),
                     const Text(
                       'Traditional Ethiopian cuisine',
->>>>>>> origin/mite-test
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
                     ),
                   ],
                 ),
@@ -374,113 +287,69 @@ class _RestaurantPageState extends State<RestaurantPage> {
     );
   }
 
-  Widget _buildMenuItem(itemmodels.Item item) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ItemDetailsPage(item: item),
+  Widget _buildMenuItem(Item item) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4.0,
+            offset: Offset(0, 2),
           ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4.0,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (item.images != null && item.images!.isNotEmpty)
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                ),
-                child: Image.network(
-                  item.images![0],
-                  width: 100,
-                  height: 100,
+        ],
+      ),
+      child: ListTile(
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: (item.images != null && item.images!.isNotEmpty)
+              ? Image.network(
+                  item.images!.first,
+                  width: 64,
+                  height: 64,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 100,
-                      height: 100,
-                      color: Colors.grey[300],
-                      child:
-                          const Icon(Icons.restaurant, color: Colors.grey),
-                    );
-                  },
-                ),
-              )
-            else
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 64,
+                    height: 64,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.restaurant, color: Colors.grey),
                   ),
+                )
+              : Container(
+                  width: 64,
+                  height: 64,
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.restaurant, color: Colors.grey),
                 ),
-                child: const Icon(Icons.restaurant, color: Colors.grey),
-              ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            item.name,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          '${item.price.toStringAsFixed(0)} ${item.currency}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (item.description != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        item.description!,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ],
         ),
+        title: Text(
+          item.name,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+        subtitle: item.description != null && item.description!.isNotEmpty
+            ? Text(
+                item.description!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: Colors.grey, fontSize: 13),
+              )
+            : null,
+        trailing: Text(
+          '${item.price.toStringAsFixed(0)} ${item.currency}',
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: AppColors.primaryColor),
+        ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ItemDetailsPage(item: item)),
+          );
+        },
       ),
     );
   }

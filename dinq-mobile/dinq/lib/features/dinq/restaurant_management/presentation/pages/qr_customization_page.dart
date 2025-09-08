@@ -3,14 +3,14 @@ import 'dart:io';
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import '../../../../../core/routing/app_route.dart';
-import '../../../../../core/network/api_client.dart';
+
 import '../../../../../core/constants/constants.dart';
-import '../../data/datasources/qr_code_remote_data_source.dart';
-import '../../data/repositories/qr_code_repository_impl.dart';
+import '../../../../../core/routing/app_route.dart';
+import '../../../../../injection_container.dart';
+import '../../domain/repositories/menu_repository.dart';
 import '../../domain/usecases/qr_code/generate_qr_code.dart';
 import 'generated_qr_page.dart';
 
@@ -19,10 +19,10 @@ class QrCustomizationPage extends StatefulWidget {
   final String? restaurantSlug;
 
   const QrCustomizationPage({
-    Key? key,
+    super.key,
     this.menuId,
     this.restaurantSlug,
-  }) : super(key: key);
+  });
 
   @override
   State<QrCustomizationPage> createState() => _QrCustomizationPageState();
@@ -54,7 +54,7 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
   double _margin = 4;
 
   // Dummy QR data
-  final String dummyData = "https://example.com";
+  final String dummyData = 'https://example.com';
 
   // Label
   final _labelController = TextEditingController();
@@ -145,44 +145,39 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
 
     // Build the body in the structure the backend expects
     final body = {
-      'format': "png",
-      "size": 600,
-      "quality": 92,
-      "include_label": true,
-      "customization": {
-        "background_color": _bgController.text,
-        "foreground_color": _fgController.text,
-        "gradient_from": _gradientFromController.text,
-        "gradient_to": _gradientToController.text,
-        "gradient_direction":
+      'format': 'png',
+      'size': 600,
+      'quality': 92,
+      'include_label': true,
+      'customization': {
+        'background_color': _bgController.text,
+        'foreground_color': _fgController.text,
+        'gradient_from': _gradientFromController.text,
+        'gradient_to': _gradientToController.text,
+        'gradient_direction':
             _gradientDirection.toLowerCase().replaceAll(' ', '_'),
         // ⚠️ Use an uploaded logo URL here if you have one
-        "logo": _logoFile != null
-            ? "https://res.cloudinary.com/dmahwet/image/upload/v1757007077/dineQ/general/huafbulre2yxgkxi0flu.png"
+        'logo': _logoFile != null
+            ? 'https://res.cloudinary.com/dmahwet/image/upload/v1757007077/dineQ/general/huafbulre2yxgkxi0flu.png'
             : null,
-        "logo_size_percent": _logoSize / 100, // backend expects 0.xx not %
-        "margin": _margin.toInt(),
-        "label_text": _labelController.text,
-        "label_color": _labelColorController.text,
-        "label_font_size": _fontSize.toInt(),
-        "label_font_url":
-            "https://github.com/google/fonts/raw/main/apache/opensans/OpenSans-SemiBold.ttf"
+        'logo_size_percent': _logoSize / 100, // backend expects 0.xx not %
+        'margin': _margin.toInt(),
+        'label_text': _labelController.text,
+        'label_color': _labelColorController.text,
+        'label_font_size': _fontSize.toInt(),
+        'label_font_url':
+            'https://github.com/google/fonts/raw/main/apache/opensans/OpenSans-SemiBold.ttf'
       }
     };
 
     print('📤 Sending request body: $body');
 
     // Initialize API client and services
-    final apiClient = ApiClient(baseUrl: baseUrl);
-    final qrDataSource = QrCodeRemoteDataSourceImpl(apiClient: apiClient);
-    final qrRepository = QrCodeRepositoryImpl(remoteDataSource: qrDataSource);
-    final generateQrCode = GenerateQrCode(qrRepository);
-
+    final MenuRepository repository = sl<MenuRepository>();
     // Call the API
-    final result = await generateQrCode(
+    final result = await repository.generateMenuQr(
       restaurantSlug: widget.restaurantSlug!,
       menuId: widget.menuId!,
-      customizationData: body,
     );
 
     return result.fold(
@@ -195,9 +190,9 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
       },
       (response) {
         print('✅ QR generation successful: $response');
-        final qrData = response['data']?['qr_code'];
-        if (qrData != null && qrData['image_url'] != null) {
-          return qrData['image_url'] as String;
+        final qrData = response;
+        if (qrData.imageUrl != null) {
+          return qrData.imageUrl;
         } else {
           print('❌ No image URL in response');
           ScaffoldMessenger.of(context).showSnackBar(
@@ -366,7 +361,7 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
                         color: _labelColor,
                         fontSize: _fontSize,
                         fontWeight: FontWeight.w600,
-                        fontFamily: "Arial",
+                        fontFamily: 'Arial',
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -382,7 +377,7 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
               child: Column(
                 children: [
                   _ColorPickerField(
-                    label: "Background",
+                    label: 'Background',
                     color: _bgColor,
                     controller: _bgController,
                     onPick: (c) {
@@ -396,7 +391,7 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
                   ),
                   const SizedBox(height: 8),
                   _ColorPickerField(
-                    label: "Foreground",
+                    label: 'Foreground',
                     color: _fgColor,
                     controller: _fgController,
                     onPick: (c) {
@@ -420,7 +415,7 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
               child: Column(
                 children: [
                   _ColorPickerField(
-                    label: "From",
+                    label: 'From',
                     color: _gradientFromColor,
                     controller: _gradientFromController,
                     onPick: (c) {
@@ -434,7 +429,7 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
                   ),
                   const SizedBox(height: 8),
                   _ColorPickerField(
-                    label: "To",
+                    label: 'To',
                     color: _gradientToColor,
                     controller: _gradientToController,
                     onPick: (c) {
@@ -583,7 +578,7 @@ class _QrCustomizationPageState extends State<QrCustomizationPage> {
                   ),
                   const SizedBox(height: 8),
                   _ColorPickerField(
-                    label: "Color",
+                    label: 'Color',
                     color: _labelColor,
                     controller: _labelColorController,
                     onPick: (c) {

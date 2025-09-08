@@ -1,18 +1,18 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/network/api_endpoints.dart';
 import 'core/network/auth_interceptor.dart';
 import 'core/network/network_info.dart';
 import 'core/network/token_manager.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'features/dinq/auth/data/datasources/user_remote_data_source.dart';
-import 'features/dinq/auth/data/datasources/user_remote_data_source_impl.dart';
 import 'features/dinq/auth/data/datasources/user_local_data_source.dart';
 import 'features/dinq/auth/data/datasources/user_local_data_source_impl.dart';
+import 'features/dinq/auth/data/datasources/user_remote_data_source.dart';
+import 'features/dinq/auth/data/datasources/user_remote_data_source_impl.dart';
 import 'features/dinq/auth/data/repositories/user_repository_impl.dart';
 import 'features/dinq/auth/domain/repositories/user_repository.dart';
 import 'features/dinq/auth/domain/usecases/user/change_password_usecase.dart';
@@ -21,6 +21,7 @@ import 'features/dinq/auth/domain/usecases/user/get_google_redirect_usecase.dart
 import 'features/dinq/auth/domain/usecases/user/handle_google_callback_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/login_user_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/register_user_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/logout_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/resend_otp_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/reset_password_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/update_profile_usecase.dart';
@@ -103,7 +104,6 @@ Future<void> init() async {
     ),
   );
 
-<<<<<<< HEAD
   // Use cases
   sl.registerLazySingleton(() => GetRestaurants(sl()));
   sl.registerLazySingleton(() => GetMenu(sl()));
@@ -114,7 +114,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CreateRestaurant(sl()));
   sl.registerLazySingleton(() => UpdateRestaurant(sl()));
   sl.registerLazySingleton(() => DeleteRestaurant(sl()));
-=======
+
   // BLoC for user flows (register/login/profile/google auth/etc)
   sl.registerFactory(
     () => UserBloc(
@@ -129,9 +129,9 @@ Future<void> init() async {
       updateProfile: sl(),
       getGoogleRedirect: sl(),
       handleGoogleCallback: sl(),
+      logout: sl(),
     ),
   );
->>>>>>> origin/mite-test
 
   // -- Auth (User) use cases (registered before UserBloc)
   sl.registerLazySingleton(() => RegisterUserUseCase(sl()));
@@ -145,6 +145,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
   sl.registerLazySingleton(() => GetGoogleRedirectUseCase(sl()));
   sl.registerLazySingleton(() => HandleGoogleCallbackUseCase(sl()));
+  sl.registerLazySingleton(() => LogoutUseCase(sl()));
   // -- Auth (User) feature registrations
   // Data source and repository
   sl.registerLazySingleton<UserRemoteDataSource>(

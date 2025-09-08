@@ -127,30 +127,16 @@ class _UserRegisterState extends State<UserRegister>
 
   void _registerUser() {
     if (_validateAllFields()) {
-<<<<<<< HEAD
-      print('Attempting to register user with:');
-      print('Username: ${_usernameController.text}');
-      print('Email: ${_emailController.text}');
-      context.read<AuthBloc>().add(
-        RegisterUserEvent(
-          username: _usernameController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          authProvider: 'EMAIL',
-          role: 'CUSTOMER', // Explicitly set role for customer registration
-        ),
-      );
-=======
       context.read<UserBloc>().add(
             RegisterUserEvent(
               username: _usernameController.text.trim(),
               email: _emailController.text.trim(),
               password: _passwordController.text,
               authProvider: 'EMAIL',
+              role: 'OWNER'
             ),
           );
       Navigator.pushNamed(context, AppRoute.mainShell);
->>>>>>> origin/mite-test
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -284,33 +270,21 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                 ),
                 const SizedBox(height: 30),
-<<<<<<< HEAD
-                BlocBuilder<AuthBloc, AuthState>(
+                BlocBuilder<UserBloc, UserState>(
                   builder: (context, state) {
                     return ScaleTransition(
                       scale: _scaleAnimation,
                       child: FadeTransition(
                         opacity: _fadeAnimation,
-                        child: state is AuthLoading
+                        child: state is UserLoading
                             ? const CircularProgressIndicator()
                             : LoginButton(
-                                buttonname: "Register",
+                                buttonname: 'Register',
                                 onPressed: _registerUser,
                               ),
                       ),
                     );
                   },
-=======
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: LoginButton(
-                      buttonname: 'Register',
-                      onPressed: _registerUser,
-                    ),
-                  ),
->>>>>>> origin/mite-test
                 ),
 
                 const SizedBox(height: 30),

@@ -221,13 +221,13 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                               value: selectedSectionTag,
                               decoration: InputDecoration(
                                 hintText: 'Select section',
-                                hintStyle: TextStyle(color: Colors.black54),
+                                hintStyle: const TextStyle(color: Colors.black54),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
+                                  borderSide: const BorderSide(
                                     color: AppColors.primaryColor,
                                     width: 2,
                                   ),
@@ -268,13 +268,13 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                               controller: itemNameController,
                               decoration: InputDecoration(
                                 hintText: 'Enter item name',
-                                hintStyle: TextStyle(color: Colors.black54),
+                                hintStyle: const TextStyle(color: Colors.black54),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
+                                  borderSide: const BorderSide(
                                     color: AppColors.primaryColor,
                                     width: 2,
                                   ),
@@ -286,13 +286,13 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                               controller: priceController,
                               decoration: InputDecoration(
                                 hintText: '0.00',
-                                hintStyle: TextStyle(color: Colors.black54),
+                                hintStyle: const TextStyle(color: Colors.black54),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(
+                                  borderSide: const BorderSide(
                                     color: AppColors.primaryColor,
                                     width: 2,
                                   ),
@@ -541,7 +541,7 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                     controller: descController,
                     decoration: InputDecoration(
                       hintText: 'Enter description',
-                      hintStyle: TextStyle(color: Colors.black54),
+                      hintStyle: const TextStyle(color: Colors.black54),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(
@@ -550,7 +550,7 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
+                        borderSide: const BorderSide(
                           color: AppColors.primaryColor,
                           width: 2,
                         ),
@@ -563,7 +563,7 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                     controller: howToEatController,
                     decoration: InputDecoration(
                       hintText: 'Instructions (max 100 chars)',
-                      hintStyle: TextStyle(color: Colors.black54),
+                      hintStyle: const TextStyle(color: Colors.black54),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(
@@ -572,7 +572,7 @@ class _EditMenuItemPageState extends State<EditMenuItemPage> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(
+                        borderSide: const BorderSide(
                           color: AppColors.primaryColor,
                           width: 2,
                         ),

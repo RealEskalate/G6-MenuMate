@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
 
-enum BottomNavTab { explore, favorites, profile }
+enum BottomNavTab { explore, favorites, profile, owner }
 
 class BottomNavBar extends StatelessWidget {
   final BottomNavTab selectedTab;
   final ValueChanged<BottomNavTab> onTabSelected;
 
+  final bool showOwnerTab;
+
   const BottomNavBar({
     super.key,
     required this.selectedTab,
     required this.onTabSelected,
+    this.showOwnerTab = false,
   });
 
   @override
@@ -45,6 +48,12 @@ class BottomNavBar extends StatelessWidget {
             label: 'Profile',
             tab: BottomNavTab.profile,
           ),
+          if (showOwnerTab)
+            _buildNavBarItem(
+              icon: Icons.storefront,
+              label: 'Manage',
+              tab: BottomNavTab.owner,
+            ),
         ],
       ),
     );

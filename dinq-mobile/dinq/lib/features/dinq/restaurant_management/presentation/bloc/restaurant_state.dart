@@ -2,9 +2,9 @@ import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/item.dart';
 import '../../domain/entities/menu.dart';
+import '../../domain/entities/qr.dart';
 import '../../domain/entities/restaurant.dart';
 import '../../domain/entities/review.dart';
-import '../../domain/entities/qr.dart';
 
 abstract class RestaurantState extends Equatable {
   const RestaurantState();

@@ -1,10 +1,11 @@
 import 'dart:io';
+
 import 'package:dartz/dartz.dart';
 
 import '../../../../../../core/error/failures.dart';
+import '../../data/model/menu_create_model.dart';
 import '../entities/menu.dart';
 import '../entities/qr.dart';
-import '../../data/model/menu_create_model.dart';
 
 abstract class MenuRepository {
   Future<Either<Failure, MenuCreateModel>> uploadMenu(File printedMenu);

@@ -31,40 +31,6 @@ class RestaurantDebugPage extends StatelessWidget {
                   bloc.add(const LoadRestaurantBySlug('pizza-hut')),
               child: const Text('Load Restaurant by Slug (pizza-hut)'),
             ),
-<<<<<<< HEAD
-            // ElevatedButton(
-            //   onPressed: () {
-            //     final restaurant = const RestaurantModel(
-            //       id: 'debug-id',
-            //       name: 'Debug Resto',
-            //       description: 'desc',
-            //       address: 'addr',
-            //       phone: '000',
-            //       email: 'a@b.com',
-            //       image: '',
-            //       isActive: true,
-            //     );
-            //     bloc.add(CreateRestaurantEvent(restaurant));
-            //   },
-            //   child: const Text('Create Restaurant (debug)'),
-            // ),
-            // ElevatedButton(
-            //   onPressed: () {
-            //     final restaurant = const RestaurantModel(
-            //       id: 'debug-id',
-            //       name: 'Debug Resto Updated',
-            //       description: 'desc',
-            //       address: 'addr',
-            //       phone: '111',
-            //       email: 'a@b.com',
-            //       image: '',
-            //       isActive: true,
-            //     );
-            //     bloc.add(UpdateRestaurantEvent(restaurant, 'debug-slug'));
-            //   },
-            //   child: const Text('Update Restaurant (debug)'),
-            // ),
-=======
             // Create / Update actions are not available in this debug page because
             // the event expects FormData; keep placeholders to avoid compile errors.
             ElevatedButton(
@@ -83,7 +49,6 @@ class RestaurantDebugPage extends StatelessWidget {
               },
               child: const Text('Update Restaurant (placeholder)'),
             ),
->>>>>>> origin/mite-test
             ElevatedButton(
               onPressed: () =>
                   bloc.add(const DeleteRestaurantEvent('debug-id')),

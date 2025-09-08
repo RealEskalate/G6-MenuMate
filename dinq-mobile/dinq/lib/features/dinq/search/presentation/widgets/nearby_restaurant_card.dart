@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+
 import '../../../../../core/routing/app_route.dart';
-import '../pages/restaurant_page.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/domain/entities/restaurant.dart';
 

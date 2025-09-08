@@ -14,11 +14,7 @@ abstract class RestaurantRepository {
   });
   Future<Either<Failure, Restaurant>> getRestaurantBySlug(String slug);
   Future<Either<Failure, Restaurant>> updateRestaurant(
-<<<<<<< HEAD
-    Map<String, dynamic> restaurant,
-=======
     FormData restaurant,
->>>>>>> origin/mite-test
     String slug,
   );
   Future<Either<Failure, void>> deleteRestaurant(String restaurantId);

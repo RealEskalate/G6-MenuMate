@@ -209,8 +209,9 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                             value: 'English', child: Text('English'))
                       ],
                       onChanged: (val) {
-                        if (val != null)
+                        if (val != null) {
                           setState(() => _selectedLanguage = val);
+                        }
                       },
                     ),
                     const SizedBox(height: 14),
@@ -274,9 +275,10 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                                   value: 'Desserts', child: Text('Desserts')),
                             ],
                             onChanged: (val) {
-                              if (val != null)
+                              if (val != null) {
                                 setState(
                                     () => section.selectedSectionTag = val);
+                              }
                             },
                           ),
                         ),
@@ -393,7 +395,7 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                                 ],
                                 const SizedBox(height: 16),
                               ]);
-                        }).toList(),
+                        }),
                         Row(children: [
                           ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
@@ -425,7 +427,7 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                     ]),
               ),
             );
-          }).toList(),
+          }),
 
           const SizedBox(height: 24),
           SizedBox(

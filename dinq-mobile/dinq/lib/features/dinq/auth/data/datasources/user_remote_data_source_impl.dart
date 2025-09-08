@@ -258,8 +258,9 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
         options: Options(headers: headers),
       );
       final statusCode = response.statusCode;
-      if (statusCode == 200)
+      if (statusCode == 200) {
         return (response.data as Map).cast<String, dynamic>();
+      }
       throw ServerException(
         HttpErrorHandler.getExceptionMessage(statusCode, 'update profile'),
         statusCode: statusCode,

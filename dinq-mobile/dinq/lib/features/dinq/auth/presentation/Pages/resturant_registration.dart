@@ -198,11 +198,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
                   onPressed: _pickFile,
                   icon: const Icon(Icons.upload_file, color: AppColors.primaryColor),
                   label: const Text(
-<<<<<<< HEAD
-                    "Browse File",
-=======
                     'Browse File',
->>>>>>> origin/mite-test
                     style: TextStyle(color: AppColors.primaryColor),
                   ),
                   style: OutlinedButton.styleFrom(
@@ -231,15 +227,10 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
             // Show selected file if one is chosen
             if (_selectedFile != null) ...[
               const Text(
-<<<<<<< HEAD
-                "Selected Document:",
-=======
                 'Selected Document:',
->>>>>>> origin/mite-test
                 style: TextStyle(
-                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Inter',
                   fontSize: 16,
-                  color: Colors.black87,
                 ),
               ),
               const SizedBox(height: 15),

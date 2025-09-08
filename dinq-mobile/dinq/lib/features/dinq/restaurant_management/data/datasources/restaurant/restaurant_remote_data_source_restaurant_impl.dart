@@ -89,6 +89,68 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   }
 
   @override
+  Future<List<RestaurantModel>> searchRestaurants({
+    required String name,
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    // Implemented based on previous combined datasource logic
+    try {
+      final uri = Uri.parse('${ApiEndpoints.restaurants}/search').replace(
+        queryParameters: {
+          'q': name,
+          'page': page.toString(),
+          'pageSize': pageSize.toString(),
+        },
+      );
+
+      final headers = await TokenManager.getAuthHeadersStatic();
+      headers['Content-Type'] = content;
+      final response =
+          await dio.getUri(uri, options: Options(headers: headers));
+
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        final data = response.data;
+        // normalize response: expect either { 'restaurants': [...] } or list itself
+        List<dynamic> list = [];
+        if (data is Map && data.containsKey('restaurants')) {
+          list = data['restaurants'] as List<dynamic>;
+        } else if (data is List) {
+          list = data;
+        } else if (data is Map &&
+            data['data'] is Map &&
+            data['data']['restaurants'] is List) {
+          list = data['data']['restaurants'] as List<dynamic>;
+        }
+
+        return list.map((json) => RestaurantModel.fromMap(json)).toList();
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'searching restaurants',
+          ),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'searching restaurants',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while searching restaurants: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
   Future<RestaurantModel> getRestaurantBySlug(String slug) async {
     try {
       final headers = await TokenManager.getAuthHeadersStatic();

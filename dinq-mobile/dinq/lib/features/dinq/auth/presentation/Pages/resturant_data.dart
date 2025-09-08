@@ -100,11 +100,7 @@ class _RestaurantDataState extends State<RestaurantData> {
           child: Column(
             children: [
               const SizedBox(height: 40), // Reduced from 60
-<<<<<<< HEAD
-              const Text("Review & Submit",
-=======
               const Text('Review & Submit',
->>>>>>> origin/mite-test
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.bold,
@@ -112,11 +108,7 @@ class _RestaurantDataState extends State<RestaurantData> {
                 ),
               ),
               const SizedBox(height: 8),
-<<<<<<< HEAD
-              const Text("Please review and submit your information.",
-=======
               const Text('Please review and submit your information.',
->>>>>>> origin/mite-test
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -126,11 +118,7 @@ class _RestaurantDataState extends State<RestaurantData> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-<<<<<<< HEAD
-              const Text("Basic Information",
-=======
               const Text('Basic Information',
->>>>>>> origin/mite-test
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 14,
@@ -143,24 +131,15 @@ class _RestaurantDataState extends State<RestaurantData> {
               CustomTextField(labelText:'Phone Number' , initialText: widget.phoneNumber),
               const SizedBox(height: 24),
 
-<<<<<<< HEAD
-              const Text("Your Legal Document",
-=======
               const Text('Your Legal Document',
->>>>>>> origin/mite-test
                 style: TextStyle(
                   fontFamily: 'Inter',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
                 ),
               ),
               const SizedBox(height: 8),
-<<<<<<< HEAD
-              const Text("Business License",
-=======
               const Text('Business License',
->>>>>>> origin/mite-test
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 12,
@@ -216,26 +195,19 @@ class _RestaurantDataState extends State<RestaurantData> {
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-<<<<<<< HEAD
                 child: ElevatedButton(
                   onPressed: (){
                     Navigator.pushReplacementNamed(context, '/explore');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.whiteColor,
-                    padding: EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text(
-                    "Skip for now",
-=======
-                child: TextButton(
-                  onPressed: (){},
                   child: const Text(
                     'Skip for now',
->>>>>>> origin/mite-test
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,

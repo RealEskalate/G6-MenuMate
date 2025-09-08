@@ -1,17 +1,18 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/usecases/user/login_user_usecase.dart';
-import '../../domain/usecases/user/register_user_usecase.dart';
-import '../../domain/usecases/user/verify_otp_usecase.dart';
-import '../../domain/usecases/user/resend_otp_usecase.dart';
-import '../../domain/usecases/user/verify_email_usecase.dart';
-import '../../domain/usecases/user/forgot_password_usecase.dart';
-import '../../domain/usecases/user/reset_password_usecase.dart';
+import '../../../../../core/network/token_manager.dart';
 import '../../domain/usecases/user/change_password_usecase.dart';
-import '../../domain/usecases/user/update_profile_usecase.dart';
+import '../../domain/usecases/user/forgot_password_usecase.dart';
 import '../../domain/usecases/user/get_google_redirect_usecase.dart';
 import '../../domain/usecases/user/handle_google_callback_usecase.dart';
-
+import '../../domain/usecases/user/login_user_usecase.dart';
+import '../../domain/usecases/user/logout_usecase.dart';
+import '../../domain/usecases/user/register_user_usecase.dart';
+import '../../domain/usecases/user/resend_otp_usecase.dart';
+import '../../domain/usecases/user/reset_password_usecase.dart';
+import '../../domain/usecases/user/update_profile_usecase.dart';
+import '../../domain/usecases/user/verify_email_usecase.dart';
+import '../../domain/usecases/user/verify_otp_usecase.dart';
 import 'user_event.dart';
 import 'user_state.dart';
 
@@ -27,6 +28,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   final UpdateProfileUseCase updateProfile;
   final GetGoogleRedirectUseCase getGoogleRedirect;
   final HandleGoogleCallbackUseCase handleGoogleCallback;
+  final LogoutUseCase logout;
 
   UserBloc({
     required this.registerUser,
@@ -40,6 +42,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     required this.updateProfile,
     required this.getGoogleRedirect,
     required this.handleGoogleCallback,
+    required this.logout,
   }) : super(const UserInitial()) {
     on<RegisterUserEvent>(_onRegisterUser);
     on<LoginUserEvent>(_onLoginUser);
@@ -93,8 +96,18 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     LogoutUserEvent event,
     Emitter<UserState> emit,
   ) async {
-    // perform logout locally (clear tokens) - repository usecase may exist
-    emit(const UserLoggedOut());
+    emit(const UserLoading());
+    final result = await logout.call();
+    result.fold(
+      (failure) => emit(UserError(failure.message)),
+      (_) async {
+        // attempt to clear cached tokens locally; ignore errors
+        try {
+          await TokenManager.clearTokensStatic();
+        } catch (_) {}
+        emit(const UserLoggedOut());
+      },
+    );
   }
 
   Future<void> _onVerifyOtp(

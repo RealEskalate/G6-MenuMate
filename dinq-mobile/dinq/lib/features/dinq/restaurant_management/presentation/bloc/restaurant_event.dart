@@ -1,8 +1,5 @@
-<<<<<<< HEAD
-=======
 import 'dart:io';
 
->>>>>>> origin/mite-test
 import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
@@ -77,11 +74,7 @@ class CreateRestaurantEvent extends RestaurantEvent {
 }
 
 class UpdateRestaurantEvent extends RestaurantEvent {
-<<<<<<< HEAD
-  final dynamic restaurant;
-=======
-  final FormData restaurantModel;
->>>>>>> origin/mite-test
+  final FormData restaurant;
   final String slug;
 
   const UpdateRestaurantEvent(this.restaurant, this.slug);

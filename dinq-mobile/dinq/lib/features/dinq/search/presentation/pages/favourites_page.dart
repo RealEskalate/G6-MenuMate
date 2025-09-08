@@ -8,7 +8,6 @@ import '../../../restaurant_management/domain/entities/item.dart';
 import '../../../restaurant_management/domain/entities/restaurant.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import 'item_details_page.dart';
-import 'restaurant_page.dart';
 
 class _FavoritesStore {
   static final Set<String> restaurantIds = <String>{};

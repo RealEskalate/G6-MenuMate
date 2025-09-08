@@ -18,7 +18,7 @@ class AuthInterceptor extends Interceptor {
   });
 
   @override
-  void onError(DioError err, ErrorInterceptorHandler handler) async {
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
     final response = err.response;
     final reqOptions = err.requestOptions;
 
@@ -70,8 +70,9 @@ class AuthInterceptor extends Interceptor {
 
   Future<void> _doRefresh() async {
     final refreshToken = await TokenManager.getRefreshTokenStatic();
-    if (refreshToken == null || refreshToken.isEmpty)
+    if (refreshToken == null || refreshToken.isEmpty) {
       throw Exception('no refresh token');
+    }
 
     final resp = await refreshDio.post(
       ApiEndpoints.refresh,

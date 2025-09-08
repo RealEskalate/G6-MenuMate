@@ -27,7 +27,7 @@ class MenuRemoteDataSourceImpl implements MenuRemoteDataSource {
         ),
       });
 
-      final headers = await (await TokenManager.getAuthHeadersStatic())
+      final headers = (await TokenManager.getAuthHeadersStatic())
         ..addAll({'Content-Type': 'multipart/form-data'});
 
       final uploadResponse = await dio.post(

@@ -103,7 +103,7 @@ class MenuCreateModel {
     if (m.containsKey('price')) {
       final p = m['price'];
       if (p is String) {
-        final parsed = num.tryParse(p.replaceAll(RegExp(r"[^0-9\.-]"), ''));
+        final parsed = num.tryParse(p.replaceAll(RegExp(r'[^0-9\.-]'), ''));
         if (parsed != null) m['price'] = parsed;
       }
     }

@@ -5,16 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart' hide Barcode;
 import 'package:dio/dio.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/core/constants/constants.dart';
+import '../../../../core/routing/app_route.dart';
+import '../../../../core/util/theme.dart';
+import '../../../../core/constants/constants.dart';
 import '../../../../core/error/failures.dart';
 import '../widgets/tip_row.dart';
-import 'package:dinq/core/error/failure.dart' hide ServerFailure, Failure;
+import '../../../../core/error/failure.dart' hide ServerFailure, Failure;
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:dinq/features/dinq/search/presentation/pages/scanned_menu_page.dart';
+import '../../search/presentation/pages/scanned_menu_page.dart';
 
 class QrScannerPage extends StatefulWidget {
-  const QrScannerPage({Key? key}) : super(key: key);
+  const QrScannerPage({super.key});
 
   @override
   State<QrScannerPage> createState() => _QrScannerPageState();
@@ -54,7 +55,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
       await barcodeScanner.close();
 
       if (barcodes.isEmpty) {
-        _showFailure(NotFoundFailure('No QR code found in image.'));
+        _showFailure(const NotFoundFailure('No QR code found in image.'));
         return;
       }
 
@@ -63,16 +64,17 @@ class _QrScannerPageState extends State<QrScannerPage> {
       print('QR content: $qrContent');
 
       if (qrContent == null) {
-        _showFailure(NotFoundFailure('QR code has no content.'));
+        _showFailure(const NotFoundFailure('QR code has no content.'));
         return;
       }
 
       // Extract restaurant slug (last part of URL)
       final slug = extractRestaurantSlug(qrContent);
       print('Extracted restaurant slug: $slug');
+      
 
       if (slug == null) {
-        _showFailure(NotFoundFailure('Restaurant slug not found in QR code.'));
+        _showFailure(const NotFoundFailure('Restaurant slug not found in QR code.'));
         return;
       }
 
@@ -100,33 +102,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
     final uri = Uri.tryParse(url);
     if (uri == null || uri.pathSegments.isEmpty) return null;
     return uri.pathSegments.last;
-  }
-
-  Future<dynamic> getMenuBySlug(String slug) async {
-    try {
-      final dio = Dio();
-      final url = '$baseUrl/menus/$slug';
-      print('QrScannerPage: Sending GET request to: $url');
-
-      final response = await dio.get(
-        url,
-        options: Options(
-          headers: {'Authorization': 'Bearer $accessToken'},
-        ),
-      );
-
-      print('Response status: ${response.statusCode}');
-      if (response.statusCode == 200) {
-        return true;
-      } else if (response.statusCode == 404) {
-        return NotFoundFailure('No menu found for this restaurant.');
-      } else {
-        return ServerFailure('Server error: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('GET request error: $e');
-      return ServerFailure('Failed to connect to server: $e');
-    }
   }
 
   void _showError(String message) {
@@ -157,7 +132,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
     
     if (qrContent == null) {
       print('QrScannerPage: Barcode value is null');
-      _showFailure(NotFoundFailure('QR code has no content.'));
+      _showFailure(const NotFoundFailure('QR code has no content.'));
       return;
     }
     
@@ -170,7 +145,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
     print('QrScannerPage: Extracted slug: $slug');
     
     if (slug == null) {
-      _showFailure(NotFoundFailure('Restaurant slug not found in QR code.'));
+      _showFailure(const NotFoundFailure('Restaurant slug not found in QR code.'));
       // Resume scanning
       _scannerController.start();
       setState(() => _isScanning = true);
@@ -190,11 +165,12 @@ class _QrScannerPageState extends State<QrScannerPage> {
       
       // Navigate to scanned menu page with the slug
       if (!mounted) return;
-      Navigator.push(
+      Navigator.pushNamed(
         context,
-        MaterialPageRoute(
-          builder: (context) => ScannedMenuPage(slug: slug),
-        ),
+        AppRoute.restaurant
+        ,
+        arguments: slug,
+      
       ).then((_) {
         // Resume scanning when returning from menu page
         if (mounted) {
@@ -246,7 +222,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
           ),
         ],
       ),
-<<<<<<< HEAD
       body: _isScanning
           ? _buildScannerView()
           : _buildUploadView(),
@@ -271,112 +246,6 @@ class _QrScannerPageState extends State<QrScannerPage> {
               onDetect: _onBarcodeDetected,
             ),
           ),
-=======
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFFE0E0E0), width: 2),
-                borderRadius: BorderRadius.circular(16),
-                color: const Color(0xFFF9F9F9),
-              ),
-              child: Column(
-                children: [
-                  const SizedBox(height: 8),
-                  _selectedImage == null
-                      ? const Icon(
-                          Icons.image_outlined,
-                          size: 48,
-                          color: Color(0xFFBDBDBD),
-                        )
-                      : ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            _selectedImage!,
-                            height: 120,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _selectedImage == null
-                        ? 'No image selected'
-                        : 'Image selected',
-                    style: const TextStyle(color: Color(0xFFBDBDBD)),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(
-                        Icons.camera_alt_outlined,
-                        color: Colors.white,
-                      ),
-                      label: const Text('Take Photo'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primaryColor,
-                        foregroundColor: AppColors.whiteColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      onPressed: () => _pickImage(ImageSource.camera),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      icon: const Icon(
-                        Icons.folder_open,
-                        color: AppColors.secondaryColor,
-                      ),
-                      label: const Text('Choose from Gallery'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.secondaryColor,
-                        side: const BorderSide(color: Color(0xFFE0E0E0)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        textStyle: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      onPressed: () => _pickImage(ImageSource.gallery),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-            const Text(
-              'Tips for better results:',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            const TipRow(
-              icon: Icons.lightbulb_outline,
-              text: 'Ensure good lighting and avoid shadows',
-            ),
-            const SizedBox(height: 12),
-            const TipRow(
-              icon: Icons.crop_free,
-              text: 'Capture the entire QR Code in frame',
-            ),
-            const SizedBox(height: 12),
-          ],
->>>>>>> origin/mite-test
         ),
         Expanded(
           flex: 2,
@@ -393,11 +262,11 @@ class _QrScannerPageState extends State<QrScannerPage> {
                 ),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
-                  icon: Icon(Icons.image, color: AppColors.secondaryColor),
+                  icon: const Icon(Icons.image, color: AppColors.secondaryColor),
                   label: const Text('Upload from Gallery instead'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.secondaryColor,
-                    side: BorderSide(color: AppColors.secondaryColor),
+                    side: const BorderSide(color: AppColors.secondaryColor),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
@@ -463,7 +332,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    icon: Icon(Icons.folder_open, color: AppColors.secondaryColor),
+                    icon: const Icon(Icons.folder_open, color: AppColors.secondaryColor),
                     label: const Text('Choose from Gallery'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.secondaryColor,
@@ -477,11 +346,11 @@ class _QrScannerPageState extends State<QrScannerPage> {
                 ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
-                  icon: Icon(Icons.qr_code_scanner, color: AppColors.secondaryColor),
+                  icon: const Icon(Icons.qr_code_scanner, color: AppColors.secondaryColor),
                   label: const Text('Switch to Live Scanner'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.secondaryColor,
-                    side: BorderSide(color: AppColors.secondaryColor),
+                    side: const BorderSide(color: AppColors.secondaryColor),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),

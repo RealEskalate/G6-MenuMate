@@ -16,11 +16,7 @@ import '../../features/dinq/restaurant_management/presentation/pages/edit_upload
 import '../../features/dinq/restaurant_management/presentation/pages/generated_qr_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/legal_info_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/menus_page.dart';
-<<<<<<< HEAD
-import '../../features/dinq/restaurant_management/presentation/pages/opening_hours_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/qr_customization_page.dart';
-=======
->>>>>>> origin/mite-test
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_details_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_profile_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/settings_page.dart';
@@ -64,11 +60,8 @@ class AppRoute {
   static const String analytics = '/analytics';
   static const String digitizeMenu = '/digitize-menu';
   static const String editMenuItem = '/edit-menu-item';
-<<<<<<< HEAD
   static const String login = '/login';
-=======
   static const String mainShell = '/mainShell';
->>>>>>> origin/mite-test
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -76,11 +69,8 @@ class AppRoute {
         return MaterialPageRoute(builder: (_) => const LoginPage());
       case onboarding:
         return MaterialPageRoute(builder: (_) => const OnboardingFirst());
-<<<<<<< HEAD
-=======
       case mainShell:
         return MaterialPageRoute(builder: (_) => const MainShell());
->>>>>>> origin/mite-test
       case explore:
         return MaterialPageRoute(builder: (_) => const HomePage());
       case favorites:

@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-import 'package:shared_preferences/shared_preferences.dart';
-import '../constants/constants.dart';
-=======
 import 'package:dartz/dartz.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
->>>>>>> origin/mite-test
 
 class TokenManager {
   final FlutterSecureStorage secureStorage;
@@ -22,18 +17,7 @@ class TokenManager {
     await secureStorage.write(key: _refreshKey, value: refreshToken);
   }
 
-<<<<<<< HEAD
-  static Future<String?> getAccessToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString(_accessTokenKey);
 
-    // If no token in SharedPreferences, use the hardcoded token from constants
-    if (token == null || token.isEmpty) {
-      token = accessToken;
-    }
-
-    return token;
-=======
   Future<Option<Map<String, String>>> getCachedTokens() async {
     final access = await secureStorage.read(key: _accessKey);
     final refresh = await secureStorage.read(key: _refreshKey);
@@ -41,7 +25,6 @@ class TokenManager {
       return some({'access_token': access, 'refresh_token': refresh});
     }
     return none();
->>>>>>> origin/mite-test
   }
 
   Future<void> clearTokens() async {
@@ -73,46 +56,11 @@ class TokenManager {
     return {};
   }
 
-<<<<<<< HEAD
-  static Future<Map<String, String>?> getAuthHeaders() async {
-    String? token = await getAccessToken();
-    print('🔍 TokenManager.getAuthHeaders - SharedPreferences token: ${token != null ? token.substring(0, 20) + "..." : "null"}');
-
-    // If no token in SharedPreferences, use the hardcoded token from constants
-    if (token == null || token.isEmpty) {
-      token = accessToken;
-      print('🔄 Using hardcoded token from constants: ${token != null ? token.substring(0, 20) + "..." : "null"}');
-    }
-
-    if (token == null || token.isEmpty) {
-      print('❌ No token available!');
-      return null;
-    }
-
-    print('✅ Using token: ${token.substring(0, 20)}...');
-    
-    // For multipart requests, don't include Content-Type
-    return {
-      'Authorization': 'Bearer $token',
-    };
-  }
-
-  static Future<Map<String, String>?> getAuthHeadersWithContentType() async {
-    final headers = await getAuthHeaders();
-    if (headers == null) return null;
-
-    return {
-      ...headers,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-=======
   /// Write access token to static storage.
   static Future<void> setAccessTokenStatic(String token) async {
     try {
       await _staticStorage.write(key: _accessKey, value: token);
     } catch (_) {}
->>>>>>> origin/mite-test
   }
 
   /// Write refresh token to static storage.

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import 'login_page.dart';
 import 'onboarding2_page.dart';
@@ -71,9 +72,9 @@ class OnboardingThirdPage extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   // Add navigation logic here if needed
-                  Navigator.push(
+                  Navigator.pushNamed(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    AppRoute.mainShell,
                   );
                 },
                 child: Container(

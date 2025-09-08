@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/usecases/menu/create_menu.dart';
@@ -198,7 +197,7 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     Emitter<RestaurantState> emit,
   ) async {
     emit(const RestaurantLoading());
-    final result = await updateRestaurant(event.restaurant as Map<String, dynamic>, event.slug);
+    final result = await updateRestaurant(event.restaurant, event.slug);
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
       (restaurant) => emit(

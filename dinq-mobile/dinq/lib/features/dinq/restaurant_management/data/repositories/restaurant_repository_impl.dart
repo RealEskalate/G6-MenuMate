@@ -96,21 +96,13 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
 
   @override
   Future<Either<Failure, Restaurant>> updateRestaurant(
-<<<<<<< HEAD
-    Map<String, dynamic> restaurant,
-=======
     FormData restaurant,
->>>>>>> origin/mite-test
     String slug,
   ) async {
     final connected = await network.isConnected;
     if (connected) {
       try {
-<<<<<<< HEAD
-        final updatedModel = await remoteDataSource.updateRestaurant(
-=======
         final updatedModel = await restRemoteDataSource.updateRestaurant(
->>>>>>> origin/mite-test
           restaurant,
           slug,
         );

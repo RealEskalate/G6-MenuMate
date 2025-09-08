@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-<<<<<<< HEAD
-// import '../../../../../core/injection.dart';
-=======
->>>>>>> origin/mite-test
+
 import '../../../../../core/util/theme.dart';
 // import '../../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
 // import '../../../../restaurant_management/presentation/bloc/restaurant_event.dart';

@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/domain/entities/item.dart';
-import 'add_review_page.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
-import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
+import 'add_review_page.dart';
 
 class ItemDetailsPage extends StatelessWidget {
   final Item item;
@@ -23,7 +23,10 @@ class ItemDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(item.name),
+        title: Text(
+          item.name,
+          overflow: TextOverflow.ellipsis,
+        ),
         backgroundColor: AppColors.primaryColor,
       ),
       body: SingleChildScrollView(
@@ -156,41 +159,45 @@ class ItemDetailsPage extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Reviews Section header (tap title to load reviews)
-            GestureDetector(
+            InkWell(
               onTap: () => _loadReviews(context),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Reviews',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Reviews',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 6,
-                      ),
-                      elevation: 0,
                     ),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const AddReviewPage(),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      );
-                    },
-                    child: const Text('Add Review'),
-                  ),
-                ],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 6,
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const AddReviewPage(),
+                          ),
+                        );
+                      },
+                      child: const Text('Add Review'),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -350,7 +357,7 @@ class ItemDetailsPage extends StatelessWidget {
                 radius: 18,
                 backgroundColor: Colors.grey[300],
                 child: Text(
-                  name[0],
+                  name.isNotEmpty ? name[0] : '?',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.black,

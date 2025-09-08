@@ -140,18 +140,6 @@ class _MangerRegistrationState extends State<MangerRegistration>
 
   void _registerManager() {
     if (_validateAllFields()) {
-<<<<<<< HEAD
-      context.read<AuthBloc>().add(
-        RegisterUserEvent(
-          username: _usernameController.text.trim(),
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-          authProvider: 'EMAIL',
-          // phoneNumber: _phoneController.text.trim(),
-          role: 'OWNER',
-        ),
-      );
-=======
       context.read<UserBloc>().add(
             RegisterUserEvent(
               username: _usernameController.text.trim(),
@@ -160,9 +148,9 @@ class _MangerRegistrationState extends State<MangerRegistration>
               authProvider: 'EMAIL',
               // phone number was collected but RegisterUserEvent doesn't have phoneNumber field in this project's user_event
               // We'll pass phone as part of firstName temporarily if needed, or ignore for now.
+              role: 'OWNER',
             ),
           );
->>>>>>> origin/mite-test
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -214,43 +202,6 @@ class _MangerRegistrationState extends State<MangerRegistration>
         }
       },
       child: Scaffold(
-<<<<<<< HEAD
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 40),
-              // Animated title
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: const Text(
-                    "Create Manger Account",
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              // Animated subtitle
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: const Text(
-                    "Join Dineq to manage your restaurant efficiently",
-                    style: TextStyle(
-                      fontWeight: FontWeight.normal,
-                      fontFamily: 'Inter',
-                      fontSize: 14,
-                      color: AppColors.secondaryColor,
-=======
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -287,12 +238,11 @@ class _MangerRegistrationState extends State<MangerRegistration>
                         fontSize: 14,
                         color: AppColors.secondaryColor,
                       ),
-                      textAlign: TextAlign.center,
->>>>>>> origin/mite-test
                     ),
                   ),
                 ),
                 const SizedBox(height: 30),
+
                 // Animated form fields with staggered delay
                 AnimatedFormField(
                   animation: _fadeAnimation,
@@ -310,194 +260,6 @@ class _MangerRegistrationState extends State<MangerRegistration>
                   ),
                 ),
 
-<<<<<<< HEAD
-              const SizedBox(height: 20),
-              AnimatedFormField(
-                animation: _fadeAnimation,
-                delay: 200,
-                child: LoginTextfields(
-                  controller: _emailController,
-                  labeltext: "Email Address",
-                  hintText: "We'll use this to send you important updates",
-                  keyboardType: TextInputType.emailAddress,
-                  errorText: _emailError,
-                  onChanged: (value) {
-                    setState(() {
-                      _emailError = _validateEmail(value);
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              AnimatedFormField(
-                animation: _fadeAnimation,
-                delay: 300,
-                child: LoginTextfields(
-                  controller: _phoneController,
-                  labeltext: "Phone Number",
-                  hintText: "Include country code (e.g., +251 for Ethiopia)",
-                  isPhoneNumber: true,
-                  errorText: _phoneError,
-                  onChanged: (value) {
-                    setState(() {
-                      _phoneError = _validatePhone(value);
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              AnimatedFormField(
-                animation: _fadeAnimation,
-                delay: 400,
-                child: LoginTextfields(
-                  controller: _passwordController,
-                  labeltext: "Password",
-                  hintText: "Must be at least 8 characters with uppercase, lowercase, and number",
-                  isPassword: true,
-                  errorText: _passwordError,
-                  onChanged: (value) {
-                    setState(() {
-                      _passwordError = _validatePassword(value);
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              AnimatedFormField(
-                animation: _fadeAnimation,
-                delay: 500,
-                child: LoginTextfields(
-                  controller: _confirmPasswordController,
-                  labeltext: "Confirm Password",
-                  hintText: "Re-enter your password to confirm",
-                  isPassword: true,
-                  errorText: _confirmPasswordError,
-                  onChanged: (value) {
-                    setState(() {
-                      _confirmPasswordError = _validateConfirmPassword(value);
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 20),
-              // Animated checkbox
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomCheckbox(
-                          onChanged: (value) {
-                            setState(() {
-                              _isTermsAccepted = value ?? false;
-                            });
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: RichText(
-                            text: const TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: "I agree to the ",
-                                  style: TextStyle(
-                                    fontFamily: "Inter",
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 14,
-                                    color: AppColors.secondaryColor,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: "Terms of Service ",
-                                  style: TextStyle(
-                                    fontFamily: "Roboto",
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: AppColors.primaryColor,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: "and ",
-                                  style: TextStyle(
-                                    fontFamily: "Inter",
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 14,
-                                    color: AppColors.secondaryColor,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: "Privacy Policy *",
-                                  style: TextStyle(
-                                    fontFamily: "Inter",
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: AppColors.primaryColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              // Animated button with scale effect
-               BlocBuilder<AuthBloc, AuthState>(
-                  builder: (context, state) {
-                    return ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: state is AuthLoading
-                            ? const CircularProgressIndicator()
-                            : LoginButton(
-                                buttonname: "Register",
-                                onPressed: _registerManager,
-                              ),
-                      ),
-                    );
-                  },
-                ),
-              const SizedBox(height: 30),
-              // Animated "or" divider
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          color: AppColors.secondaryColor.withOpacity(0.5),
-                          thickness: 1,
-                        ),
-                      ),
-                      const Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          "or",
-                          style: TextStyle(
-                            fontWeight: FontWeight.normal,
-                            color: AppColors.secondaryColor,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          color: AppColors.secondaryColor.withOpacity(0.5),
-                          thickness: 1,
-                        ),
-                      ),
-                    ],
-=======
                 const SizedBox(height: 20),
                 AnimatedFormField(
                   animation: _fadeAnimation,
@@ -530,7 +292,6 @@ class _MangerRegistrationState extends State<MangerRegistration>
                         _phoneError = _validatePhone(value);
                       });
                     },
->>>>>>> origin/mite-test
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -582,7 +343,7 @@ class _MangerRegistrationState extends State<MangerRegistration>
                           CustomCheckbox(
                             onChanged: (value) {
                               setState(() {
-                                _isTermsAccepted = value;
+                                _isTermsAccepted = value ?? false;
                               });
                             },
                           ),
@@ -642,13 +403,15 @@ class _MangerRegistrationState extends State<MangerRegistration>
                   builder: (context, state) {
                     return ScaleTransition(
                       scale: _scaleAnimation,
-                      child: state is UserLoading
-                          ? const CircularProgressIndicator()
-                          : GestureDetector(
-                              onTap: _registerManager,
-                              child: const LoginButton(
-                                  buttonname: 'Create Account'),
-                            ),
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: state is UserLoading
+                            ? const CircularProgressIndicator()
+                            : LoginButton(
+                                buttonname: 'Register',
+                                onPressed: _registerManager,
+                              ),
+                      ),
                     );
                   },
                 ),

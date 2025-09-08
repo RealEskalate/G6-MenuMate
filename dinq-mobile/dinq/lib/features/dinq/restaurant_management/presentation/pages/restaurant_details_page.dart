@@ -1,23 +1,18 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/restaurant_event.dart';
-import '../bloc/restaurant_state.dart';
-import '../bloc/restaurant_bloc.dart';
-import '../../data/model/restaurant_model.dart';
-
+import 'package:image_picker/image_picker.dart';
 
 import '../../domain/entities/restaurant.dart';
+import '../bloc/restaurant_bloc.dart';
+import '../bloc/restaurant_event.dart';
+import '../bloc/restaurant_state.dart';
 
 class RestaurantDetailsPage extends StatefulWidget {
-<<<<<<< HEAD
-   const RestaurantDetailsPage({super.key});
-=======
   final Restaurant restaurant;
   const RestaurantDetailsPage({super.key, required this.restaurant});
->>>>>>> origin/mite-test
 
    @override
    State<RestaurantDetailsPage> createState() => _RestaurantDetailsPageState();
@@ -108,17 +103,18 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     _buildMapPreview(),
                     const SizedBox(height: 24),
                     ElevatedButton(
-                      onPressed: () {
-                        final formData = {
+                      onPressed: () async {
+                        final formData = FormData.fromMap({
                           'name': nameController.text,
                           'description': descriptionController.text,
                           'email': emailController.text,
                           'phone': phoneController.text,
                           'location': locationController.text,
                           'cuisine': selectedCuisine,
-                          'logo': logoPath,
-                          'banner': bannerPath,
-                        };
+                          'logo': _logoImage != null ? await MultipartFile.fromFile(_logoImage!.path) : null,
+                          'banner': _bannerImage != null ? await MultipartFile.fromFile(_bannerImage!.path) : null,
+                        });
+                        
                         context.read<RestaurantBloc>().add(UpdateRestaurantEvent(formData, 'the-italian-corner-dce19f8f'));
                       },
                       child: const Text('Update Restaurant'),
