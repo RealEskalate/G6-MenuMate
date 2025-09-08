@@ -11,6 +11,8 @@ import '../../domain/entities/menu.dart' as models;
 import '../widgets/bottom_navbar.dart';
 import '../widgets/nearby_restaurant_card.dart';
 import '../widgets/popular_dish_card.dart';
+import 'package:dinq/features/dinq/search/domain/entities/menu.dart';
+import 'package:dinq/features/dinq/search/presentation/pages/restaurant_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -123,6 +125,138 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _searchInFlight = false;
     });
+  }
+
+  // Create dummy menu data for restaurant page
+  Menu _createDummyMenu(String restaurantId) {
+    return Menu(
+      id: 'dummy-menu-id',
+      restaurantId: restaurantId,
+      branchId: 'dummy-branch-id',
+      version: 1,
+      isPublished: true,
+      tabs: [
+        Tab(
+          id: 'tab1',
+          menuId: 'dummy-menu-id',
+          name: 'Main Menu',
+          categories: [
+            Category(
+              id: 'cat1',
+              tabId: 'tab1',
+              name: 'Appetizers',
+              items: [
+                Item(
+                  id: 'item1',
+                  name: 'Samosas',
+                  slug: 'samosas',
+                  categoryId: 'cat1',
+                  description: 'Crispy pastry filled with spiced potatoes and peas.',
+                  price: 120.0,
+                  currency: 'ETB',
+                  images: ['https://images.unsplash.com/photo-1601050690597-df0568f70950'],
+                  ingredients: ['Flour', 'Potatoes', 'Peas', 'Spices'],
+                  preparationTime: 15,
+                  calories: 250,
+                ),
+                Item(
+                  id: 'item2',
+                  name: 'Spring Rolls',
+                  slug: 'spring-rolls',
+                  categoryId: 'cat1',
+                  description: 'Crispy rolls filled with vegetables and served with sweet chili sauce.',
+                  price: 100.0,
+                  currency: 'ETB',
+                  images: ['https://images.unsplash.com/photo-1548811256-1627d99e7a57'],
+                  ingredients: ['Rice paper', 'Carrots', 'Cabbage', 'Bean sprouts'],
+                  preparationTime: 20,
+                  calories: 180,
+                ),
+              ],
+            ),
+            Category(
+              id: 'cat2',
+              tabId: 'tab1',
+              name: 'Main Courses',
+              items: [
+                Item(
+                  id: 'item3',
+                  name: 'Doro Wat',
+                  slug: 'doro-wat',
+                  categoryId: 'cat2',
+                  description: 'Ethiopian spicy chicken stew served with injera.',
+                  price: 250.0,
+                  currency: 'ETB',
+                  images: ['https://images.unsplash.com/photo-1567364667030-4d45a0a51201'],
+                  ingredients: ['Chicken', 'Berbere', 'Onions', 'Garlic', 'Ginger'],
+                  preparationTime: 45,
+                  calories: 450,
+                ),
+                Item(
+                  id: 'item4',
+                  name: 'Tibs',
+                  slug: 'tibs',
+                  categoryId: 'cat2',
+                  description: 'Ethiopian sautéed meat dish with vegetables.',
+                  price: 220.0,
+                  currency: 'ETB',
+                  images: ['https://images.unsplash.com/photo-1567364667030-4d45a0a51201'],
+                  ingredients: ['Beef', 'Peppers', 'Onions', 'Rosemary'],
+                  preparationTime: 30,
+                  calories: 380,
+                ),
+              ],
+            ),
+            Category(
+              id: 'cat3',
+              tabId: 'tab1',
+              name: 'Desserts',
+              items: [
+                Item(
+                  id: 'item5',
+                  name: 'Baklava',
+                  slug: 'baklava',
+                  categoryId: 'cat3',
+                  description: 'Sweet pastry made of layers of filo filled with chopped nuts and sweetened with honey.',
+                  price: 150.0,
+                  currency: 'ETB',
+                  images: ['https://images.unsplash.com/photo-1519676867240-f03562e64548'],
+                  ingredients: ['Phyllo dough', 'Nuts', 'Honey', 'Butter'],
+                  preparationTime: 25,
+                  calories: 300,
+                ),
+              ],
+            ),
+          ],
+        ),
+        Tab(
+          id: 'tab2',
+          menuId: 'dummy-menu-id',
+          name: 'Drinks',
+          categories: [
+            Category(
+              id: 'cat4',
+              tabId: 'tab2',
+              name: 'Hot Drinks',
+              items: [
+                Item(
+                  id: 'item6',
+                  name: 'Ethiopian Coffee',
+                  slug: 'ethiopian-coffee',
+                  categoryId: 'cat4',
+                  description: 'Traditional Ethiopian coffee served in a jebena.',
+                  price: 50.0,
+                  currency: 'ETB',
+                  images: ['https://images.unsplash.com/photo-1568031813264-d394c5d474b9'],
+                  preparationTime: 15,
+                  calories: 5,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   @override
@@ -270,3 +404,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+

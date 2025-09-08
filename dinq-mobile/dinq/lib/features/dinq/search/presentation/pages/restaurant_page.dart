@@ -10,8 +10,9 @@ import 'item_details_page.dart';
 
 class RestaurantPage extends StatefulWidget {
   final Restaurant restaurant;
+  final models.Menu? menu; // Add menu parameter
 
-  const RestaurantPage({super.key, required this.restaurant});
+  const RestaurantPage({super.key, required this.restaurant, this.menu});
 
   @override
   State<RestaurantPage> createState() => _RestaurantPageState();
@@ -40,7 +41,22 @@ class _RestaurantPageState extends State<RestaurantPage>
   @override
   void initState() {
     super.initState();
-    _loadMenu();
+    // If menu is provided, use it directly, otherwise load from API
+    if (widget.menu != null) {
+      setState(() {
+        _menu = widget.menu;
+        _isLoading = false;
+        _initTabController();
+      });
+    } else {
+      _loadMenu();
+    }
+  }
+
+  void _initTabController() {
+    if (_menu != null && _menu!.tabs.isNotEmpty) {
+      _tabController = TabController(length: _menu!.tabs.length, vsync: this);
+    }
   }
 
   Future<void> _loadMenu() async {
@@ -57,6 +73,7 @@ class _RestaurantPageState extends State<RestaurantPage>
           setState(() {
             _menu = menuData;
             _isLoading = false;
+            _initTabController(); // Initialize tab controller after menu is loaded
           });
         },
       );
@@ -80,7 +97,8 @@ class _RestaurantPageState extends State<RestaurantPage>
 
   @override
   void dispose() {
-    if (_menu != null) {
+    // Only dispose if _tabController has been initialized
+    if (_menu != null && _menu!.tabs.isNotEmpty) {
       _tabController.dispose();
     }
     super.dispose();
