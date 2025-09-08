@@ -85,7 +85,7 @@ class NearbyRestaurantCard extends StatelessWidget {
             Navigator.pushNamed(
               context,
               AppRoute.restaurant,
-              arguments: restaurant,
+              arguments: restaurant.slug,
             );
           },
           child: const Text('View Menu'),

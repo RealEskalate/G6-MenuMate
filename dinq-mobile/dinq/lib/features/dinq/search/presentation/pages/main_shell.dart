@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../core/routing/app_route.dart';
+import '../../../../../injection_container.dart' as di;
+import '../../../auth/presentation/bloc/user_bloc.dart';
+import '../../../auth/presentation/bloc/user_state.dart';
 import '../../../restaurant_management/domain/entities/item.dart';
 import '../../../restaurant_management/domain/entities/restaurant.dart';
 import '../../../restaurant_management/presentation/pages/menus_page.dart';
@@ -52,15 +57,26 @@ class _MainShellState extends State<MainShell> {
       if (pages.length > 3) pages.removeLast();
     }
 
-    return Scaffold(
-      body: IndexedStack(
-        index: selectedIndex,
-        children: pages,
-      ),
-      bottomNavigationBar: BottomNavBar(
-        selectedTab: _selected,
-        onTabSelected: _onTabSelected,
-        showOwnerTab: _showOwnerTab,
+    return BlocProvider.value(
+      value: di.sl<UserBloc>(),
+      child: BlocListener<UserBloc, UserState>(
+        listener: (context, state) {
+          if (state is UserLoggedOut) {
+            // Redirect to login when user logs out
+            Navigator.pushReplacementNamed(context, AppRoute.login);
+          }
+        },
+        child: Scaffold(
+          body: IndexedStack(
+            index: selectedIndex,
+            children: pages,
+          ),
+          bottomNavigationBar: BottomNavBar(
+            selectedTab: _selected,
+            onTabSelected: _onTabSelected,
+            showOwnerTab: _showOwnerTab,
+          ),
+        ),
       ),
     );
   }

@@ -6,8 +6,8 @@ import '../../../../../core/util/theme.dart';
 // removed unused repository import; UserBloc is injected via DI
 import '../../../../../injection_container.dart' as di;
 import '../bloc/user_bloc.dart';
-import '../bloc/user_state.dart';
 import '../bloc/user_event.dart';
+import '../bloc/user_state.dart';
 import '../widgets/Login_TextFields.dart';
 import '../widgets/Login_button.dart';
 import 'Register_page.dart';
@@ -175,7 +175,7 @@ class _LoginPageState extends State<LoginPage>
               password: _passwordController.text,
             ),
           );
-      Navigator.pushNamed(context, AppRoute.mainShell);
+      // Navigation will be handled in BlocListener when login is successful
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -201,8 +201,10 @@ class _LoginPageState extends State<LoginPage>
                 duration: Duration(seconds: 2),
               ),
             );
-            // Navigate to home page or dashboard
-            Navigator.pushReplacementNamed(context, '/explore');
+            // Navigate to main shell after successful login
+            Future.delayed(const Duration(milliseconds: 800), () {
+              Navigator.pushReplacementNamed(context, AppRoute.mainShell);
+            });
           } else if (state is UserError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

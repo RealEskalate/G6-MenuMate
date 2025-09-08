@@ -48,6 +48,15 @@ class UserLoggedOut extends UserState {
   const UserLoggedOut();
 }
 
+class AuthChecked extends UserState {
+  final User? user;
+
+  const AuthChecked(this.user);
+
+  @override
+  List<Object?> get props => [user];
+}
+
 class OtpVerified extends UserState {
   const OtpVerified();
 }

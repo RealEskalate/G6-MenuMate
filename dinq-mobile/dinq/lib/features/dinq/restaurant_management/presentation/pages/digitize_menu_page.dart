@@ -3,15 +3,24 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../domain/usecases/menu/upload_menu.dart';
-import '../../data/model/menu_create_model.dart';
+import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../../../injection_container.dart' as di;
+import '../../data/model/menu_create_model.dart';
+import '../bloc/restaurant_bloc.dart';
+import '../bloc/restaurant_event.dart';
+import '../bloc/restaurant_state.dart';
 
 class DigitizeMenuPage extends StatefulWidget {
-  const DigitizeMenuPage({super.key});
+  final String restaurantId;
+
+  const DigitizeMenuPage({
+    super.key,
+    required this.restaurantId,
+  });
 
   @override
   State<DigitizeMenuPage> createState() => _DigitizeMenuPageState();
@@ -20,7 +29,6 @@ class DigitizeMenuPage extends StatefulWidget {
 class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
-  bool _loading = false;
   bool _isUploading = false;
   String? _errorMessage;
   MenuCreateModel? _createModel;
@@ -79,53 +87,21 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
     });
 
     try {
-      final upload = di.sl<UploadMenu>();
-      final result = await upload.call(_imageFile!);
-      result.fold((failure) {
-        setState(() {
-          _errorMessage = failure.toString();
-        });
-      }, (menuCreate) {
-        setState(() {
-          _createModel = menuCreate;
-        });
-      });
+      // Use bloc to upload menu
+      context.read<RestaurantBloc>().add(UploadMenuEvent(_imageFile!));
     } catch (e) {
       setState(() {
         _errorMessage = 'OCR failed: $e';
+        _isUploading = false;
       });
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('OCR failed: $e')));
       }
-    } finally {
-      setState(() {
-        _isUploading = false;
-      });
     }
   }
 
-  Future<void> _uploadImage() async {
-    if (_imageFile == null) return;
-    setState(() {
-      _loading = true;
-    });
-    try {
-      final upload = di.sl<UploadMenu>();
-      final result = await upload.call(_imageFile!);
-      result.fold((failure) => null, (menuCreate) {
-        setState(() {
-          _createModel = menuCreate;
-        });
-      });
-    } catch (_) {
-      // ignore
-    } finally {
-      setState(() {
-        _loading = false;
-      });
-    }
-  }
+
 
   Widget _buildEditableCreateForm() {
     final titleController =
@@ -162,7 +138,19 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
               onPressed: () => setState(() => _createModel = null),
               child: const Text('Back')),
           const SizedBox(width: 12),
-          ElevatedButton(onPressed: () {}, child: const Text('Create (no-op)')),
+          ElevatedButton(
+            onPressed: () {
+              // Navigate to create menu page with parsed data
+              Navigator.of(context).pushNamed(
+                AppRoute.createMenuManually,
+                arguments: {
+                  'restaurantId': widget.restaurantId,
+                  'parsedMenuData': _createModel,
+                },
+              );
+            },
+            child: const Text('Create Menu'),
+          ),
         ])
       ],
     );
@@ -170,7 +158,31 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocProvider.value(
+      value: di.sl<RestaurantBloc>(),
+      child: BlocListener<RestaurantBloc, RestaurantState>(
+        listener: (context, state) {
+          if (state is MenuCreateLoaded) {
+            setState(() {
+              _createModel = state.menuCreateModel;
+              _isUploading = false;
+            });
+          } else if (state is RestaurantError) {
+            setState(() {
+              _errorMessage = state.message;
+              _isUploading = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('OCR failed: ${state.message}')),
+            );
+          } else if (state is RestaurantLoading) {
+            setState(() {
+              _isUploading = true;
+              _errorMessage = null;
+            });
+          }
+        },
+        child: Scaffold(
       appBar: AppBar(
         leading: BackButton(color: Theme.of(context).iconTheme.color),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -364,6 +376,8 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
                 child: _buildEditableCreateForm()),
           ],
         ],
+      ),
+        ),
       ),
     );
   }

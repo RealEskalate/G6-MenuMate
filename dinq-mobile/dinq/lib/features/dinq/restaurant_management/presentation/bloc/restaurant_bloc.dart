@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domain/entities/restaurant.dart';
 import '../../domain/usecases/menu/create_menu.dart';
 import '../../domain/usecases/menu/delete_menu.dart';
 import '../../domain/usecases/menu/generate_menu_qr.dart';
@@ -224,6 +225,13 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     LoadRestaurants event,
     Emitter<RestaurantState> emit,
   ) async {
+    // Check if restaurants are already loaded to avoid unnecessary API calls
+    if (state is RestaurantsLoaded &&
+        (state as RestaurantsLoaded).restaurants.isNotEmpty) {
+      // Restaurants are already loaded, no need to fetch again
+      return;
+    }
+
     // debug: log that handler was invoked
     // ignore: avoid_print
     print(
@@ -237,7 +245,10 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
       (failure) {
         // ignore: avoid_print
         print('_onLoadRestaurants result: failure - ${failure.message}');
-        emit(RestaurantError(failure.message));
+        // Don't emit error if we already have cached data
+        if (state is! RestaurantsLoaded) {
+          emit(RestaurantError(failure.message));
+        }
       },
       (restaurants) {
         // ignore: avoid_print
@@ -252,11 +263,25 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     LoadMenu event,
     Emitter<RestaurantState> emit,
   ) async {
+    // Keep the current restaurant data if it exists
+    Restaurant? currentRestaurant;
+    if (state is RestaurantLoaded) {
+      currentRestaurant = (state as RestaurantLoaded).restaurant;
+    } else if (state is RestaurantWithMenuLoaded) {
+      currentRestaurant = (state as RestaurantWithMenuLoaded).restaurant;
+    }
+
     emit(const RestaurantLoading());
     final result = await getMenu(event.restaurantSlug);
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
-      (menu) => emit(MenuLoaded(menu)),
+      (menu) {
+        if (currentRestaurant != null) {
+          emit(RestaurantWithMenuLoaded(currentRestaurant, menu));
+        } else {
+          emit(MenuLoaded(menu));
+        }
+      },
     );
   }
 

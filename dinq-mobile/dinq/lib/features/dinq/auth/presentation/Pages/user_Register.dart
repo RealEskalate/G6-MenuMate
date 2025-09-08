@@ -136,7 +136,7 @@ class _UserRegisterState extends State<UserRegister>
               role: 'OWNER'
             ),
           );
-      Navigator.pushNamed(context, AppRoute.mainShell);
+      // Navigation will be handled in BlocListener when registration is successful
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -162,9 +162,9 @@ class _UserRegisterState extends State<UserRegister>
               duration: Duration(seconds: 2),
             ),
           );
-          // navigate to home/explore
+          // Navigate to main shell after successful registration
           Future.delayed(const Duration(milliseconds: 800), () {
-            Navigator.pushReplacementNamed(context, AppRoute.explore);
+            Navigator.pushReplacementNamed(context, AppRoute.mainShell);
           });
         } else if (state is UserError) {
           ScaffoldMessenger.of(context).showSnackBar(

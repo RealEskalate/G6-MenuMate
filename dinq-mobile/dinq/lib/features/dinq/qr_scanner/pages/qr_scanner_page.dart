@@ -1,19 +1,19 @@
 // ignore_for_file: avoid_print
 
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart' hide Barcode;
-import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+
+import '../../../../core/error/failures.dart';
 import '../../../../core/routing/app_route.dart';
 import '../../../../core/util/theme.dart';
-import '../../../../core/constants/constants.dart';
-import '../../../../core/error/failures.dart';
 import '../widgets/tip_row.dart';
-import '../../../../core/error/failure.dart' hide ServerFailure, Failure;
-import 'package:mobile_scanner/mobile_scanner.dart';
-import '../../search/presentation/pages/scanned_menu_page.dart';
 
+/// QR Scanner Page that opens camera by default to scan QR codes
+/// Automatically extracts restaurant slug from QR code URL and navigates to restaurant page
 class QrScannerPage extends StatefulWidget {
   const QrScannerPage({super.key});
 
@@ -25,7 +25,14 @@ class _QrScannerPageState extends State<QrScannerPage> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   final MobileScannerController _scannerController = MobileScannerController();
-  bool _isScanning = true; // Track if we're in scanning mode or upload mode
+  bool _isScanning = true; // Start with scanning mode by default
+
+  @override
+  void initState() {
+    super.initState();
+    // Start scanning immediately when page opens
+    _scannerController.start();
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -71,33 +78,41 @@ class _QrScannerPageState extends State<QrScannerPage> {
       // Extract restaurant slug (last part of URL)
       final slug = extractRestaurantSlug(qrContent);
       print('Extracted restaurant slug: $slug');
-      
+
 
       if (slug == null) {
         _showFailure(const NotFoundFailure('Restaurant slug not found in QR code.'));
         return;
       }
 
-      // Send GET request to backend
-      final result = await getMenuBySlug(slug);
-      if (result is Failure) {
-        _showFailure(result);
-      } else {
-        // Navigate to scanned menu page with the slug
-      if (!mounted) return;
-      Navigator.push(
+
+      Navigator.pushNamed(
         context,
-        MaterialPageRoute(
-          builder: (context) => ScannedMenuPage(slug: slug),
-        ),
+        AppRoute.restaurant,
+        arguments: slug,
       );
-      }
+      // Send GET request to backend
+      // final result = await getMenuBySlug(slug);
+      // if (result is Failure) {
+      //   _showFailure(result);
+      // } else {
+      //   // Navigate to scanned menu page with the slug
+      // if (!mounted) return;
+      // Navigator.push(
+      //   context,
+      //   MaterialPageRoute(
+      //     builder: (context) => ScannedMenuPage(slug: slug),
+      //   ),
+      // );
+      // }
     } catch (e) {
       print('Error processing image: $e');
       _showFailure(ServerFailure('Error processing image: $e'));
     }
   }
 
+  /// Extract restaurant slug from QR code URL
+  /// Returns the last segment of the URL path as the restaurant identifier
   String? extractRestaurantSlug(String url) {
     final uri = Uri.tryParse(url);
     if (uri == null || uri.pathSegments.isEmpty) return null;
@@ -120,30 +135,31 @@ class _QrScannerPageState extends State<QrScannerPage> {
   }
 
   // Handle barcode detection from live camera
+  // Extracts QR code content, parses restaurant slug from URL, and navigates to restaurant page
   void _onBarcodeDetected(BarcodeCapture capture) async {
     if (!_isScanning) return; // Skip if not in scanning mode
-    
+
     final List<Barcode> barcodes = capture.barcodes;
     if (barcodes.isEmpty) return;
-    
+
     // Get first QR code value
     final qrContent = barcodes.first.rawValue;
     print('QrScannerPage: Barcode detected: $qrContent');
-    
+
     if (qrContent == null) {
       print('QrScannerPage: Barcode value is null');
       _showFailure(const NotFoundFailure('QR code has no content.'));
       return;
     }
-    
+
     // Pause scanning to prevent multiple detections
     _scannerController.stop();
     setState(() => _isScanning = false);
-    
-    // Extract restaurant slug (last part of URL)
+
+    // Extract restaurant slug from URL
     final slug = extractRestaurantSlug(qrContent);
     print('QrScannerPage: Extracted slug: $slug');
-    
+
     if (slug == null) {
       _showFailure(const NotFoundFailure('Restaurant slug not found in QR code.'));
       // Resume scanning
@@ -151,42 +167,20 @@ class _QrScannerPageState extends State<QrScannerPage> {
       setState(() => _isScanning = true);
       return;
     }
-    
-    try {
-      // Send GET request to backend to verify the menu exists
-      final result = await getMenuBySlug(slug);
-      if (result is Failure) {
-        _showFailure(result);
-        // Resume scanning
-        _scannerController.start();
-        setState(() => _isScanning = true);
-        return;
-      }
-      
-      // Navigate to scanned menu page with the slug
-      if (!mounted) return;
-      Navigator.pushNamed(
-        context,
-        AppRoute.restaurant
-        ,
-        arguments: slug,
-      
-      ).then((_) {
-        // Resume scanning when returning from menu page
-        if (mounted) {
-          _scannerController.start();
-          setState(() => _isScanning = true);
-        }
-      });
-    } catch (e) {
-      print('QrScannerPage: Error processing QR code: $e');
-      _showFailure(ServerFailure('Error processing QR code: $e'));
-      // Resume scanning
+
+    // Navigate to restaurant page with the extracted slug
+    if (!mounted) return;
+    Navigator.pushNamed(
+      context,
+      AppRoute.restaurant,
+      arguments: slug,
+    ).then((_) {
+      // Resume scanning when returning from restaurant page
       if (mounted) {
         _scannerController.start();
         setState(() => _isScanning = true);
       }
-    }
+    });
   }
 
   // Toggle between scanning and upload modes
@@ -219,6 +213,8 @@ class _QrScannerPageState extends State<QrScannerPage> {
           IconButton(
             icon: Icon(_isScanning ? Icons.image : Icons.qr_code_scanner),
             onPressed: _toggleMode,
+            tooltip:
+                _isScanning ? 'Switch to upload mode' : 'Switch to scan mode',
           ),
         ],
       ),

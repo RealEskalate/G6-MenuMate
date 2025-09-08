@@ -42,6 +42,8 @@ class LoginUserEvent extends UserEvent {
 
 class LogoutUserEvent extends UserEvent {}
 
+class CheckAuthEvent extends UserEvent {}
+
 class VerifyOtpEvent extends UserEvent {
   final String otp;
   final String identifier;

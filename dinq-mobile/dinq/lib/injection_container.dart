@@ -20,8 +20,8 @@ import 'features/dinq/auth/domain/usecases/user/forgot_password_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/get_google_redirect_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/handle_google_callback_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/login_user_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/register_user_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/logout_usecase.dart';
+import 'features/dinq/auth/domain/usecases/user/register_user_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/resend_otp_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/reset_password_usecase.dart';
 import 'features/dinq/auth/domain/usecases/user/update_profile_usecase.dart';
@@ -103,17 +103,6 @@ Future<void> init() async {
       deleteRestaurant: sl(),
     ),
   );
-
-  // Use cases
-  sl.registerLazySingleton(() => GetRestaurants(sl()));
-  sl.registerLazySingleton(() => GetMenu(sl()));
-  sl.registerLazySingleton(() => DeleteReview(sl()));
-  sl.registerLazySingleton(() => GetReviews(sl()));
-  sl.registerLazySingleton(() => GetUserImages(sl()));
-  sl.registerLazySingleton(() => GetRestaurantBySlug(sl()));
-  sl.registerLazySingleton(() => CreateRestaurant(sl()));
-  sl.registerLazySingleton(() => UpdateRestaurant(sl()));
-  sl.registerLazySingleton(() => DeleteRestaurant(sl()));
 
   // BLoC for user flows (register/login/profile/google auth/etc)
   sl.registerFactory(

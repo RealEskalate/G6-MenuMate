@@ -86,4 +86,18 @@ class TokenManager {
       await _staticStorage.delete(key: _refreshKey);
     } catch (_) {}
   }
+
+  /// Get cached tokens via static storage.
+  static Future<Map<String, String>?> getCachedTokensStatic() async {
+    try {
+      final access = await _staticStorage.read(key: _accessKey);
+      final refresh = await _staticStorage.read(key: _refreshKey);
+      if (access != null && refresh != null) {
+        return {'access_token': access, 'refresh_token': refresh};
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
 }

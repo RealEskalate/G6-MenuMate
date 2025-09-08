@@ -18,15 +18,27 @@ class RestaurantPage extends StatefulWidget {
 }
 
 class _RestaurantPageState extends State<RestaurantPage> {
+  bool _menuLoaded = false;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final slug = widget.restaurantSlug;
-      // Load restaurant details and menu by slug
-      context.read<RestaurantBloc>().add(LoadRestaurantBySlug(slug));
-      context.read<RestaurantBloc>().add(LoadMenu(restaurantSlug: slug));
-    });
+    // Load restaurant details first
+    _loadRestaurant();
+  }
+
+  void _loadRestaurant() {
+    final slug = widget.restaurantSlug;
+    context.read<RestaurantBloc>().add(LoadRestaurantBySlug(slug));
+  }
+
+  void _loadMenu(String restaurantSlug) {
+    if (!_menuLoaded) {
+      _menuLoaded = true;
+      context
+          .read<RestaurantBloc>()
+          .add(LoadMenu(restaurantSlug: restaurantSlug));
+    }
   }
 
   @override
@@ -39,6 +51,11 @@ class _RestaurantPageState extends State<RestaurantPage> {
             Widget header;
             if (state is RestaurantLoaded) {
               header = _buildRestaurantHeader(state.restaurant);
+              // Load menu after restaurant is successfully loaded
+              _loadMenu(widget.restaurantSlug);
+            } else if (state is RestaurantWithMenuLoaded) {
+              header = _buildRestaurantHeader(state.restaurant);
+              // Menu is already loaded, no need to load again
             } else {
               // while loading or absent, show a placeholder header built from minimal data
               header = Container();
@@ -50,6 +67,22 @@ class _RestaurantPageState extends State<RestaurantPage> {
             } else if (state is RestaurantError) {
               menuChild = Center(child: Text(state.message));
             } else if (state is MenuLoaded) {
+              final menu = state.menu;
+              final items = menu.items;
+              if (items.isEmpty) {
+                menuChild = const Center(child: Text('No menu items'));
+              } else {
+                menuChild = ListView.separated(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: items.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, idx) {
+                    final item = items[idx];
+                    return _buildMenuItem(item);
+                  },
+                );
+              }
+            } else if (state is RestaurantWithMenuLoaded) {
               final menu = state.menu;
               final items = menu.items;
               if (items.isEmpty) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../../core/util/theme.dart';
 import 'onboarding2_page.dart';
 import 'onboarding3.dart';
@@ -8,128 +9,142 @@ class OnboardingFirst extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
+    final isSmallScreen = screenWidth < 360;
+
     return Scaffold(
       backgroundColor: AppColors.whiteColor,
       body: SingleChildScrollView(
         child: Center(
-          child: Column(
-            children: [
-              const SizedBox(height: 70),
-              // First logo with safe animation
-              _buildSafeAnimatedLogo(
-                'assets/images/logo.png',
-                174,
-                174,
-                0, // delay
-              ),
-              // Second logo with safe animation
-              _buildSafeSlideUpLogo(
-                'assets/images/logo2.png',
-                200,
-                98,
-                400, // delay
-              ),
-              const SizedBox(height: 90),
-              // Custom Get Started button
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const OnboardingSecondPage()),
-                  );
-                },
-                child: Container(
-                  width: 300,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Get Started',
-                      style: TextStyle(
-                        color: AppColors.whiteColor,
-                        fontWeight: FontWeight.normal,
-                        fontFamily: 'Inter',
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.08),
+            child: Column(
+              children: [
+                SizedBox(height: screenHeight * 0.08),
+                // First logo with safe animation - responsive sizing
+                _buildSafeAnimatedLogo(
+                  'assets/images/logo.png',
+                  screenWidth * 0.45, // 45% of screen width
+                  screenWidth * 0.45, // 45% of screen width
+                  0, // delay
+                ),
+                // Second logo with safe animation - responsive sizing
+                _buildSafeSlideUpLogo(
+                  'assets/images/logo2.png',
+                  screenWidth * 0.5, // 50% of screen width
+                  screenWidth * 0.25, // 25% of screen width
+                  400, // delay
+                ),
+                SizedBox(height: screenHeight * 0.1),
+                // Custom Get Started button - responsive sizing
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const OnboardingSecondPage()),
+                    );
+                  },
+                  child: Container(
+                    width: screenWidth * 0.8, // 80% of screen width
+                    height: isSmallScreen ? 45 : 50,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Get Started',
+                        style: TextStyle(
+                          color: AppColors.whiteColor,
+                          fontWeight: FontWeight.normal,
+                          fontFamily: 'Inter',
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              const  SizedBox(height: 50,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const OnboardingFirst()),
-                      );
-                    },
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withOpacity(0.3),
-                        shape: BoxShape.circle,
-                         boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryColor.withOpacity(0.4),
-                            blurRadius: 6,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
+                SizedBox(height: screenHeight * 0.06),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const OnboardingFirst()),
+                        );
+                      },
+                      child: Container(
+                        width: isSmallScreen ? 10 : 12,
+                        height: isSmallScreen ? 10 : 12,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryColor.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryColor.withOpacity(0.4),
+                              blurRadius: 6,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
 
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const OnboardingSecondPage()),
-                      );
-                    },
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondaryColor,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.secondaryColor.withOpacity(0.4),
-                            blurRadius: 6,
-                            spreadRadius: 1,
-                          ),
-                        ],
                       ),
                     ),
-                  ),
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const OnboardingThirdPage()),
-                      );
-                    },
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.secondaryColor.withOpacity(0.3),
-                        shape: BoxShape.circle,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const OnboardingSecondPage()),
+                        );
+                      },
+                      child: Container(
+                        width: isSmallScreen ? 14 : 16,
+                        height: isSmallScreen ? 14 : 16,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryColor,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.secondaryColor.withOpacity(0.4),
+                              blurRadius: 6,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const OnboardingThirdPage()),
+                        );
+                      },
+                      child: Container(
+                        width: isSmallScreen ? 10 : 12,
+                        height: isSmallScreen ? 10 : 12,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondaryColor.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -7,10 +5,17 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../../core/util/theme.dart';
+import '../../data/model/menu_create_model.dart';
 
 class CreateMenuManuallyPage extends StatefulWidget {
   final String restaurantId;
-  const CreateMenuManuallyPage({super.key, required this.restaurantId});
+  final MenuCreateModel? parsedMenuData;
+
+  const CreateMenuManuallyPage({
+    super.key,
+    required this.restaurantId,
+    this.parsedMenuData,
+  });
 
   @override
   State<CreateMenuManuallyPage> createState() => _CreateMenuManuallyPageState();
@@ -27,6 +32,32 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
   void initState() {
     super.initState();
     _sectionExpanded.addAll(List<bool>.filled(_sections.length, false));
+
+    // Initialize with parsed menu data if available
+    if (widget.parsedMenuData != null) {
+      _menuNameController.text = widget.parsedMenuData!.name ?? '';
+      // Initialize sections and items from parsed data
+      if (widget.parsedMenuData!.menuItems != null &&
+          widget.parsedMenuData!.menuItems!.isNotEmpty) {
+        _sections.clear();
+        _sectionExpanded.clear();
+
+        // Group items by category or create a single section
+        final section = _SectionData();
+        section.selectedSectionTag = 'Main Menu';
+
+        for (final item in widget.parsedMenuData!.menuItems!) {
+          final itemData = _ItemData();
+          itemData.nameController.text = item.name ?? '';
+          itemData.descController.text = item.description ?? '';
+          itemData.priceController.text = item.price?.toString() ?? '';
+          section.items.add(itemData);
+        }
+
+        _sections.add(section);
+        _sectionExpanded.add(false);
+      }
+    }
   }
 
   @override
@@ -198,7 +229,7 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                     ),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
-                      value: _selectedLanguage,
+                      initialValue: _selectedLanguage,
                       decoration: InputDecoration(
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8))),
@@ -259,7 +290,7 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: section.selectedSectionTag,
+                            initialValue: section.selectedSectionTag,
                             decoration:
                                 const InputDecoration(labelText: 'Section'),
                             items: const [
@@ -401,7 +432,8 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 foregroundColor: AppColors.primaryColor,
-                                side: BorderSide(color: AppColors.primaryColor),
+                                side: const BorderSide(
+                                    color: AppColors.primaryColor),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8)),
                                 elevation: 0),
@@ -414,7 +446,8 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 foregroundColor: AppColors.primaryColor,
-                                side: BorderSide(color: AppColors.primaryColor),
+                                side: const BorderSide(
+                                    color: AppColors.primaryColor),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8)),
                                 elevation: 0),

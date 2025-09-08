@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../features/dinq/auth/presentation/Pages/login_page.dart';
 import '../../features/dinq/auth/presentation/Pages/onboarding_first.dart';
 import '../../features/dinq/qr_scanner/pages/qr_scanner_page.dart';
 import '../../features/dinq/restaurant_management/domain/entities/restaurant.dart';
+import '../../features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/analytics_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/billing_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/branding_preferences_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/create_menu_manually_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/digitize_menu_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_item_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/edit_single_menu_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/edit_uploaded_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/generated_qr_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/legal_info_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/menus_page.dart';
@@ -26,7 +26,6 @@ import '../../features/dinq/search/presentation/pages/item_details_page.dart';
 import '../../features/dinq/search/presentation/pages/main_shell.dart';
 import '../../features/dinq/search/presentation/pages/profile_page.dart';
 import '../../features/dinq/search/presentation/pages/restaurant_page.dart';
-import '../../features/dinq/search/presentation/pages/scanned_menu_page.dart';
 
 class AppRoute {
   // Search routes
@@ -88,13 +87,15 @@ class AppRoute {
         return MaterialPageRoute(builder: (_) => ItemDetailsPage(item: item));
       case restaurant:
         return MaterialPageRoute(
-          builder: (_) =>
-              RestaurantPage(restaurant: settings.arguments as Restaurant),
+          builder: (context) => BlocProvider.value(
+            value: BlocProvider.of<RestaurantBloc>(context),
+            child: RestaurantPage(restaurantSlug: settings.arguments as String),
+          ),
         );
-      case scannedMenu:
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
-        final slug = args['slug'] as String? ?? 'default-menu';
-        return MaterialPageRoute(builder: (_) => ScannedMenuPage(slug: slug));
+      // case scannedMenu:
+      //   final args = settings.arguments as Map<String, dynamic>? ?? {};
+      //   final slug = args['slug'] as String? ?? 'default-menu';
+      //   return MaterialPageRoute(builder: (_) => ScannedMenuPage(slug: slug));
       case profile:
         return MaterialPageRoute(builder: (_) => const ProfilePage());
 
@@ -143,25 +144,29 @@ class AppRoute {
           builder: (_) => EditSingleMenuPage(menuData: args ?? {}),
         );
       case createMenuManually:
-        return MaterialPageRoute(
-          builder: (_) => const CreateMenuManuallyPage(restaurantId: 'dummy'),
-        );
-      case editMenuItem:
-        // Pass itemData as arguments if needed
-        final args = settings.arguments as Map<String, dynamic>?;
-        // If you want to pass data, update EditMenuItemPage constructor accordingly
-        return MaterialPageRoute(
-          builder: (_) => EditMenuItemPage(item: args?['item']),
-        );
-      case editUploadedMenu:
-        // Pass uploadedImage and menuSections as arguments if needed
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (_) => EditUploadedMenuPage(
-            uploadedImage: args?['uploadedImage'],
-            // Pass other args as needed
+          builder: (_) => CreateMenuManuallyPage(
+            restaurantId: args?['restaurantId'] ?? 'dummy',
+            parsedMenuData: args?['parsedMenuData'],
           ),
         );
+      // case editMenuItem:
+      //   // Pass itemData as arguments if needed
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   // If you want to pass data, update EditMenuItemPage constructor accordingly
+      //   return MaterialPageRoute(
+      //     builder: (_) => EditMenuItemPage(item: args?['item']),
+      //   );
+      // case editUploadedMenu:
+      //   // Pass uploadedImage and menuSections as arguments if needed
+      //   final args = settings.arguments as Map<String, dynamic>?;
+      //   return MaterialPageRoute(
+      //     builder: (_) => EditUploadedMenuPage(
+      //       uploadedImage: args?['uploadedImage'],
+      //       // Pass other args as needed
+      //     ),
+      //   );
       case generatedQr:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
@@ -171,7 +176,12 @@ class AppRoute {
       case analytics:
         return MaterialPageRoute(builder: (_) => const AnalyticsPage());
       case digitizeMenu:
-        return MaterialPageRoute(builder: (_) => const DigitizeMenuPage());
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => DigitizeMenuPage(
+            restaurantId: args?['restaurantId'] ?? 'dummy',
+          ),
+        );
       default:
         return MaterialPageRoute(
           builder: (_) =>

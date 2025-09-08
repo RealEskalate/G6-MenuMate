@@ -116,6 +116,16 @@ class RestaurantLoaded extends RestaurantState {
   List<Object?> get props => [restaurant];
 }
 
+class RestaurantWithMenuLoaded extends RestaurantState {
+  final Restaurant restaurant;
+  final Menu menu;
+
+  const RestaurantWithMenuLoaded(this.restaurant, this.menu);
+
+  @override
+  List<Object?> get props => [restaurant, menu];
+}
+
 class RestaurantActionSuccess extends RestaurantState {
   final String message;
 

@@ -47,6 +47,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
     on<RegisterUserEvent>(_onRegisterUser);
     on<LoginUserEvent>(_onLoginUser);
     on<LogoutUserEvent>(_onLogoutUser);
+    on<CheckAuthEvent>(_onCheckAuth);
     on<VerifyOtpEvent>(_onVerifyOtp);
     on<ResendOtpEvent>(_onResendOtp);
     on<VerifyEmailEvent>(_onVerifyEmail);
@@ -108,6 +109,26 @@ class UserBloc extends Bloc<UserEvent, UserState> {
         emit(const UserLoggedOut());
       },
     );
+  }
+
+  Future<void> _onCheckAuth(
+    CheckAuthEvent event,
+    Emitter<UserState> emit,
+  ) async {
+    emit(const UserLoading());
+    try {
+      final tokens = await TokenManager.getCachedTokensStatic();
+      if (tokens != null && tokens.isNotEmpty) {
+        // TODO: Validate token with backend or get user profile
+        // For now, just emit AuthChecked with null user
+        // In a real app, you'd call a getProfile use case
+        emit(const AuthChecked(null));
+      } else {
+        emit(const AuthChecked(null));
+      }
+    } catch (e) {
+      emit(const AuthChecked(null));
+    }
   }
 
   Future<void> _onVerifyOtp(

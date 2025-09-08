@@ -7,8 +7,9 @@ import 'core/routing/app_route.dart';
 // import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import 'core/util/theme.dart';
 // ...existing code...
-import 'features/dinq/auth/presentation/Pages/onboarding_first.dart';
+import 'features/dinq/auth/presentation/Pages/auth_gate.dart';
 import 'features/dinq/auth/presentation/bloc/user_bloc.dart';
+import 'features/dinq/auth/presentation/bloc/user_event.dart';
 import 'features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import 'injection_container.dart' as di;
 
@@ -31,6 +32,10 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    // Check for existing authentication on app start
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      di.sl<UserBloc>().add(CheckAuthEvent());
+    });
   }
 
   @override
@@ -47,9 +52,9 @@ class _MyAppState extends State<MyApp> {
         ),
       ],
       child: MaterialApp(
-        
+
         // start at an auth gate that decides whether to show login or main shell
-        home: const OnboardingFirst(),
+        home: const AuthGate(),
         onGenerateRoute: AppRoute.onGenerateRoute,
         debugShowCheckedModeBanner: false,
         theme: appTheme,
