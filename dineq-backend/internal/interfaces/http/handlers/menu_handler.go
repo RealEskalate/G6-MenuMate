@@ -109,16 +109,19 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 
 // GetMenuByID retrieves a menu by ID
 func (h *MenuHandler) GetMenus(c *gin.Context) {
-	id := c.Param("restaurant_slug")
-	// Try to load restaurant by slug to safely increment its view count
-	rest, _ := h.RestaurantUseCase.GetRestaurantBySlug(c.Request.Context(), id)
-	menus, err := h.UseCase.GetByRestaurantID(id)
+	slug := c.Param("restaurant_slug")
+	rest, err := h.RestaurantUseCase.GetRestaurantBySlug(c.Request.Context(), slug)
+	if err != nil || rest == nil {
+		dto.WriteError(c, domain.ErrRestaurantNotFound)
+		return
+	}
+	menus, err := h.UseCase.GetByRestaurantID(rest.ID)
 	if err != nil {
 		dto.WriteError(c, domain.ErrNotFound)
 		return
 	}
 	// Increment view count for restaurant and all menus, log view events
-	if rest != nil && rest.ID != "" {
+	if rest.ID != "" {
 		_ = h.RestaurantUseCase.IncrementRestaurantViewCount(rest.ID)
 		h.ViewEventRepo.LogView(&domain.ViewEvent{
 			EntityType: "restaurant",
