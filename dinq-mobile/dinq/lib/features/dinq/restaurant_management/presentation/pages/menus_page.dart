@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+<<<<<<< HEAD
 // import '../../../../../core/injection.dart';
+=======
+>>>>>>> origin/mite-test
 import '../../../../../core/util/theme.dart';
 // import '../../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
 // import '../../../../restaurant_management/presentation/bloc/restaurant_event.dart';
@@ -16,8 +19,8 @@ import '../widgets/rest_menu_card.dart';
 // For navigation, if needed
 
 class MenusPage extends StatelessWidget {
-  final String restaurantId;
-  const MenusPage({super.key, required this.restaurantId});
+  final String restaurantSlug;
+  const MenusPage({super.key, required this.restaurantSlug});
 
   void _showDigitizeMenuDialog(BuildContext context) {
     showDialog(
@@ -35,9 +38,9 @@ class MenusPage extends StatelessWidget {
               'How do you want to create\nyour menu?',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: AppColors.secondaryColor,
-                fontSize: 18,
-              ),
+                    color: AppColors.secondaryColor,
+                    fontSize: 18,
+                  ),
             ),
             const SizedBox(height: 24),
             Row(
@@ -57,11 +60,11 @@ class MenusPage extends StatelessWidget {
                   label: 'Create\nmanually',
                   onTap: () async {
                     Navigator.pop(context); // close dialog
-                    await Future.delayed(Duration(milliseconds: 100));
+                    await Future.delayed(const Duration(milliseconds: 100));
                     Navigator.pushNamed(
                       context,
                       '/create-menu-manually',
-                      arguments: {'restaurantId': restaurantId},
+                      arguments: {'restaurantId': restaurantSlug},
                     );
                   },
                 ),
@@ -76,7 +79,7 @@ class MenusPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<RestaurantBloc>(
-      create: (_) => sl<RestaurantBloc>()..add(LoadMenu(restaurantId)),
+      create: (_) => sl<RestaurantBloc>()..add(LoadMenu(restaurantSlug: restaurantSlug)),
       child: Scaffold(
         backgroundColor: AppColors.whiteColor,
         appBar: AppBar(
@@ -88,8 +91,8 @@ class MenusPage extends StatelessWidget {
           title: Text(
             'Menus',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppColors.secondaryColor,
-            ),
+                  color: AppColors.secondaryColor,
+                ),
           ),
         ),
         body: Padding(
@@ -120,15 +123,14 @@ class MenusPage extends StatelessWidget {
                     if (state is RestaurantLoading) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is MenuLoaded) {
-                      final menu = state.menu;
-                      final menus = menu.tabs;
+                      final menus = state.menu.items;
                       return ListView.builder(
                         itemCount: menus.length,
                         itemBuilder: (context, idx) {
                           final tab = menus[idx];
                           return RestMenuCard(
                             tab: tab,
-                            isPublished: menu.isPublished,
+                            isPublished: state.menu.isPublished,
                           );
                         },
                       );
@@ -152,7 +154,7 @@ class MenusPage extends StatelessWidget {
         bottomNavigationBar: OwnerNavBar(
           isRestaurantOwner: true,
           currentIndex: 3,
-          restaurantId: restaurantId,
+          restaurantId: restaurantSlug,
         ),
       ),
     );

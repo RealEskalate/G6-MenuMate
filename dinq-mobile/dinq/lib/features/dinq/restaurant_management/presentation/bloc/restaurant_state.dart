@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 
-import '../../domain/entities/category.dart';
 import '../../domain/entities/item.dart';
 import '../../domain/entities/menu.dart';
 import '../../domain/entities/restaurant.dart';
 import '../../domain/entities/review.dart';
+import '../../domain/entities/qr.dart';
 
 abstract class RestaurantState extends Equatable {
   const RestaurantState();
@@ -32,28 +32,43 @@ class RestaurantsLoaded extends RestaurantState {
 
 class MenuLoaded extends RestaurantState {
   final Menu menu;
-  final Map<String, List<dynamic>> categories;
 
-  const MenuLoaded(this.menu, {this.categories = const {}});
-
-  MenuLoaded copyWith({Menu? menu, Map<String, List<dynamic>>? categories}) {
-    return MenuLoaded(
-      menu ?? this.menu,
-      categories: categories ?? this.categories,
-    );
-  }
+  const MenuLoaded(this.menu);
 
   @override
-  List<Object?> get props => [menu, categories];
+  List<Object?> get props => [menu];
 }
 
-class CategoriesLoaded extends RestaurantState {
-  final List<Category> categories;
+// class CategoriesLoaded extends RestaurantState {
+// class CategoriesLoaded extends RestaurantState {
+//   final List<Category> categories;
+//
+//   const CategoriesLoaded(this.categories);
+//
+//   @override
+//   List<Object?> get props => [categories];
+// }
 
-  const CategoriesLoaded(this.categories);
+class QrLoaded extends RestaurantState {
+  final Qr qr;
+
+  const QrLoaded(this.qr);
 
   @override
-  List<Object?> get props => [categories];
+  List<Object?> get props => [qr];
+}
+
+class MenuCreateLoaded extends RestaurantState {
+  final dynamic menuCreateModel;
+
+  const MenuCreateLoaded(this.menuCreateModel);
+
+  @override
+  List<Object?> get props => [menuCreateModel];
+}
+
+class MenuActionSuccess extends RestaurantActionSuccess {
+  const MenuActionSuccess(super.message);
 }
 
 class ItemDetailsLoaded extends RestaurantState {

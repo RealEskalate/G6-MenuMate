@@ -1,10 +1,14 @@
-import '../widgets/scanned_menu.dart';
 import 'package:flutter/material.dart';
+
 import '../../../../../core/util/theme.dart';
 import '../widgets/bottom_navbar.dart';
+<<<<<<< HEAD
 import '../../../search/domain/usecases/get_menu.dart';
 import '../../../search/domain/entities/menu.dart' as models;
 import 'item_details_page.dart';
+=======
+import '../widgets/scanned_menu.dart';
+>>>>>>> origin/mite-test
 
 class ScannedMenuPage extends StatefulWidget {
   final String slug;

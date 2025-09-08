@@ -1,14 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+<<<<<<< HEAD
 import '../../../../../core/network/token_manager.dart';
 import '../../../../../core/routing/app_route.dart';
+=======
+>>>>>>> origin/mite-test
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
-import '../widgets/bottom_navbar.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  /// When embedded inside a shell that provides its own navigation bar,
+  /// set this to false to avoid rendering the owner nav bar duplicate.
+  final bool showOwnerNavBar;
+
+  const ProfilePage({super.key, this.showOwnerNavBar = true});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -64,6 +70,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+<<<<<<< HEAD
   void _onTabSelected(BuildContext context, BottomNavTab tab) {
     if (tab == BottomNavTab.explore) {
       Navigator.pushReplacementNamed(context, AppRoute.explore);
@@ -82,6 +89,8 @@ class _ProfilePageState extends State<ProfilePage> {
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
+=======
+>>>>>>> origin/mite-test
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -237,10 +246,19 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
+<<<<<<< HEAD
       bottomNavigationBar: const OwnerNavBar(
         currentIndex: 2,
         isRestaurantOwner: true,
       ),
+=======
+      bottomNavigationBar: widget.showOwnerNavBar
+          ? const OwnerNavBar(
+              currentIndex: 2,
+              isRestaurantOwner: true,
+            )
+          : null,
+>>>>>>> origin/mite-test
     );
   }
 }

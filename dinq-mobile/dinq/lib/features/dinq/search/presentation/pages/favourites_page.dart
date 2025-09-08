@@ -1,12 +1,14 @@
-import '../../domain/entities/Restaurant.dart' as models;
+// ignore_for_file: unnecessary_null_comparison
+
 import 'package:flutter/material.dart';
+
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
+import '../../../restaurant_management/domain/entities/item.dart';
+import '../../../restaurant_management/domain/entities/restaurant.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
-import '../../domain/entities/menu.dart' as models;
-import 'restaurant_page.dart';
 import 'item_details_page.dart';
-import '../widgets/bottom_navbar.dart';
+import 'restaurant_page.dart';
 
 class _FavoritesStore {
   static final Set<String> restaurantIds = <String>{};
@@ -14,13 +16,18 @@ class _FavoritesStore {
 }
 
 class FavouritesPage extends StatefulWidget {
-  final List<models.Restaurant> allRestaurants;
-  final List<models.Item> allDishes;
+  final List<Restaurant> allRestaurants;
+  final List<Item> allDishes;
+
+  /// When embedded inside a shell that provides its own navigation bar,
+  /// set this to false to avoid rendering the owner nav bar duplicate.
+  final bool showOwnerNavBar;
 
   const FavouritesPage({
     super.key,
     required this.allRestaurants,
     required this.allDishes,
+    this.showOwnerNavBar = true,
   });
 
   @override
@@ -41,16 +48,6 @@ class _FavouritesPageState extends State<FavouritesPage>
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  void _onTabSelected(BottomNavTab tab) {
-    if (tab == BottomNavTab.explore) {
-      Navigator.pushReplacementNamed(context, AppRoute.explore);
-    } else if (tab == BottomNavTab.favorites) {
-      // Already on favorites, do nothing
-    } else if (tab == BottomNavTab.profile) {
-      Navigator.pushReplacementNamed(context, AppRoute.profile);
-    }
   }
 
   @override
@@ -153,7 +150,7 @@ class _FavouritesPageState extends State<FavouritesPage>
                         itemCount: favoriteRestaurants.length,
                         itemBuilder: (context, idx) {
                           final restaurant = favoriteRestaurants[idx];
-                          models.Item? dish;
+                          Item? dish;
                           try {
                             dish = widget.allDishes.firstWhere(
                               (d) => d.id == restaurant.id,
@@ -188,10 +185,12 @@ class _FavouritesPageState extends State<FavouritesPage>
           ),
         ],
       ),
-      bottomNavigationBar: const OwnerNavBar(
-        currentIndex: 1,
-        isRestaurantOwner: true,
-      ),
+      bottomNavigationBar: widget.showOwnerNavBar
+          ? const OwnerNavBar(
+              currentIndex: 1,
+              isRestaurantOwner: true,
+            )
+          : null,
       // bottomNavigationBar: BottomNavBar(
       //   selectedTab: BottomNavTab.favorites,
       //   onTabSelected: _onTabSelected,
@@ -200,7 +199,7 @@ class _FavouritesPageState extends State<FavouritesPage>
   }
 
   Widget _buildRestaurantCard(
-    models.Restaurant restaurant, {
+    Restaurant restaurant, {
     String? bannerUrl,
     double? rating,
   }) {
@@ -231,7 +230,7 @@ class _FavouritesPageState extends State<FavouritesPage>
                 ),
         ),
         title: Text(
-          restaurant.name,
+          restaurant.restaurantName,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: rating != null
@@ -257,12 +256,10 @@ class _FavouritesPageState extends State<FavouritesPage>
             elevation: 0,
           ),
           onPressed: () {
-            Navigator.push(
+            Navigator.pushNamed(
               context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    RestaurantPage(restaurantId: restaurant.id),
-              ),
+              AppRoute.restaurant,
+              arguments: restaurant,
             );
           },
           child: const Text('View Menu'),
@@ -271,7 +268,7 @@ class _FavouritesPageState extends State<FavouritesPage>
     );
   }
 
-  Widget _buildDishCard(models.Item dish) {
+  Widget _buildDishCard(Item dish) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../../../../../core/util/theme.dart';
 import '../widgets/owner_navbar.dart';
 import '../widgets/settings_item.dart';
-import '../../../../../core/util/theme.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});

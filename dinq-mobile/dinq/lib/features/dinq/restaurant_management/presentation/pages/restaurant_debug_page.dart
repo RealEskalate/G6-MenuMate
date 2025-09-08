@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/restaurant_bloc.dart';
 import '../bloc/restaurant_event.dart';
 import '../bloc/restaurant_state.dart';
-import '../../data/model/restaurant_model.dart';
 
 class RestaurantDebugPage extends StatelessWidget {
   const RestaurantDebugPage({super.key});
@@ -32,6 +31,7 @@ class RestaurantDebugPage extends StatelessWidget {
                   bloc.add(const LoadRestaurantBySlug('pizza-hut')),
               child: const Text('Load Restaurant by Slug (pizza-hut)'),
             ),
+<<<<<<< HEAD
             // ElevatedButton(
             //   onPressed: () {
             //     final restaurant = const RestaurantModel(
@@ -64,6 +64,26 @@ class RestaurantDebugPage extends StatelessWidget {
             //   },
             //   child: const Text('Update Restaurant (debug)'),
             // ),
+=======
+            // Create / Update actions are not available in this debug page because
+            // the event expects FormData; keep placeholders to avoid compile errors.
+            ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content:
+                        Text('Use the management UI to create restaurants')));
+              },
+              child: const Text('Create Restaurant (placeholder)'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content:
+                        Text('Use the management UI to update restaurants')));
+              },
+              child: const Text('Update Restaurant (placeholder)'),
+            ),
+>>>>>>> origin/mite-test
             ElevatedButton(
               onPressed: () =>
                   bloc.add(const DeleteRestaurantEvent('debug-id')),

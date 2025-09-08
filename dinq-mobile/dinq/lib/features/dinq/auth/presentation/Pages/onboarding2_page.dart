@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding3.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding_first.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
+import '../../../../../core/util/theme.dart';
+import 'onboarding3.dart';
+import 'onboarding_first.dart';
 
 class OnboardingSecondPage extends StatelessWidget {
   const OnboardingSecondPage({super.key});
@@ -26,7 +25,7 @@ class OnboardingSecondPage extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.asset(
-                    "assets/images/image.png",
+                    'assets/images/image.png',
                     width: 300,
                     height: 280,
                     fit: BoxFit.cover,
@@ -37,8 +36,8 @@ class OnboardingSecondPage extends StatelessWidget {
               const SizedBox(height: 40),
 
               // Title with cute styling
-              Text(
-                "Your next meal is just a scan away! 🍕",
+              const Text(
+                'Your next meal is just a scan away! 🍕',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontFamily: 'Inter',
@@ -51,8 +50,8 @@ class OnboardingSecondPage extends StatelessWidget {
               const SizedBox(height: 20),
 
               // Description with cute styling
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
                   "Scan a QR code to see menus in seconds, or discover new restaurants you'll love. 🍔✨",
                   style: TextStyle(
@@ -84,9 +83,9 @@ class OnboardingSecondPage extends StatelessWidget {
                     color: AppColors.primaryColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Text(
-                      "Continue ->",
+                      'Continue ->',
                       style: TextStyle(
                         color: AppColors.whiteColor,
                         fontWeight: FontWeight.normal,

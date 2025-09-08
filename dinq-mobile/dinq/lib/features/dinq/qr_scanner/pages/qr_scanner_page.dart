@@ -246,6 +246,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
           ),
         ],
       ),
+<<<<<<< HEAD
       body: _isScanning
           ? _buildScannerView()
           : _buildUploadView(),
@@ -270,6 +271,112 @@ class _QrScannerPageState extends State<QrScannerPage> {
               onDetect: _onBarcodeDetected,
             ),
           ),
+=======
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFE0E0E0), width: 2),
+                borderRadius: BorderRadius.circular(16),
+                color: const Color(0xFFF9F9F9),
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  _selectedImage == null
+                      ? const Icon(
+                          Icons.image_outlined,
+                          size: 48,
+                          color: Color(0xFFBDBDBD),
+                        )
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            _selectedImage!,
+                            height: 120,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _selectedImage == null
+                        ? 'No image selected'
+                        : 'Image selected',
+                    style: const TextStyle(color: Color(0xFFBDBDBD)),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(
+                        Icons.camera_alt_outlined,
+                        color: Colors.white,
+                      ),
+                      label: const Text('Take Photo'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: AppColors.whiteColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      onPressed: () => _pickImage(ImageSource.camera),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(
+                        Icons.folder_open,
+                        color: AppColors.secondaryColor,
+                      ),
+                      label: const Text('Choose from Gallery'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.secondaryColor,
+                        side: const BorderSide(color: Color(0xFFE0E0E0)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        textStyle: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      onPressed: () => _pickImage(ImageSource.gallery),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+            const Text(
+              'Tips for better results:',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            const TipRow(
+              icon: Icons.lightbulb_outline,
+              text: 'Ensure good lighting and avoid shadows',
+            ),
+            const SizedBox(height: 12),
+            const TipRow(
+              icon: Icons.crop_free,
+              text: 'Capture the entire QR Code in frame',
+            ),
+            const SizedBox(height: 12),
+          ],
+>>>>>>> origin/mite-test
         ),
         Expanded(
           flex: 2,

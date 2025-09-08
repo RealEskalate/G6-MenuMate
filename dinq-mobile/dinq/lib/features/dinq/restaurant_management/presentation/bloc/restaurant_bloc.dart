@@ -1,22 +1,34 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/usecases/get_user_images.dart';
+import '../../domain/usecases/menu/create_menu.dart';
+import '../../domain/usecases/menu/delete_menu.dart';
+import '../../domain/usecases/menu/generate_menu_qr.dart';
 import '../../domain/usecases/menu/get_menu.dart';
+import '../../domain/usecases/menu/publish_menu.dart';
+import '../../domain/usecases/menu/update_menu.dart';
+import '../../domain/usecases/menu/upload_menu.dart';
 import '../../domain/usecases/restaurant/create_restaurant.dart';
 import '../../domain/usecases/restaurant/delete_restaurant.dart';
 import '../../domain/usecases/restaurant/get_restaurant_by_slug.dart';
 import '../../domain/usecases/restaurant/get_restaurants.dart';
 import '../../domain/usecases/restaurant/update_restaurant.dart';
-import '../../domain/usecases/review/delete_review.dart';
+// import '../../domain/usecases/review/delete_review.dart';
 import '../../domain/usecases/review/get_reviews.dart';
+import '../../domain/usecases/review/get_user_images.dart';
 import 'restaurant_event.dart';
 import 'restaurant_state.dart';
 
 class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
   final GetRestaurants getRestaurants;
   final GetMenu getMenu;
-  final DeleteReview getCategories;
+  final CreateMenu createMenu;
+  final UpdateMenu updateMenu;
+  final DeleteMenu deleteMenu;
+  final UploadMenu uploadMenu;
+  final PublishMenu publishMenu;
+  final GenerateMenuQr generateMenuQr;
+  // categories usecase not implemented; remove incorrect field
   final GetReviews getReviews;
   final GetUserImages getUserImages;
   final GetRestaurantBySlug getRestaurantBySlug;
@@ -27,7 +39,12 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
   RestaurantBloc({
     required this.getRestaurants,
     required this.getMenu,
-    required this.getCategories,
+    required this.createMenu,
+    required this.updateMenu,
+    required this.deleteMenu,
+    required this.uploadMenu,
+    required this.publishMenu,
+    required this.generateMenuQr,
     required this.getReviews,
     required this.getUserImages,
     required this.getRestaurantBySlug,
@@ -37,6 +54,12 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
   }) : super(const RestaurantInitial()) {
     on<LoadRestaurants>(_onLoadRestaurants);
     on<LoadMenu>(_onLoadMenu);
+    on<CreateMenuEvent>(_onCreateMenu);
+    on<UpdateMenuEvent>(_onUpdateMenu);
+    on<DeleteMenuEvent>(_onDeleteMenu);
+    on<UploadMenuEvent>(_onUploadMenu);
+    on<PublishMenuEvent>(_onPublishMenu);
+    on<GenerateMenuQrEvent>(_onGenerateMenuQr);
     // on<LoadCategories>(_onLoadCategories);
     on<LoadUserImages>(_onLoadUserImages);
     on<LoadReviews>(_onLoadReviews);
@@ -72,6 +95,104 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     );
   }
 
+  Future<void> _onCreateMenu(
+    CreateMenuEvent event,
+    Emitter<RestaurantState> emit,
+  ) async {
+    emit(const RestaurantLoading());
+    final result = await createMenu(event.menu);
+    result.fold(
+      (failure) => emit(RestaurantError(failure.message)),
+      (menu) => emit(const MenuActionSuccess('Menu created successfully')),
+    );
+  }
+
+  Future<void> _onUpdateMenu(
+    UpdateMenuEvent event,
+    Emitter<RestaurantState> emit,
+  ) async {
+    emit(const RestaurantLoading());
+    final result = await updateMenu(
+      restaurantSlug: event.restaurantSlug,
+      menuId: event.menuId,
+      title: event.title,
+      description: event.description,
+    );
+    result.fold(
+      (failure) => emit(RestaurantError(failure.message)),
+      (menu) => emit(const MenuActionSuccess('Menu updated successfully')),
+    );
+  }
+
+  Future<void> _onDeleteMenu(
+    DeleteMenuEvent event,
+    Emitter<RestaurantState> emit,
+  ) async {
+    emit(const RestaurantLoading());
+    final result = await deleteMenu(event.menuId);
+    result.fold(
+      (failure) => emit(RestaurantError(failure.message)),
+      (_) => emit(const MenuActionSuccess('Menu deleted successfully')),
+    );
+  }
+
+  Future<void> _onUploadMenu(
+    UploadMenuEvent event,
+    Emitter<RestaurantState> emit,
+  ) async {
+    emit(const RestaurantLoading());
+    final result = await uploadMenu(event.menuFile);
+    result.fold(
+      (failure) => emit(RestaurantError(failure.message)),
+      (menuCreateModel) => emit(MenuCreateLoaded(menuCreateModel)),
+    );
+  }
+
+  Future<void> _onPublishMenu(
+    PublishMenuEvent event,
+    Emitter<RestaurantState> emit,
+  ) async {
+    emit(const RestaurantLoading());
+    final result = await publishMenu(
+      restaurantSlug: event.restaurantSlug,
+      menuId: event.menuId,
+    );
+    result.fold(
+      (failure) => emit(RestaurantError(failure.message)),
+      (menu) => emit(const MenuActionSuccess('Menu published successfully')),
+    );
+  }
+
+  Future<void> _onGenerateMenuQr(
+    GenerateMenuQrEvent event,
+    Emitter<RestaurantState> emit,
+  ) async {
+    emit(const RestaurantLoading());
+    final result = await generateMenuQr(
+      restaurantSlug: event.restaurantSlug,
+      menuId: event.menuId,
+      size: event.size,
+      quality: event.quality,
+      includeLabel: event.includeLabel,
+      backgroundColor: event.backgroundColor,
+      foregroundColor: event.foregroundColor,
+      gradientFrom: event.gradientFrom,
+      gradientTo: event.gradientTo,
+      gradientDirection: event.gradientDirection,
+      logo: event.logo,
+      logoSizePercent: event.logoSizePercent,
+      margin: event.margin,
+      labelText: event.labelText,
+      labelColor: event.labelColor,
+      labelFontSize: event.labelFontSize,
+      labelFontUrl: event.labelFontUrl,
+    );
+    result.fold(
+      (failure) => emit(RestaurantError(failure.message)),
+      (qr) => emit(QrLoaded(qr)),
+    );
+  }
+
   Future<void> _onUpdateRestaurant(
     UpdateRestaurantEvent event,
     Emitter<RestaurantState> emit,
@@ -104,14 +225,27 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     LoadRestaurants event,
     Emitter<RestaurantState> emit,
   ) async {
+    // debug: log that handler was invoked
+    // ignore: avoid_print
+    print(
+        '_onLoadRestaurants invoked - page: ${event.page}, pageSize: ${event.pageSize}');
     emit(const RestaurantLoading());
     final result = await getRestaurants(
       page: event.page,
       pageSize: event.pageSize,
     );
     result.fold(
-      (failure) => emit(RestaurantError(failure.message)),
-      (restaurants) => emit(RestaurantsLoaded(restaurants)),
+      (failure) {
+        // ignore: avoid_print
+        print('_onLoadRestaurants result: failure - ${failure.message}');
+        emit(RestaurantError(failure.message));
+      },
+      (restaurants) {
+        // ignore: avoid_print
+        print(
+            '_onLoadRestaurants result: success - ${restaurants.length} restaurants');
+        emit(RestaurantsLoaded(restaurants));
+      },
     );
   }
 
@@ -120,7 +254,7 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     Emitter<RestaurantState> emit,
   ) async {
     emit(const RestaurantLoading());
-    final result = await getMenu(event.restaurantId);
+    final result = await getMenu(event.restaurantSlug);
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
       (menu) => emit(MenuLoaded(menu)),

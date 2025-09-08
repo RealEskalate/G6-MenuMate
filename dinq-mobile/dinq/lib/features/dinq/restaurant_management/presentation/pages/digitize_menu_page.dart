@@ -1,13 +1,23 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+<<<<<<< HEAD
 import 'dart:io';
 import 'dart:async';
 import '../../../../../core/util/theme.dart';
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/constants/constants.dart';
 import 'edit_uploaded_menu_page.dart';
+=======
+import '../../domain/usecases/menu/upload_menu.dart';
+
+import '../../../../../core/util/theme.dart';
+import '../../data/model/menu_create_model.dart';
+import '../../../../../injection_container.dart' as di;
+>>>>>>> origin/mite-test
 
 class DigitizeMenuPage extends StatefulWidget {
   const DigitizeMenuPage({super.key});
@@ -19,8 +29,13 @@ class DigitizeMenuPage extends StatefulWidget {
 class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
+<<<<<<< HEAD
   bool _isUploading = false;
   String? _errorMessage;
+=======
+  bool _loading = false;
+  MenuCreateModel? _createModel;
+>>>>>>> origin/mite-test
 
   Future<void> _takePhoto() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.camera);
@@ -387,6 +402,7 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
           ],
 
           // Digitize Menu Button
+<<<<<<< HEAD
           _imageFile != null
               ? Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -432,12 +448,119 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
                                 fontSize: 18,
                               ),
                             ),
+=======
+          if (_imageFile != null && _createModel == null) ...[
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+>>>>>>> origin/mite-test
                     ),
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                )
-              : const SizedBox.shrink(),
+                  onPressed: _uploadImage,
+                  child: _loading
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Digitize Menu',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                ),
+              ),
+            )
+          ] else if (_createModel != null) ...[
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: _buildEditableCreateForm(),
+            )
+          ] else
+            const SizedBox.shrink(),
         ],
       ),
+    );
+  }
+
+  Future<void> _uploadImage() async {
+    if (_imageFile == null) return;
+    setState(() {
+      _loading = true;
+    });
+    try {
+      // Resolve upload usecase from DI and call it
+      final upload = di.sl<UploadMenu>();
+      final result = await upload.call(_imageFile!);
+      // result is Either<Failure, MenuCreateModel>
+      result.fold((failure) => null, (menuCreate) {
+        setState(() {
+          _createModel = menuCreate;
+        });
+      });
+      // handled above via Either.fold
+    } catch (e) {
+      // ignore errors in test UI
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  Widget _buildEditableCreateForm() {
+    final titleController =
+        TextEditingController(text: _createModel?.name ?? 'Scanned menu');
+    final descController =
+        TextEditingController(text: _createModel?.description ?? '');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Confirm scanned menu',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        const SizedBox(height: 12),
+        TextField(
+            controller: titleController,
+            decoration: const InputDecoration(labelText: 'Title')),
+        const SizedBox(height: 8),
+        TextField(
+            controller: descController,
+            decoration: const InputDecoration(labelText: 'Description'),
+            maxLines: 4),
+        const SizedBox(height: 12),
+        const Text('Items (preview):',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        if ((_createModel?.menuItems ?? []).isEmpty)
+          const Text('No items parsed')
+        else
+          ..._createModel!.menuItems!.map((it) => ListTile(
+                title: Text(it.name ?? ''),
+                subtitle: Text(it.description ?? ''),
+              )),
+        const SizedBox(height: 16),
+        Row(children: [
+          ElevatedButton(
+              onPressed: () => setState(() => _createModel = null),
+              child: const Text('Back')),
+          const SizedBox(width: 12),
+          ElevatedButton(onPressed: () {}, child: const Text('Create (no-op)')),
+        ])
+      ],
     );
   }
 }

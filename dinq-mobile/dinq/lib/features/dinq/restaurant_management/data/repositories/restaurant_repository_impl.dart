@@ -1,25 +1,19 @@
-import 'dart:io';
-
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 
 import '../../../../../core/error/exceptions.dart';
 import '../../../../../core/error/failures.dart';
 import '../../../../../core/network/network_info.dart';
-import '../../domain/entities/menu.dart';
 import '../../domain/entities/restaurant.dart';
-import '../../domain/entities/review.dart';
 import '../../domain/repositories/restaurant_repository.dart';
-import '../datasources/restaurant_remote_data_source.dart';
-import '../model/menu_model.dart';
-import '../model/restaurant_model.dart';
+import '../datasources/restaurant/restaurant_remote_data_source_restaurant.dart';
 
 class RestaurantRepositoryImpl implements RestaurantRepository {
-  final RestaurantRemoteDataSource remoteDataSource;
+  final RestaurantRemoteDataSource restRemoteDataSource;
   final NetworkInfo network;
 
   RestaurantRepositoryImpl({
-    required this.remoteDataSource,
+    required this.restRemoteDataSource,
     required this.network,
   });
 
@@ -29,10 +23,9 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
     FormData restaurant,
   ) async {
     final connected = await network.isConnected;
-    print('[Repo] createRestaurant - isConnected=$connected');
     if (connected) {
       try {
-        final resultModel = await remoteDataSource.createRestaurant(
+        final resultModel = await restRemoteDataSource.createRestaurant(
           restaurant,
         );
         return Right(resultModel.toEntity());
@@ -54,10 +47,19 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
     int pageSize = 20,
   }) async {
     final connected = await network.isConnected;
-    print('[Repo] getRestaurants - isConnected=$connected');
+    // debug: log network connectivity
+    // ignore: avoid_print
+    print(
+        'RestaurantRepositoryImpl.getRestaurants - network.isConnected: $connected');
+
     if (connected) {
       try {
-        final restaurants = await remoteDataSource.getRestaurants();
+        // debug: indicate remote datasource will be called
+        // ignore: avoid_print
+        print(
+            'RestaurantRepositoryImpl.getRestaurants - calling remote datasource');
+        final restaurants = await restRemoteDataSource.getRestaurants(
+            page: page, pageSize: pageSize);
         return Right(restaurants.map((model) => model.toEntity()).toList());
       } catch (e) {
         return Left(ExceptionMapper.toFailure(e as Exception));
@@ -74,10 +76,9 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   @override
   Future<Either<Failure, Restaurant>> getRestaurantBySlug(String slug) async {
     final connected = await network.isConnected;
-    print('[Repo] getRestaurantBySlug - isConnected=$connected slug=$slug');
     if (connected) {
       try {
-        final restaurantModel = await remoteDataSource.getRestaurantBySlug(
+        final restaurantModel = await restRemoteDataSource.getRestaurantBySlug(
           slug,
         );
         return Right(restaurantModel.toEntity());
@@ -95,14 +96,21 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
 
   @override
   Future<Either<Failure, Restaurant>> updateRestaurant(
+<<<<<<< HEAD
     Map<String, dynamic> restaurant,
+=======
+    FormData restaurant,
+>>>>>>> origin/mite-test
     String slug,
   ) async {
     final connected = await network.isConnected;
-    print('[Repo] updateRestaurant - isConnected=$connected slug=$slug');
     if (connected) {
       try {
+<<<<<<< HEAD
         final updatedModel = await remoteDataSource.updateRestaurant(
+=======
+        final updatedModel = await restRemoteDataSource.updateRestaurant(
+>>>>>>> origin/mite-test
           restaurant,
           slug,
         );
@@ -122,10 +130,9 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   @override
   Future<Either<Failure, void>> deleteRestaurant(String restaurantId) async {
     final connected = await network.isConnected;
-    print('[Repo] deleteRestaurant - isConnected=$connected id=$restaurantId');
     if (connected) {
       try {
-        await remoteDataSource.deleteRestaurant(restaurantId);
+        await restRemoteDataSource.deleteRestaurant(restaurantId);
         return const Right(null);
       } catch (e) {
         return Left(ExceptionMapper.toFailure(e as Exception));
@@ -141,146 +148,5 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
 
   // Menu
 
-  @override
-  Future<Either<Failure, Menu>> uploadMenu(File printedMenu) async {
-    final connected = await network.isConnected;
-    if (connected) {
-      try {
-        final menuModel = await remoteDataSource.uploadMenu(printedMenu);
-        return Right(menuModel.toEntity());
-      } catch (e) {
-        return Left(ExceptionMapper.toFailure(e as Exception));
-      }
-    } else {
-      return const Left(
-        NetworkFailure(
-          'No internet connection available. Please check your network settings and try again.',
-        ),
-      );
-    }
-  }
-
-  @override
-  Future<Either<Failure, Menu>> getMenu(String restaurantId) async {
-    final connected = await network.isConnected;
-    print('[Repo] getMenu - isConnected=$connected restaurantId=$restaurantId');
-    if (connected) {
-      try {
-        final menuModel = await remoteDataSource.getMenu(restaurantId);
-        return Right(menuModel.toEntity());
-      } catch (e) {
-        return Left(ExceptionMapper.toFailure(e as Exception));
-      }
-    } else {
-      return const Left(
-        NetworkFailure(
-          'No internet connection available. Please check your network settings and try again.',
-        ),
-      );
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> deleteMenu(String menuId) async {
-    final connected = await network.isConnected;
-    print('[Repo] deleteMenu - isConnected=$connected menuId=$menuId');
-    if (connected) {
-      try {
-        await remoteDataSource.deleteMenu(menuId);
-        return const Right(null);
-      } catch (e) {
-        return Left(ExceptionMapper.toFailure(e as Exception));
-      }
-    } else {
-      return const Left(
-        NetworkFailure(
-          'No internet connection available. Please check your network settings and try again.',
-        ),
-      );
-    }
-  }
-
-  @override
-  Future<Either<Failure, Menu>> updateMenu(Menu menu) async {
-    final connected = await network.isConnected;
-    print('[Repo] updateMenu - isConnected=$connected menuId=${menu.id}');
-    if (connected) {
-      try {
-        final updatedModel = await remoteDataSource.updateMenu(
-          MenuModel.fromEntity(menu),
-        );
-        return Right(updatedModel.toEntity());
-      } catch (e) {
-        return Left(ExceptionMapper.toFailure(e as Exception));
-      }
-    } else {
-      return const Left(
-        NetworkFailure(
-          'No internet connection available. Please check your network settings and try again.',
-        ),
-      );
-    }
-  }
-
   // Review
-  @override
-  Future<Either<Failure, List<Review>>> getReviews(String itemId) async {
-    final connected = await network.isConnected;
-    print('[Repo] getReviews - isConnected=$connected itemId=$itemId');
-    if (connected) {
-      try {
-        final reviewModels = await remoteDataSource.getReviews(itemId);
-        return Right(reviewModels.map((m) => m.toEntity()).toList());
-      } catch (e) {
-        return Left(ExceptionMapper.toFailure(e as Exception));
-      }
-    } else {
-      return const Left(
-        NetworkFailure(
-          'No internet connection available. Please check your network settings and try again.',
-        ),
-      );
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> deleteReview(String reviewId) async {
-    final connected = await network.isConnected;
-    print('[Repo] deleteReview - isConnected=$connected reviewId=$reviewId');
-    if (connected) {
-      try {
-        await remoteDataSource.deleteReview(reviewId);
-        return const Right(null);
-      } catch (e) {
-        return Left(ExceptionMapper.toFailure(e as Exception));
-      }
-    } else {
-      return const Left(
-        NetworkFailure(
-          'No internet connection available. Please check your network settings and try again.',
-        ),
-      );
-    }
-  }
-
-  // User Image
-  @override
-  Future<Either<Failure, List<String>>> getUserImages(String slug) async {
-    final connected = await network.isConnected;
-    print('[Repo] getUserImages - isConnected=$connected slug=$slug');
-    if (connected) {
-      try {
-        final itemDetails = await remoteDataSource.getUserImages(slug);
-        return Right(itemDetails);
-      } catch (e) {
-        return Left(ExceptionMapper.toFailure(e as Exception));
-      }
-    } else {
-      return const Left(
-        NetworkFailure(
-          'No internet connection available. Please check your network settings and try again.',
-        ),
-      );
-    }
-  }
 }

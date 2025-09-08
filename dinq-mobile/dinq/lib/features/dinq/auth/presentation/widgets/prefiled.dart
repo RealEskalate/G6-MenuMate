@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
+import '../../../../../core/util/theme.dart';
 
 class CustomTextField extends StatefulWidget {
   final String initialText;
@@ -18,7 +18,7 @@ class CustomTextField extends StatefulWidget {
     super.key,
     required this.initialText ,
     required this.labelText,
-    this.hintText="",
+    this.hintText='',
     this.isPassword = false,
     this.isPhoneNumber = false,
     this.keyboardType,
@@ -69,36 +69,36 @@ class _CustomTextFieldState extends State<CustomTextField> {
       enabled: widget.enabled,
       decoration: InputDecoration(
         labelText: widget.labelText,
-        labelStyle: TextStyle(
+        labelStyle: const TextStyle(
           color: AppColors.secondaryColor,
           fontFamily: 'Inter'
         ),
         hintText: widget.hintText,
-        hintStyle: TextStyle(color: AppColors.secondaryColor, fontSize: 10),
+        hintStyle: const TextStyle(color: AppColors.secondaryColor, fontSize: 10),
         border: OutlineInputBorder( 
-          borderSide: BorderSide(color: AppColors.secondaryColor), 
+          borderSide: const BorderSide(color: AppColors.secondaryColor), 
           borderRadius: BorderRadius.circular(8.0)
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: AppColors.secondaryColor, width: 2.0),
+          borderSide: const BorderSide(color: AppColors.secondaryColor, width: 2.0),
           borderRadius: BorderRadius.circular(8.0),
         ),
         errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.red, width: 1.0),
+          borderSide: const BorderSide(color: Colors.red, width: 1.0),
           borderRadius: BorderRadius.circular(8.0),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.red, width: 2.0),
+          borderSide: const BorderSide(color: Colors.red, width: 2.0),
           borderRadius: BorderRadius.circular(8.0),
         ),
         errorText: widget.errorText,
-        errorStyle: TextStyle(
+        errorStyle: const TextStyle(
           color: Colors.red,
           fontSize: 12,
         ),
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        floatingLabelStyle: TextStyle(
-          color: const Color(0xFF374151),
+        floatingLabelStyle: const TextStyle(
+          color: Color(0xFF374151),
           fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
@@ -135,8 +135,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
   }
 
   Widget _buildPhonePrefix() {
-    return Padding(
-      padding: const EdgeInsets.only(right: 4.0),
+    return const Padding(
+      padding: EdgeInsets.only(right: 4.0),
       child: Text(
         '+251 ',
         style: TextStyle(

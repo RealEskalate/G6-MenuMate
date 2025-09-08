@@ -1,23 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
+import '../../../restaurant_management/domain/entities/item.dart';
 
 class PopularDishCard extends StatelessWidget {
-  final String imageUrl;
-  final String name;
-  final String restaurant;
-  final String price;
-  final double rating;
+  final Item item;
   final VoidCallback? onTap;
 
-  const PopularDishCard({
-    super.key,
-    required this.imageUrl,
-    required this.name,
-    required this.restaurant,
-    required this.price,
-    required this.rating,
-    this.onTap,
-  });
+  const PopularDishCard({super.key, this.onTap, required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +36,7 @@ class PopularDishCard extends StatelessWidget {
                 topRight: Radius.circular(14),
               ),
               child: Image.network(
-                imageUrl,
+                item.images?[0] ?? '',
                 height: 100, // 🔥 Fixed image height
                 width: 140,
                 fit: BoxFit.cover,
@@ -59,7 +48,7 @@ class PopularDishCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
+                    item.name,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -67,18 +56,18 @@ class PopularDishCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Text(
-                    restaurant,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+              Text(
+                item.tabTags?.join(', ') ?? '',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        price,
+                        '${item.price}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: AppColors.primaryColor,
@@ -91,7 +80,7 @@ class PopularDishCard extends StatelessWidget {
                               color: Colors.orange, size: 15),
                           const SizedBox(width: 2),
                           Text(
-                            rating.toStringAsFixed(1),
+                            '${item.averageRating}',
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 13,

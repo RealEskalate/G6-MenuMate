@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dinq/core/network/api_client.dart';
-import 'package:dinq/core/network/api_endpoints.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/data/repository/auth_repository_impl.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/login_page.dart';
-import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
-import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_event.dart';
-import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_state.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
-import 'package:dinq/features/dinq/auth/domain/repository/customer_reg_repo.dart';
+
+import '../../../../../core/util/theme.dart';
+import '../bloc/user_bloc.dart';
+import '../bloc/user_event.dart';
+import '../bloc/user_state.dart';
+import '../widgets/Login_TextFields.dart';
+import '../widgets/Login_button.dart';
+import 'login_page.dart';
+import '../../../../../core/routing/app_route.dart';
 
 class UserRegister extends StatefulWidget {
   const UserRegister({super.key});
@@ -54,11 +52,11 @@ class _UserRegisterState extends State<UserRegister>
 
     _slideAnimation =
         Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _controller,
-            curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
-          ),
-        );
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.3, 0.8, curve: Curves.easeOut),
+      ),
+    );
 
     _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
@@ -101,15 +99,17 @@ class _UserRegisterState extends State<UserRegister>
   String? _validateUsername(String? value) {
     if (value == null || value.isEmpty) return 'Username is required';
     if (value.length < 3) return 'Username must be at least 3 characters';
-    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value))
+    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
       return 'Only letters, numbers, and underscores allowed';
+    }
     return null;
   }
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) return 'Email is required';
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value))
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
       return 'Please enter a valid email address';
+    }
     return null;
   }
 
@@ -127,6 +127,7 @@ class _UserRegisterState extends State<UserRegister>
 
   void _registerUser() {
     if (_validateAllFields()) {
+<<<<<<< HEAD
       print('Attempting to register user with:');
       print('Username: ${_usernameController.text}');
       print('Email: ${_emailController.text}');
@@ -139,6 +140,17 @@ class _UserRegisterState extends State<UserRegister>
           role: 'CUSTOMER', // Explicitly set role for customer registration
         ),
       );
+=======
+      context.read<UserBloc>().add(
+            RegisterUserEvent(
+              username: _usernameController.text.trim(),
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
+              authProvider: 'EMAIL',
+            ),
+          );
+      Navigator.pushNamed(context, AppRoute.mainShell);
+>>>>>>> origin/mite-test
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -150,48 +162,28 @@ class _UserRegisterState extends State<UserRegister>
     }
   }
 
-  void _navigateToLoginPage() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
-  }
+  // navigation handled in BlocListener
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
+    return BlocListener<UserBloc, UserState>(
       listener: (context, state) {
-        print('AuthBloc state changed: $state');
-
-        if (state is AuthRegistered) {
-          print('Registration successful for user: ${state.user.username}');
-
+        if (state is UserRegistered) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text(
-                'Registration successful! Please login to continue.',
-              ),
+              content: Text('Registration successful!'),
               backgroundColor: Colors.green,
-              duration: Duration(seconds: 3),
+              duration: Duration(seconds: 2),
             ),
           );
-
-          Future.delayed(const Duration(seconds: 3), () {
-            print('Navigating to Login page');
-            _navigateToLoginPage();
+          // navigate to home/explore
+          Future.delayed(const Duration(milliseconds: 800), () {
+            Navigator.pushReplacementNamed(context, AppRoute.explore);
           });
-        } else if (state is AuthError) {
-          print('Authentication error: ${state.message}');
-
+        } else if (state is UserError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 4),
-            ),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
-        } else if (state is AuthLoading) {
-          print('Registration in progress...');
         }
       },
       child: Scaffold(
@@ -206,7 +198,7 @@ class _UserRegisterState extends State<UserRegister>
                   child: SlideTransition(
                     position: _slideAnimation,
                     child: const Text(
-                      "Create account",
+                      'Create account',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 28,
@@ -224,8 +216,8 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                   child: LoginTextfields(
                     controller: _usernameController,
-                    labeltext: "Username",
-                    hintText: "Enter your username",
+                    labeltext: 'Username',
+                    hintText: 'Enter your username',
                     errorText: _usernameError,
                     onChanged: (value) {
                       setState(() {
@@ -242,8 +234,8 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                   child: LoginTextfields(
                     controller: _emailController,
-                    labeltext: "Email",
-                    hintText: "Enter your email",
+                    labeltext: 'Email',
+                    hintText: 'Enter your email',
                     keyboardType: TextInputType.emailAddress,
                     errorText: _emailError,
                     onChanged: (value) {
@@ -261,8 +253,8 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                   child: LoginTextfields(
                     controller: _passwordController,
-                    labeltext: "Password",
-                    hintText: "*********",
+                    labeltext: 'Password',
+                    hintText: '*********',
                     isPassword: true,
                     errorText: _passwordError,
                     onChanged: (value) {
@@ -280,8 +272,8 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                   child: LoginTextfields(
                     controller: _confirmPasswordController,
-                    labeltext: "Confirm Password",
-                    hintText: "*********",
+                    labeltext: 'Confirm Password',
+                    hintText: '*********',
                     isPassword: true,
                     errorText: _confirmPasswordError,
                     onChanged: (value) {
@@ -292,6 +284,7 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                 ),
                 const SizedBox(height: 30),
+<<<<<<< HEAD
                 BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
                     return ScaleTransition(
@@ -307,6 +300,17 @@ class _UserRegisterState extends State<UserRegister>
                       ),
                     );
                   },
+=======
+                ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: LoginButton(
+                      buttonname: 'Register',
+                      onPressed: _registerUser,
+                    ),
+                  ),
+>>>>>>> origin/mite-test
                 ),
 
                 const SizedBox(height: 30),
@@ -319,8 +323,8 @@ class _UserRegisterState extends State<UserRegister>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          "Already have an account?",
+                        const Text(
+                          'Already have an account?',
                           style: TextStyle(
                             color: AppColors.secondaryColor,
                             fontFamily: 'Inter',
@@ -337,8 +341,8 @@ class _UserRegisterState extends State<UserRegister>
                               ),
                             );
                           },
-                          child: Text(
-                            "Login",
+                          child: const Text(
+                            'Login',
                             style: TextStyle(
                               color: AppColors.primaryColor,
                               fontFamily: 'Inter',
@@ -367,7 +371,7 @@ class _UserRegisterState extends State<UserRegister>
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.0),
                         child: Text(
-                          "or",
+                          'or',
                           style: TextStyle(
                             fontWeight: FontWeight.normal,
                             color: AppColors.secondaryColor,
@@ -406,9 +410,9 @@ class _UserRegisterState extends State<UserRegister>
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
+                          children: [
                             Icon(
                               Icons.g_mobiledata,
                               size: 24,
@@ -416,7 +420,7 @@ class _UserRegisterState extends State<UserRegister>
                             ),
                             SizedBox(width: 12),
                             Text(
-                              "Sign up with Google",
+                              'Sign up with Google',
                               style: TextStyle(
                                 color: Colors.black54,
                                 fontWeight: FontWeight.normal,
@@ -445,10 +449,10 @@ class AnimatedTextField extends StatelessWidget {
   final Widget child;
 
   const AnimatedTextField({
-    Key? key,
+    super.key,
     required this.animation,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:permission_handler/permission_handler.dart';
@@ -32,7 +31,6 @@ class _GeneratedQrPageState extends State<GeneratedQrPage> {
     }
 
     try {
-      final directory = await getExternalStorageDirectory();
       final downloadsDir = Directory('/storage/emulated/0/Download');
       final fileName = 'qr_code_${DateTime.now().millisecondsSinceEpoch}';
 
@@ -58,7 +56,7 @@ class _GeneratedQrPageState extends State<GeneratedQrPage> {
         final pngFile = File(newPath);
         await pngFile.writeAsBytes(imageBytes);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('QR Code saved as PNG in Downloads')),
+          const SnackBar(content: Text('QR Code saved as PNG in Downloads')),
         );
       } else if (_selectedFormat == '.pdf') {
         // Create a PDF with the QR image
@@ -77,7 +75,7 @@ class _GeneratedQrPageState extends State<GeneratedQrPage> {
         final pdfFile = File('${downloadsDir.path}/$fileName.pdf');
         await pdfFile.writeAsBytes(await pdf.save());
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('QR Code saved as PDF in Downloads')),
+          const SnackBar(content: Text('QR Code saved as PDF in Downloads')),
         );
       }
     } catch (e) {

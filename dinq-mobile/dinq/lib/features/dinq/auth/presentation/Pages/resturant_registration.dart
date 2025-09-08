@@ -1,11 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/resturant_data.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding_first.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
-import 'package:iconsax/iconsax.dart';
+import 'package:flutter/material.dart';
+
+import '../../../../../core/util/theme.dart';
+import '../widgets/Login_TextFields.dart';
+import 'onboarding_first.dart';
+import 'resturant_data.dart';
 
 import '../../../search/presentation/pages/home_page.dart';
 
@@ -20,7 +19,6 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
   PlatformFile? _selectedFile;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _nameError;
   String? _phoneError;
 
@@ -92,7 +90,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
     if (_validateForm()) {
       if (_selectedFile == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text('Please upload one document'),
             backgroundColor: Colors.orange,
           ),
@@ -139,8 +137,8 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 30),
-            Text(
-              "Restaurant Information",
+            const Text(
+              'Restaurant Information',
               style: TextStyle(
                 fontFamily: 'Roboto',
                 fontSize: 20,
@@ -149,8 +147,8 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
               ),
             ),
             const SizedBox(height: 20),
-            Text(
-              "Basic Information",
+            const Text(
+              'Basic Information',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
@@ -160,21 +158,21 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
             const SizedBox(height: 15),
             LoginTextfields(
               controller: _nameController,
-              labeltext: "Restaurant Name",
-              hintText: "Enter Restaurant name",
+              labeltext: 'Restaurant Name',
+              hintText: 'Enter Restaurant name',
               errorText: _nameError,
             ),
             const SizedBox(height: 20),
             LoginTextfields(
               controller: _phoneController,
-              labeltext: "Phone Number",
-              hintText: "+251",
+              labeltext: 'Phone Number',
+              hintText: '+251',
               isPhoneNumber: true,
               errorText: _phoneError,
             ),
             const SizedBox(height: 30),
-            Text(
-              "Upload Your Legal Documents",
+            const Text(
+              'Upload Your Legal Documents',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
@@ -183,7 +181,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
             ),
             const SizedBox(height: 10),
             Text(
-              "Supported formats: JPG, PNG, PDF",
+              'Supported formats: JPG, PNG, PDF',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -200,12 +198,16 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
                   onPressed: _pickFile,
                   icon: const Icon(Icons.upload_file, color: AppColors.primaryColor),
                   label: const Text(
+<<<<<<< HEAD
                     "Browse File",
+=======
+                    'Browse File',
+>>>>>>> origin/mite-test
                     style: TextStyle(color: AppColors.primaryColor),
                   ),
                   style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(color: AppColors.primaryColor),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: const BorderSide(color: AppColors.primaryColor),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -216,7 +218,7 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
               const SizedBox(height: 10),
             if (_selectedFile == null)
               Text(
-                "Tap to select a file",
+                'Tap to select a file',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey[600],
@@ -229,7 +231,11 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
             // Show selected file if one is chosen
             if (_selectedFile != null) ...[
               const Text(
+<<<<<<< HEAD
                 "Selected Document:",
+=======
+                'Selected Document:',
+>>>>>>> origin/mite-test
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 16,
@@ -245,14 +251,14 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: _pickFile,
-                  icon: Icon(Icons.swap_horiz, color: AppColors.primaryColor),
-                  label: Text(
-                    "Change File",
+                  icon: const Icon(Icons.swap_horiz, color: AppColors.primaryColor),
+                  label: const Text(
+                    'Change File',
                     style: TextStyle(color: AppColors.primaryColor),
                   ),
                   style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    side: BorderSide(color: AppColors.primaryColor),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: const BorderSide(color: AppColors.primaryColor),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -270,13 +276,13 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
                 onPressed: _submitForm,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryColor,
-                  padding: EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text(
-                  "Save and continue ->",
+                child: const Text(
+                  'Save and continue ->',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -292,8 +298,8 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
               width: double.infinity,
               child: TextButton(
                 onPressed: _skipForNow,
-                child: Text(
-                  "Skip for now",
+                child: const Text(
+                  'Skip for now',
                   style: TextStyle(
                     color: AppColors.primaryColor,
                     fontSize: 16,
@@ -322,20 +328,20 @@ class _ResturantRegistrationState extends State<ResturantRegistration> {
     }
 
     return Card(
-      margin: EdgeInsets.symmetric(vertical: 5),
+      margin: const EdgeInsets.symmetric(vertical: 5),
       child: ListTile(
         leading: Icon(icon, color: iconColor, size: 32),
         title: Text(
           file.name,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(fontSize: 14),
+          style: const TextStyle(fontSize: 14),
         ),
         subtitle: Text(
           '${(file.size / 1024).toStringAsFixed(1)} KB',
-          style: TextStyle(fontSize: 12),
+          style: const TextStyle(fontSize: 12),
         ),
         trailing: IconButton(
-          icon: Icon(Icons.close, color: Colors.red),
+          icon: const Icon(Icons.close, color: Colors.red),
           onPressed: _removeFile,
         ),
       ),

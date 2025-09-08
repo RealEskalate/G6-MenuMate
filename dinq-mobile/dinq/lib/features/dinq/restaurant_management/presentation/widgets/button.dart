@@ -6,7 +6,7 @@ class DigitizeMenuButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const DigitizeMenuButton({
+  const DigitizeMenuButton({super.key, 
     required this.icon,
     required this.label,
     required this.onTap,
@@ -35,7 +35,7 @@ class DigitizeMenuButton extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   color: AppColors.secondaryColor,
                   fontWeight: FontWeight.w500,
                   fontSize: 15,

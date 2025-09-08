@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/restaurant_event.dart';
@@ -8,8 +9,15 @@ import '../bloc/restaurant_bloc.dart';
 import '../../data/model/restaurant_model.dart';
 
 
+import '../../domain/entities/restaurant.dart';
+
 class RestaurantDetailsPage extends StatefulWidget {
+<<<<<<< HEAD
    const RestaurantDetailsPage({super.key});
+=======
+  final Restaurant restaurant;
+  const RestaurantDetailsPage({super.key, required this.restaurant});
+>>>>>>> origin/mite-test
 
    @override
    State<RestaurantDetailsPage> createState() => _RestaurantDetailsPageState();

@@ -1,89 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dinq/core/network/api_client.dart';
-import 'package:dinq/core/network/api_endpoints.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart';
-import 'package:dinq/features/dinq/auth/data/repository/auth_repository_impl.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/manger_registration.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/user_Register.dart';
-import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
-import 'package:dinq/features/dinq/auth/presentation/widgets/choose_box.dart';
 
+<<<<<<< HEAD
 import 'resturant_registration.dart';
 
 class RegisterPage extends StatefulWidget {
+=======
+import '../../../../../core/util/theme.dart';
+import '../../../../../injection_container.dart' as di;
+import '../bloc/user_bloc.dart';
+import '../widgets/choose_box.dart';
+import 'manger_registration.dart';
+import 'user_Register.dart';
+
+class RegisterPage extends StatelessWidget {
+>>>>>>> origin/mite-test
   const RegisterPage({super.key});
-
-  @override
-  State<RegisterPage> createState() => _RegisterPageState();
-}
-
-class _RegisterPageState extends State<RegisterPage>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _titleAnimation;
-  late Animation<double> _subtitleAnimation;
-  late Animation<double> _box1Animation;
-  late Animation<double> _box2Animation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-
-    // Title animation - fades in and slides from top
-    _titleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.3, curve: Curves.easeOut),
-      ),
-    );
-
-    // Subtitle animation - fades in after title
-    _subtitleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.2, 0.5, curve: Curves.easeOut),
-      ),
-    );
-
-    // First box animation - slides from left
-    _box1Animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.4, 0.7, curve: Curves.easeOut),
-      ),
-    );
-
-    // Second box animation - slides from right
-    _box2Animation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.6, 0.9, curve: Curves.easeOut),
-      ),
-    );
-
-    // Start the animation
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  // Create AuthBloc with your actual repository
-  AuthBloc _createAuthBloc() {
-    final apiClient = ApiClient(baseUrl: ApiEndpoints.baseUrl);
-    final AuthRepository authRepository = AuthRepositoryImpl(apiClient: apiClient);
-    return AuthBloc(authRepository: authRepository);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,61 +28,38 @@ class _RegisterPageState extends State<RegisterPage>
           child: Column(
             children: [
               const SizedBox(height: 30),
-              // Animated title
-              AnimatedBuilder(
-                animation: _titleAnimation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, (1 - _titleAnimation.value) * 20),
-                    child: Opacity(
-                      opacity: _titleAnimation.value,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Who are you?",
-                            style: TextStyle(
-                              fontFamily: 'Inter',
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 24,
-                            ),
-                          ),
-                        ],
-                      ),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    'Who are you?',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
-              // Animated subtitle
-              AnimatedBuilder(
-                animation: _subtitleAnimation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, (1 - _subtitleAnimation.value) * 15),
-                    child: Opacity(
-                      opacity: _subtitleAnimation.value,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              "Choose your role to get the most out of MenuMate",
-                              style: TextStyle(
-                                color: AppColors.secondaryColor,
-                                fontSize: 16,
-                                fontFamily: 'Inter',
-                              ),
-                            ),
-                          ),
-                        ],
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Choose your role to get the most out of MenuMate',
+                      style: TextStyle(
+                        color: AppColors.secondaryColor,
+                        fontSize: 16,
+                        fontFamily: 'Inter',
                       ),
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
               const SizedBox(height: 40),
+<<<<<<< HEAD
               // Animated Customer option
               AnimatedBuilder(
                 animation: _box1Animation,
@@ -187,12 +96,35 @@ class _RegisterPageState extends State<RegisterPage>
                             icon: Icons.person,
                           ),
                         ),
+=======
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          BlocProvider.value(
+                        value: di.sl<UserBloc>(),
+                        child: const UserRegister(),
+>>>>>>> origin/mite-test
                       ),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 500),
                     ),
                   );
                 },
+                child: const ChooseBox(
+                  category: 'Customer',
+                  explanation:
+                      'Discover dishes, scan QR menus and share reviews',
+                  icon: Icons.person,
+                ),
               ),
               const SizedBox(height: 24),
+<<<<<<< HEAD
               // Animated Restaurant option
 AnimatedBuilder(
                 animation: _box1Animation,
@@ -230,9 +162,29 @@ AnimatedBuilder(
                           ),
                         ),
                       ),
+=======
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const MangerRegistration(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 500),
+>>>>>>> origin/mite-test
                     ),
                   );
                 },
+                child: const ChooseBox(
+                  category: 'Restaurant',
+                  explanation:
+                      'Create and manage digital menus, generate QR codes and track performance',
+                  icon: Icons.restaurant,
+                ),
               ),
               const SizedBox(height: 40),
             ],

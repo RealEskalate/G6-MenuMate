@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import 'edit_single_menu_page.dart';
-import 'edit_menu_item_page.dart';
-import '../../../../../core/routing/app_route.dart';
 
 class EditMenuPage extends StatelessWidget {
   const EditMenuPage({super.key});
@@ -100,7 +100,7 @@ class _MenuSectionCard extends StatelessWidget {
                                       'desc': item['desc'] ?? '',
                                       'howToEat': '',
                                       'ingredients': [],
-                                      'image': item['image'] ?? null,
+                                      'image': item['image'],
                                     },
                                   )
                                   .toList(),

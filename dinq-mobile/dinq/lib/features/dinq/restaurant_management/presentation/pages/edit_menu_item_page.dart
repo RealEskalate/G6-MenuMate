@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/constants/constants.dart';
 import '../../../../../core/util/theme.dart';
-import '../widgets/upload_image.dart';
 
 class EditMenuItemPage extends StatefulWidget {
   final Map<String, dynamic> item;

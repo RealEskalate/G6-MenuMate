@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-import 'user.dart';
+import '../../../auth/domain/entities/user.dart';
+
 
 class Review extends Equatable {
   final String id;

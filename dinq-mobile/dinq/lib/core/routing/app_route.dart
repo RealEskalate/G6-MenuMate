@@ -3,26 +3,31 @@ import 'package:flutter/material.dart';
 import '../../features/dinq/auth/presentation/Pages/login_page.dart';
 import '../../features/dinq/auth/presentation/Pages/onboarding_first.dart';
 import '../../features/dinq/qr_scanner/pages/qr_scanner_page.dart';
+import '../../features/dinq/restaurant_management/domain/entities/restaurant.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/analytics_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/billing_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/branding_preferences_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/create_menu_manually_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/digitize_menu_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_item_page.dart';
+import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/edit_single_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/edit_uploaded_menu_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/generated_qr_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/legal_info_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/menus_page.dart';
+<<<<<<< HEAD
 import '../../features/dinq/restaurant_management/presentation/pages/opening_hours_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/qr_customization_page.dart';
+=======
+>>>>>>> origin/mite-test
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_details_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_profile_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/settings_page.dart';
 import '../../features/dinq/search/presentation/pages/favourites_page.dart';
 import '../../features/dinq/search/presentation/pages/home_page.dart';
 import '../../features/dinq/search/presentation/pages/item_details_page.dart';
+import '../../features/dinq/search/presentation/pages/main_shell.dart';
 import '../../features/dinq/search/presentation/pages/profile_page.dart';
 import '../../features/dinq/search/presentation/pages/restaurant_page.dart';
 import '../../features/dinq/search/presentation/pages/scanned_menu_page.dart';
@@ -59,7 +64,11 @@ class AppRoute {
   static const String analytics = '/analytics';
   static const String digitizeMenu = '/digitize-menu';
   static const String editMenuItem = '/edit-menu-item';
+<<<<<<< HEAD
   static const String login = '/login';
+=======
+  static const String mainShell = '/mainShell';
+>>>>>>> origin/mite-test
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -67,6 +76,11 @@ class AppRoute {
         return MaterialPageRoute(builder: (_) => const LoginPage());
       case onboarding:
         return MaterialPageRoute(builder: (_) => const OnboardingFirst());
+<<<<<<< HEAD
+=======
+      case mainShell:
+        return MaterialPageRoute(builder: (_) => const MainShell());
+>>>>>>> origin/mite-test
       case explore:
         return MaterialPageRoute(builder: (_) => const HomePage());
       case favorites:
@@ -83,10 +97,9 @@ class AppRoute {
         final item = args['item'];
         return MaterialPageRoute(builder: (_) => ItemDetailsPage(item: item));
       case restaurant:
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
-        final restaurantId = args['restaurantId'] as String? ?? '';
         return MaterialPageRoute(
-          builder: (_) => RestaurantPage(restaurantId: restaurantId),
+          builder: (_) =>
+              RestaurantPage(restaurant: settings.arguments as Restaurant),
         );
       case scannedMenu:
         final args = settings.arguments as Map<String, dynamic>? ?? {};
@@ -99,9 +112,9 @@ class AppRoute {
       case restaurantProfile:
         return MaterialPageRoute(builder: (_) => const RestaurantProfilePage());
       case restaurantDetails:
-        return MaterialPageRoute(builder: (_) => const RestaurantDetailsPage());
-      case openingHours:
-        return MaterialPageRoute(builder: (_) => const OpeningHoursPage());
+        return MaterialPageRoute(
+            builder: (_) => RestaurantDetailsPage(
+                restaurant: settings.arguments as Restaurant));
       case legalInfo:
         return MaterialPageRoute(builder: (_) => const LegalInfoPage());
       case brandingPreferences:
@@ -117,9 +130,9 @@ class AppRoute {
       // Menu management routes
       case menus:
         final args = settings.arguments as Map<String, dynamic>?;
-        final restaurantId = args?['restaurantId'] ?? '';
+        final restaurantSlug = args?['restaurantId'] ?? '';
         return MaterialPageRoute(
-          builder: (_) => MenusPage(restaurantId: restaurantId),
+          builder: (_) => MenusPage(restaurantSlug: restaurantSlug),
         );
       // QrCustomizationPage
 

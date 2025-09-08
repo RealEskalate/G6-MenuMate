@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+<<<<<<< HEAD
 import 'package:dinq/core/network/api_client.dart';
 import 'package:dinq/core/network/api_endpoints.dart';
 import 'package:dinq/core/util/theme.dart';
@@ -12,6 +13,17 @@ import 'package:dinq/features/dinq/auth/presentation/Pages/Register_page.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/forget_password_page.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
+=======
+
+import '../../../../../core/routing/app_route.dart';
+import '../../../../../core/util/theme.dart';
+import '../bloc/user_bloc.dart';
+import '../bloc/user_event.dart';
+import '../widgets/Login_TextFields.dart';
+import '../widgets/Login_button.dart';
+import 'Register_page.dart';
+import 'forget_password_page.dart';
+>>>>>>> origin/mite-test
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -20,7 +32,8 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _titleAnimation;
   late Animation<double> _emailFieldAnimation;
@@ -139,7 +152,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         _emailError = 'Please enter your email address';
       });
       isValid = false;
-    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(_emailController.text)) {
+    } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+        .hasMatch(_emailController.text)) {
       setState(() {
         _emailError = 'Please enter a valid email address';
       });
@@ -172,10 +186,26 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   void _handleLogin() {
     if (_validateForm()) {
+<<<<<<< HEAD
       _authBloc.add(
         LoginUserEvent(
           email: _emailController.text.trim(),
           password: _passwordController.text,
+=======
+      context.read<UserBloc>().add(
+            LoginUserEvent(
+              identifier: _emailController.text.trim(),
+              password: _passwordController.text,
+            ),
+          );
+      Navigator.pushNamed(context, AppRoute.mainShell);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fix the validation errors'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 3),
+>>>>>>> origin/mite-test
         ),
       );
     }
@@ -223,10 +253,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     offset: Offset(0, (1 - _titleAnimation.value) * 20),
                     child: Opacity(
                       opacity: _titleAnimation.value,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
+                      child: const Padding(
+                        padding: EdgeInsets.only(left: 8.0),
                         child: Text(
-                          "Welcome back!",
+                          'Welcome back!',
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontWeight: FontWeight.bold,
@@ -250,8 +280,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       opacity: _emailFieldAnimation.value,
                       child: LoginTextfields(
                         controller: _emailController,
-                        labeltext: "Email Address",
-                        hintText: "Enter your email",
+                        labeltext: 'Email Address',
+                        hintText: 'Enter your email',
                         errorText: _emailError,
                         keyboardType: TextInputType.emailAddress,
                       ),
@@ -270,8 +300,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       opacity: _passwordFieldAnimation.value,
                       child: LoginTextfields(
                         controller: _passwordController,
-                        labeltext: "Password",
-                        hintText: "***********",
+                        labeltext: 'Password',
+                        hintText: '***********',
                         isPassword: true,
                         errorText: _passwordError,
                       ),
@@ -291,8 +321,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                         Navigator.push(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => const ForgetPasswordPage(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const ForgetPasswordPage(),
+                            transitionsBuilder: (context, animation,
+                                secondaryAnimation, child) {
                               return SlideTransition(
                                 position: Tween<Offset>(
                                   begin: const Offset(1, 0),
@@ -301,19 +334,20 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 child: child,
                               );
                             },
-                            transitionDuration: const Duration(milliseconds: 400),
+                            transitionDuration:
+                                const Duration(milliseconds: 400),
                           ),
                         );
                       },
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          Text("Forget Password?",
+                          Text(
+                            'Forget Password?',
                             style: TextStyle(
-                              color: AppColors.primaryColor,
-                              fontSize: 14,
-                              fontFamily: 'Inter'
-                            ),
+                                color: AppColors.primaryColor,
+                                fontSize: 14,
+                                fontFamily: 'Inter'),
                           ),
                         ],
                       ),
@@ -331,6 +365,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                     child: Opacity(
                       opacity: _loginButtonAnimation.value,
                       child: Center(
+<<<<<<< HEAD
                         child: BlocBuilder<AuthBloc, AuthState>(
                           builder: (context, state) {
                             return state is AuthLoading
@@ -340,6 +375,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                     onPressed: _handleLogin,
                                   );
                           },
+=======
+                        child: LoginButton(
+                          buttonname: 'Login',
+                          onPressed: _handleLogin,
+>>>>>>> origin/mite-test
                         ),
                       ),
                     ),
@@ -357,7 +397,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("Don't have an account?",
+                          const Text(
+                            "Don't have an account?",
                             style: TextStyle(
                               color: AppColors.secondaryColor,
                               fontFamily: 'Inter',
@@ -370,8 +411,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               Navigator.push(
                                 context,
                                 PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) => const RegisterPage(),
-                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                  pageBuilder: (context, animation,
+                                          secondaryAnimation) =>
+                                      const RegisterPage(),
+                                  transitionsBuilder: (context, animation,
+                                      secondaryAnimation, child) {
                                     return SlideTransition(
                                       position: Tween<Offset>(
                                         begin: const Offset(1, 0),
@@ -380,11 +424,13 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                       child: child,
                                     );
                                   },
-                                  transitionDuration: const Duration(milliseconds: 400),
+                                  transitionDuration:
+                                      const Duration(milliseconds: 400),
                                 ),
                               );
                             },
-                            child: Text("Register",
+                            child: const Text(
+                              'Register',
                               style: TextStyle(
                                 color: AppColors.primaryColor,
                                 fontFamily: 'Inter',
@@ -413,9 +459,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                             thickness: 1,
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text("or",
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            'or',
                             style: TextStyle(
                               fontWeight: FontWeight.normal,
                               color: AppColors.secondaryColor,
@@ -455,7 +502,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
@@ -463,9 +510,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                                 size: 24,
                                 color: Colors.green,
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12),
                               Text(
-                                "Sign in with Google",
+                                'Sign in with Google',
                                 style: TextStyle(
                                   color: Colors.black54,
                                   fontWeight: FontWeight.normal,

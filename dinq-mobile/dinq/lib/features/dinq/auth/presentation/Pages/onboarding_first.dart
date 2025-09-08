@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding2_page.dart';
-import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding3.dart';
+import '../../../../../core/util/theme.dart';
+import 'onboarding2_page.dart';
+import 'onboarding3.dart';
 
 class OnboardingFirst extends StatelessWidget {
   const OnboardingFirst({super.key});
@@ -45,9 +45,9 @@ class OnboardingFirst extends StatelessWidget {
                     color: AppColors.primaryColor,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Center(
+                  child: const Center(
                     child: Text(
-                      "Get Started",
+                      'Get Started',
                       style: TextStyle(
                         color: AppColors.whiteColor,
                         fontWeight: FontWeight.normal,
