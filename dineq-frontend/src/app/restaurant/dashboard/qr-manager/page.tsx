@@ -37,12 +37,12 @@ function QrManager() {
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = "menu-qr.png"; // 👈 filename
+    a.download = "menu-qr.png";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
 
-    URL.revokeObjectURL(url); // cleanup
+    URL.revokeObjectURL(url); 
   } catch (error) {
     console.error("Failed to download image:", error);
   }
