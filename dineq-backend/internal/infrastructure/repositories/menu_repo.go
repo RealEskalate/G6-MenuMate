@@ -46,6 +46,15 @@ func (r *MenuRepository) createTTLIndex(ctx context.Context) {
 	if err != nil {
 		fmt.Printf("Failed to create restaurantId index: %v\n", err)
 	}
+
+	// Create index on slug (used to match menu for embedded item search)
+	slugIndex := mongo.IndexModel{
+		Keys:    bson.M{"slug": 1},
+		Options: options.Index().SetName("ix_slug"),
+	}
+	if _, err = r.database.Collection(r.coll).Indexes().CreateOne(ctx, slugIndex); err != nil {
+		fmt.Printf("Failed to create slug index: %v\n", err)
+	}
 }
 
 func (r *MenuRepository) Create(ctx context.Context, menu *domain.Menu) error {

@@ -27,6 +27,8 @@ func NewItemRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database, 
 	{
 		public.GET("/:menu_slug", handler.GetItems)
 		public.GET("/:menu_slug/:id", handler.GetItemByID)
+		public.GET("/search/advanced", handler.SearchItems)
+	public.GET("/:menu_slug/search", handler.SearchItems)
 	}
 
 	// Protected item routes (mutations)
