@@ -209,7 +209,7 @@ func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *d
 		DownloadURL:   res.DownloadURL,
 		MenuID:        menu.ID,
 		RestaurantID:  restaurantId,
-		IsActive:      res.IsActive,
+		IsActive:      true,
 		CreatedAt:     res.CreatedAt,
 		ExpiresAt:     res.ExpiresAt,
 	}
