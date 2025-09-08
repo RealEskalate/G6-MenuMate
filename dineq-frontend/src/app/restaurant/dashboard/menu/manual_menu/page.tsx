@@ -25,6 +25,7 @@
 // import { useSession } from "next-auth/react";
 // import { fetchRestaurantMe } from "@/hooks/useRestaurant";
 // import { useRouter } from "next/navigation";
+// import toast, { Toaster } from "react-hot-toast";
 
 // interface NutritionalInfo {
 //   calories: number;
@@ -36,7 +37,7 @@
 // export interface MenuItem {
 //   name: string;
 //   name_am?: string | "";
-//   image: string |  null;
+//   image: string | null;
 //   price: number | string;
 //   currency?: string;
 //   ingredients: string[];
@@ -66,7 +67,6 @@
 //   alt_text: string;
 // }
 
-
 // const ManualMenu = () => {
 //   const { menuItems: ocrMenuItems, clearMenuItems } = useMenuContext();
 //   console.log("OCR Menu Items from Context:", ocrMenuItems);
@@ -94,10 +94,8 @@
 //   const router = useRouter();
 //   const [searchResults, setSearchResults] = useState<ImageResult[]>([]);
 //   const [imageSearchResults, setImageSearchResults] = useState<{
-//   [key: string]: ImageResult[];
-// }>({});
-
-
+//     [key: string]: ImageResult[];
+//   }>({});
 
 //   useEffect(() => {
 //     if (!initialized && ocrMenuItems.length > 0) {
@@ -132,31 +130,6 @@
 //     setSections((prev) => [...prev, { name: "", items: [] }]);
 //   }, []);
 
-//   // const addItem = useCallback((sectionIndex: number) => {
-//   //   setSections((prev) => {
-//   //     const newSections = [...prev];
-//   //     newSections[sectionIndex].items.push({
-//   //       name: "",
-//   //       name_am: "",
-//   //       image: null,
-//   //       price: "",
-//   //       currency: "",
-//   //       ingredients: [],
-//   //       description: "",
-//   //       description_am: "",
-//   //       tab_tags: [],
-//   //       tab_tags_am: [],
-//   //       allergies: "",
-//   //       allergies_am: "",
-//   //       nutritional_info: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-//   //       preparation_time: 0,
-//   //       how_to_eat: "",
-//   //       how_to_eat_am: "",
-//   //       voice: null,
-//   //     });
-//   //     return newSections;
-//   //   });
-//   // }, []);
 //   const addItem = useCallback((sectionIndex: number) => {
 //     setSections((prev) => {
 //       const newSections = [...prev];
@@ -189,7 +162,6 @@
 //     });
 //   }, []);
 
-
 //   const updateSectionName = useCallback((index: number, name: string) => {
 //     setSections((prev) => {
 //       const newSections = [...prev];
@@ -199,31 +171,35 @@
 //   }, []);
 
 //   const updateItem = useCallback(
-//   (sectionIndex: number, itemIndex: number, field: keyof MenuItem, value: any) => {
-//     setSections((prevSections) => {
-//       const newSections = [...prevSections];
-//       const updatedItem = {
-//         ...newSections[sectionIndex].items[itemIndex],
-//         [field]: value,
-//       };
-//       newSections[sectionIndex].items[itemIndex] = updatedItem;
-//       return newSections;
-//     });
-
-//     // If the user typed the name, fetch images separately
-//     if (field === "name" && value.trim()) {
-//       const key = `${sectionIndex}-${itemIndex}`;
-//       fetchItemImages(value).then((images) => {
-//         setImageSearchResults((prev) => ({
-//           ...prev,
-//           [key]: images.slice(0, 6), // limit to 6
-//         }));
+//     (
+//       sectionIndex: number,
+//       itemIndex: number,
+//       field: keyof MenuItem,
+//       value: any
+//     ) => {
+//       setSections((prevSections) => {
+//         const newSections = [...prevSections];
+//         const updatedItem = {
+//           ...newSections[sectionIndex].items[itemIndex],
+//           [field]: value,
+//         };
+//         newSections[sectionIndex].items[itemIndex] = updatedItem;
+//         return newSections;
 //       });
-//     }
-//   },
-//   []
-// );
 
+//       // If the user typed the name, fetch images separately
+//       if (field === "name" && value.trim()) {
+//         const key = `${sectionIndex}-${itemIndex}`;
+//         fetchItemImages(value, 6, session?.accessToken).then((images) => {
+//           setImageSearchResults((prev) => ({
+//             ...prev,
+//             [key]: images.slice(0, 6), // limit to 6
+//           }));
+//         });
+//       }
+//     },
+//     [session]
+//   );
 
 //   const updateNutritionalInfo = useCallback(
 //     (
@@ -345,7 +321,7 @@
 //       });
 //       setShowPublishModal(true);
 //     } catch (error: any) {
-//       alert("Failed to create menu: " + error.message);
+//       toast.error("Failed to create menu: " + error.message);
 //     } finally {
 //       setLoading(false);
 //     }
@@ -368,14 +344,15 @@
 
 //       if (!res.ok) throw new Error("Failed to publish menu");
 
-//       alert("Menu published successfully!");
+//       toast.success("Menu published successfully!");
 //       setShowPublishModal(false);
 
 //       // ✅ redirect to QR customization page
-//       router.push(`/restaurant/dashboard/qr-manager/customize?slug=${restaurantSlug}&menu=${id}`);
-
+//       router.push(
+//         `/restaurant/dashboard/qr-manager/customize?slug=${restaurantSlug}&menu=${id}`
+//       );
 //     } catch (error: any) {
-//       alert("Failed to publish: " + error.message);
+//       toast.error("Failed to publish: " + error.message);
 //     }
 //   };
 
@@ -513,6 +490,7 @@
 //                           id={`itemName-${sIndex}-${iIndex}`}
 //                           type="text"
 //                           value={item.name}
+//                           required
 //                           placeholder="Item name"
 //                           onChange={(e) =>
 //                             updateItem(sIndex, iIndex, "name", e.target.value)
@@ -527,6 +505,7 @@
 //                         </Label>
 //                         <Input
 //                           id={`itemPrice-${sIndex}-${iIndex}`}
+//                           required
 //                           type="text"
 //                           value={item.price as string}
 //                           placeholder="Price"
@@ -542,6 +521,7 @@
 //                         <Input
 //                           id={`itemCurrency-${sIndex}-${iIndex}`}
 //                           type="text"
+//                           required
 //                           value={item.currency}
 //                           placeholder="Currency"
 //                           onChange={(e) =>
@@ -896,36 +876,53 @@
 //           </Collapsible>
 //         ))}
 
-//         <Button onClick={addSection}>
-//           <Plus className="h-4 w-4 " /> Add Section
-//         </Button>
-//       </div>
-//       <div className="mt-3 right-6">
-//         <Button onClick={handleSubmit} disabled={loading}>
-//           {loading ? "Submitting..." : "Submit Menu"}
-//         </Button>
+//         <div className="mt-2.5 flex justify-between pr-5 pb-2 ">
+//           <Button onClick={addSection}>
+//             <Plus className="h-4 w-4 " /> Add Section
+//           </Button>
+//           <Button onClick={handleSubmit} disabled={loading}>
+//             {loading ? "Submitting..." : "Submit Menu"}
+//           </Button>
+//         </div>
 //       </div>
 
-//       {showPublishModal && (
+//     {showPublishModal && (
 //         <div
 //           style={{
 //             position: "fixed",
-//             top: "50%",
-//             left: "50%",
-//             transform: "translate(-50%, -50%)",
-//             backgroundColor: "white",
-//             padding: "20px",
-//             border: "1px solid black",
-//             boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+//             top: 0,
+//             left: 0,
+//             width: "100%",
+//             height: "100%",
+//             backgroundColor: "rgba(0, 0, 0, 0.5)",
+//             backdropFilter: "blur(5px)",
+//             display: "flex",
+//             justifyContent: "center",
+//             alignItems: "center",
 //             zIndex: 1000,
 //           }}
+//           onClick={() => setShowPublishModal(false)} // Optional: Close on overlay click
 //         >
-//           <h2>Publish Menu</h2>
-//           <p>Your menu has been created. Would you like to publish it now?</p>
-//           <Button onClick={handlePublish} style={{ marginRight: "10px" }}>
-//             Publish
-//           </Button>
-//           <Button onClick={() => setShowPublishModal(false)}>Cancel</Button>
+//           <div
+//             style={{
+//               backgroundColor: "white",
+//               padding: "30px",
+//               border: "1px solid #ccc",
+//               borderRadius: "8px",
+//               boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+//               width: "400px", // Adjusted width for better appeal
+//               maxWidth: "90%",
+//               textAlign: "center",
+//             }}
+//             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+//           >
+//             <h2>Publish Menu</h2>
+//             <p>Your menu has been created. Would you like to publish it now?</p>
+//             <Button onClick={handlePublish} style={{ marginRight: "10px" }}>
+//               Publish
+//             </Button>
+//             <Button onClick={() => setShowPublishModal(false)}>Cancel</Button>
+//           </div>
 //         </div>
 //       )}
 //     </>
@@ -960,6 +957,7 @@ import { createMenu } from "@/lib/menu";
 import { useSession } from "next-auth/react";
 import { fetchRestaurantMe } from "@/hooks/useRestaurant";
 import { useRouter } from "next/navigation";
+import toast, { Toaster } from "react-hot-toast";
 
 interface NutritionalInfo {
   calories: number;
@@ -971,7 +969,7 @@ interface NutritionalInfo {
 export interface MenuItem {
   name: string;
   name_am?: string | "";
-  image: string | null;
+  image: string[];
   price: number | string;
   currency?: string;
   ingredients: string[];
@@ -1044,6 +1042,7 @@ const ManualMenu = () => {
           carbs: 0,
           fat: 0,
         },
+        image: [], // Initialize as empty array
       }));
 
       setSections([{ name: "Imported from OCR", items: mappedItems }]);
@@ -1074,7 +1073,7 @@ const ManualMenu = () => {
           {
             name: "",
             name_am: "",
-            image: null,
+            image: [],
             price: "",
             currency: "",
             ingredients: [],
@@ -1133,6 +1132,22 @@ const ManualMenu = () => {
       }
     },
     [session]
+  );
+
+  const handleImageSelect = useCallback(
+    (sectionIndex: number, itemIndex: number, url: string) => {
+      setSections((prevSections) => {
+        const newSections = [...prevSections];
+        const item = newSections[sectionIndex].items[itemIndex];
+        const images = item.image || [];
+        const newImages = images.includes(url)
+          ? images.filter((u) => u !== url)
+          : [...images, url];
+        newSections[sectionIndex].items[itemIndex].image = newImages;
+        return newSections;
+      });
+    },
+    []
   );
 
   const updateNutritionalInfo = useCallback(
@@ -1255,7 +1270,7 @@ const ManualMenu = () => {
       });
       setShowPublishModal(true);
     } catch (error: any) {
-      alert("Failed to create menu: " + error.message);
+      toast.error("Failed to create menu: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -1278,7 +1293,7 @@ const ManualMenu = () => {
 
       if (!res.ok) throw new Error("Failed to publish menu");
 
-      alert("Menu published successfully!");
+      toast.success("Menu published successfully!");
       setShowPublishModal(false);
 
       // ✅ redirect to QR customization page
@@ -1286,7 +1301,7 @@ const ManualMenu = () => {
         `/restaurant/dashboard/qr-manager/customize?slug=${restaurantSlug}&menu=${id}`
       );
     } catch (error: any) {
-      alert("Failed to publish: " + error.message);
+      toast.error("Failed to publish: " + error.message);
     }
   };
 
@@ -1772,17 +1787,12 @@ const ManualMenu = () => {
                             <div
                               key={idx}
                               className={`border rounded-lg cursor-pointer overflow-hidden ${
-                                item.image === img.photo_url
+                                item.image.includes(img.photo_url)
                                   ? "border-orange-500"
                                   : "border-gray-300"
                               }`}
                               onClick={() =>
-                                updateItem(
-                                  sIndex,
-                                  iIndex,
-                                  "image",
-                                  img.photo_url
-                                )
+                                handleImageSelect(sIndex, iIndex, img.photo_url)
                               }
                             >
                               <img
@@ -1824,22 +1834,39 @@ const ManualMenu = () => {
         <div
           style={{
             position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "white",
-            padding: "20px",
-            border: "1px solid black",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backdropFilter: "blur(5px)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
             zIndex: 1000,
           }}
+          onClick={() => setShowPublishModal(false)} // Optional: Close on overlay click
         >
-          <h2>Publish Menu</h2>
-          <p>Your menu has been created. Would you like to publish it now?</p>
-          <Button onClick={handlePublish} style={{ marginRight: "10px" }}>
-            Publish
-          </Button>
-          <Button onClick={() => setShowPublishModal(false)}>Cancel</Button>
+          <div
+            style={{
+              backgroundColor: "white",
+              padding: "30px",
+              border: "1px solid #ccc",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+              width: "400px", // Adjusted width for better appeal
+              maxWidth: "90%",
+              textAlign: "center",
+            }}
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+          >
+            <h2>Publish Menu</h2>
+            <p>Your menu has been created. Would you like to publish it now?</p>
+            <Button onClick={handlePublish} style={{ marginRight: "10px" }}>
+              Publish
+            </Button>
+            <Button onClick={() => setShowPublishModal(false)}>Cancel</Button>
+          </div>
         </div>
       )}
     </>

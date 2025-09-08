@@ -17,7 +17,7 @@ export const options: NextAuthOptions = {
       },
 
       async authorize(credentials) {
-        console.log("authorize received:", credentials);
+       
 
         if (!credentials?.identifier) {
           throw new Error("Email required");
@@ -37,7 +37,7 @@ export const options: NextAuthOptions = {
           });
 
           const result = await res.json();
-          console.log("Authorize response:", result);
+          
 
           if (res.ok && result?.tokens?.access_token) {
             return {
