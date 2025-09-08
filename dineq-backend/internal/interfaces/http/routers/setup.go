@@ -15,14 +15,19 @@ import (
 )
 
 func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router *gin.Engine) {
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "https://your-frontend.com"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+	// Configure CORS to allow all origins (with credentials). For stricter control, scope this down.
+	cfg := cors.Config{
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "X-Requested-With"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
-	}))
+	}
+
+	// Always allow any origin by reflecting the request Origin header
+	cfg.AllowOriginFunc = func(origin string) bool { return true }
+
+	router.Use(cors.New(cfg))
 
 	// Notification services
 	notifySvc := services.NewNotificationService()
