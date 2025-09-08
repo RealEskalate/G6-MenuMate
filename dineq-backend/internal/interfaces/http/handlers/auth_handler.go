@@ -468,8 +468,8 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	       redir := ac.FrontendBaseURL
 	       fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
 	       if redir == "" {
-		       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
-		       redir = "http://localhost:3000"
+		       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'https://dineqmenumate.vercel.app' for redirect.")
+		       redir = "https://dineqmenumate.vercel.app"
 	       }
 	       fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success\n", redir)
 			   c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success")
@@ -494,8 +494,8 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
        redir := ac.FrontendBaseURL
        fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
        if redir == "" {
-	       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
-	       redir = "http://localhost:3000"
+	       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'https://dineqmenumate.vercel.app' for redirect.")
+	       redir = "https://dineqmenumate.vercel.app"
        }
        fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success?new=1\n", redir)
 	c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success?new=1")
