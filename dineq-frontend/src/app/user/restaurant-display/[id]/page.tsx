@@ -48,9 +48,10 @@ export default function SingleRestaurant() {
       ) : !restaurant ? (
         <RestaurantDetailSkeleton />
       ) : (
-        <div className="flex flex-col items-center px-4 sm:px-6 md:px-8 pb-8">
+        <div className="flex flex-col items-center px-4 sm:px-6 md:px-8 pb-8 ">
+          <div className=" bg-gray-100  rounded-lg  max-w-5xl shadow-md">
           {/* Header Image */}
-          <div className="w-full max-w-5xl h-40 sm:h-52 md:h-64 relative rounded-lg overflow-hidden shadow-lg mt-4">
+          <div className="w-full  h-40 sm:h-52 md:h-64 relative rounded-lg overflow-hidden shadow-lg ">
             <SafeImage
               src={restaurant.logo_image ?? "/Background.png"}
               alt={restaurant.name}
@@ -60,7 +61,7 @@ export default function SingleRestaurant() {
           </div>
 
           {/* Restaurant Info */}
-          <div className="w-full max-w-5xl bg-gray-100 p-5 rounded-lg mt-5 shadow-md">
+          <div className="w-full p-5 ">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
               <div className="flex flex-col mb-4 md:mb-0">
                 <h1 className="text-3xl font-bold">{restaurant.name}</h1>
@@ -69,6 +70,7 @@ export default function SingleRestaurant() {
                 </p>
                 <p className="mt-2 text-gray-700">{restaurant.about}</p>
               </div>
+            
 
               <button
                 type="button"
@@ -92,10 +94,11 @@ export default function SingleRestaurant() {
               </p>
             </div>
           </div>
+          </div>
 
           {/* Menu Section */}
           <div className="w-full max-w-5xl mt-8">
-            <MenuSection restaurantSlug={restaurant.slug} />
+            <MenuSection id = {id} restaurantSlug={restaurant.slug} />
           </div>
         </div>
       )}
