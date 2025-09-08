@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
 
 
 import { Input } from "@/components/ui/input";   
@@ -13,8 +14,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { registerUser } from "@/lib/api";   
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-
-// import { a } from "framer-motion/client";
 
 const schema = z
   .object({
@@ -111,6 +110,7 @@ export default function SignupForm({ role }: SignupFormProps) {
   };
 
   return (
+    <>
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="space-y-2 w-full max-w-md"
@@ -162,11 +162,10 @@ export default function SignupForm({ role }: SignupFormProps) {
 
       {/* Email */}
       <div>
-               <label className="block text-black font-normal text-[18px] mb-1">
+        <label className="block text-black font-normal text-[18px] mb-1">
           Email Address
-               </label>
+        </label>
         <Input
-        
           required
           type="email"
           placeholder="Enter your email"
@@ -179,15 +178,10 @@ export default function SignupForm({ role }: SignupFormProps) {
 
       {/* Password */}
       <div>
-               <label className="block text-black font-normal text-[18px] mb-1">
+        <label className="block text-black font-normal text-[18px] mb-1">
           Password
-               </label>
-        <Input
-       
-          required
-          type="password"
-          {...register("password")}
-        />
+        </label>
+        <Input required type="password" {...register("password")} />
         {errors.password && (
           <p className="text-red-500 text-sm">{errors.password.message}</p>
         )}
@@ -198,15 +192,10 @@ export default function SignupForm({ role }: SignupFormProps) {
 
       {/* Confirm Password */}
       <div>
-               <label className="block text-black font-normal text-[18px] mb-1">
+        <label className="block text-black font-normal text-[18px] mb-1">
           Confirm Password
-               </label>
-        <Input
-     
-          required
-          type="password"
-          {...register("confirmPassword")}
-        />
+        </label>
+        <Input required type="password" {...register("confirmPassword")} />
         {errors.confirmPassword && (
           <p className="text-red-500 text-sm">
             {errors.confirmPassword.message}
@@ -255,6 +244,29 @@ export default function SignupForm({ role }: SignupFormProps) {
           Sign in
         </Link>
       </p>
-    </form>
+      </form>
+      <div className="flex items-center my-4">
+        <hr className="flex-grow border-gray-300" />
+        <span className="mx-2 text-gray-500 text-sm">OR</span>
+        <hr className="flex-grow border-gray-300" />
+      </div>
+      {/* Google Sign-in */}
+      <Button
+        className="w-full flex items-center justify-center gap-2 bg-white text-black border border-gray-300 hover:bg-gray-100"
+        onClick={() =>
+          (window.location.href =
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google/login`)
+        }
+      >
+        <Image
+          src="/icons/google.png"
+          width={100}
+          height={120}
+          alt="Google"
+          className="w-5 h-5"
+        />
+        Sign in with Google
+      </Button>
+    </>
   );
 }

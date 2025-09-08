@@ -282,7 +282,7 @@ function NavBar({ role }: Roles) {
       localStorage.removeItem("token");
 
       // Redirect to login page
-      router.push("/login");
+      router.push("/auth/signin");
     } catch (err) {
       console.error("Logout failed:", err);
     }

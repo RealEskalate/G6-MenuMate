@@ -170,11 +170,11 @@ export default function AnalyticsPage() {
     <div className="space-y-8">
       {/* Header */}
       <header>
-        <h1 className="text-4xl font-bold">Analytics</h1>
+        <h1 className="text-4xl font-bold pl-3">Analytics</h1>
       </header>
 
       {/* Time Filter Buttons */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 pl-2">
         <button className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">
           Today
         </button>
@@ -346,7 +346,7 @@ export default function AnalyticsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b">
+              <tr className="border-b space-x-2">
                 <th className="py-2 font-medium text-gray-500">Reviewer</th>
                 <th className="py-2 font-medium text-gray-500">Dish</th>
                 <th className="py-2 font-medium text-gray-500">Rating</th>

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import Description from "./Description";
+// import Description from "./Description";
 import FoodTip from "./HowToEat";
 import Review from "./Review";
 import ReviewForm from "./WriteReview";

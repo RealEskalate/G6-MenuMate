@@ -7,13 +7,11 @@ export default withAuth(
     const token = request.nextauth.token;
     const pathname = request.nextUrl.pathname;
 
-    console.log("Middleware triggered, token:", token);
+ 
     console.log("Middleware pathname:", pathname);
 
     if (!token) {
-      console.log(
-        `Middleware: No token, redirecting to /signin from ${pathname}`
-      );
+      
       return NextResponse.redirect(
         new URL("/auth/signin", request.nextUrl.origin)
       );

@@ -1,8 +1,7 @@
-// tailwind.config.ts
 import type { Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
 
 export default {
-  // The 'content' property is not needed in Tailwind v4
   theme: {
     extend: {
       keyframes: {
@@ -13,6 +12,10 @@ export default {
       },
       animation: {
         fadeInUp: "fadeInUp 0.6s ease forwards",
+      },
+      fontFamily: {
+        body: ["var(--font-body)", ...defaultTheme.fontFamily.sans],
+        headings: ["var(--font-headings)", ...defaultTheme.fontFamily.serif],
       },
     },
   },

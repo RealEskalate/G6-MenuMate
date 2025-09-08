@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { MenuItem } from "@/Types/menu";
+import { MenuItem, NutritionalInfo } from "@/Types/menu";
 import { useUpdateMenuItem } from "@/hooks/useMenu";
 import FileUpload from "./FileUpload";
 import Image from "next/image";
 import { Trash2 } from "lucide-react";
+
+
 
 export default function DishEditForm({
   dish,
@@ -17,12 +19,26 @@ export default function DishEditForm({
   token?: string;
 }) {
   const [form, setForm] = useState<MenuItem>(dish);
+  function handleChange(field: 'nutritional_info', value: NutritionalInfo): void;
+  function handleChange(
+  field: Exclude<keyof MenuItem, 'nutritional_info'>,
+  value: string | number | string[] | boolean | null | undefined
+): void;
+
+function handleChange(
+  field: keyof MenuItem,
+  value: NutritionalInfo | string | number | string[] | boolean | null | undefined
+) {
+  setForm((prev) => ({
+    ...prev,
+    [field]: value as MenuItem[typeof field],
+  }));
+}
   const [preview, setPreview] = useState(form.image_url || "");
   const mutation = useUpdateMenuItem(menuSlug, token!);
 
-  const handleChange = (field: keyof MenuItem, value: any) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
+
+
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -65,7 +81,10 @@ export default function DishEditForm({
       },
       {
         onSuccess: () => alert("Dish updated successfully"),
-        onError: (err: any) => alert("Error: " + err.message),
+        onError: (err: unknown) => {
+          const message = err instanceof Error ? err.message : String(err);
+          alert("Error: " + message);
+        },
       }
     );
   };
@@ -220,66 +239,67 @@ export default function DishEditForm({
 
       {/* Nutritional Info */}
       <div>
-        <label className="block text-sm font-medium mb-2">Nutritional Info</label>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs text-gray-600">Calories</label>
-            <input
-              type="number"
-              value={form.nutritional_info?.calories ?? ""}
-              onChange={(e) =>
-                handleChange("nutritional_info", {
-                  ...form.nutritional_info,
-                  calories: Number(e.target.value),
-                })
-              }
-              className="w-full border rounded px-3 py-2"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-600">Protein (g)</label>
-            <input
-              type="number"
-              value={form.nutritional_info?.protein ?? ""}
-              onChange={(e) =>
-                handleChange("nutritional_info", {
-                  ...form.nutritional_info,
-                  protein: Number(e.target.value),
-                })
-              }
-              className="w-full border rounded px-3 py-2"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-600">Carbs (g)</label>
-            <input
-              type="number"
-              value={form.nutritional_info?.carbs ?? ""}
-              onChange={(e) =>
-                handleChange("nutritional_info", {
-                  ...form.nutritional_info,
-                  carbs: Number(e.target.value),
-                })
-              }
-              className="w-full border rounded px-3 py-2"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-600">Fat (g)</label>
-            <input
-              type="number"
-              value={form.nutritional_info?.fat ?? ""}
-              onChange={(e) =>
-                handleChange("nutritional_info", {
-                  ...form.nutritional_info,
-                  fat: Number(e.target.value),
-                })
-              }
-              className="w-full border rounded px-3 py-2"
-            />
-          </div>
-        </div>
-      </div>
+  <label className="block text-sm font-medium mb-2">Nutritional Info</label>
+  <div className="grid grid-cols-2 gap-4">
+    <div>
+      <label className="block text-xs text-gray-600">Calories</label>
+      <input
+        type="number"
+        value={form.nutritional_info?.calories ?? ""}
+        onChange={(e) =>
+          handleChange("nutritional_info", {
+            ...form.nutritional_info ?? {},
+            calories: Number(e.target.value),
+          })
+        }
+        className="w-full border rounded px-3 py-2"
+      />
+    </div>
+    <div>
+      <label className="block text-xs text-gray-600">Protein (g)</label>
+      <input
+        type="number"
+        value={form.nutritional_info?.protein ?? ""}
+        onChange={(e) =>
+          handleChange("nutritional_info", {
+            ...form.nutritional_info ?? {},
+            protein: Number(e.target.value),
+          })
+        }
+        className="w-full border rounded px-3 py-2"
+      />
+    </div>
+    <div>
+      <label className="block text-xs text-gray-600">Carbs (g)</label>
+      <input
+        type="number"
+        value={form.nutritional_info?.carbs ?? ""}
+        onChange={(e) =>
+          handleChange("nutritional_info", {
+            ...form.nutritional_info ?? {},
+            carbs: Number(e.target.value),
+          })
+        }
+        className="w-full border rounded px-3 py-2"
+      />
+    </div>
+    <div>
+      <label className="block text-xs text-gray-600">Fat (g)</label>
+      <input
+        type="number"
+        value={form.nutritional_info?.fat ?? ""}
+        onChange={(e) =>
+          handleChange("nutritional_info", {
+            ...form.nutritional_info ?? {},
+            fat: Number(e.target.value),
+          })
+        }
+        className="w-full border rounded px-3 py-2"
+      />
+    </div>
+  </div>
+</div>
+
 
 
       {/* Preparation Time */}
