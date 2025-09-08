@@ -12,7 +12,10 @@ class GetMenuUseCase {
   Future<Either<Failure, models.Menu>> execute(String slug) async {
     print('GetMenuUseCase: Fetching menu with slug: $slug');
     try {
-      final url = '$baseUrl/menus/$slug';
+      // Ensure slug is properly formatted - remove any leading colons
+      final cleanSlug = slug.startsWith(':') ? slug.substring(1) : slug;
+      
+      final url = '$baseUrl/menus/$cleanSlug';
       print('GetMenuUseCase: Sending GET request to: $url');
       
       final response = await _dio.get(
@@ -27,11 +30,11 @@ class GetMenuUseCase {
         try {
           print('GetMenuUseCase: Successfully fetched menu data');
           final menuData = response.data;
-          return Right(_parseMenuData(menuData, slug));
+          return Right(_parseMenuData(menuData, cleanSlug));
         } catch (e) {
           print('GetMenuUseCase: Error parsing menu data: $e');
           // Fallback to mock data if parsing fails
-          return Right(_getMockMenu(slug));
+          return Right(_getMockMenu(cleanSlug));
         }
       } else if (response.statusCode == 404) {
         print('GetMenuUseCase: Menu not found');

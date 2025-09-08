@@ -399,8 +399,11 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   @override
   Future<MenuModel> getMenu(String restaurantId) async {
     try {
+      // Remove any leading colon if present
+      final cleanId = restaurantId.startsWith(':') ? restaurantId.substring(1) : restaurantId;
+      
       final response = await dio.get(
-        '$baseUrl/menus/:$restaurantId',
+        '$baseUrl/menus/$cleanId',
         options: Options(headers: {'Content-Type': content}),
       );
       final statusCode = response.statusCode;
