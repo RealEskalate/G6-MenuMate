@@ -4,14 +4,10 @@ import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/domain/entities/restaurant.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../../domain/entities/menu.dart' as models;
+import '../../domain/services/favorites_service.dart';
 import 'restaurant_page.dart';
 import 'item_details_page.dart';
 import '../widgets/bottom_navbar.dart';
-
-class _FavoritesStore {
-  static final Set<String> restaurantIds = <String>{};
-  static final Set<String> dishIds = <String>{};
-}
 
 class FavouritesPage extends StatefulWidget {
   final List<Restaurant> allRestaurants;
@@ -30,11 +26,27 @@ class FavouritesPage extends StatefulWidget {
 class _FavouritesPageState extends State<FavouritesPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final FavoritesService _favoritesService = FavoritesService();
+  Set<String> _favoriteRestaurantIds = {};
+  Set<String> _favoriteDishIds = {};
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    final restaurantIds = await _favoritesService.getFavoriteRestaurantIds();
+    final dishIds = await _favoritesService.getFavoriteDishIds();
+    
+    setState(() {
+      _favoriteRestaurantIds = restaurantIds;
+      _favoriteDishIds = dishIds;
+      _isLoading = false;
+    });
   }
 
   @override
@@ -55,14 +67,19 @@ class _FavouritesPageState extends State<FavouritesPage>
 
   @override
   Widget build(BuildContext context) {
-    final favoriteRestaurantIds = _FavoritesStore.restaurantIds;
-    final favoriteDishIds = _FavoritesStore.dishIds;
-
     final favoriteRestaurants = widget.allRestaurants
-        .where((r) => favoriteRestaurantIds.contains(r))
+        .where((r) => _favoriteRestaurantIds.contains(r.id))
         .toList();
     final favoriteDishes =
-        widget.allDishes.where((d) => favoriteDishIds.contains(d.id)).toList();
+        widget.allDishes.where((d) => _favoriteDishIds.contains(d.id)).toList();
+
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primaryColor),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(

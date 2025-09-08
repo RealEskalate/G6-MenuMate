@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../domain/entities/menu.dart' as models;
+import 'package:dinq/features/dinq/search/data/services/favorites_service.dart';
 
 // Add this at the top of item_details_page.dart or in a shared file
 class _FavoritesStore {
@@ -21,17 +22,26 @@ class ItemDetailsPage extends StatefulWidget {
 }
 
 class _ItemDetailsPageState extends State<ItemDetailsPage> {
-  static final Set<String> _favoriteDishIds = {}; // For UI only
+  final FavoritesService _favoritesService = FavoritesService();
+  bool _isFavorite = false;
 
-  bool get isFavorite => _favoriteDishIds.contains(widget.item.id);
+  @override
+  void initState() {
+    super.initState();
+    _checkFavoriteStatus();
+  }
 
-  void _toggleFavorite() {
+  Future<void> _checkFavoriteStatus() async {
+    final isFavorite = await _favoritesService.isDishFavorite(widget.item.id);
     setState(() {
-      if (_FavoritesStore.dishIds.contains(widget.item.id)) {
-        _FavoritesStore.dishIds.remove(widget.item.id);
-      } else {
-        _FavoritesStore.dishIds.add(widget.item.id);
-      }
+      _isFavorite = isFavorite;
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    final newStatus = await _favoritesService.toggleDishFavorite(widget.item.id);
+    setState(() {
+      _isFavorite = newStatus;
     });
   }
 
@@ -50,18 +60,32 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
-        title: Text(widget.item.name),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
           IconButton(
             icon: Icon(
-              isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: isFavorite ? Colors.red : Colors.black,
+              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: _isFavorite ? Colors.red : Colors.black,
             ),
             onPressed: _toggleFavorite,
           ),
         ],
       ),
+      foregroundColor: Colors.black,
+      title: Text(widget.item.name),
+      actions: [
+        IconButton(
+          icon: Icon(
+            _isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: _isFavorite ? Colors.red : Colors.black,
+          ),
+          onPressed: _toggleFavorite,
+        ),
+      ],
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -5,6 +5,7 @@ import '../../../restaurant_management/domain/entities/restaurant.dart';
 import '../../../restaurant_management/domain/entities/restaurant.dart' as models;
 import '../../../search/domain/entities/menu.dart' as models;
 import '../../../search/domain/usecases/get_menu.dart';
+import '../../../search/domain/services/favorites_service.dart';
 import '../widgets/bottom_navbar.dart';
 import 'item_details_page.dart';
 
@@ -22,8 +23,10 @@ class _RestaurantPageState extends State<RestaurantPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   final GetMenuUseCase _getMenuUseCase = GetMenuUseCase();
+  final FavoritesService _favoritesService = FavoritesService();
   models.Menu? _menu;
   bool _isLoading = true; // For UI only
+  bool _isFavorite = false;
 
   void _onTabSelected(BottomNavTab tab) {
     if (tab == BottomNavTab.explore) {
@@ -41,6 +44,9 @@ class _RestaurantPageState extends State<RestaurantPage>
   @override
   void initState() {
     super.initState();
+    // Check if restaurant is in favorites
+    _checkFavoriteStatus();
+    
     // If menu is provided, use it directly, otherwise load from API
     if (widget.menu != null) {
       setState(() {
@@ -50,6 +56,22 @@ class _RestaurantPageState extends State<RestaurantPage>
       });
     } else {
       _loadMenu();
+    }
+  }
+  
+  Future<void> _checkFavoriteStatus() async {
+    final isFavorite = await _favoritesService.isRestaurantFavorite(widget.restaurant.id);
+    setState(() {
+      _isFavorite = isFavorite;
+    });
+  }
+  
+  Future<void> _toggleFavorite() async {
+    final success = await _favoritesService.toggleFavoriteRestaurant(widget.restaurant.id);
+    if (success) {
+      setState(() {
+        _isFavorite = !_isFavorite;
+      });
     }
   }
 
@@ -201,7 +223,17 @@ class _RestaurantPageState extends State<RestaurantPage>
                         icon: Icons.arrow_back,
                         onTap: () => Navigator.pop(context),
                       ),
-                      _circleIcon(icon: Icons.share_outlined, onTap: () {}),
+                      Row(
+                        children: [
+                          _circleIcon(
+                            icon: _isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: _isFavorite ? Colors.red : Colors.white,
+                            onTap: _toggleFavorite,
+                          ),
+                          const SizedBox(width: 8),
+                          _circleIcon(icon: Icons.share_outlined, onTap: () {}),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -338,25 +370,24 @@ class _RestaurantPageState extends State<RestaurantPage>
     );
   }
 
-  Widget _circleIcon({required IconData icon, required VoidCallback onTap}) {
-    return InkWell(
+  Widget _circleIcon({
+    required IconData icon,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
       child: Container(
-        width: 40,
-        height: 40,
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.4),
           shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 6,
-              offset: Offset(0, 2),
-            ),
-          ],
         ),
-        child: Icon(icon, color: Colors.black87),
+        child: Icon(
+          icon,
+          color: color ?? Colors.white,
+          size: 20,
+        ),
       ),
     );
   }

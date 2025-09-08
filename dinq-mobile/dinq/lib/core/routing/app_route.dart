@@ -27,6 +27,9 @@ import '../../features/dinq/search/presentation/pages/item_details_page.dart';
 import '../../features/dinq/search/presentation/pages/profile_page.dart';
 import '../../features/dinq/search/presentation/pages/restaurant_page.dart';
 import '../../features/dinq/search/presentation/pages/scanned_menu_page.dart';
+import '../../../features/dinq/search/domain/entities/menu.dart' as models;
+import '../../../features/dinq/restaurant_management/domain/entities/restaurant.dart';
+import '../../../features/dinq/search/presentation/pages/home_page.dart';
 
 class AppRoute {
   // Search routes
@@ -71,10 +74,18 @@ class AppRoute {
       case explore:
         return MaterialPageRoute(builder: (_) => const HomePage());
       case favorites:
+        // Get dummy data for testing
+        final HomePage homePage = HomePage();
+        final List<Restaurant> dummyRestaurants = homePage.createDummyRestaurants();
+        final List<models.Item> dummyDishes = homePage.createDummyMenu('dummy').tabs
+            .expand((tab) => tab.categories)
+            .expand((cat) => cat.items)
+            .toList();
+            
         return MaterialPageRoute(
-          builder: (_) => const FavouritesPage(
-            allRestaurants: [], // Pass your data here
-            allDishes: [],
+          builder: (_) => FavouritesPage(
+            allRestaurants: dummyRestaurants,
+            allDishes: dummyDishes,
           ),
         );
       case home:
@@ -84,9 +95,26 @@ class AppRoute {
         final item = args['item'];
         return MaterialPageRoute(builder: (_) => ItemDetailsPage(item: item));
       case restaurant:
-        return MaterialPageRoute(
-          builder: (_) => RestaurantPage(restaurant: settings.arguments! as Restaurant),
-        );
+        final args = settings.arguments;
+        if (args is Restaurant) {
+          // If only restaurant is passed
+          return MaterialPageRoute(
+            builder: (_) => RestaurantPage(restaurant: args),
+          );
+        } else if (args is Map<String, dynamic>) {
+          // If restaurant and menu are passed as a map
+          return MaterialPageRoute(
+            builder: (_) => RestaurantPage(
+              restaurant: args['restaurant'] as Restaurant,
+              menu: args['menu'],
+            ),
+          );
+        } else {
+          // Fallback
+          return MaterialPageRoute(
+            builder: (_) => const HomePage(),
+          );
+        }
       case scannedMenu:
         final args = settings.arguments as Map<String, dynamic>? ?? {};
         final slug = args['slug'] as String? ?? 'default-menu';
