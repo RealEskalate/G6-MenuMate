@@ -463,16 +463,19 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			ac.RefreshTokenUsecase.Save(refreshToken)
 		}
 
-		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
-		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: response.AccessToken, MaxAge: int(time.Until(response.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
-	       redir := ac.FrontendBaseURL
-	       fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
-	       if redir == "" {
-		       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'https://dineqmenumate.vercel.app' for redirect.")
-		       redir = "https://dineqmenumate.vercel.app"
-	       }
-	       fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success\n", redir)
-			   c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success")
+		// Cross-site cookies for frontend domain: require SameSite=None and Secure=true in production
+		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteNoneMode})
+		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: response.AccessToken, MaxAge: int(time.Until(response.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteNoneMode})
+		redir := ac.FrontendBaseURL
+		fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
+		if redir == "" {
+			fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'https://dineqmenumate.vercel.app' for redirect.")
+			redir = "https://dineqmenumate.vercel.app"
+		}
+		// Redirect to the site root as requested
+		finalURL := strings.TrimRight(redir, "/") + "/"
+		fmt.Printf("[DEBUG] Redirecting to: %s\n", finalURL)
+		c.Redirect(http.StatusTemporaryRedirect, finalURL)
 	       return
 	}
 
@@ -489,14 +492,17 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	}
 	refreshToken := &domain.RefreshToken{Token: newTokens.RefreshToken, UserID: newUser.ID, ExpiresAt: newTokens.RefreshTokenExpiresAt, Revoked: false, CreatedAt: time.Now()}
 	_ = ac.RefreshTokenUsecase.Save(refreshToken)
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: newTokens.RefreshToken, MaxAge: int(time.Until(newTokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: newTokens.AccessToken, MaxAge: int(time.Until(newTokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
-       redir := ac.FrontendBaseURL
-       fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
-       if redir == "" {
-	       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'https://dineqmenumate.vercel.app' for redirect.")
-	       redir = "https://dineqmenumate.vercel.app"
-       }
-       fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success?new=1\n", redir)
-	c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success?new=1")
+	// Cross-site cookies for frontend domain
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: newTokens.RefreshToken, MaxAge: int(time.Until(newTokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteNoneMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: newTokens.AccessToken, MaxAge: int(time.Until(newTokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, HttpOnly: false, Secure: ac.CookieSecure, SameSite: http.SameSiteNoneMode})
+	redir := ac.FrontendBaseURL
+	fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
+	if redir == "" {
+		fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'https://dineqmenumate.vercel.app' for redirect.")
+		redir = "https://dineqmenumate.vercel.app"
+	}
+	// Redirect to the site root
+	finalURL := strings.TrimRight(redir, "/") + "/"
+	fmt.Printf("[DEBUG] Redirecting to: %s\n", finalURL)
+	c.Redirect(http.StatusTemporaryRedirect, finalURL)
 }
