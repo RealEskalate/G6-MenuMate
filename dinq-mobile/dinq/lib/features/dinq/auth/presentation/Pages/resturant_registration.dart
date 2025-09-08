@@ -2,11 +2,9 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/util/theme.dart';
-import '../widgets/Login_TextFields.dart';
-import 'onboarding_first.dart';
-import 'resturant_data.dart';
-
 import '../../../search/presentation/pages/home_page.dart';
+import '../widgets/Login_TextFields.dart';
+import 'resturant_data.dart';
 
 class ResturantRegistration extends StatefulWidget {
   const ResturantRegistration({super.key});

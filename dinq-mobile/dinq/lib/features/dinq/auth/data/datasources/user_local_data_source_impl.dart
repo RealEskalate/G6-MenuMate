@@ -12,6 +12,7 @@ class UserLocalDataSourceImpl implements UserLocalDataSource {
 
   @override
   Future<void> cacheUserJson(String json) async {
+    print('DEBUG: Caching user JSON: ${json.substring(0, 50)}...');
     await prefs.setString(_kUserJsonKey, json);
   }
 
@@ -22,6 +23,7 @@ class UserLocalDataSourceImpl implements UserLocalDataSource {
 
   @override
   Future<void> clearCachedUser() async {
+    print('DEBUG: Clearing cached user JSON');
     await prefs.remove(_kUserJsonKey);
   }
 

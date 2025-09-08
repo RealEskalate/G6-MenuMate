@@ -7,6 +7,30 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../../core/util/theme.dart';
 import '../../data/model/menu_create_model.dart';
 
+// Enum for menu languages
+enum MenuLanguage { amharic, english }
+
+extension MenuLanguageExt on MenuLanguage {
+  String get displayName {
+    switch (this) {
+      case MenuLanguage.amharic:
+        return 'Amharic';
+      case MenuLanguage.english:
+        return 'English';
+    }
+  }
+
+  static MenuLanguage fromString(String? value) {
+    switch (value?.toLowerCase()) {
+      case 'english':
+        return MenuLanguage.english;
+      case 'amharic':
+      default:
+        return MenuLanguage.amharic;
+    }
+  }
+}
+
 class CreateMenuManuallyPage extends StatefulWidget {
   final String restaurantId;
   final MenuCreateModel? parsedMenuData;
@@ -23,7 +47,7 @@ class CreateMenuManuallyPage extends StatefulWidget {
 
 class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
   final TextEditingController _menuNameController = TextEditingController();
-  String _selectedLanguage = 'Amharic';
+  MenuLanguage _selectedLanguage = MenuLanguage.amharic; // default
   final List<String> _tags = [];
   final List<_SectionData> _sections = [_SectionData()];
   final List<bool> _sectionExpanded = [];
@@ -36,13 +60,13 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
     // Initialize with parsed menu data if available
     if (widget.parsedMenuData != null) {
       _menuNameController.text = widget.parsedMenuData!.name ?? '';
+
       // Initialize sections and items from parsed data
       if (widget.parsedMenuData!.menuItems != null &&
           widget.parsedMenuData!.menuItems!.isNotEmpty) {
         _sections.clear();
         _sectionExpanded.clear();
 
-        // Group items by category or create a single section
         final section = _SectionData();
         section.selectedSectionTag = 'Main Menu';
 
@@ -228,17 +252,17 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    DropdownButtonFormField<String>(
-                      initialValue: _selectedLanguage,
+                    DropdownButtonFormField<MenuLanguage>(
+                      value: _selectedLanguage,
                       decoration: InputDecoration(
                           border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8))),
-                      items: const [
-                        DropdownMenuItem(
-                            value: 'Amharic', child: Text('Amharic')),
-                        DropdownMenuItem(
-                            value: 'English', child: Text('English'))
-                      ],
+                      items: MenuLanguage.values.map((lang) {
+                        return DropdownMenuItem(
+                          value: lang,
+                          child: Text(lang.displayName),
+                        );
+                      }).toList(),
                       onChanged: (val) {
                         if (val != null) {
                           setState(() => _selectedLanguage = val);
@@ -290,7 +314,7 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            initialValue: section.selectedSectionTag,
+                            value: section.selectedSectionTag,
                             decoration:
                                 const InputDecoration(labelText: 'Section'),
                             items: const [

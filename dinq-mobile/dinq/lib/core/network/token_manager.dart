@@ -13,10 +13,11 @@ class TokenManager {
     required String accessToken,
     required String refreshToken,
   }) async {
+    print(
+        'DEBUG: Caching tokens - access: ${accessToken.substring(0, 10)}..., refresh: ${refreshToken.substring(0, 10)}...');
     await secureStorage.write(key: _accessKey, value: accessToken);
     await secureStorage.write(key: _refreshKey, value: refreshToken);
   }
-
 
   Future<Option<Map<String, String>>> getCachedTokens() async {
     final access = await secureStorage.read(key: _accessKey);
@@ -28,6 +29,7 @@ class TokenManager {
   }
 
   Future<void> clearTokens() async {
+    print('DEBUG: Clearing tokens from storage');
     await secureStorage.delete(key: _accessKey);
     await secureStorage.delete(key: _refreshKey);
   }

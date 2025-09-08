@@ -57,3 +57,8 @@ app.*.map.json
 *.g.dart
 *.mocks.dart
 
+# Ignore platform generated plugin registrant files created by Flutter tooling
+c:/generated_plugin_registrant.cc
+c:/generated_plugins.cmake
+c:/GeneratedPluginRegistrant.swift
+

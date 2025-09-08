@@ -343,7 +343,7 @@ class _MangerRegistrationState extends State<MangerRegistration>
                           CustomCheckbox(
                             onChanged: (value) {
                               setState(() {
-                                _isTermsAccepted = value ?? false;
+                                _isTermsAccepted = value;
                               });
                             },
                           ),

@@ -7,12 +7,9 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import '../../../../../core/constants/constants.dart';
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../injection_container.dart';
 import '../../domain/repositories/menu_repository.dart';
-import '../../domain/usecases/qr_code/generate_qr_code.dart';
-import 'generated_qr_page.dart';
 
 class QrCustomizationPage extends StatefulWidget {
   final String? menuId;
