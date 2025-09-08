@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import Tags from "@/components/common/Tags";
-import { MenuItem } from "@/store/menuSlice";
+import { MenuItem } from "@/app/user/menu-handling/menuApi";
 
 const NutrientCard = ({ label, value, unit }: { label: string; value: number; unit: string }) => (
   <div className="flex flex-col items-center justify-center p-3 rounded-xl border border-gray-200 bg-gray-50">
@@ -28,7 +28,7 @@ const Description = ({ item }: { item: MenuItem }) => {
               onClick={() => setIsAmharic(!isAmharic)}
               className="px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200"
             >
-              <Tags className="bg-orange-100 text-orange-600 font-medium">
+              <Tags color = "orange">
                 {isAmharic ? "Switch to English" : "ወደ አማርኛ ይቀይሩ"}
               </Tags>
             </button>
@@ -55,7 +55,7 @@ const Description = ({ item }: { item: MenuItem }) => {
         <h2 className="text-2xl font-semibold mb-3 text-gray-800">Categories</h2>
         <div className="flex flex-wrap gap-2">
           {(item.tab_tags || []).map((tag, index) => (
-            <Tags key={index} className="bg-orange-100 text-orange-600 font-medium">
+            <Tags color="gray" key={index} >
               {tag}
             </Tags>
           ))}

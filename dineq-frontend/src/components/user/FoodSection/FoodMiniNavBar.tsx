@@ -7,6 +7,7 @@ import FoodTip from "./HowToEat";
 import Review from "./Review";
 import ReviewForm from "./WriteReview";
 import { MenuItem } from "@/app/user/menu-handling/menuApi";
+import Description from "./Description";
 interface FoodMiniNavBarProps {
   item: MenuItem;
   id : string | null;
