@@ -1,7 +1,7 @@
-import '../../domain/entities/Restaurant.dart' as models;
 import 'package:flutter/material.dart';
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
+import '../../../restaurant_management/domain/entities/restaurant.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../../domain/entities/menu.dart' as models;
 import 'restaurant_page.dart';
@@ -14,7 +14,7 @@ class _FavoritesStore {
 }
 
 class FavouritesPage extends StatefulWidget {
-  final List<models.Restaurant> allRestaurants;
+  final List<Restaurant> allRestaurants;
   final List<models.Item> allDishes;
 
   const FavouritesPage({
@@ -59,7 +59,7 @@ class _FavouritesPageState extends State<FavouritesPage>
     final favoriteDishIds = _FavoritesStore.dishIds;
 
     final favoriteRestaurants = widget.allRestaurants
-        .where((r) => favoriteRestaurantIds.contains(r.id))
+        .where((r) => favoriteRestaurantIds.contains(r))
         .toList();
     final favoriteDishes =
         widget.allDishes.where((d) => favoriteDishIds.contains(d.id)).toList();
@@ -200,7 +200,7 @@ class _FavouritesPageState extends State<FavouritesPage>
   }
 
   Widget _buildRestaurantCard(
-    models.Restaurant restaurant, {
+    Restaurant restaurant, {
     String? bannerUrl,
     double? rating,
   }) {
@@ -231,7 +231,7 @@ class _FavouritesPageState extends State<FavouritesPage>
                 ),
         ),
         title: Text(
-          restaurant.name,
+          restaurant.restaurantName,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: rating != null
@@ -261,7 +261,7 @@ class _FavouritesPageState extends State<FavouritesPage>
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    RestaurantPage(restaurantId: restaurant.id),
+                    RestaurantPage(restaurant: restaurant),
               ),
             );
           },

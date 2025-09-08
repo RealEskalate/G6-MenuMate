@@ -108,13 +108,7 @@ class SearchResultsPopup extends StatelessWidget {
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),
                               child: NearbyRestaurantCard(
-                                imageUrl: restaurant.logoImage ?? '',
-                                name: restaurant.restaurantName,
-                                cuisine: restaurant.tags?.join(', ') ?? 'Restaurant',
-                                distance: 'Search result',
-                                rating: restaurant.averageRating,
-                                reviews: 0, // We don't have review count in the model
-                                onViewMenu: () => onRestaurantTap(restaurant),
+                                restaurant: restaurant,
                               ),
                             );
                           },

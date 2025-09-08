@@ -1,16 +1,16 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
+import '../../../restaurant_management/domain/entities/restaurant.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
+import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
-import '../../../restaurant_management/data/model/restaurant_model.dart';
-import '../../../restaurant_management/data/datasources/restaurant_remote_data_source.dart';
+import '../../domain/entities/menu.dart' as models;
 import '../widgets/bottom_navbar.dart';
 import '../widgets/nearby_restaurant_card.dart';
 import '../widgets/popular_dish_card.dart';
-import '../widgets/search_results_popup.dart';
-import '../../domain/entities/menu.dart' as models;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,12 +21,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchController = TextEditingController();
-  List<RestaurantModel> _searchResults = [];
   bool _isSearching = false;
-  String _currentSearchQuery = '';
-  Timer? _debounceTimer;
+  bool _searchInFlight = false;
+  List<Restaurant> _searchResults = [];
 
-  late final margheritaPizza = models.Item(
+  // demo items
+  late final models.Item margheritaPizza = models.Item(
     id: '1',
     name: 'Margherita Pizza',
     slug: 'margherita-pizza',
@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
     averageRating: 4.8,
   );
 
-  late final salmonSashimi = models.Item(
+  late final models.Item salmonSashimi = models.Item(
     id: '2',
     name: 'Salmon Sashimi',
     slug: 'salmon-sashimi',
@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
     averageRating: 4.6,
   );
 
-  late final cheeseburger = models.Item(
+  late final models.Item cheeseburger = models.Item(
     id: '3',
     name: 'Cheeseburger',
     slug: 'cheeseburger',
@@ -78,115 +78,12 @@ class _HomePageState extends State<HomePage> {
   );
 
   @override
-  void dispose() {
-    _searchController.dispose();
-    _debounceTimer?.cancel();
-    super.dispose();
-  }
-
-  void _onSearchChanged(String query) {
-    print('🔍 Search input changed: "$query"');
-
-    // Cancel previous timer
-    _debounceTimer?.cancel();
-
-    // Clear results if query is empty
-    if (query.trim().isEmpty) {
-      setState(() {
-        _searchResults = [];
-        _isSearching = false;
-        _currentSearchQuery = '';
-      });
-      return;
-    }
-
-    // Start new timer for debounced search
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      _performSearch(query.trim());
-    });
-  }
-
-  Future<void> _performSearch(String query) async {
-    print('🚀 Performing search for: "$query"');
-
-    setState(() {
-      _isSearching = true;
-      _currentSearchQuery = query;
-    });
-
-    try {
-      // TODO: Inject the datasource/repository properly
-      // For now, we'll use a direct HTTP call
-      print('🌐 Making API call to backend...');
-
-      // This should be replaced with proper dependency injection
-      // For debugging, we'll use a direct HTTP call
-      final results = await _searchRestaurantsFromBackend(query);
-
-      print('✅ Search completed. Found ${results.length} restaurants');
-
-      setState(() {
-        _searchResults = results;
-      });
-
-      if (results.isNotEmpty) {
-        _showSearchResults();
-      }
-
-    } catch (e) {
-      print('❌ Search failed: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Search failed: $e')),
-      );
-    } finally {
-      setState(() {
-        _isSearching = false;
-      });
-    }
-  }
-
-  Future<List<RestaurantModel>> _searchRestaurantsFromBackend(String query) async {
-    print('🔧 _searchRestaurantsFromBackend called with query: "$query"');
-
-    try {
-      // Get the injected datasource
-      final dataSource = GetIt.instance<RestaurantRemoteDataSource>();
-      print('📡 Using injected RestaurantRemoteDataSource');
-
-      // Call the search method
-      final results = await dataSource.searchRestaurants(
-        name: query,
-        page: 1,
-        pageSize: 10,
-      );
-
-      print('✅ Backend search completed. Found ${results.length} restaurants');
-      return results;
-
-    } catch (e) {
-      print('💥 Error in _searchRestaurantsFromBackend: $e');
-      throw e;
-    }
-  }
-
-  void _showSearchResults() {
-    showDialog(
-      context: context,
-      builder: (context) => SearchResultsPopup(
-        restaurants: _searchResults,
-        isLoading: false,
-        searchQuery: _currentSearchQuery,
-        onClose: () => Navigator.of(context).pop(),
-        onRestaurantTap: (restaurant) {
-          Navigator.of(context).pop(); // Close search popup
-          Navigator.pushNamed(
-            context,
-            AppRoute.restaurant,
-            arguments: {'restaurantId': restaurant.slug},
-          );
-        },
-      ),
-    );
+  void initState() {
+    super.initState();
+    // trigger initial load
+    context
+        .read<RestaurantBloc>()
+        .add(const LoadRestaurants(page: 1, pageSize: 20));
   }
 
   void _onTabSelected(BuildContext context, BottomNavTab tab) {
@@ -199,207 +96,172 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _onSearchChanged(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _isSearching = false;
+        _searchResults = [];
+      });
+      return;
+    }
+
+    setState(() {
+      _isSearching = true;
+      _searchInFlight = true;
+    });
+
+    // simulate async search (replace with real repository call)
+    await Future.delayed(const Duration(milliseconds: 800));
+    final blocState = context.read<RestaurantBloc>().state;
+    if (blocState is RestaurantsLoaded) {
+      _searchResults = blocState.restaurants
+          .where((r) =>
+              r.restaurantName.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
+
+    setState(() {
+      _searchInFlight = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final popularItems = [salmonSashimi, margheritaPizza, cheeseburger];
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            ListView(
-              padding: const EdgeInsets.fromLTRB(
-                16,
-                8,
-                16,
-                100,
-              ), // extra bottom padding
-              children: [
-                // Logo
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/images/brand.png', // Make sure this exists!
-                      height: 38,
-                      errorBuilder: (_, __, ___) => const FlutterLogo(size: 38),
+            // Header & Search
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  Image.asset(
+                    'assets/images/brand.png',
+                    height: 38,
+                    errorBuilder: (_, __, ___) => const FlutterLogo(size: 38),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          icon: Icon(Icons.search, color: Colors.grey),
+                          hintText: 'Search by restaurant or dish',
+                          hintStyle: TextStyle(color: Colors.grey),
+                        ),
+                        onChanged: _onSearchChanged,
+                      ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
+            ),
 
-                const SizedBox(height: 18),
-                // Search Bar
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 4,
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      border: InputBorder.none,
-                      icon: const Icon(Icons.search, color: Colors.grey),
-                      hintText: 'Search by restaurant or dish',
-                      hintStyle: const TextStyle(color: Colors.grey),
-                      suffixIcon: _isSearching
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear, color: Colors.grey),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    _onSearchChanged('');
-                                  },
-                                )
-                              : null,
-                    ),
-                    onChanged: _onSearchChanged,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Nearby Restaurants
-                const Text(
-                  'Nearby Restaurants',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                ),
-                const SizedBox(height: 12),
-                NearbyRestaurantCard(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
-                  name: 'Bella Italia',
-                  cuisine: 'Italian',
-                  distance: '0.5 km away',
-                  rating: 4.8,
-                  reviews: 120,
-                  onViewMenu: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRoute.restaurant,
-                      arguments: {'restaurantId': 'bella-italia'},
-                    );
-                  },
-                ),
-                NearbyRestaurantCard(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
-                  name: 'Sakura Sushi',
-                  cuisine: 'Japanese',
-                  distance: '0.8 km away',
-                  rating: 4.6,
-                  reviews: 89,
-                  onViewMenu: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRoute.restaurant,
-                      arguments: {'restaurantId': 'sakura-sushi'},
-                    );
-                  },
-                ),
-                NearbyRestaurantCard(
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
-                  name: 'Burger Haven',
-                  cuisine: 'American',
-                  distance: '1.2 km away',
-                  rating: 4.5,
-                  reviews: 156,
-                  onViewMenu: () {
-                    Navigator.pushNamed(
-                      context,
-                      AppRoute.restaurant,
-                      arguments: {'restaurantId': 'burger-haven'},
-                    );
-                  },
-                ),
-                const SizedBox(height: 28),
-                // Popular Dishes
-                const Text(
-                  'Popular Dishes',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 220,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
+            // Restaurants + Popular dishes
+            Expanded(
+              child: BlocBuilder<RestaurantBloc, RestaurantState>(
+                builder: (context, state) {
+                  if (state is RestaurantInitial ||
+                      state is RestaurantLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (state is RestaurantsLoaded) {
+                    final restaurantsToShow =
+                        _isSearching ? _searchResults : state.restaurants;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(width: 4),
-                        PopularDishCard(
-                          rating: 4,
-                          imageUrl: margheritaPizza.images![0],
-                          name: margheritaPizza.name,
-                          restaurant: 'Bella Italia',
-                          price: '\$18.99',
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoute.itemDetail,
-                              arguments: {'item': margheritaPizza},
-                            );
-                          },
+                        // Restaurants section
+                        const Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: Text(
+                            'Nearby Restaurants',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 17),
+                          ),
                         ),
-                        PopularDishCard(
-                          rating: 4,
-                          imageUrl: salmonSashimi.images![0],
-                          name: salmonSashimi.name,
-                          restaurant: 'Sakura Sushi',
-                          price: '\$24.99',
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoute.itemDetail,
-                              arguments: {'item': salmonSashimi},
-                            );
-                          },
+                        Expanded(
+                          flex: 3,
+                          child: _searchInFlight
+                              ? const Center(child: CircularProgressIndicator())
+                              : restaurantsToShow.isEmpty
+                                  ? Center(
+                                      child: Text(_isSearching
+                                          ? 'No results for "${_searchController.text}"'
+                                          : 'No restaurants available'),
+                                    )
+                                  : ListView.builder(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                      itemCount: restaurantsToShow.length,
+                                      itemBuilder: (context, index) {
+                                        final r = restaurantsToShow[index];
+                                        return NearbyRestaurantCard(
+                                            restaurant: r);
+                                      },
+                                    ),
                         ),
-                        PopularDishCard(
-                          rating: 4,
-                          imageUrl: cheeseburger.images![0],
-                          name: cheeseburger.name,
-                          restaurant: 'Burger Haven',
-                          price: '\$15.99',
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoute.itemDetail,
-                              arguments: {'item': cheeseburger},
-                            );
-                          },
+
+                        // Popular Dishes section
+                        const Padding(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          child: Text(
+                            'Popular Dishes',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 17),
+                          ),
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+
+                            scrollDirection: Axis.horizontal,
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: popularItems.length,
+                            itemBuilder: (context, index) {
+                              final item = popularItems[index];
+                              return PopularDishCard(
+                                item: item,
+                                onTap: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoute.itemDetail,
+                                  arguments: {'item': item},
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 80),
-              ],
-            ),
-            // Floating QR Button
-            Positioned(
-              bottom: 50,
-              right: 24,
-              child: FloatingActionButton(
-                backgroundColor: AppColors.primaryColor,
-                onPressed: () {
-                  // TODO: Implement QR scan
-                  Navigator.pushNamed(context, AppRoute.qrcode);
+                    );
+                  }
+
+                  return const Center(
+                      child: Text('Failed to load restaurants'));
                 },
-                child: const Icon(
-                  Icons.qr_code_scanner,
-                  size: 32,
-                  color: Colors.white,
-                ),
               ),
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primaryColor,
+        onPressed: () => Navigator.pushNamed(context, AppRoute.qrcode),
+        child: const Icon(Icons.qr_code_scanner, size: 32, color: Colors.white),
       ),
       bottomNavigationBar: const OwnerNavBar(
         isRestaurantOwner: true,
@@ -407,6 +269,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
 }
-

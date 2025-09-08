@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/dinq/auth/presentation/Pages/login_page.dart';
 import '../../features/dinq/auth/presentation/Pages/onboarding_first.dart';
 import '../../features/dinq/qr_scanner/pages/qr_scanner_page.dart';
+import '../../features/dinq/restaurant_management/domain/entities/restaurant.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/analytics_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/billing_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/branding_preferences_page.dart';
@@ -83,10 +84,8 @@ class AppRoute {
         final item = args['item'];
         return MaterialPageRoute(builder: (_) => ItemDetailsPage(item: item));
       case restaurant:
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
-        final restaurantId = args['restaurantId'] as String? ?? '';
         return MaterialPageRoute(
-          builder: (_) => RestaurantPage(restaurantId: restaurantId),
+          builder: (_) => RestaurantPage(restaurant: settings.arguments! as Restaurant),
         );
       case scannedMenu:
         final args = settings.arguments as Map<String, dynamic>? ?? {};

@@ -1,20 +1,17 @@
-import '../../domain/entities/Restaurant.dart' as models;
-import '../widgets/bottom_navbar.dart';
 import 'package:flutter/material.dart';
+
 import '../../../../../core/util/theme.dart';
+import '../../../restaurant_management/domain/entities/restaurant.dart';
+import '../../../restaurant_management/domain/entities/restaurant.dart' as models;
 import '../../../search/domain/entities/menu.dart' as models;
 import '../../../search/domain/usecases/get_menu.dart';
+import '../widgets/bottom_navbar.dart';
 import 'item_details_page.dart';
 
-class _FavoritesStore {
-  static final Set<String> restaurantIds = <String>{};
-  static final Set<String> dishIds = <String>{};
-}
-
 class RestaurantPage extends StatefulWidget {
-  final String restaurantId;
+  final Restaurant restaurant;
 
-  const RestaurantPage({super.key, required this.restaurantId});
+  const RestaurantPage({super.key, required this.restaurant});
 
   @override
   State<RestaurantPage> createState() => _RestaurantPageState();
@@ -25,19 +22,7 @@ class _RestaurantPageState extends State<RestaurantPage>
   late TabController _tabController;
   final GetMenuUseCase _getMenuUseCase = GetMenuUseCase();
   models.Menu? _menu;
-  bool _isLoading = true;
-  static final Set<String> _favoriteRestaurantIds = {}; // For UI only
-
-
-  void _toggleFavorite() {
-    setState(() {
-      if (_FavoritesStore.restaurantIds.contains(widget.restaurantId)) {
-        _FavoritesStore.restaurantIds.remove(widget.restaurantId);
-      } else {
-        _FavoritesStore.restaurantIds.add(widget.restaurantId);
-      }
-    });
-  }
+  bool _isLoading = true; // For UI only
 
   void _onTabSelected(BottomNavTab tab) {
     if (tab == BottomNavTab.explore) {
@@ -46,7 +31,6 @@ class _RestaurantPageState extends State<RestaurantPage>
       Navigator.pushReplacementNamed(
         context,
         '/favorites',
-        arguments: {'allRestaurants': allRestaurants, 'allDishes': allDishes},
       );
     } else if (tab == BottomNavTab.profile) {
       Navigator.pushReplacementNamed(context, '/profile');
@@ -61,7 +45,7 @@ class _RestaurantPageState extends State<RestaurantPage>
 
   Future<void> _loadMenu() async {
     try {
-      final menuResult = await _getMenuUseCase.execute(widget.restaurantId);
+      final menuResult = await _getMenuUseCase.execute(widget.restaurant.slug);
       menuResult.fold(
         (failure) {
           setState(() {
@@ -73,7 +57,6 @@ class _RestaurantPageState extends State<RestaurantPage>
           setState(() {
             _menu = menuData;
             _isLoading = false;
-            _tabController = TabController(length: menuData.tabs.length, vsync: this);
           });
         },
       );
@@ -85,27 +68,7 @@ class _RestaurantPageState extends State<RestaurantPage>
     }
   }
 
-  List<models.Restaurant> get allRestaurants => [
-    // When creating a Restaurant for UI display:
-    models.Restaurant(
-      id: widget.restaurantId,
-      name: 'Bella Italia',
-      bannerUrl:
-          'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80',
-      verificationStatus:
-          models.VerificationStatus.verified, // required, pick any
-      contact: models.Contact(
-        phone: '',
-        email: '',
-        social: [],
-      ), // required, dummy
-      ownerId: '',
-      branchIds: [],
-      averageRating: 4.8,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ),
-  ];
+
 
   List<models.Item> get allDishes {
     if (_menu == null) return [];
@@ -338,7 +301,7 @@ class _RestaurantPageState extends State<RestaurantPage>
                 const Text('(142 reviews)'),
                 const Spacer(),
                 OutlinedButton.icon(
-                  onPressed: _toggleFavorite,
+                  onPressed: (){},
                   icon: const Icon(Icons.bookmark_border),
                   label: const Text('Save'),
                   style: OutlinedButton.styleFrom(
