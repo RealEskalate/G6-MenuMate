@@ -144,15 +144,16 @@ func (r *MenuRepository) Update(ctx context.Context, id string, menu *domain.Men
 		"updatedAt": time.Now().UTC(),
 		"updatedBy": menu.UpdatedBy,
 	}
+	if menu.RestaurantID != "" {
+		setFields["restaurantId"] = menu.RestaurantID
+	}
 	if menu.Name != "" { // update name if provided
 		setFields["name"] = menu.Name
 	}
-	// Publish state
-	if menu.IsPublished {
-		setFields["isPublished"] = true
-		if !menu.PublishedAt.IsZero() {
-			setFields["publishedAt"] = menu.PublishedAt
-		}
+	// Publish state - always set isPublished
+	setFields["isPublished"] = menu.IsPublished
+	if menu.IsPublished && !menu.PublishedAt.IsZero() {
+		setFields["publishedAt"] = menu.PublishedAt
 	}
 
 	// If items slice provided, map to DB representations (regenerating slugs left to upstream if desired)
@@ -189,30 +190,64 @@ func (r *MenuRepository) IncrementViewCount(ctx context.Context, id string) erro
 func (r *MenuRepository) GetByRestaurantID(ctx context.Context, restaurantID string) ([]*domain.Menu, error) {
 	var dbMenus []mapper.MenuDB
 
-	filter := bson.M{
-		"restaurantId": restaurantID,
-		"isDeleted":    false,
-		"items": bson.M{
-			"$elemMatch": bson.M{
-				"isDeleted": false,
-			},
-		},
+	// Try to parse as ObjectID first
+	_, err := bson.ObjectIDFromHex(restaurantID)
+	
+	if err == nil {
+		// If it's a valid ObjectID, query by restaurantId
+		filter := bson.M{
+			"restaurantId": restaurantID,
+			"isDeleted": false,
+		}
+		
+		cursor, err := r.database.Collection(r.coll).Find(ctx, filter)
+		if err != nil {
+			return nil, err
+		}
+		defer cursor.Close(ctx)
+		for cursor.Next(ctx) {
+			var dbMenu mapper.MenuDB
+			if err := cursor.Decode(&dbMenu); err != nil {
+				return nil, err
+			}
+			dbMenus = append(dbMenus, dbMenu)
+		}
+		if err := cursor.Err(); err != nil {
+			return nil, err
+		}
 	}
-	cursor, err := r.database.Collection(r.coll).Find(ctx, filter)
+	
+	// Also try querying by RestaurantSlug (for backward compatibility)
+	filter2 := bson.M{
+		"RestaurantSlug": restaurantID,
+		"isDeleted": false,
+	}
+	cursor2, err := r.database.Collection(r.coll).Find(ctx, filter2)
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
-	for cursor.Next(ctx) {
+	defer cursor2.Close(ctx)
+	for cursor2.Next(ctx) {
 		var dbMenu mapper.MenuDB
-		if err := cursor.Decode(&dbMenu); err != nil {
+		if err := cursor2.Decode(&dbMenu); err != nil {
 			return nil, err
 		}
-		dbMenus = append(dbMenus, dbMenu)
+		// Avoid duplicates
+		duplicate := false
+		for _, existing := range dbMenus {
+			if existing.ID == dbMenu.ID {
+				duplicate = true
+				break
+			}
+		}
+		if !duplicate {
+			dbMenus = append(dbMenus, dbMenu)
+		}
 	}
-	if err := cursor.Err(); err != nil {
+	if err := cursor2.Err(); err != nil {
 		return nil, err
 	}
+	
 	menus := make([]*domain.Menu, len(dbMenus))
 	for i, dbMenu := range dbMenus {
 		menus[i] = mapper.ToDomainMenu(&dbMenu)
