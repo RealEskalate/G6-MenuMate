@@ -47,6 +47,13 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 		return
 	}
 
+	// Get restaurant to get the ObjectID
+	rest, err := h.RestaurantUseCase.GetRestaurantBySlug(c.Request.Context(), slug)
+	if err != nil || rest == nil {
+		dto.WriteError(c, domain.ErrRestaurantNotFound)
+		return
+	}
+
 	var menuDto dto.MenuRequest
 	contentType := c.ContentType()
 	if strings.HasPrefix(contentType, "multipart/form-data") {
@@ -98,6 +105,7 @@ func (h *MenuHandler) CreateMenu(c *gin.Context) {
 		return
 	}
 	menu := dto.RequestToMenu(&menuDto)
+	menu.RestaurantID = rest.ID // Set the restaurant ObjectID
 	menu.CreatedBy = userId
 	menu.UpdatedBy = userId // attribute creator
 	if err := h.UseCase.CreateMenu(menu); err != nil {
@@ -156,11 +164,19 @@ func (h *MenuHandler) UpdateMenu(c *gin.Context) {
 		return
 	}
 
+	// Get restaurant to get the ObjectID
+	rest, err := h.RestaurantUseCase.GetRestaurantBySlug(c.Request.Context(), slug)
+	if err != nil || rest == nil {
+		dto.WriteError(c, domain.ErrRestaurantNotFound)
+		return
+	}
+
 	var menuDto dto.MenuRequest
 	if err := c.ShouldBindJSON(&menuDto); err != nil {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidRequest.Error(), "invalid_request", err)
 		return
 	}
+	menuDto.RestaurantID = rest.ID
 	menuDto.RestaurantSlug = slug
 	if menuDto.Name == "" && len(menuDto.Items) == 0 && len(menuDto.MenuItems) == 0 {
 		dto.WriteValidationError(c, "payload", "nothing to update", "invalid_request", nil)
@@ -328,6 +344,11 @@ func (h *MenuHandler) GetMenuItemBySlug(c *gin.Context) {
 // PublicGetPublishedMenus lists published menus for a restaurant (by slug) without auth.
 func (h *MenuHandler) PublicGetPublishedMenus(c *gin.Context) {
 	restSlug := c.Param("restaurant_slug")
+	rest, err := h.RestaurantUseCase.GetRestaurantBySlug(c.Request.Context(), restSlug)
+	if err != nil || rest == nil {
+		dto.WriteError(c, domain.ErrRestaurantNotFound)
+		return
+	}
 	menus, err := h.UseCase.GetByRestaurantID(restSlug)
 	if err != nil || len(menus) == 0 {
 		dto.WriteError(c, domain.ErrNotFound)
