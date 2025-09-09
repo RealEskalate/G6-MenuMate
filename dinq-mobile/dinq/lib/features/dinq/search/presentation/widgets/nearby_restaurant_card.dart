@@ -18,15 +18,20 @@ class NearbyRestaurantCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       child: ListTile(
-        minLeadingWidth: 0,
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            restaurant.logoImage ??
-                'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
-            width: 56,
-            height: 56,
-            fit: BoxFit.cover,
+        minLeadingWidth: 56,
+        leading: SizedBox(
+          width: 56,
+          height: 56,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              restaurant.logoImage ??
+                  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&q=80',
+              width: 56,
+              height: 56,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Icon(Icons.image_not_supported),
+            ),
           ),
         ),
         title: Text(restaurant.restaurantName,

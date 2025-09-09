@@ -14,7 +14,6 @@ class PopularDishCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: 140,
-        height: 200, // 🔥 Fixed height for consistency
         margin: const EdgeInsets.only(right: 14),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -30,68 +29,81 @@ class PopularDishCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(14),
-                topRight: Radius.circular(14),
-              ),
-              child: Image.network(
-                item.images?[0] ?? '',
-                height: 100, // 🔥 Fixed image height
-                width: 140,
-                fit: BoxFit.cover,
+            Expanded(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(14),
+                  topRight: Radius.circular(14),
+                ),
+                child: Image.network(
+                  width: double.infinity,
+                  item.images?[0] ?? '',
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.restaurant,
+                        color: Colors.grey,
+                        size: 40,
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      item.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ), // Allow 2 lines for longer names
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-              Text(
-                item.tabTags?.join(', ') ?? '',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '${item.price}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryColor,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.star,
-                              color: Colors.orange, size: 15),
-                          const SizedBox(width: 2),
-                          Text(
-                            '${item.averageRating}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                              color: Colors.black87,
-                            ),
+                    Text(
+                      item.tabTags?.join(', ') ?? '',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '${item.price}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryColor,
+                            fontSize: 14,
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+                        ),
+                        Row(
+                          children: [
+                            const Icon(Icons.star,
+                                color: Colors.orange, size: 15),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${item.averageRating}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

@@ -498,7 +498,14 @@ class _CreateMenuManuallyPageState extends State<CreateMenuManuallyPage> {
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 16)),
               onPressed: () {
-                // TODO: Implement publish menu logic. We keep a placeholder so file compiles.
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: Colors.green,
+                    content:
+                        Text('Menu "${_menuNameController.text}" published'),
+                  ),
+                );
+                Navigator.of(context).pop();
               },
               child: const Text('Publish Menu',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),

@@ -236,7 +236,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         Expanded(
-                          flex: 3,
+                          flex: 6,
                           child: _searchInFlight
                               ? const Center(child: CircularProgressIndicator())
                               : restaurantsToShow.isEmpty
@@ -268,8 +268,8 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                         Expanded(
+                          flex: 4,
                           child: ListView.builder(
-
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             itemCount: popularItems.length,
@@ -290,8 +290,16 @@ class _HomePageState extends State<HomePage> {
                     );
                   }
 
-                  return const Center(
-                      child: Text('Failed to load restaurants'));
+                  return Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        context
+                            .read<RestaurantBloc>()
+                            .add(const LoadRestaurants(page: 1, pageSize: 20));
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  );
                 },
               ),
             ),

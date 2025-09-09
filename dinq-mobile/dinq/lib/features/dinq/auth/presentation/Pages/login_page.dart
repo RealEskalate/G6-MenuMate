@@ -198,9 +198,7 @@ class _LoginPageState extends State<LoginPage>
             ),
           );
           // Navigate to main shell after successful login
-          Future.delayed(const Duration(milliseconds: 800), () {
-            Navigator.pushReplacementNamed(context, AppRoute.mainShell);
-          });
+          Navigator.pushReplacementNamed(context, AppRoute.mainShell);
         } else if (state is UserError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

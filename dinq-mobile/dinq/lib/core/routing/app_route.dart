@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../features/dinq/auth/presentation/Pages/login_page.dart';
 import '../../features/dinq/auth/presentation/Pages/onboarding_first.dart';
 import '../../features/dinq/qr_scanner/pages/qr_scanner_page.dart';
 import '../../features/dinq/restaurant_management/domain/entities/restaurant.dart';
-import '../../features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/analytics_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/billing_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/branding_preferences_page.dart';
@@ -87,10 +85,7 @@ class AppRoute {
         return MaterialPageRoute(builder: (_) => ItemDetailsPage(item: item));
       case restaurant:
         return MaterialPageRoute(
-          builder: (context) => BlocProvider.value(
-            value: BlocProvider.of<RestaurantBloc>(context),
-            child: RestaurantPage(restaurantSlug: settings.arguments as String),
-          ),
+          builder: (_) => RestaurantPage(restaurantSlug: settings.arguments as String),
         );
       // case scannedMenu:
       //   final args = settings.arguments as Map<String, dynamic>? ?? {};

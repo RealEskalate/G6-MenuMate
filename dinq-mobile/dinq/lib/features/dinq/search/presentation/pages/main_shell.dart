@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/routing/app_route.dart';
-import '../../../../../injection_container.dart' as di;
 import '../../../auth/presentation/bloc/user_bloc.dart';
 import '../../../auth/presentation/bloc/user_state.dart';
 import '../../../restaurant_management/domain/entities/item.dart';
@@ -38,6 +37,20 @@ class _MainShellState extends State<MainShell> {
       const ProfilePage(showOwnerNavBar: false),
     ];
     // MenusPage (owner tab) will be appended dynamically if needed
+    // Initialize owner tab visibility based on current user state
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = BlocProvider.of<UserBloc>(context).state;
+      if (state is UserLoggedIn) {
+        setState(
+            () => _showOwnerTab = state.user.role.toLowerCase() == 'owner');
+      } else if (state is UserRegistered) {
+        setState(
+            () => _showOwnerTab = state.user.role.toLowerCase() == 'owner');
+      } else if (state is AuthChecked && state.user != null) {
+        setState(
+            () => _showOwnerTab = state.user!.role.toLowerCase() == 'owner');
+      }
+    });
   }
 
   void _onTabSelected(BottomNavTab tab) {
@@ -57,25 +70,32 @@ class _MainShellState extends State<MainShell> {
       if (pages.length > 3) pages.removeLast();
     }
 
-    return BlocProvider.value(
-      value: di.sl<UserBloc>(),
-      child: BlocListener<UserBloc, UserState>(
-        listener: (context, state) {
-          if (state is UserLoggedOut) {
-            // Redirect to login when user logs out
-            Navigator.pushReplacementNamed(context, AppRoute.login);
-          }
-        },
-        child: Scaffold(
-          body: IndexedStack(
-            index: selectedIndex,
-            children: pages,
-          ),
-          bottomNavigationBar: BottomNavBar(
-            selectedTab: _selected,
-            onTabSelected: _onTabSelected,
-            showOwnerTab: _showOwnerTab,
-          ),
+    return BlocListener<UserBloc, UserState>(
+      listener: (context, state) {
+        if (state is UserLoggedIn) {
+          setState(
+              () => _showOwnerTab = state.user.role.toLowerCase() == 'owner');
+        } else if (state is UserRegistered) {
+          setState(
+              () => _showOwnerTab = state.user.role.toLowerCase() == 'owner');
+        } else if (state is UserLoggedOut) {
+          setState(() => _showOwnerTab = false);
+          // Redirect to home when user logs out
+          Navigator.pushReplacementNamed(context, AppRoute.home);
+        } else if (state is AuthChecked) {
+          setState(() => _showOwnerTab =
+              state.user != null && state.user!.role.toLowerCase() == 'owner');
+        }
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: selectedIndex,
+          children: pages,
+        ),
+        bottomNavigationBar: BottomNavBar(
+          selectedTab: _selected,
+          onTabSelected: _onTabSelected,
+          showOwnerTab: _showOwnerTab,
         ),
       ),
     );

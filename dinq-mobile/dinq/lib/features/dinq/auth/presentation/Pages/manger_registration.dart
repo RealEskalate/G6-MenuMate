@@ -175,7 +175,6 @@ class _MangerRegistrationState extends State<MangerRegistration>
               duration: Duration(seconds: 3),
             ),
           );
-          Future.delayed(const Duration(seconds: 3), () {
             Navigator.push(
               context,
               PageRouteBuilder(
@@ -194,7 +193,6 @@ class _MangerRegistrationState extends State<MangerRegistration>
                 transitionDuration: const Duration(milliseconds: 400),
               ),
             );
-          });
         } else if (state is UserError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
