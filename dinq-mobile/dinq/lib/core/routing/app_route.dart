@@ -1,33 +1,40 @@
 import 'package:flutter/material.dart';
 
-import '../../features/dinq/auth/presentation/Pages/login_page.dart';
-import '../../features/dinq/auth/presentation/Pages/onboarding_first.dart';
-import '../../features/dinq/qr_scanner/pages/qr_scanner_page.dart';
-import '../../features/dinq/restaurant_management/domain/entities/restaurant.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/analytics_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/billing_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/branding_preferences_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/create_menu_manually_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/digitize_menu_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/edit_menu_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/edit_single_menu_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/generated_qr_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/legal_info_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/menus_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/qr_customization_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/restaurant_details_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/restaurant_profile_page.dart';
-import '../../features/dinq/restaurant_management/presentation/pages/settings_page.dart';
-import '../../features/dinq/search/presentation/pages/favourites_page.dart';
-import '../../features/dinq/search/presentation/pages/home_page.dart';
-import '../../features/dinq/search/presentation/pages/item_details_page.dart';
-import '../../features/dinq/search/presentation/pages/main_shell.dart';
-import '../../features/dinq/search/presentation/pages/profile_page.dart';
-import '../../features/dinq/search/presentation/pages/restaurant_page.dart';
+import '../../features/auth/presentation/Pages/login_page.dart';
+import '../../features/auth/presentation/Pages/manger_registration.dart';
+import '../../features/auth/presentation/Pages/onboarding_first.dart';
+import '../../features/auth/presentation/Pages/onboarding_second.dart';
+import '../../features/auth/presentation/Pages/onboarding_third.dart';
+import '../../features/auth/presentation/Pages/resturant_data.dart';
+import '../../features/auth/presentation/Pages/resturant_registration.dart';
+import '../../features/auth/presentation/Pages/user_register.dart';
+import '../../features/qr_scanner/pages/qr_scanner_page.dart';
+import '../../features/restaurant_management/domain/entities/restaurant.dart';
+import '../../features/restaurant_management/presentation/pages/analytics_page.dart';
+import '../../features/restaurant_management/presentation/pages/billing_page.dart';
+import '../../features/restaurant_management/presentation/pages/branding_preferences_page.dart';
+import '../../features/restaurant_management/presentation/pages/create_menu_manually_page.dart';
+import '../../features/restaurant_management/presentation/pages/digitize_menu_page.dart';
+import '../../features/restaurant_management/presentation/pages/edit_menu_page.dart';
+import '../../features/restaurant_management/presentation/pages/edit_single_menu_page.dart';
+import '../../features/restaurant_management/presentation/pages/generated_qr_page.dart';
+import '../../features/restaurant_management/presentation/pages/legal_info_page.dart';
+import '../../features/restaurant_management/presentation/pages/qr_customization_page.dart';
+import '../../features/restaurant_management/presentation/pages/restaurant_details_page.dart';
+import '../../features/restaurant_management/presentation/pages/restaurant_profile_page.dart';
+import '../../features/presentation/pages/main_shell.dart';
 
 class AppRoute {
+  // Auth routes
+  static const String onboardingFirst = '/onboarding_first';
+  static const String onboardingSecond = '/onboarding_second';
+  static const String onboardingThird = '/onboarding_third';
+  static const String userRegister = '/user_register';
+  static const String managerRegister = '/manager_register';
+  static const String restaurantRegister = '/restaurant_register';
+  static const String restaurantData = '/restaurant_Data';
+
   // Search routes
-  static const String onboarding = '/onboarding';
   static const String explore = '/explore';
   static const String favorites = '/favorites';
   static const String home = '/home';
@@ -64,35 +71,76 @@ class AppRoute {
     switch (settings.name) {
       case login:
         return MaterialPageRoute(builder: (_) => const LoginPage());
-      case onboarding:
+      case onboardingFirst:
         return MaterialPageRoute(builder: (_) => const OnboardingFirst());
-      case mainShell:
-        return MaterialPageRoute(builder: (_) => const MainShell());
-      case explore:
-        return MaterialPageRoute(builder: (_) => const HomePage());
-      case favorites:
+      case onboardingSecond:
+        return MaterialPageRoute(builder: (_) => const OnboardingSecond());
+      case onboardingThird:
+        return MaterialPageRoute(builder: (_) => const OnboardingThird());
+      case userRegister:
+        return MaterialPageRoute(builder: (_) => const UserRegister());
+      case managerRegister:
+        return MaterialPageRoute(builder: (_) => const ManagerRegistration());
+      case restaurantRegister:
         return MaterialPageRoute(
-          builder: (_) => const FavouritesPage(
-            allRestaurants: [], // Pass your data here
-            allDishes: [],
+            builder: (_) => const RestaurantRegistration());
+
+      case restaurantData:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+            builder: (_) => RestaurantData(
+                  name: args['name'],
+                  phoneNumber: args['phoneNumber'],
+                  document: args['document'],
+                ));
+      case mainShell:
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        return MaterialPageRoute(
+          builder: (_) => MainShell(
+            restaurantId: args['restaurantId'],
+            initialIndex: args['initialIndex'] ?? 0,
           ),
         );
-      case home:
-        return MaterialPageRoute(builder: (_) => const HomePage());
-      case itemDetail:
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
-        final item = args['item'];
-        return MaterialPageRoute(builder: (_) => ItemDetailsPage(item: item));
-      case restaurant:
+      case explore:
         return MaterialPageRoute(
-          builder: (_) => RestaurantPage(restaurantSlug: settings.arguments as String),
+          builder: (_) => const MainShell(
+            initialIndex: 0,
+          ),
         );
-      // case scannedMenu:
-      //   final args = settings.arguments as Map<String, dynamic>? ?? {};
-      //   final slug = args['slug'] as String? ?? 'default-menu';
-      //   return MaterialPageRoute(builder: (_) => ScannedMenuPage(slug: slug));
+      case favorites:
+        return MaterialPageRoute(
+          builder: (_) => const MainShell(
+            initialIndex: 1,
+          ),
+        );
       case profile:
-        return MaterialPageRoute(builder: (_) => const ProfilePage());
+        return MaterialPageRoute(
+          builder: (_) => const MainShell(
+            initialIndex: 2,
+          ),
+        );
+      case analytics:
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        return MaterialPageRoute(
+          builder: (_) => MainShell(
+            initialIndex: 2,
+            restaurantId: args['restaurantId'],
+          ),
+        );
+      case menus:
+        final args = settings.arguments as Map<String, dynamic>? ?? {};
+        return MaterialPageRoute(
+          builder: (_) => MainShell(
+            initialIndex: 3,
+            restaurantId: args['restaurantId'],
+          ),
+        );
+      case setting:
+        return MaterialPageRoute(
+          builder: (_) => const MainShell(
+            initialIndex: 4,
+          ),
+        );
 
       // Restaurant management routes
       case restaurantProfile:
@@ -110,18 +158,8 @@ class AppRoute {
         return MaterialPageRoute(builder: (_) => const BillingPage());
       case qrcode:
         return MaterialPageRoute(builder: (_) => const QrScannerPage());
-      case setting:
-        return MaterialPageRoute(builder: (_) => const SettingsPage());
 
       // Menu management routes
-      case menus:
-        final args = settings.arguments as Map<String, dynamic>?;
-        final restaurantSlug = args?['restaurantId'] ?? '';
-        return MaterialPageRoute(
-          builder: (_) => MenusPage(restaurantSlug: restaurantSlug),
-        );
-      // QrCustomizationPage
-
       case editMenu:
         return MaterialPageRoute(builder: (_) => const EditMenuPage());
       case qrcustomization:
@@ -129,7 +167,8 @@ class AppRoute {
         return MaterialPageRoute(
           builder: (_) => QrCustomizationPage(
             menuId: args?['menuId'],
-            restaurantSlug: args?['restaurantSlug'] ?? 'the-italian-corner-4b144298',
+            restaurantSlug:
+                args?['restaurantSlug'] ?? 'the-italian-corner-4b144298',
           ),
         );
       case editSingleMenu:
@@ -168,8 +207,6 @@ class AppRoute {
           builder: (_) =>
               GeneratedQrPage(qrImagePath: args?['qrImagePath'] ?? ''),
         );
-      case analytics:
-        return MaterialPageRoute(builder: (_) => const AnalyticsPage());
       case digitizeMenu:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(

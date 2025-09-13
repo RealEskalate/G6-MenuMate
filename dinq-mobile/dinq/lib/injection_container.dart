@@ -9,53 +9,58 @@ import 'core/network/api_endpoints.dart';
 import 'core/network/auth_interceptor.dart';
 import 'core/network/network_info.dart';
 import 'core/network/token_manager.dart';
-import 'features/dinq/auth/data/datasources/user_local_data_source.dart';
-import 'features/dinq/auth/data/datasources/user_local_data_source_impl.dart';
-import 'features/dinq/auth/data/datasources/user_remote_data_source.dart';
-import 'features/dinq/auth/data/datasources/user_remote_data_source_impl.dart';
-import 'features/dinq/auth/data/repositories/user_repository_impl.dart';
-import 'features/dinq/auth/domain/repositories/user_repository.dart';
-import 'features/dinq/auth/domain/usecases/user/change_password_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/forgot_password_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/get_google_redirect_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/handle_google_callback_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/login_user_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/logout_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/register_user_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/resend_otp_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/reset_password_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/update_profile_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/verify_email_usecase.dart';
-import 'features/dinq/auth/domain/usecases/user/verify_otp_usecase.dart';
-import 'features/dinq/auth/presentation/bloc/user_bloc.dart';
-import 'features/dinq/restaurant_management/data/datasources/menu/menu_remote_data_source.dart';
-import 'features/dinq/restaurant_management/data/datasources/menu/menu_remote_data_source_impl.dart';
-import 'features/dinq/restaurant_management/data/datasources/restaurant/restaurant_remote_data_source_restaurant.dart';
-import 'features/dinq/restaurant_management/data/datasources/restaurant/restaurant_remote_data_source_restaurant_impl.dart';
-import 'features/dinq/restaurant_management/data/datasources/review/review_remote_data_source.dart';
-import 'features/dinq/restaurant_management/data/datasources/review/review_remote_data_source_impl.dart';
-import 'features/dinq/restaurant_management/data/repositories/menu_repository_impl.dart';
-import 'features/dinq/restaurant_management/data/repositories/restaurant_repository_impl.dart';
-import 'features/dinq/restaurant_management/data/repositories/review_repository_impl.dart';
-import 'features/dinq/restaurant_management/domain/repositories/menu_repository.dart';
-import 'features/dinq/restaurant_management/domain/repositories/restaurant_repository.dart';
-import 'features/dinq/restaurant_management/domain/repositories/review_repository.dart';
-import 'features/dinq/restaurant_management/domain/usecases/menu/create_menu.dart';
-import 'features/dinq/restaurant_management/domain/usecases/menu/delete_menu.dart';
-import 'features/dinq/restaurant_management/domain/usecases/menu/generate_menu_qr.dart';
-import 'features/dinq/restaurant_management/domain/usecases/menu/get_menu.dart';
-import 'features/dinq/restaurant_management/domain/usecases/menu/publish_menu.dart';
-import 'features/dinq/restaurant_management/domain/usecases/menu/update_menu.dart';
-import 'features/dinq/restaurant_management/domain/usecases/menu/upload_menu.dart';
-import 'features/dinq/restaurant_management/domain/usecases/restaurant/create_restaurant.dart';
-import 'features/dinq/restaurant_management/domain/usecases/restaurant/delete_restaurant.dart';
-import 'features/dinq/restaurant_management/domain/usecases/restaurant/get_restaurant_by_slug.dart';
-import 'features/dinq/restaurant_management/domain/usecases/restaurant/get_restaurants.dart';
-import 'features/dinq/restaurant_management/domain/usecases/restaurant/update_restaurant.dart';
-import 'features/dinq/restaurant_management/domain/usecases/review/delete_review.dart';
-import 'features/dinq/restaurant_management/domain/usecases/review/get_reviews.dart';
-import 'features/dinq/restaurant_management/domain/usecases/review/get_user_images.dart';
-import 'features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import 'features/auth/data/datasources/user_local_data_source.dart';
+import 'features/auth/data/datasources/user_local_data_source_impl.dart';
+import 'features/auth/data/datasources/user_remote_data_source.dart';
+import 'features/auth/data/datasources/user_remote_data_source_impl.dart';
+import 'features/auth/data/repositories/user_repository_impl.dart';
+import 'features/auth/domain/repositories/user_repository.dart';
+import 'features/auth/domain/usecases/change_password_usecase.dart';
+import 'features/auth/domain/usecases/clear_favorites_usecase.dart';
+import 'features/auth/domain/usecases/delete_favorite_id.dart';
+import 'features/auth/domain/usecases/forgot_password_usecase.dart';
+import 'features/auth/domain/usecases/get_cached_user_usecase.dart';
+import 'features/auth/domain/usecases/get_favorite_restaurant_ids_usecase.dart';
+import 'features/auth/domain/usecases/get_google_redirect_usecase.dart';
+import 'features/auth/domain/usecases/handle_google_callback_usecase.dart';
+import 'features/auth/domain/usecases/login_user_usecase.dart';
+import 'features/auth/domain/usecases/logout_usecase.dart';
+import 'features/auth/domain/usecases/register_user_usecase.dart';
+import 'features/auth/domain/usecases/resend_otp_usecase.dart';
+import 'features/auth/domain/usecases/reset_password_usecase.dart';
+import 'features/auth/domain/usecases/save_favorite_restaurant_ids_usecase.dart';
+import 'features/auth/domain/usecases/update_profile_usecase.dart';
+import 'features/auth/domain/usecases/verify_email_usecase.dart';
+import 'features/auth/domain/usecases/verify_otp_usecase.dart';
+import 'features/auth/presentation/bloc/user_bloc.dart';
+import 'features/restaurant_management/data/datasources/menu/menu_remote_data_source.dart';
+import 'features/restaurant_management/data/datasources/menu/menu_remote_data_source_impl.dart';
+import 'features/restaurant_management/data/datasources/restaurant/restaurant_remote_data_source_restaurant.dart';
+import 'features/restaurant_management/data/datasources/restaurant/restaurant_remote_data_source_restaurant_impl.dart';
+import 'features/restaurant_management/data/datasources/review/review_remote_data_source.dart';
+import 'features/restaurant_management/data/datasources/review/review_remote_data_source_impl.dart';
+import 'features/restaurant_management/data/repositories/menu_repository_impl.dart';
+import 'features/restaurant_management/data/repositories/restaurant_repository_impl.dart';
+import 'features/restaurant_management/data/repositories/review_repository_impl.dart';
+import 'features/restaurant_management/domain/repositories/menu_repository.dart';
+import 'features/restaurant_management/domain/repositories/restaurant_repository.dart';
+import 'features/restaurant_management/domain/repositories/review_repository.dart';
+import 'features/restaurant_management/domain/usecases/menu/create_menu.dart';
+import 'features/restaurant_management/domain/usecases/menu/delete_menu.dart';
+import 'features/restaurant_management/domain/usecases/menu/generate_menu_qr.dart';
+import 'features/restaurant_management/domain/usecases/menu/get_menu.dart';
+import 'features/restaurant_management/domain/usecases/menu/publish_menu.dart';
+import 'features/restaurant_management/domain/usecases/menu/update_menu.dart';
+import 'features/restaurant_management/domain/usecases/menu/upload_menu.dart';
+import 'features/restaurant_management/domain/usecases/restaurant/create_restaurant.dart';
+import 'features/restaurant_management/domain/usecases/restaurant/delete_restaurant.dart';
+import 'features/restaurant_management/domain/usecases/restaurant/get_restaurant_by_slug.dart';
+import 'features/restaurant_management/domain/usecases/restaurant/get_restaurants.dart';
+import 'features/restaurant_management/domain/usecases/restaurant/update_restaurant.dart';
+import 'features/restaurant_management/domain/usecases/review/delete_review.dart';
+import 'features/restaurant_management/domain/usecases/review/get_reviews.dart';
+import 'features/restaurant_management/domain/usecases/review/get_user_images.dart';
+import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -107,6 +112,7 @@ Future<void> init() async {
   // BLoC for user flows (register/login/profile/google auth/etc)
   sl.registerFactory(
     () => UserBloc(
+      deleteFavoriteId: sl(),
       registerUser: sl(),
       loginUser: sl(),
       verifyOtp: sl(),
@@ -119,10 +125,16 @@ Future<void> init() async {
       getGoogleRedirect: sl(),
       handleGoogleCallback: sl(),
       logout: sl(),
+      getCachedUser: sl(),
+      saveFavoriteRestaurantIds: sl(),
+      getFavoriteRestaurantIds: sl(),
+      clearFavorites: sl(),
+      userRepository: sl(),
     ),
   );
 
   // -- Auth (User) use cases (registered before UserBloc)
+  sl.registerLazySingleton(() => DeleteFavoriteId(sl()));
   sl.registerLazySingleton(() => RegisterUserUseCase(sl()));
   sl.registerLazySingleton(() => LoginUserUseCase(sl()));
   sl.registerLazySingleton(() => VerifyOtpUseCase(sl()));
@@ -135,6 +147,10 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetGoogleRedirectUseCase(sl()));
   sl.registerLazySingleton(() => HandleGoogleCallbackUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
+  sl.registerLazySingleton(() => GetCachedUserUseCase(sl()));
+  sl.registerLazySingleton(() => SaveFavoriteRestaurantIdsUseCase(sl()));
+  sl.registerLazySingleton(() => GetFavoriteRestaurantIdsUseCase(sl()));
+  sl.registerLazySingleton(() => ClearFavoritesUseCase(sl()));
   // -- Auth (User) feature registrations
   // Data source and repository
   sl.registerLazySingleton<UserRemoteDataSource>(

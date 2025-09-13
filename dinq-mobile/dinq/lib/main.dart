@@ -7,10 +7,10 @@ import 'core/routing/app_route.dart';
 // import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import 'core/util/theme.dart';
 // ...existing code...
-import 'features/dinq/auth/presentation/Pages/auth_gate.dart';
+import 'features/auth/presentation/Pages/auth_gate.dart';
 import 'features/dinq/auth/presentation/bloc/user_bloc.dart';
 import 'features/dinq/auth/presentation/bloc/user_event.dart';
-import 'features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -43,7 +43,6 @@ class _MyAppState extends State<MyApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider<RestaurantBloc>(
-          // create bloc but don't dispatch LoadRestaurants here;
           // HomePage will request restaurants when it has a valid context.
           create: (context) => di.sl<RestaurantBloc>(),
         ),
@@ -52,8 +51,6 @@ class _MyAppState extends State<MyApp> {
         ),
       ],
       child: MaterialApp(
-
-        // start at an auth gate that decides whether to show login or main shell
         home: const AuthGate(),
         onGenerateRoute: AppRoute.onGenerateRoute,
         debugShowCheckedModeBanner: false,
