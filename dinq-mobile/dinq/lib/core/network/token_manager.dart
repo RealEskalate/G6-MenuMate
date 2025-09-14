@@ -13,8 +13,17 @@ class TokenManager {
     required String accessToken,
     required String refreshToken,
   }) async {
-    await secureStorage.write(key: _accessKey, value: accessToken);
-    await secureStorage.write(key: _refreshKey, value: refreshToken);
+    print('DEBUG: cacheTokens started');
+    try {
+      print('DEBUG: Writing access token');
+      await secureStorage.write(key: _accessKey, value: accessToken);
+      print('DEBUG: Writing refresh token');
+      await secureStorage.write(key: _refreshKey, value: refreshToken);
+      print('DEBUG: Tokens cached successfully');
+    } catch (e) {
+      print('DEBUG: Failed to cache tokens: $e');
+      rethrow;
+    }
   }
 
   Future<Option<Map<String, String>>> getCachedTokens() async {

@@ -78,66 +78,67 @@ class _ProfilePageState extends State<ProfilePage> {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 360;
 
-    return BlocProvider.value(
-      value: di.sl<UserBloc>(),
-      child: BlocListener<UserBloc, UserState>(
-        listener: (context, state) async {
-          if (state is UserLoggedIn) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Login successful!'),
-              backgroundColor: Colors.green,
-            ));
-            // Close any login/register routes and refresh profile view
-            // tokens and user are already cached by the repository
-          } else if (state is UserRegistered) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('Registration successful!'),
-              backgroundColor: Colors.green,
-            ));
-          } else if (state is UserError) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ));
-          }
-        },
-        child: Scaffold(
+    return BlocListener<UserBloc, UserState>(
+      listener: (context, state) async {
+        if (state is UserLoggedIn) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Login successful!'),
+            backgroundColor: Colors.green,
+          ));
+          // Close any login/register routes and refresh profile view
+          // tokens and user are already cached by the repository
+        } else if (state is UserRegistered) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Registration successful!'),
+            backgroundColor: Colors.green,
+          ));
+        } else if (state is UserError) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(state.message),
+            backgroundColor: Colors.red,
+          ));
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.whiteColor,
+        appBar: AppBar(
           backgroundColor: AppColors.whiteColor,
-          appBar: AppBar(
-            backgroundColor: AppColors.whiteColor,
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            title: Text(
-              'Profile',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppColors.secondaryColor,
-                  ),
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          title: Text(
+            'Profile',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: AppColors.secondaryColor,
+                ),
+          ),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.more_vert, color: AppColors.secondaryColor),
+              onPressed: () {
+                // Show options menu
+                _showOptionsMenu(context);
+              },
             ),
-            centerTitle: true,
-            actions: [
-              IconButton(
-                icon: Icon(Icons.more_vert, color: AppColors.secondaryColor),
-                onPressed: () {
-                  // Show options menu
-                  _showOptionsMenu(context);
-                },
-              ),
-            ],
-          ),
-          body: BlocBuilder<UserBloc, UserState>(
-            builder: (context, state) {
-              if (state is UserLoggedIn || state is UserRegistered) {
-                final user = (state is UserLoggedIn)
-                    ? state.user
-                    : (state as UserRegistered).user;
-                return _buildLoggedInProfile(
-                    context, user, screenSize, isSmallScreen);
-              }
+          ],
+        ),
+        body: BlocBuilder<UserBloc, UserState>(
+          builder: (context, state) {
+            print('DEBUG: ProfilePage state: $state');
+            if (state is UserLoggedIn || state is UserRegistered) {
+              final user = (state is UserLoggedIn)
+                  ? state.user
+                  : (state as UserRegistered).user;
+              print(
+                  'DEBUG: User logged in: ${user.firstName} ${user.lastName}');
+              return _buildLoggedInProfile(
+                  context, user, screenSize, isSmallScreen);
+            }
 
-              // Not logged in - show modern welcome screen
-              return _buildWelcomeScreen(context, screenSize, isSmallScreen);
-            },
-          ),
+            // Not logged in - show modern welcome screen
+            print('DEBUG: User not logged in, showing welcome screen');
+            return _buildWelcomeScreen(context, screenSize, isSmallScreen);
+          },
         ),
       ),
     );
@@ -226,7 +227,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.whiteColor, width: 4),
+                          border:
+                              Border.all(color: AppColors.whiteColor, width: 4),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.2),

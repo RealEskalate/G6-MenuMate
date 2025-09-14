@@ -8,9 +8,11 @@ import 'core/routing/app_route.dart';
 import 'core/util/theme.dart';
 // ...existing code...
 import 'features/auth/presentation/Pages/auth_gate.dart';
-import 'features/dinq/auth/presentation/bloc/user_bloc.dart';
-import 'features/dinq/auth/presentation/bloc/user_event.dart';
+import 'features/auth/presentation/bloc/user_bloc.dart';
+import 'features/auth/presentation/bloc/user_event.dart';
+import 'features/restaurant_management/presentation/bloc/menu_bloc.dart';
 import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import 'features/restaurant_management/presentation/bloc/review_bloc.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
@@ -45,6 +47,12 @@ class _MyAppState extends State<MyApp> {
         BlocProvider<RestaurantBloc>(
           // HomePage will request restaurants when it has a valid context.
           create: (context) => di.sl<RestaurantBloc>(),
+        ),
+        BlocProvider<MenuBloc>(
+          create: (context) => di.sl<MenuBloc>(),
+        ),
+        BlocProvider<ReviewBloc>(
+          create: (context) => di.sl<ReviewBloc>(),
         ),
         BlocProvider(
           create: (_) => di.sl<UserBloc>(),

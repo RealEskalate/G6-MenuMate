@@ -10,9 +10,9 @@ import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../../../injection_container.dart' as di;
 import '../../data/model/menu_create_model.dart';
-import '../bloc/restaurant_bloc.dart';
-import '../bloc/restaurant_event.dart';
-import '../bloc/restaurant_state.dart';
+import '../bloc/menu_bloc.dart';
+import '../bloc/menu_event.dart';
+import '../bloc/menu_state.dart';
 
 class DigitizeMenuPage extends StatefulWidget {
   final String restaurantId;
@@ -88,7 +88,7 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
 
     try {
       // Use bloc to upload menu
-      context.read<RestaurantBloc>().add(UploadMenuEvent(_imageFile!));
+      context.read<MenuBloc>().add(UploadMenuEvent(_imageFile!));
     } catch (e) {
       setState(() {
         _errorMessage = 'OCR failed: $e';
@@ -100,8 +100,6 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
       }
     }
   }
-
-
 
   Widget _buildEditableCreateForm() {
     final titleController =
@@ -159,15 +157,15 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value: di.sl<RestaurantBloc>(),
-      child: BlocListener<RestaurantBloc, RestaurantState>(
+      value: di.sl<MenuBloc>(),
+      child: BlocListener<MenuBloc, MenuState>(
         listener: (context, state) {
           if (state is MenuCreateLoaded) {
             setState(() {
               _createModel = state.menuCreateModel;
               _isUploading = false;
             });
-          } else if (state is RestaurantError) {
+          } else if (state is MenuError) {
             setState(() {
               _errorMessage = state.message;
               _isUploading = false;
@@ -175,7 +173,7 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('OCR failed: ${state.message}')),
             );
-          } else if (state is RestaurantLoading) {
+          } else if (state is MenuLoading) {
             setState(() {
               _isUploading = true;
               _errorMessage = null;
@@ -183,200 +181,203 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
           }
         },
         child: Scaffold(
-      appBar: AppBar(
-        leading: BackButton(color: Theme.of(context).iconTheme.color),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text('Upload Menu',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        children: <Widget>[
-          const SizedBox(height: 18),
-          Center(
-            child: Container(
-              decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.12),
-                  shape: BoxShape.circle),
-              padding: const EdgeInsets.all(24),
-              child: const Icon(Icons.camera_alt,
-                  color: AppColors.primaryColor, size: 36),
-            ),
+          appBar: AppBar(
+            leading: BackButton(color: Theme.of(context).iconTheme.color),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            elevation: 0,
+            centerTitle: true,
+            title: const Text('Upload Menu',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
           ),
-          const SizedBox(height: 18),
-          const Center(
-              child: Text('Digitize Menu',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))),
-          const SizedBox(height: 8),
-          const Center(
-            child: Text(
-              'Take a picture of the printed menu to digitize and\nmake it easily shareable to your customers',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 28),
-            decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.withOpacity(0.25)),
-                borderRadius: BorderRadius.circular(16),
-                color: Theme.of(context).cardColor),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                if (_imageFile == null) ...[
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.grey.withOpacity(0.12),
-                        shape: BoxShape.circle),
-                    padding: const EdgeInsets.all(16),
-                    child:
-                        const Icon(Icons.image, color: Colors.grey, size: 32),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('No image selected',
-                      style: TextStyle(color: Colors.grey, fontSize: 15)),
-                ] else ...[
-                  ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.file(_imageFile!,
-                          height: 120, fit: BoxFit.cover)),
-                  const SizedBox(height: 10),
-                  TextButton(
-                      onPressed: () => setState(() => _imageFile = null),
-                      child: const Text('Remove',
-                          style: TextStyle(color: Colors.red))),
-                ],
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.camera_alt, color: Colors.white),
-                    label: const Text('Take Photo',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
-                    ),
-                    onPressed: _takePhoto,
-                  ),
+          body: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            children: <Widget>[
+              const SizedBox(height: 18),
+              Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withOpacity(0.12),
+                      shape: BoxShape.circle),
+                  padding: const EdgeInsets.all(24),
+                  child: const Icon(Icons.camera_alt,
+                      color: AppColors.primaryColor, size: 36),
                 ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.folder_open,
-                        color: AppColors.secondaryColor),
-                    label: const Text('Choose from Gallery',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: AppColors.secondaryColor)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[100],
-                      foregroundColor: AppColors.secondaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                      elevation: 0,
+              ),
+              const SizedBox(height: 18),
+              const Center(
+                  child: Text('Digitize Menu',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 18))),
+              const SizedBox(height: 8),
+              const Center(
+                child: Text(
+                  'Take a picture of the printed menu to digitize and\nmake it easily shareable to your customers',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 28),
+                decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.withOpacity(0.25)),
+                    borderRadius: BorderRadius.circular(16),
+                    color: Theme.of(context).cardColor),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    if (_imageFile == null) ...[
+                      Container(
+                        decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.12),
+                            shape: BoxShape.circle),
+                        padding: const EdgeInsets.all(16),
+                        child: const Icon(Icons.image,
+                            color: Colors.grey, size: 32),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text('No image selected',
+                          style: TextStyle(color: Colors.grey, fontSize: 15)),
+                    ] else ...[
+                      ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(_imageFile!,
+                              height: 120, fit: BoxFit.cover)),
+                      const SizedBox(height: 10),
+                      TextButton(
+                          onPressed: () => setState(() => _imageFile = null),
+                          child: const Text('Remove',
+                              style: TextStyle(color: Colors.red))),
+                    ],
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.camera_alt, color: Colors.white),
+                        label: const Text('Take Photo',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                          elevation: 0,
+                        ),
+                        onPressed: _takePhoto,
+                      ),
                     ),
-                    onPressed: _chooseFromGallery,
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.folder_open,
+                            color: AppColors.secondaryColor),
+                        label: const Text('Choose from Gallery',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: AppColors.secondaryColor)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.grey[100],
+                          foregroundColor: AppColors.secondaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                          elevation: 0,
+                        ),
+                        onPressed: _chooseFromGallery,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              const Text('Tips for better results:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              const SizedBox(height: 12),
+              _TipRow(
+                  icon: Icons.lightbulb,
+                  text: 'Ensure good lighting and avoid shadows'),
+              const SizedBox(height: 8),
+              _TipRow(
+                  icon: Icons.crop_7_5,
+                  text: 'Capture the entire menu page in frame'),
+              const SizedBox(height: 8),
+              _TipRow(
+                  icon: Icons.visibility,
+                  text: 'Make sure text is clear and readable'),
+              const SizedBox(height: 32),
+              if (_errorMessage != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.withOpacity(0.3))),
+                  child: Row(children: [
+                    const Icon(Icons.error, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Expanded(
+                        child: Text(_errorMessage!,
+                            style: const TextStyle(
+                                color: Colors.red, fontSize: 14)))
+                  ]),
+                ),
+                const SizedBox(height: 16),
+              ],
+              if (_imageFile != null) ...[
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            _isUploading ? Colors.grey : AppColors.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      onPressed: _isUploading ? null : _performOCR,
+                      child: _isUploading
+                          ? const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white))),
+                                SizedBox(width: 12),
+                                Text('Processing...',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18)),
+                              ],
+                            )
+                          : const Text('Digitize Menu',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 18)),
+                    ),
                   ),
                 ),
               ],
-            ),
+              if (_createModel != null) ...[
+                Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: _buildEditableCreateForm()),
+              ],
+            ],
           ),
-          const SizedBox(height: 32),
-          const Text('Tips for better results:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-          const SizedBox(height: 12),
-          _TipRow(
-              icon: Icons.lightbulb,
-              text: 'Ensure good lighting and avoid shadows'),
-          const SizedBox(height: 8),
-          _TipRow(
-              icon: Icons.crop_7_5,
-              text: 'Capture the entire menu page in frame'),
-          const SizedBox(height: 8),
-          _TipRow(
-              icon: Icons.visibility,
-              text: 'Make sure text is clear and readable'),
-          const SizedBox(height: 32),
-          if (_errorMessage != null) ...[
-            Container(
-              padding: const EdgeInsets.all(12),
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withOpacity(0.3))),
-              child: Row(children: [
-                const Icon(Icons.error, color: Colors.red),
-                const SizedBox(width: 8),
-                Expanded(
-                    child: Text(_errorMessage!,
-                        style:
-                            const TextStyle(color: Colors.red, fontSize: 14)))
-              ]),
-            ),
-            const SizedBox(height: 16),
-          ],
-          if (_imageFile != null) ...[
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        _isUploading ? Colors.grey : AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: _isUploading ? null : _performOCR,
-                  child: _isUploading
-                      ? const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white))),
-                            SizedBox(width: 12),
-                            Text('Processing...',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 18)),
-                          ],
-                        )
-                      : const Text('Digitize Menu',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18)),
-                ),
-              ),
-            ),
-          ],
-          if (_createModel != null) ...[
-            Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: _buildEditableCreateForm()),
-          ],
-        ],
-      ),
         ),
       ),
     );

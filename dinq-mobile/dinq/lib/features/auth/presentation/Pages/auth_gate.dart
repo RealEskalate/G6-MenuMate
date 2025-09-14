@@ -26,19 +26,23 @@ class _AuthGateState extends State<AuthGate> {
   Widget build(BuildContext context) {
     return BlocListener<UserBloc, UserState>(
       listener: (context, state) {
+        print('DEBUG: AuthGate listener state: $state');
         if (state is AuthChecked) {
           if (state.user != null) {
             // User is authenticated, navigate to main shell
+            print('DEBUG: AuthChecked with user, navigating to mainShell');
             Navigator.pushReplacementNamed(context, AppRoute.mainShell);
           }
           // If user is null, stay on onboarding (handled by builder)
         } else if (state is UserLoggedIn || state is UserRegistered) {
           // User just logged in/registered, navigate to main shell
+          print('DEBUG: UserLoggedIn/Registered, navigating to mainShell');
           Navigator.pushReplacementNamed(context, AppRoute.mainShell);
         }
       },
       child: BlocBuilder<UserBloc, UserState>(
         builder: (context, state) {
+          print('DEBUG: AuthGate builder state: $state');
           if (state is UserLoading) {
             // Show loading screen while checking auth
             return const Scaffold(

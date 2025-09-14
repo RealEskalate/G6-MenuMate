@@ -145,84 +145,85 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             // Header & Search
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  Image.asset(
-                    'assets/images/brand.png',
-                    height: 38,
-                    errorBuilder: (_, __, ___) => const FlutterLogo(size: 38),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          icon: Icon(Icons.search, color: Colors.grey),
-                          hintText: 'Search by restaurant or dish',
-                          hintStyle: TextStyle(color: Colors.grey),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/brand.png',
+                      height: 38,
+                      errorBuilder: (_, __, ___) => const FlutterLogo(size: 38),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
                         ),
-                        onChanged: _onSearchChanged,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: TextField(
+                          controller: _searchController,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            icon: Icon(Icons.search, color: Colors.grey),
+                            hintText: 'Search by restaurant or dish',
+                            hintStyle: TextStyle(color: Colors.grey),
+                          ),
+                          onChanged: _onSearchChanged,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
             // Restaurants + Popular dishes
-            Expanded(
-              child: BlocBuilder<RestaurantBloc, RestaurantState>(
-                builder: (context, state) {
-                  if (state is RestaurantInitial ||
-                      state is RestaurantLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+            BlocBuilder<RestaurantBloc, RestaurantState>(
+              builder: (context, state) {
+                if (state is RestaurantInitial || state is RestaurantLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                  if (state is RestaurantError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error_outline,
-                              size: 64, color: Colors.red),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Failed to load restaurants',
-                            style: Theme.of(context).textTheme.headlineSmall,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            state.message,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              context.read<RestaurantBloc>().add(
-                                  const LoadRestaurants(page: 1, pageSize: 20));
-                            },
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+                if (state is RestaurantError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            size: 64, color: Colors.red),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Failed to load restaurants',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          state.message,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<RestaurantBloc>().add(
+                                const LoadRestaurants(page: 1, pageSize: 20));
+                          },
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
-                  if (state is RestaurantsLoaded) {
-                    final restaurantsToShow =
-                        _isSearching ? _searchResults : state.restaurants;
+                if (state is RestaurantsLoaded) {
+                  final restaurantsToShow =
+                      _isSearching ? _searchResults : state.restaurants;
 
-                    return Column(
+                  return Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Restaurants section
@@ -266,8 +267,7 @@ class _HomePageState extends State<HomePage> {
                                 fontWeight: FontWeight.bold, fontSize: 17),
                           ),
                         ),
-                        SizedBox(
-                          height: 100, // Fixed height for popular dishes
+                        Flexible(
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -286,21 +286,21 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ],
-                    );
-                  }
-
-                  return Center(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context
-                            .read<RestaurantBloc>()
-                            .add(const LoadRestaurants(page: 1, pageSize: 20));
-                      },
-                      child: const Text('Retry'),
                     ),
                   );
-                },
-              ),
+                }
+
+                return Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      context
+                          .read<RestaurantBloc>()
+                          .add(const LoadRestaurants(page: 1, pageSize: 20));
+                    },
+                    child: const Text('Retry'),
+                  ),
+                );
+              },
             ),
           ],
         ),

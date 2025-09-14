@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
 import '../../../../../core/util/theme.dart';
 // import '../../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
 // import '../../../../restaurant_management/presentation/bloc/restaurant_event.dart';
 // import '../../../../restaurant_management/presentation/bloc/restaurant_state.dart';
 import '../../../../../injection_container.dart';
-import '../bloc/restaurant_bloc.dart';
-import '../bloc/restaurant_event.dart';
-import '../bloc/restaurant_state.dart';
+import '../bloc/menu_bloc.dart';
+import '../bloc/menu_event.dart';
+import '../bloc/menu_state.dart';
 import '../widgets/button.dart';
 import '../widgets/owner_navbar.dart';
 import '../widgets/rest_menu_card.dart';
@@ -75,8 +74,9 @@ class MenusPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<RestaurantBloc>(
-      create: (_) => sl<RestaurantBloc>()..add(LoadMenu(restaurantSlug: restaurantSlug)),
+    return BlocProvider<MenuBloc>(
+      create: (_) =>
+          sl<MenuBloc>()..add(LoadMenuEvent(restaurantSlug: restaurantSlug)),
       child: Scaffold(
         backgroundColor: AppColors.whiteColor,
         appBar: AppBar(
@@ -115,9 +115,9 @@ class MenusPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: BlocBuilder<RestaurantBloc, RestaurantState>(
+                child: BlocBuilder<MenuBloc, MenuState>(
                   builder: (context, state) {
-                    if (state is RestaurantLoading) {
+                    if (state is MenuLoading) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is MenuLoaded) {
                       final menus = state.menu.items;
@@ -131,7 +131,7 @@ class MenusPage extends StatelessWidget {
                           );
                         },
                       );
-                    } else if (state is RestaurantError) {
+                    } else if (state is MenuError) {
                       return Center(
                         child: Text(
                           state.message,

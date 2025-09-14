@@ -39,14 +39,21 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     return BlocBuilder<UserBloc, UserState>(
       builder: (context, state) {
+        print('DEBUG: MainShell state: $state');
         bool isOwner = false;
         if (state is UserLoggedIn && state.user.role == 'owner') {
           isOwner = true;
+          print('DEBUG: User is owner');
+        } else if (state is UserRegistered && state.user.role == 'owner') {
+          isOwner = true;
+          print('DEBUG: UserRegistered is owner');
         } else if (state is AuthChecked &&
             state.user != null &&
             state.user!.role == 'owner') {
           isOwner = true;
+          print('DEBUG: AuthChecked user is owner');
         }
+        print('DEBUG: isOwner: $isOwner');
 
         final pages = isOwner
             ? [

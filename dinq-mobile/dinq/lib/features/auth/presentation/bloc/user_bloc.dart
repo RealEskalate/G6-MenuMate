@@ -78,28 +78,39 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       lastName: event.lastName,
       role: event.role,
     );
-    result.fold(
-      (failure) => emit(UserError(failure.message)),
-      (user) async {
-        await userRepository.cacheUserJson(user);
-        emit(UserRegistered(user));
-      },
+    final future = result.fold(
+      (failure) => Future(() => emit(UserError(failure.message))),
+      (user) => userRepository
+          .cacheUserJson(user)
+          .then((_) => emit(UserRegistered(user))),
     );
+    await future;
   }
 
   Future<void> _onLoginUser(
     LoginUserEvent event,
     Emitter<UserState> emit,
   ) async {
+    print('DEBUG: _onLoginUser started');
     emit(const UserLoading());
     final result = await loginUser.call(
       identifier: event.identifier,
       password: event.password,
     );
-    result.fold((failure) => emit(UserError(failure.message)), (user) async {
-      await userRepository.cacheUserJson(user);
-      emit(UserLoggedIn(user));
-    });
+    print('DEBUG: loginUser.call completed');
+    final future = result.fold(
+      (failure) => Future(() {
+        print('DEBUG: Login failed: ${failure.message}');
+        emit(UserError(failure.message));
+      }),
+      (user) => userRepository.cacheUserJson(user).then((_) {
+        print('DEBUG: User cached, emitting UserLoggedIn');
+        emit(UserLoggedIn(user));
+        print('DEBUG: UserLoggedIn emitted');
+      }),
+    );
+    await future;
+    print('DEBUG: _onLoginUser completed');
   }
 
   Future<void> _onLogoutUser(
@@ -108,13 +119,13 @@ class UserBloc extends Bloc<UserEvent, UserState> {
   ) async {
     emit(const UserLoading());
     final result = await logout.call();
-    result.fold(
-      (failure) => emit(UserError(failure.message)),
-      (_) async {
-        await userRepository.clearCachedUser();
-        emit(const UserLoggedOut());
-      },
+    final future = result.fold(
+      (failure) => Future(() => emit(UserError(failure.message))),
+      (_) => userRepository
+          .clearCachedUser()
+          .then((_) => emit(const UserLoggedOut())),
     );
+    await future;
   }
 
   Future<void> _onCheckAuth(

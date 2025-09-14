@@ -10,7 +10,6 @@ import '../../features/auth/presentation/Pages/resturant_registration.dart';
 import '../../features/auth/presentation/Pages/user_register.dart';
 import '../../features/qr_scanner/pages/qr_scanner_page.dart';
 import '../../features/restaurant_management/domain/entities/restaurant.dart';
-import '../../features/restaurant_management/presentation/pages/analytics_page.dart';
 import '../../features/restaurant_management/presentation/pages/billing_page.dart';
 import '../../features/restaurant_management/presentation/pages/branding_preferences_page.dart';
 import '../../features/restaurant_management/presentation/pages/create_menu_manually_page.dart';
@@ -22,7 +21,8 @@ import '../../features/restaurant_management/presentation/pages/legal_info_page.
 import '../../features/restaurant_management/presentation/pages/qr_customization_page.dart';
 import '../../features/restaurant_management/presentation/pages/restaurant_details_page.dart';
 import '../../features/restaurant_management/presentation/pages/restaurant_profile_page.dart';
-import '../../features/presentation/pages/main_shell.dart';
+import '../../features/search/presentation/pages/main_shell.dart';
+import '../../features/search/presentation/pages/restaurant_page.dart';
 
 class AppRoute {
   // Auth routes
@@ -141,7 +141,10 @@ class AppRoute {
             initialIndex: 4,
           ),
         );
-
+      case restaurant:
+        return MaterialPageRoute(
+            builder: (_) =>
+                RestaurantPage(restaurantSlug: settings.arguments as String));
       // Restaurant management routes
       case restaurantProfile:
         return MaterialPageRoute(builder: (_) => const RestaurantProfilePage());

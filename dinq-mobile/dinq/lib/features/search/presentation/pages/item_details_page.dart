@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/domain/entities/item.dart';
-import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
-import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
-import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
+import '../../../restaurant_management/presentation/bloc/review_bloc.dart';
+import '../../../restaurant_management/presentation/bloc/review_event.dart';
+import '../../../restaurant_management/presentation/bloc/review_state.dart';
 import 'add_review_page.dart';
 
 class ItemDetailsPage extends StatelessWidget {
@@ -14,7 +14,7 @@ class ItemDetailsPage extends StatelessWidget {
   const ItemDetailsPage({super.key, required this.item});
 
   void _loadReviews(BuildContext context) {
-    context.read<RestaurantBloc>().add(LoadReviews(item.id));
+    context.read<ReviewBloc>().add(LoadReviewsEvent(item.id));
   }
 
   // No local tab navigation or favorites toggling here; keep page stateless.
@@ -202,10 +202,10 @@ class ItemDetailsPage extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Reviews driven by RestaurantBloc
-            BlocBuilder<RestaurantBloc, RestaurantState>(
+            // Reviews driven by ReviewBloc
+            BlocBuilder<ReviewBloc, ReviewState>(
               builder: (context, state) {
-                if (state is RestaurantLoading) {
+                if (state is ReviewLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
 

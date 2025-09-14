@@ -33,6 +33,9 @@ import 'features/auth/domain/usecases/update_profile_usecase.dart';
 import 'features/auth/domain/usecases/verify_email_usecase.dart';
 import 'features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'features/auth/presentation/bloc/user_bloc.dart';
+import 'features/restaurant_management/presentation/bloc/menu_bloc.dart';
+import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import 'features/restaurant_management/presentation/bloc/review_bloc.dart';
 import 'features/restaurant_management/data/datasources/menu/menu_remote_data_source.dart';
 import 'features/restaurant_management/data/datasources/menu/menu_remote_data_source_impl.dart';
 import 'features/restaurant_management/data/datasources/restaurant/restaurant_remote_data_source_restaurant.dart';
@@ -60,7 +63,6 @@ import 'features/restaurant_management/domain/usecases/restaurant/update_restaur
 import 'features/restaurant_management/domain/usecases/review/delete_review.dart';
 import 'features/restaurant_management/domain/usecases/review/get_reviews.dart';
 import 'features/restaurant_management/domain/usecases/review/get_user_images.dart';
-import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -89,10 +91,19 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UpdateRestaurant(sl()));
   sl.registerLazySingleton(() => DeleteRestaurant(sl()));
 
-  // Now register BLoC (after usecases)
+  // Now register BLoCs (after usecases)
   sl.registerFactory(
     () => RestaurantBloc(
       getRestaurants: sl(),
+      getRestaurantBySlug: sl(),
+      createRestaurant: sl(),
+      updateRestaurant: sl(),
+      deleteRestaurant: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => MenuBloc(
       getMenu: sl(),
       createMenu: sl(),
       updateMenu: sl(),
@@ -100,12 +111,13 @@ Future<void> init() async {
       uploadMenu: sl(),
       publishMenu: sl(),
       generateMenuQr: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => ReviewBloc(
       getReviews: sl(),
       getUserImages: sl(),
-      getRestaurantBySlug: sl(),
-      createRestaurant: sl(),
-      updateRestaurant: sl(),
-      deleteRestaurant: sl(),
     ),
   );
 
