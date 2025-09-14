@@ -9,9 +9,6 @@ import '../../../restaurant_management/domain/entities/restaurant.dart';
 import '../../../restaurant_management/presentation/bloc/menu_bloc.dart';
 import '../../../restaurant_management/presentation/bloc/menu_event.dart';
 import '../../../restaurant_management/presentation/bloc/menu_state.dart';
-import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
-import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
-import '../../../restaurant_management/presentation/bloc/restaurant_state.dart';
 import 'item_details_page.dart';
 
 class RestaurantPage extends StatefulWidget {
@@ -23,47 +20,31 @@ class RestaurantPage extends StatefulWidget {
 }
 
 class _RestaurantPageState extends State<RestaurantPage> {
-  bool _menuLoaded = false;
-
   @override
   void initState() {
     super.initState();
-    // Load restaurant details first
-    _loadRestaurant();
+    // Load menu (which now includes restaurant)
+    _loadMenu();
   }
 
-  void _loadRestaurant() {
-    final slug = widget.restaurantSlug;
-    context.read<RestaurantBloc>().add(LoadRestaurantBySlug(slug));
-  }
-
-  void _loadMenu(String restaurantSlug) {
-    if (!_menuLoaded) {
-      _menuLoaded = true;
-      context
-          .read<MenuBloc>()
-          .add(LoadMenuEvent(restaurantSlug: restaurantSlug));
-    }
+  void _loadMenu() {
+    context
+        .read<MenuBloc>()
+        .add(LoadMenuEvent(restaurantSlug: widget.restaurantSlug));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: BlocBuilder<RestaurantBloc, RestaurantState>(
-          builder: (context, restaurantState) {
-            // Header can be built from loaded restaurant state; fallback to empty container
+        child: BlocBuilder<MenuBloc, MenuState>(
+          builder: (context, menuState) {
+            // Header can be built from loaded menu state; fallback to empty container
             Widget header;
             Restaurant? restaurant;
-            if (restaurantState is RestaurantLoaded) {
-              restaurant = restaurantState.restaurant;
+            if (menuState is MenuLoaded) {
+              restaurant = menuState.restaurant;
               header = _buildRestaurantHeader(restaurant);
-              // Load menu after restaurant is successfully loaded
-              _loadMenu(widget.restaurantSlug);
-            } else if (restaurantState is RestaurantLoading) {
-              header = Container();
-            } else if (restaurantState is RestaurantError) {
-              header = Container();
             } else {
               header = Container();
             }
@@ -72,45 +53,7 @@ class _RestaurantPageState extends State<RestaurantPage> {
               children: [
                 header,
                 Expanded(
-                  child: BlocBuilder<MenuBloc, MenuState>(
-                    builder: (context, menuState) {
-                      Widget menuChild;
-                      if (restaurantState is RestaurantLoading) {
-                        menuChild =
-                            const Center(child: CircularProgressIndicator());
-                      } else if (restaurantState is RestaurantError) {
-                        menuChild =
-                            Center(child: Text(restaurantState.message));
-                      } else if (menuState is MenuLoading) {
-                        menuChild =
-                            const Center(child: CircularProgressIndicator());
-                      } else if (menuState is MenuLoaded) {
-                        final menu = menuState.menu;
-                        final items = menu.items;
-                        if (items.isEmpty) {
-                          menuChild =
-                              const Center(child: Text('No menu items'));
-                        } else {
-                          menuChild = ListView.separated(
-                            padding: const EdgeInsets.all(12),
-                            itemCount: items.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 8),
-                            itemBuilder: (context, idx) {
-                              final item = items[idx];
-                              return _buildMenuItem(item);
-                            },
-                          );
-                        }
-                      } else if (menuState is MenuError) {
-                        menuChild = Center(child: Text(menuState.message));
-                      } else {
-                        menuChild = const Center(child: Text('No menu'));
-                      }
-
-                      return menuChild;
-                    },
-                  ),
+                  child: _buildMenuContent(menuState),
                 ),
               ],
             );
@@ -118,6 +61,56 @@ class _RestaurantPageState extends State<RestaurantPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildMenuContent(MenuState menuState) {
+    Widget menuChild;
+    if (menuState is MenuLoading) {
+      menuChild = const Center(child: CircularProgressIndicator());
+    } else if (menuState is MenuLoaded) {
+      final menu = menuState.menu;
+      final items = menu.items;
+      if (items.isEmpty) {
+        menuChild = const Center(child: Text('No menu items'));
+      } else {
+        menuChild = ListView.separated(
+          padding: const EdgeInsets.all(12),
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (context, idx) {
+            final item = items[idx];
+            return _buildMenuItem(item);
+          },
+        );
+      }
+    } else if (menuState is MenuError) {
+      menuChild = Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(menuState.message),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadMenu,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      menuChild = const Center(child: Text('No menu'));
+    }
+
+    return menuChild;
   }
 
   Widget _buildRestaurantHeader(Restaurant restaurant) {
@@ -397,6 +390,8 @@ class _RestaurantPageState extends State<RestaurantPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Saved to favorites!')),
     );
-    context.read<UserBloc>().add(SaveFavoriteRestaurantIdsEvent(id: widget.restaurantSlug));
+    context
+        .read<UserBloc>()
+        .add(SaveFavoriteRestaurantIdsEvent(id: widget.restaurantSlug));
   }
 }

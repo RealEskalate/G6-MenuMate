@@ -10,7 +10,6 @@ import '../bloc/menu_bloc.dart';
 import '../bloc/menu_event.dart';
 import '../bloc/menu_state.dart';
 import '../widgets/button.dart';
-import '../widgets/owner_navbar.dart';
 import '../widgets/rest_menu_card.dart';
 // For navigation, if needed
 
@@ -147,11 +146,6 @@ class MenusPage extends StatelessWidget {
               ),
             ],
           ),
-        ),
-        bottomNavigationBar: OwnerNavBar(
-          isRestaurantOwner: true,
-          currentIndex: 3,
-          restaurantId: restaurantSlug,
         ),
       ),
     );

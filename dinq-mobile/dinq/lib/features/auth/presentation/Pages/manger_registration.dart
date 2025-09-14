@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
-import '../bloc/user_bloc.dart';
-import '../bloc/user_event.dart';
-import '../bloc/user_state.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 import '../widgets/Login_TextFields.dart';
 import '../widgets/Login_button.dart';
 import '../widgets/checkbox.dart';
@@ -141,14 +141,12 @@ class _ManagerRegistrationState extends State<ManagerRegistration>
 
   void _registerManager() {
     if (_validateAllFields()) {
-      context.read<UserBloc>().add(
-            RegisterUserEvent(
+      context.read<AuthBloc>().add(
+            RegisterEvent(
               username: _usernameController.text.trim(),
               email: _emailController.text.trim(),
               password: _passwordController.text,
               authProvider: 'EMAIL',
-              // phone number was collected but RegisterUserEvent doesn't have phoneNumber field in this project's user_event
-              // We'll pass phone as part of firstName temporarily if needed, or ignore for now.
               role: 'OWNER',
             ),
           );
@@ -165,9 +163,9 @@ class _ManagerRegistrationState extends State<ManagerRegistration>
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<UserBloc, UserState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is UserRegistered) {
+        if (state is Authenticated) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text(
@@ -177,7 +175,7 @@ class _ManagerRegistrationState extends State<ManagerRegistration>
             ),
           );
           Navigator.pushNamed(context, AppRoute.restaurantRegister);
-        } else if (state is UserError) {
+        } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
@@ -381,13 +379,13 @@ class _ManagerRegistrationState extends State<ManagerRegistration>
                 ),
                 const SizedBox(height: 30),
                 // Animated button with scale effect
-                BlocBuilder<UserBloc, UserState>(
+                BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
                     return ScaleTransition(
                       scale: _scaleAnimation,
                       child: FadeTransition(
                         opacity: _fadeAnimation,
-                        child: state is UserLoading
+                        child: state is AuthLoading
                             ? const CircularProgressIndicator()
                             : LoginButton(
                                 buttonname: 'Register',
@@ -407,7 +405,8 @@ class _ManagerRegistrationState extends State<ManagerRegistration>
                       children: [
                         Expanded(
                           child: Divider(
-                            color: AppColors.secondaryColor.withValues(alpha: 0.5),
+                            color:
+                                AppColors.secondaryColor.withValues(alpha: 0.5),
                             thickness: 1,
                           ),
                         ),
@@ -424,7 +423,8 @@ class _ManagerRegistrationState extends State<ManagerRegistration>
                         ),
                         Expanded(
                           child: Divider(
-                            color: AppColors.secondaryColor.withValues(alpha: 0.5),
+                            color:
+                                AppColors.secondaryColor.withValues(alpha: 0.5),
                             thickness: 1,
                           ),
                         ),

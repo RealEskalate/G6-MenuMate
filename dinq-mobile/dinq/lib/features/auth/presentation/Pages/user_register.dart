@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
-import '../bloc/user_bloc.dart';
-import '../bloc/user_event.dart';
-import '../bloc/user_state.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 import '../widgets/Login_TextFields.dart';
 import '../widgets/Login_button.dart';
 import 'login_page.dart';
@@ -127,13 +127,13 @@ class _UserRegisterState extends State<UserRegister>
 
   void _registerUser() {
     if (_validateAllFields()) {
-      context.read<UserBloc>().add(
-            RegisterUserEvent(
+      context.read<AuthBloc>().add(
+            RegisterEvent(
               username: _usernameController.text.trim(),
               email: _emailController.text.trim(),
               password: _passwordController.text,
+              role: 'OWNER',
               authProvider: 'EMAIL',
-              role: 'OWNER'
             ),
           );
       // Navigation will be handled in BlocListener when registration is successful
@@ -152,9 +152,9 @@ class _UserRegisterState extends State<UserRegister>
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<UserBloc, UserState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is UserRegistered) {
+        if (state is Authenticated) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Registration successful!'),
@@ -166,7 +166,7 @@ class _UserRegisterState extends State<UserRegister>
           Future.delayed(const Duration(milliseconds: 800), () {
             Navigator.pushReplacementNamed(context, AppRoute.mainShell);
           });
-        } else if (state is UserError) {
+        } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
@@ -270,13 +270,13 @@ class _UserRegisterState extends State<UserRegister>
                   ),
                 ),
                 const SizedBox(height: 30),
-                BlocBuilder<UserBloc, UserState>(
+                BlocBuilder<AuthBloc, AuthState>(
                   builder: (context, state) {
                     return ScaleTransition(
                       scale: _scaleAnimation,
                       child: FadeTransition(
                         opacity: _fadeAnimation,
-                        child: state is UserLoading
+                        child: state is AuthLoading
                             ? const CircularProgressIndicator()
                             : LoginButton(
                                 buttonname: 'Register',
@@ -286,7 +286,6 @@ class _UserRegisterState extends State<UserRegister>
                     );
                   },
                 ),
-
                 const SizedBox(height: 30),
                 FadeTransition(
                   opacity: CurvedAnimation(

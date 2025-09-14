@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import '../../domain/entities/menu.dart';
 import '../../domain/entities/qr.dart';
+import '../../domain/entities/restaurant.dart';
 
 abstract class MenuState extends Equatable {
   const MenuState();
@@ -20,11 +21,12 @@ class MenuLoading extends MenuState {
 
 class MenuLoaded extends MenuState {
   final Menu menu;
+  final Restaurant restaurant;
 
-  const MenuLoaded(this.menu);
+  const MenuLoaded({required this.menu, required this.restaurant});
 
   @override
-  List<Object?> get props => [menu];
+  List<Object?> get props => [menu, restaurant];
 }
 
 class MenuCreateLoaded extends MenuState {

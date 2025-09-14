@@ -5,12 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/util/theme.dart';
-import '../../../../injection_container.dart' as di;
 import '../../../auth/presentation/Pages/login_page.dart';
-import '../../../auth/presentation/Pages/user_register.dart';
-import '../../../auth/presentation/bloc/user_bloc.dart';
-import '../../../auth/presentation/bloc/user_event.dart';
-import '../../../auth/presentation/bloc/user_state.dart';
+import '../../../auth/presentation/Pages/register_page.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 
 class ProfilePage extends StatefulWidget {
   /// When embedded inside a shell that provides its own navigation bar,
@@ -78,21 +77,21 @@ class _ProfilePageState extends State<ProfilePage> {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 360;
 
-    return BlocListener<UserBloc, UserState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
-        if (state is UserLoggedIn) {
+        if (state is Authenticated) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Login successful!'),
             backgroundColor: Colors.green,
           ));
           // Close any login/register routes and refresh profile view
           // tokens and user are already cached by the repository
-        } else if (state is UserRegistered) {
+        } else if (state is Authenticated) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Registration successful!'),
             backgroundColor: Colors.green,
           ));
-        } else if (state is UserError) {
+        } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(state.message),
             backgroundColor: Colors.red,
@@ -122,13 +121,11 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ],
         ),
-        body: BlocBuilder<UserBloc, UserState>(
+        body: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
             print('DEBUG: ProfilePage state: $state');
-            if (state is UserLoggedIn || state is UserRegistered) {
-              final user = (state is UserLoggedIn)
-                  ? state.user
-                  : (state as UserRegistered).user;
+            if (state is Authenticated) {
+              final user = state.user;
               print(
                   'DEBUG: User logged in: ${user.firstName} ${user.lastName}');
               return _buildLoggedInProfile(
@@ -366,7 +363,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       );
 
                       if (confirmed == true) {
-                        context.read<UserBloc>().add(LogoutUserEvent());
+                        context.read<AuthBloc>().add(LogoutEvent());
                       }
                     },
                     icon: const Icon(Icons.logout, color: Colors.red),
@@ -533,7 +530,7 @@ class _ProfilePageState extends State<ProfilePage> {
               child: OutlinedButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const UserRegister()),
+                    MaterialPageRoute(builder: (_) => const RegisterPage()),
                   );
                 },
                 style: OutlinedButton.styleFrom(

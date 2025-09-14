@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/error/exceptions.dart';
 import 'user_local_data_source.dart';
 
 const _kUserJsonKey = 'cached_user_json';
@@ -16,8 +17,13 @@ class UserLocalDataSourceImpl implements UserLocalDataSource {
   }
 
   @override
-  Future<String?> getCachedUserJson() async {
-    return prefs.getString(_kUserJsonKey);
+  Future<String> getCachedUserJson() async {
+    final user = prefs.getString(_kUserJsonKey);
+    if (user != null) {
+      return user;
+    } else {
+      throw CacheException('No cached user found');
+    }
   }
 
   @override

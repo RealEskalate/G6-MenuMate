@@ -1,6 +1,6 @@
 abstract class UserLocalDataSource {
   Future<void> cacheUserJson(String json);
-  Future<String?> getCachedUserJson();
+  Future<String> getCachedUserJson();
   Future<void> clearCachedUser();
 
   Future<void> saveFavoriteRestaurantIds(String id);

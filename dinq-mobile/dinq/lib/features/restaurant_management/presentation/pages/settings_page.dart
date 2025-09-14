@@ -27,16 +27,14 @@ class SettingsPage extends StatelessWidget {
               Navigator.pushNamed(context, '/restaurant_profile');
             },
           ),
-          
           SettingsItem(
             title: 'User profile',
             leadingIcon: Icons.person,
             iconColor: AppColors.primaryColor,
             onTap: () {
-              // Navigate to user profile page
+              Navigator.pushNamed(context, '/profile');
             },
           ),
-          
           SettingsItem(
             title: 'Legal info',
             leadingIcon: Icons.gavel,
@@ -45,7 +43,6 @@ class SettingsPage extends StatelessWidget {
               Navigator.pushNamed(context, '/legal_info');
             },
           ),
-          
           SettingsItem(
             title: 'Branding & Menu preferences',
             leadingIcon: Icons.palette,
@@ -54,7 +51,6 @@ class SettingsPage extends StatelessWidget {
               Navigator.pushNamed(context, '/branding_preferences');
             },
           ),
-          
           SettingsItem(
             title: 'Billing',
             leadingIcon: Icons.payment,
@@ -63,7 +59,6 @@ class SettingsPage extends StatelessWidget {
               Navigator.pushNamed(context, '/billing');
             },
           ),
-          
         ],
       ),
     );

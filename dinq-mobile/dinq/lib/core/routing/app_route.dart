@@ -9,6 +9,7 @@ import '../../features/auth/presentation/Pages/resturant_data.dart';
 import '../../features/auth/presentation/Pages/resturant_registration.dart';
 import '../../features/auth/presentation/Pages/user_register.dart';
 import '../../features/qr_scanner/pages/qr_scanner_page.dart';
+import '../../features/restaurant_management/domain/entities/item.dart';
 import '../../features/restaurant_management/domain/entities/restaurant.dart';
 import '../../features/restaurant_management/presentation/pages/billing_page.dart';
 import '../../features/restaurant_management/presentation/pages/branding_preferences_page.dart';
@@ -21,7 +22,9 @@ import '../../features/restaurant_management/presentation/pages/legal_info_page.
 import '../../features/restaurant_management/presentation/pages/qr_customization_page.dart';
 import '../../features/restaurant_management/presentation/pages/restaurant_details_page.dart';
 import '../../features/restaurant_management/presentation/pages/restaurant_profile_page.dart';
+import '../../features/search/presentation/pages/item_details_page.dart';
 import '../../features/search/presentation/pages/main_shell.dart';
+import '../../features/search/presentation/pages/profile_page.dart';
 import '../../features/search/presentation/pages/restaurant_page.dart';
 
 class AppRoute {
@@ -33,6 +36,7 @@ class AppRoute {
   static const String managerRegister = '/manager_register';
   static const String restaurantRegister = '/restaurant_register';
   static const String restaurantData = '/restaurant_Data';
+  static const String userProfile = '/user_profile';
 
   // Search routes
   static const String explore = '/explore';
@@ -115,9 +119,7 @@ class AppRoute {
         );
       case profile:
         return MaterialPageRoute(
-          builder: (_) => const MainShell(
-            initialIndex: 2,
-          ),
+          builder: (_) => const ProfilePage(),
         );
       case analytics:
         final args = settings.arguments as Map<String, dynamic>? ?? {};
@@ -145,6 +147,9 @@ class AppRoute {
         return MaterialPageRoute(
             builder: (_) =>
                 RestaurantPage(restaurantSlug: settings.arguments as String));
+      case itemDetail:
+        return MaterialPageRoute(
+            builder: (_) => ItemDetailsPage(item: settings.arguments as Item));
       // Restaurant management routes
       case restaurantProfile:
         return MaterialPageRoute(builder: (_) => const RestaurantProfilePage());
@@ -210,6 +215,7 @@ class AppRoute {
           builder: (_) =>
               GeneratedQrPage(qrImagePath: args?['qrImagePath'] ?? ''),
         );
+
       case digitizeMenu:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(

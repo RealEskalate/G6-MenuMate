@@ -9,9 +9,9 @@ abstract class UserRepository {
     required String email,
     required String password,
     required String authProvider,
+    required String role,
     String? firstName,
     String? lastName,
-    String? role,
   });
 
   Future<Either<Failure, User>> loginUser({
@@ -55,7 +55,7 @@ abstract class UserRepository {
 
   // Local data source methods
   Future<Either<Failure, Unit>> cacheUserJson(User user);
-  Future<Either<Failure, User?>> getCachedUserJson();
+  Future<Either<Failure, User>> getCachedUserJson();
   Future<Either<Failure, Unit>> clearCachedUser();
   Future<Either<Failure, Unit>> saveFavoriteRestaurantIds(String id);
   Future<Either<Failure, List<String>>> getFavoriteRestaurants();

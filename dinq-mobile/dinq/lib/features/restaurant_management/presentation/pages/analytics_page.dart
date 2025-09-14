@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
-import '../widgets/owner_navbar.dart';
 
 class AnalyticsPage extends StatelessWidget {
   const AnalyticsPage({super.key});
@@ -263,7 +262,6 @@ class AnalyticsPage extends StatelessWidget {
           const SizedBox(height: 80),
         ],
       ),
-      bottomNavigationBar: OwnerNavBar(currentIndex: 2, isRestaurantOwner: true, restaurantId: 'dummy'),
     );
   }
 }

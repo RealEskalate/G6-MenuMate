@@ -29,9 +29,9 @@ class UserRepositoryImpl implements UserRepository {
     required String email,
     required String password,
     required String authProvider,
+    required String role,
     String? firstName,
     String? lastName,
-    String? role,
   }) async {
     final connected = await network.isConnected;
     if (connected) {
@@ -357,13 +357,10 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
-  Future<Either<Failure, User?>> getCachedUserJson() async {
+  Future<Either<Failure, User>> getCachedUserJson() async {
     try {
       if (userLocalDataSource != null) {
         final json = await userLocalDataSource!.getCachedUserJson();
-        if (json == null) {
-          return const Right(null);
-        }
         return Right(UserModel.fromJson(json).toEntity());
       }
       return const Left(CacheFailure('Local data source not available'));

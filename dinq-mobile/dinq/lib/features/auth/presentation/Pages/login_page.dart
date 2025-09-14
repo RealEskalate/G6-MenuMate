@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/routing/app_route.dart';
 import '../../../../core/util/theme.dart';
-import '../bloc/user_bloc.dart';
-import '../bloc/user_event.dart';
-import '../bloc/user_state.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
+import '../bloc/auth_state.dart';
 import '../widgets/Login_TextFields.dart';
 import '../widgets/login_button.dart';
 import 'forget_password_page.dart';
@@ -167,8 +167,8 @@ class _LoginPageState extends State<LoginPage>
 
   void _handleLogin() {
     if (_validateForm()) {
-      context.read<UserBloc>().add(
-            LoginUserEvent(
+      context.read<AuthBloc>().add(
+            LoginEvent(
               identifier: _emailController.text.trim(),
               password: _passwordController.text,
             ),
@@ -187,9 +187,9 @@ class _LoginPageState extends State<LoginPage>
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<UserBloc, UserState>(
+    return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is UserLoggedIn) {
+        if (state is Authenticated) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Login successful!'),
@@ -199,7 +199,7 @@ class _LoginPageState extends State<LoginPage>
           );
           // Navigate to main shell after successful login
           Navigator.pushReplacementNamed(context, AppRoute.mainShell);
-        } else if (state is UserError) {
+        } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),

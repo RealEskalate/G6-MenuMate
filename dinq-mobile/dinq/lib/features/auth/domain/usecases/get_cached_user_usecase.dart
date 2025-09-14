@@ -9,7 +9,7 @@ class GetCachedUserUseCase {
 
   GetCachedUserUseCase(this.repository);
 
-  Future<Either<Failure, User?>> call() async {
+  Future<Either<Failure, User>> call() async {
     return await repository.getCachedUserJson();
   }
 }

@@ -8,8 +8,9 @@ import 'core/routing/app_route.dart';
 import 'core/util/theme.dart';
 // ...existing code...
 import 'features/auth/presentation/Pages/auth_gate.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/user_bloc.dart';
-import 'features/auth/presentation/bloc/user_event.dart';
 import 'features/restaurant_management/presentation/bloc/menu_bloc.dart';
 import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import 'features/restaurant_management/presentation/bloc/review_bloc.dart';
@@ -36,7 +37,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     // Check for existing authentication on app start
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      di.sl<UserBloc>().add(CheckAuthEvent());
+      di.sl<AuthBloc>().add(CheckAuthEvent());
     });
   }
 
@@ -53,6 +54,9 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider<ReviewBloc>(
           create: (context) => di.sl<ReviewBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => di.sl<AuthBloc>(),
         ),
         BlocProvider(
           create: (_) => di.sl<UserBloc>(),

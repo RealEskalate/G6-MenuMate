@@ -4,9 +4,9 @@ abstract class UserRemoteDataSource {
     required String email,
     required String password,
     required String authProvider,
+    required String role,
     String? firstName,
     String? lastName,
-    String? role,
   });
   Future<Map<String, dynamic>> loginUser(String identifier, String password);
   Future<String> getGoogleLoginRedirectUrl();

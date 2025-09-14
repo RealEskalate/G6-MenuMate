@@ -33,6 +33,7 @@ import 'features/auth/domain/usecases/update_profile_usecase.dart';
 import 'features/auth/domain/usecases/verify_email_usecase.dart';
 import 'features/auth/domain/usecases/verify_otp_usecase.dart';
 import 'features/auth/presentation/bloc/user_bloc.dart';
+import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/restaurant_management/presentation/bloc/menu_bloc.dart';
 import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import 'features/restaurant_management/presentation/bloc/review_bloc.dart';
@@ -111,6 +112,7 @@ Future<void> init() async {
       uploadMenu: sl(),
       publishMenu: sl(),
       generateMenuQr: sl(),
+      getRestaurantBySlug: sl(),
     ),
   );
 
@@ -141,6 +143,17 @@ Future<void> init() async {
       saveFavoriteRestaurantIds: sl(),
       getFavoriteRestaurantIds: sl(),
       clearFavorites: sl(),
+      userRepository: sl(),
+    ),
+  );
+
+  // BLoC for authentication
+  sl.registerFactory(
+    () => AuthBloc(
+      registerUser: sl(),
+      loginUser: sl(),
+      logout: sl(),
+      getCachedUser: sl(),
       userRepository: sl(),
     ),
   );

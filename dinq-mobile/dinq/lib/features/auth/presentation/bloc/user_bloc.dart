@@ -76,7 +76,7 @@ class UserBloc extends Bloc<UserEvent, UserState> {
       authProvider: event.authProvider,
       firstName: event.firstName,
       lastName: event.lastName,
-      role: event.role,
+      role: event.role ?? 'USER',
     );
     final future = result.fold(
       (failure) => Future(() => emit(UserError(failure.message))),

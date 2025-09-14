@@ -7,6 +7,7 @@ import '../../domain/usecases/menu/get_menu.dart';
 import '../../domain/usecases/menu/publish_menu.dart';
 import '../../domain/usecases/menu/update_menu.dart';
 import '../../domain/usecases/menu/upload_menu.dart';
+import '../../domain/usecases/restaurant/get_restaurant_by_slug.dart';
 import 'menu_event.dart';
 import 'menu_state.dart';
 
@@ -18,6 +19,7 @@ class MenuBloc extends Bloc<MenuEvent, MenuState> {
   final UploadMenu uploadMenu;
   final PublishMenu publishMenu;
   final GenerateMenuQr generateMenuQr;
+  final GetRestaurantBySlug getRestaurantBySlug;
 
   MenuBloc({
     required this.getMenu,
@@ -27,6 +29,7 @@ class MenuBloc extends Bloc<MenuEvent, MenuState> {
     required this.uploadMenu,
     required this.publishMenu,
     required this.generateMenuQr,
+    required this.getRestaurantBySlug,
   }) : super(const MenuInitial()) {
     on<LoadMenuEvent>(_onLoadMenu);
     on<CreateMenuEvent>(_onCreateMenu);
@@ -42,10 +45,15 @@ class MenuBloc extends Bloc<MenuEvent, MenuState> {
     Emitter<MenuState> emit,
   ) async {
     emit(const MenuLoading());
-    final result = await getMenu(event.restaurantSlug);
-    result.fold(
+    final restaurantResult = await getRestaurantBySlug(event.restaurantSlug);
+    final menuResult = await getMenu(event.restaurantSlug);
+
+    restaurantResult.fold(
       (failure) => emit(MenuError(failure.message)),
-      (menu) => emit(MenuLoaded(menu)),
+      (restaurant) => menuResult.fold(
+        (failure) => emit(MenuError(failure.message)),
+        (menu) => emit(MenuLoaded(menu: menu, restaurant: restaurant)),
+      ),
     );
   }
 

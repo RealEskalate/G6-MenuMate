@@ -14,13 +14,13 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
 
   @override
   Future<Map<String, dynamic>> registerUser({
-    required String authProvider,
+    required String username,
     required String email,
+    required String password,
+    required String authProvider,
+    required String role,
     String? firstName,
     String? lastName,
-    required String password,
-    String? role,
-    required String username,
   }) async {
     try {
       final data = {
@@ -29,7 +29,7 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
         if (firstName != null) 'first_name': firstName,
         if (lastName != null) 'last_name': lastName,
         'password': password,
-        if (role != null) 'role': role,
+        'role': role,
         'username': username,
       };
       final response = await dio.post(

@@ -14,9 +14,9 @@ class RegisterUserUseCase {
     required String email,
     required String password,
     required String authProvider,
+    required String role,
     String? firstName,
     String? lastName,
-    String? role,
   }) {
     return repository.registerUser(
       username: username,

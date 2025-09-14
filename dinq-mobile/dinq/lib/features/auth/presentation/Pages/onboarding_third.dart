@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
-import 'onboarding_second.dart';
 import 'onboarding_first.dart';
+import 'onboarding_second.dart';
 
 class OnboardingThird extends StatelessWidget {
   const OnboardingThird({super.key});
