@@ -84,7 +84,7 @@ export default function ReviewPage() {
       console.log("✅ Created restaurant:", responseData);
 
       resetData();
-      router.push("/restaurant/success");
+      router.push("/restaurant/register/success");
     } catch (err: unknown) {
       setError(
         typeof err === "object" && err !== null && "message" in err

@@ -1,5 +1,5 @@
 // src/api/menuApi.ts
-export const BASE_URL = "https://dineq.onrender.com/api/v1";
+export const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 /** Menu item shape */
 

@@ -55,7 +55,7 @@ export const options: NextAuthOptions = {
           throw new Error(result.message || "Invalid email or password");
         } catch (err) {
           console.error("Login error:", err);
-          throw new Error("Authentication failed");
+          throw new Error("Invalid Credentials");
         }
       },
     }),

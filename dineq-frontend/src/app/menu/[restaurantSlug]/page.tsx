@@ -45,6 +45,7 @@ export default function MenuPage() {
                 const transformedItem = {
                     ...item,
                     allergies: typeof item.allergies === "string" ? [item.allergies] : item.allergies,
+                    
                 };
 
                 return <MenuItemCard key={item.id} item={transformedItem} />;

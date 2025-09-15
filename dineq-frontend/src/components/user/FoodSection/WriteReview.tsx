@@ -67,7 +67,7 @@ export default function ReviewForm({ restaurantId, userId, onReviewSubmitted }: 
         formData.append("photo", file);
       }
       
-      const response = await fetch("https://g6-menumate-1.onrender.com/api/v1/reviews", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/reviews`, {
         method: "POST",
         body: formData, // Use FormData for file uploads
       });
@@ -90,7 +90,7 @@ export default function ReviewForm({ restaurantId, userId, onReviewSubmitted }: 
       onReviewSubmitted?.();
 
     } catch (error) {
-      toast.error(error.message || "An unknown error occurred.");
+      toast.error( "An unknown error occurred.");
     } finally {
       setLoading(false);
     }

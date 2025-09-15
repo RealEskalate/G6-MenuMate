@@ -5,7 +5,7 @@ export const uploadImage = async (
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`https://g6-menumate-1.onrender.com/api/v1/uploads`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/uploads`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -27,7 +27,7 @@ export const createMenu = async (
   restaurantSlug: string
 ) => {
   const res = await fetch(
-    `https://g6-menumate-1.onrender.com/api/v1/menus/${restaurantSlug}`,
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/menus/${restaurantSlug}`,
     {
       method: "POST",
       headers: {

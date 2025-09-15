@@ -103,7 +103,9 @@ const Review: React.FC<ReviewProps> = ({ restaurantId }) => {
     async function fetchReviews() {
       try {
         setLoading(true);
-        const response = await fetch(`https://g6-menumate-1.onrender.com/api/v1/restaurants/${restaurantId}/reviews?page=${page}&pageSize=${pageSize}&sort=${sort}&rating=${ratingFilter}`);
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/restaurants/${restaurantId}/reviews?page=${page}&pageSize=${pageSize}&sort=${sort}&rating=${ratingFilter}`
+        );
         if (!response.ok) {
           throw new Error('Failed to fetch reviews.');
         }

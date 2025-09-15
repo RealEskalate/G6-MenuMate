@@ -13,9 +13,9 @@ const Footer = () => {
           <Image
             src="/Logo.png"
             alt="Logo"
-            width={120}
+            width={200}
             height={100}
-            className="w-14 h-14 sm:w-16 sm:h-16"
+            className="w-18 h-14 sm:w-16 sm:h-16"
           />
         </div>
 
