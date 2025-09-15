@@ -23,7 +23,15 @@ func NewQRCodeUseCase(repo domain.IQRCodeRepository, ctxTimeout time.Duration) d
 func (uc *qrCodeUseCase) CreateQRCode(qrCode *domain.QRCode) error {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	defer cancel()
-
+	// enforce defaults
+	if qrCode.CreatedAt.IsZero() {
+		qrCode.CreatedAt = time.Now()
+	}
+	if qrCode.ExpiresAt.IsZero() {
+		qrCode.ExpiresAt = time.Now().Add(365 * 24 * time.Hour)
+	}
+	// default to active on creation
+	qrCode.IsActive = true
 	return uc.repo.Create(ctx, qrCode)
 }
 

@@ -15,6 +15,9 @@ type PexelsSearchService struct {
 }
 
 func NewPexelsSearchService(apiKey string) *PexelsSearchService {
+	if apiKey == "" {
+		return nil
+	}
 	return &PexelsSearchService{apiKey: apiKey, client: &http.Client{Timeout: 10 * time.Second}}
 }
 

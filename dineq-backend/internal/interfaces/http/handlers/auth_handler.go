@@ -79,7 +79,6 @@ func (ac *AuthController) RegisterRequest(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Registration successful", "user": dto.ToUserResponse(user), "tokens": dto.LoginResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}})
 }
 
-// Standard email/password login
 func (ac *AuthController) LoginRequest(c *gin.Context) {
 	var loginRequest dto.LoginRequest
 	if err := c.ShouldBindJSON(&loginRequest); err != nil {
@@ -124,7 +123,6 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	// find token from db
 	tokenDoc, err := ac.RefreshTokenUsecase.FindByToken(req.RefreshToken)
 	if err != nil || tokenDoc == nil || tokenDoc.Revoked || time.Now().After(tokenDoc.ExpiresAt) {
 		if tokenDoc != nil {
@@ -138,43 +136,37 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	// check both the token is valid and not expired
 	_, err = utils.GetCookie(c, string(domain.RefreshTokenType))
 	if err != nil {
 		dto.WriteError(c, domain.ErrRefreshTokenNotFound)
 		return
 	}
 
-	// Validate the refresh token
 	_, err = ac.AuthService.ValidateRefreshToken(req.RefreshToken)
 	if err != nil {
 		dto.WriteError(c, domain.ErrTokenInvalidOrExpired)
 		return
 	}
 
-	// find the user of the token
 	user, err := ac.UserUsecase.FindUserByID(tokenDoc.UserID)
 	if err != nil {
 		dto.WriteError(c, domain.ErrUserNotFound)
 		return
 	}
 
-	// generate new access token
 	response, err := ac.AuthService.GenerateTokens(*user)
 	if err != nil {
 		dto.WriteError(c, domain.ErrTokenGenerationIssue)
 		return
 	}
 
-	// Decide whether to rotate the refresh token
-	rotateThreshold := 2 * time.Hour // 2 hours before expiry
+	rotateThreshold := 2 * time.Hour
 	shouldRotate := time.Until(tokenDoc.ExpiresAt) < rotateThreshold
 
 	var refreshTokenValue string
 	var refreshTokenExpiry time.Time
 
 	if shouldRotate {
-		// Rotate: generate and store a new refresh token
 		refreshToken := &domain.RefreshToken{
 			Token:     response.RefreshToken,
 			UserID:    user.ID,
@@ -193,12 +185,10 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		refreshTokenValue = response.RefreshToken
 		refreshTokenExpiry = response.RefreshTokenExpiresAt
 	} else {
-		// Do not rotate: keep using the existing valid refresh token string from the request body
 		refreshTokenValue = req.RefreshToken
 		refreshTokenExpiry = tokenDoc.ExpiresAt
 	}
 
-	// Set the refresh token in the cookies
 	utils.SetCookie(c, utils.CookieOptions{
 		Name:     string(domain.RefreshTokenType),
 		Value:    refreshTokenValue,
@@ -209,7 +199,6 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		HttpOnly: ac.CookieHTTPOnly,
 		SameSite: http.SameSiteStrictMode,
 	})
-	// Set the access token in the cookies
 	utils.SetCookie(c, utils.CookieOptions{
 		Name:     string(domain.AccessTokenType),
 		Value:    response.AccessToken,
@@ -220,16 +209,10 @@ func (ac *AuthController) RefreshToken(c *gin.Context) {
 		HttpOnly: ac.CookieHTTPOnly,
 		SameSite: http.SameSiteStrictMode,
 	})
-	c.JSON(http.StatusOK, dto.LoginResponse{
-		AccessToken:  response.AccessToken,
-		RefreshToken: refreshTokenValue,
-	})
+	c.JSON(http.StatusOK, dto.LoginResponse{AccessToken: response.AccessToken, RefreshToken: refreshTokenValue})
 }
 
-// log out here
 func (ac *AuthController) LogoutRequest(c *gin.Context) {
-
-	// get the refresh token from cookies
 	refreshToken, err := utils.GetCookie(c, string(domain.RefreshTokenType))
 	utils.DeleteCookie(c, string(domain.RefreshTokenType))
 	utils.DeleteCookie(c, string(domain.AccessTokenType))
@@ -254,22 +237,17 @@ func (ac *AuthController) LogoutRequest(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUserAlreadyLoggedOut.Error(), Error: domain.ErrTokenInvalidOrExpired.Error()})
 		return
 	}
-	// revoke the token
 	if err := ac.RefreshTokenUsecase.RevokeByUserID(tokenDoc.UserID); err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToRevokeToken.Error(), Error: err.Error()})
 		return
 	}
-
-	// delete the token from the database
 	if err := ac.RefreshTokenUsecase.DeleteByUserID(tokenDoc.UserID); err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToDeleteToken.Error(), Error: err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
-// forget password here
 func (ac *AuthController) ForgotPasswordRequest(c *gin.Context) {
 	var req dto.ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -280,7 +258,6 @@ func (ac *AuthController) ForgotPasswordRequest(c *gin.Context) {
 		dto.WriteValidationError(c, "payload", domain.ErrInvalidInput.Error(), "invalid_input", err)
 		return
 	}
-
 	err := ac.PasswordResetUsecase.RequestReset(req.Email, req.Platform)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToProcessRequest.Error(), Error: err.Error()})
@@ -289,7 +266,6 @@ func (ac *AuthController) ForgotPasswordRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
-// POST /verify-reset-token
 func (ac *AuthController) VerifyResetToken(c *gin.Context) {
 	email := c.Query("email")
 	if email == "" {
@@ -301,34 +277,27 @@ func (ac *AuthController) VerifyResetToken(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: "Token is required"})
 		return
 	}
-
-	fmt.Println("Verifying token for email:", email, "Token:", token)
 	sessionToken, err := ac.PasswordResetUsecase.VerifyResetToken(email, token)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
+		dto.WriteError(c, err)
 		return
 	}
-
-	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"session_token": sessionToken}})
+	c.JSON(http.StatusOK, gin.H{"session_token": sessionToken})
 }
 
-// POST /reset-password
 func (ac *AuthController) ResetPassword(c *gin.Context) {
 	var req dto.SetNewPasswordRequest
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(400, dto.ErrorResponse{Message: domain.ErrInvalidRequest.Error(), Error: err.Error()})
 		return
 	}
-
 	if err := ac.PasswordResetUsecase.ResetPasswordWithSession(req.SessionToken, req.NewPassword); err != nil {
 		c.JSON(400, dto.ErrorResponse{Message: domain.ErrFailedToResetPassword.Error(), Error: err.Error()})
 		return
 	}
-
 	c.JSON(200, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
-// verify email request
 func (ac *AuthController) VerifyEmailRequest(c *gin.Context) {
 	var req dto.VerifyEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -351,7 +320,6 @@ func (ac *AuthController) VerifyEmailRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
-// verify otp
 func (ac *AuthController) VerifyOTPRequest(c *gin.Context) {
 	userID := c.GetString("user_id")
 	var req dto.VerifyOTPRequest
@@ -385,7 +353,6 @@ func (ac *AuthController) VerifyOTPRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgUpdated})
 }
 
-// otp resend request
 func (ac *AuthController) ResendOTPRequest(c *gin.Context) {
 	userID := c.GetString("user_id")
 	user, err := ac.UserUsecase.FindUserByID(userID)
@@ -400,16 +367,14 @@ func (ac *AuthController) ResendOTPRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
-//Oauth Google handlers
-
 func (ac *AuthController) GoogleLogin(c *gin.Context) {
-	client := c.Query("client") // "web" or "mobile"
+	client := c.Query("client")
 	if client == "" {
 		client = "web"
 	}
 	conf := oauth.GetGoogleOAuthConfig(ac.GoogleClientID, ac.GoogleClientSecret, ac.GoogleRedirectURL)
-	url := conf.AuthCodeURL(client)
-	c.Redirect(http.StatusTemporaryRedirect, url)
+	authURL := conf.AuthCodeURL(client)
+	c.Redirect(http.StatusTemporaryRedirect, authURL)
 }
 
 func (ac *AuthController) GoogleCallback(c *gin.Context) {
@@ -439,10 +404,8 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		return
 	}
 
-	// Try finding user by email
 	user, err := ac.UserUsecase.GetUserByEmail(userInfo.Email)
 	if err == nil && user != nil {
-		// User exists - login flow
 		response, err := ac.AuthService.GenerateTokens(*user)
 		if err != nil {
 			dto.WriteError(c, domain.ErrTokenGenerationIssue)
@@ -457,27 +420,26 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			CreatedAt: time.Now(),
 		}
 
-		if existingToken, err := ac.RefreshTokenUsecase.FindByUserID(user.ID); err == nil {
-			ac.RefreshTokenUsecase.RevokedToken(existingToken)
-			ac.RefreshTokenUsecase.ReplaceToken(refreshToken)
+		if existingToken, err := ac.RefreshTokenUsecase.FindByUserID(user.ID); err == nil && existingToken != nil {
+			_ = ac.RefreshTokenUsecase.RevokedToken(existingToken)
+			_ = ac.RefreshTokenUsecase.ReplaceToken(refreshToken)
 		} else {
-			ac.RefreshTokenUsecase.Save(refreshToken)
+			_ = ac.RefreshTokenUsecase.Save(refreshToken)
 		}
 
-		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain,  Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
+		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
 		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: response.AccessToken, MaxAge: int(time.Until(response.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
-	       redir := ac.FrontendBaseURL
-	       fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
-	       if redir == "" {
-		       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
-		       redir = "http://localhost:3000"
-	       }
-	       fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success\n", redir)
-			   c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success")
-	       return
+		redir := ac.FrontendBaseURL
+		fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
+		if redir == "" {
+			fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
+			redir = "http://localhost:3000"
+		}
+		fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success\n", redir)
+		c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success")
+		return
 	}
 
-	// If user not found – register new one
 	newUser := &domain.User{Username: strings.Split(userInfo.Email, "@")[0], Email: strings.ToLower(userInfo.Email), FirstName: userInfo.GivenName, LastName: userInfo.FamilyName, Role: domain.RoleCustomer, AuthProvider: domain.AuthGoogle, ProfileImage: userInfo.Picture, CreatedAt: time.Now(), UpdatedAt: time.Now(), IsVerified: true}
 	if err := ac.UserUsecase.Register(newUser); err != nil {
 		dto.WriteError(c, domain.ErrServerIssue)
@@ -490,14 +452,14 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	}
 	refreshToken := &domain.RefreshToken{Token: newTokens.RefreshToken, UserID: newUser.ID, ExpiresAt: newTokens.RefreshTokenExpiresAt, Revoked: false, CreatedAt: time.Now()}
 	_ = ac.RefreshTokenUsecase.Save(refreshToken)
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: newTokens.RefreshToken, MaxAge: int(time.Until(newTokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain,  Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: newTokens.AccessToken, MaxAge: int(time.Until(newTokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain,  Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
-       redir := ac.FrontendBaseURL
-       fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
-       if redir == "" {
-	       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
-	       redir = "http://localhost:3000"
-       }
-       fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success?new=1\n", redir)
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: newTokens.RefreshToken, MaxAge: int(time.Until(newTokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: newTokens.AccessToken, MaxAge: int(time.Until(newTokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
+	redir := ac.FrontendBaseURL
+	fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
+	if redir == "" {
+		fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
+		redir = "http://localhost:3000"
+	}
+	fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success?new=1\n", redir)
 	c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success?new=1")
 }

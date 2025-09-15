@@ -111,11 +111,11 @@ func ToUserResponseList(users []*domain.User) []UserResponse {
 // / 	USER UPDATE REQUEST
 // user update profile request
 type UserUpdateProfileRequest struct {
-	Bio          string                `form:"bio" json:"bio" validate:"omitempty,max=500"`
-	FirstName    string                `form:"first_name" json:"first_name" validate:"omitempty,min=2,max=50"`
-	LastName     string                `form:"last_name" json:"last_name" validate:"omitempty,min=2,max=50"`
-	ProfileImage *multipart.FileHeader `form:"profile_image" validate:"omitempty"`
-	ProfileImageURL string             `json:"profile_image" validate:"omitempty,url"`
+	Bio             string                `form:"bio" json:"bio" validate:"omitempty,max=500"`
+	FirstName       string                `form:"first_name" json:"first_name" validate:"omitempty,min=2,max=50"`
+	LastName        string                `form:"last_name" json:"last_name" validate:"omitempty,min=2,max=50"`
+	ProfileImage    *multipart.FileHeader `form:"profile_image" validate:"omitempty"`
+	ProfileImageURL string                `json:"profile_image" validate:"omitempty,url"`
 }
 
 // change password request

@@ -41,18 +41,19 @@ func NewQRService() *QRService {
 	os.MkdirAll(qrDir, 0755)
 	baseURL := os.Getenv("FRONTEND_BASE_URL")
 	if baseURL == "" {
-		baseURL = "http://localhost:3000"
+		baseURL = "https://dineqmenumate.vercel.app"
 	}
 	return &QRService{qrDir: qrDir, baseURL: baseURL}
 }
 
-func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeRequest) (*dto.QRCodeResponse, error) {
+func (qs *QRService) GenerateQRCode(restaurantSlug string, menuSlug string, request *domain.QRCodeRequest) (*dto.QRCodeResponse, error) {
 	qrCodeID := uuid.New().String()
 	frontendURL := os.Getenv("FRONTEND_URL")
 	if frontendURL == "" {
 		frontendURL = qs.baseURL
 	}
-	publicMenuURL := fmt.Sprintf("%s/menu/%s", strings.TrimRight(frontendURL, "/"), restaurantID)
+	// Build new public URL format: {FRONTEND}/user/{restaurant_slug}/{menu_slug}
+	publicMenuURL := fmt.Sprintf("%s/user/%s/%s", strings.TrimRight(frontendURL, "/"), restaurantSlug, menuSlug)
 	if request.Size <= 0 {
 		request.Size = 256
 	}
@@ -318,6 +319,7 @@ func (qs *QRService) GenerateQRCode(restaurantID string, request *domain.QRCodeR
 		CloudImageURL:    url,
 		PublicMenuURL:    publicMenuURL,
 		DownloadURL:      url,
+		IsActive:         true,
 		ExpiresAt:        time.Now().Add(365 * 24 * time.Hour),
 		LabelFontApplied: labelFontApplied,
 		CreatedAt:        time.Now(),

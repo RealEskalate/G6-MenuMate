@@ -140,3 +140,13 @@ func (s *RestaurantUsecase) IncrementRestaurantViewCount(id string) error {
 	defer cancel()
 	return s.Repo.IncrementRestaurantViewCount(ctx, id)
 }
+
+// SearchRestaurants performs advanced filtering and sorting with pagination
+func (s *RestaurantUsecase) SearchRestaurants(ctx context.Context, f domain.RestaurantFilter) ([]*domain.Restaurant, int64, error) {
+	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
+	defer cancel()
+	if f.PageSize > 50 {
+		f.PageSize = 50
+	}
+	return s.Repo.SearchRestaurants(c, f)
+}
