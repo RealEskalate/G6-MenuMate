@@ -17,7 +17,7 @@ type Item struct {
 	ThumbnailImages []string         `json:"thumbnail_images"`
 	Price           float64          `json:"price"`
 	Currency        string           `json:"currency"`
-	Allergies       []string       `json:"allergies"`
+	Allergies       []string         `json:"allergies"`
 	AllergiesAm     string           `json:"allergies_am"`
 	UserImages      []string         `json:"user_images"`
 	TabTags         []string         `json:"tab_tags"`
@@ -56,6 +56,7 @@ type IItemRepository interface {
 	AddReview(ctx context.Context, itemID, reviewID string) error
 	GetItems(ctx context.Context, menuSlug string) ([]Item, error)
 	IncrementItemViewCount(ctx context.Context, id string) error
+	SearchItems(ctx context.Context, filter ItemFilter) ([]Item, int64, error)
 }
 
 type IItemUseCase interface {
@@ -66,4 +67,19 @@ type IItemUseCase interface {
 	AddReview(itemID, reviewID string) error
 	DeleteItem(id string) error
 	IncrementItemViewCount(id string) error
+	SearchItems(filter ItemFilter) ([]Item, int64, error)
+}
+
+// ItemFilter represents query filters for menu items within a menu.
+type ItemFilter struct {
+	MenuSlug  string
+	Tags      []string
+	MinPrice  *float64
+	MaxPrice  *float64
+	MinRating *float64
+	Query     string // name contains
+	SortBy    string // price|rating|popularity|createdAt|updatedAt
+	Order     int    // 1 asc, -1 desc
+	Page      int
+	PageSize  int
 }

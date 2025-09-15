@@ -15,6 +15,9 @@ type UnsplashSearchService struct {
 }
 
 func NewUnsplashSearchService(apiKey string) *UnsplashSearchService {
+	if apiKey == "" {
+		return nil
+	}
 	return &UnsplashSearchService{apiKey: apiKey, client: &http.Client{Timeout: 10 * time.Second}}
 }
 

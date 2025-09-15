@@ -8,21 +8,22 @@ import (
 )
 
 type MenuDB struct {
-	ID           bson.ObjectID `bson:"_id,omitempty"`
-	Name         string        `bson:"name"`
+	ID             bson.ObjectID `bson:"_id,omitempty"`
+	Name           string        `bson:"name"`
+	RestaurantID   string        `bson:"restaurantId"`
 	RestaurantSlug string        `bson:"RestaurantSlug"`
-	Slug         string        `bson:"slug"`
-	Version      int           `bson:"version"`
-	IsPublished  bool          `bson:"isPublished"`
-	PublishedAt  time.Time     `bson:"publishedAt"`
-	Items        []ItemDB      `bson:"items"`
-	CreatedAt    time.Time     `bson:"createdAt"`
-	UpdatedAt    time.Time     `bson:"updatedAt"`
-	CreatedBy    string        `bson:"createdBy"`
-	UpdatedBy    string        `bson:"updatedBy"`
-	IsDeleted    bool          `bson:"isDeleted"`
-	DeletedAt    *time.Time    `bson:"deletedAt,omitempty"`
-	ViewCount    int           `bson:"viewCount"`
+	Slug           string        `bson:"slug"`
+	Version        int           `bson:"version"`
+	IsPublished    bool          `bson:"isPublished"`
+	PublishedAt    time.Time     `bson:"publishedAt"`
+	Items          []ItemDB      `bson:"items"`
+	CreatedAt      time.Time     `bson:"createdAt"`
+	UpdatedAt      time.Time     `bson:"updatedAt"`
+	CreatedBy      string        `bson:"createdBy"`
+	UpdatedBy      string        `bson:"updatedBy"`
+	IsDeleted      bool          `bson:"isDeleted"`
+	DeletedAt      *time.Time    `bson:"deletedAt,omitempty"`
+	ViewCount      int           `bson:"viewCount"`
 }
 
 // ---------- Creation ----------
@@ -40,20 +41,21 @@ func NewMenuDBFromDomain(menu *domain.Menu) *MenuDB {
 	}
 
 	return &MenuDB{
-		ID:           menuId,
-		Name:         menu.Name,
+		ID:             menuId,
+		Name:           menu.Name,
+		RestaurantID:   menu.RestaurantID,
 		RestaurantSlug: menu.RestaurantSlug,
-		Slug:         menu.Slug,
-		Version:      1, // start at version 1
-		IsPublished:  menu.IsPublished,
-		PublishedAt:  menu.PublishedAt,
-		Items:        items,
-		CreatedAt:    now,
-		UpdatedAt:    now,
-		CreatedBy:    menu.CreatedBy,
-		UpdatedBy:    menu.UpdatedBy,
-		IsDeleted:    false,
-		ViewCount:    0,
+		Slug:           menu.Slug,
+		Version:        1, // start at version 1
+		IsPublished:    menu.IsPublished,
+		PublishedAt:    menu.PublishedAt,
+		Items:          items,
+		CreatedAt:      now,
+		UpdatedAt:      now,
+		CreatedBy:      menu.CreatedBy,
+		UpdatedBy:      menu.UpdatedBy,
+		IsDeleted:      false,
+		ViewCount:      0,
 	}
 }
 
@@ -68,20 +70,21 @@ func MergeMenuUpdate(updated *domain.Menu) *MenuDB {
 	}
 
 	return &MenuDB{
+		RestaurantID:   updated.RestaurantID,
 		RestaurantSlug: updated.RestaurantSlug,
-		Slug:          updated.Slug,
-		Name:          updated.Name,
-		IsPublished:   updated.IsPublished,
-		PublishedAt:   updated.PublishedAt,
-		Items:        items,
-		CreatedAt:    time.Now().UTC(),
-		UpdatedAt:    time.Now().UTC(),
-		CreatedBy:    updated.CreatedBy,
-		UpdatedBy:    updated.UpdatedBy,
-		IsDeleted:    updated.IsDeleted,
-		ViewCount:    updated.ViewCount,
-		DeletedAt:    updated.DeletedAt,
-		Version:      updated.Version + 1,
+		Slug:           updated.Slug,
+		Name:           updated.Name,
+		IsPublished:    updated.IsPublished,
+		PublishedAt:    updated.PublishedAt,
+		Items:          items,
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+		CreatedBy:      updated.CreatedBy,
+		UpdatedBy:      updated.UpdatedBy,
+		IsDeleted:      updated.IsDeleted,
+		ViewCount:      updated.ViewCount,
+		DeletedAt:      updated.DeletedAt,
+		Version:        updated.Version + 1,
 	}
 }
 
@@ -94,21 +97,22 @@ func ToDomainMenu(menu *MenuDB) *domain.Menu {
 	}
 
 	return &domain.Menu{
-		ID:            menu.ID.Hex(),
-		Name:          menu.Name,
+		ID:             menu.ID.Hex(),
+		Name:           menu.Name,
+		RestaurantID:   menu.RestaurantID,
 		RestaurantSlug: menu.RestaurantSlug,
-		Slug:          menu.Slug,
-		Version:       menu.Version,
-		IsPublished:   menu.IsPublished,
-		PublishedAt:   menu.PublishedAt,
-		Items:        items,
-		CreatedAt:    menu.CreatedAt,
-		UpdatedAt:    menu.UpdatedAt,
-		CreatedBy:    menu.CreatedBy,
-		UpdatedBy:    menu.UpdatedBy,
-		IsDeleted:    menu.IsDeleted,
-		ViewCount:    menu.ViewCount,
-		DeletedAt:    menu.DeletedAt,
+		Slug:           menu.Slug,
+		Version:        menu.Version,
+		IsPublished:    menu.IsPublished,
+		PublishedAt:    menu.PublishedAt,
+		Items:          items,
+		CreatedAt:      menu.CreatedAt,
+		UpdatedAt:      menu.UpdatedAt,
+		CreatedBy:      menu.CreatedBy,
+		UpdatedBy:      menu.UpdatedBy,
+		IsDeleted:      menu.IsDeleted,
+		ViewCount:      menu.ViewCount,
+		DeletedAt:      menu.DeletedAt,
 	}
 }
 
@@ -119,4 +123,3 @@ func idempotentID(id string) bson.ObjectID {
 	objID, _ := bson.ObjectIDFromHex(id)
 	return objID
 }
-

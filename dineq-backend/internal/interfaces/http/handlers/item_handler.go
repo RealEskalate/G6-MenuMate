@@ -4,13 +4,15 @@ import (
 	"net/http"
 	"time"
 
+	"strings"
+
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
 	"github.com/gin-gonic/gin"
 )
 
 type ItemHandler struct {
-	UseCase domain.IItemUseCase
+	UseCase       domain.IItemUseCase
 	ViewEventRepo domain.IViewEventRepository
 }
 
@@ -81,6 +83,64 @@ func (h *ItemHandler) GetItems(c *gin.Context) {
 	})
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgRetrieved, Data: gin.H{"items": dto.ItemToResponseList(items)}})
 }
+
+// SearchItems supports advanced filtering within a menu
+func (h *ItemHandler) SearchItems(c *gin.Context) {
+	var q dto.ItemSearchQuery
+	// Bind from query parameters
+	if err := c.ShouldBindQuery(&q); err != nil {
+		dto.WriteValidationError(c, "query", domain.ErrInvalidRequest.Error(), "invalid_query", err)
+		return
+	}
+	// Support comma-separated tags fallback
+	if len(q.Tags) == 0 {
+		if raw := c.Query("tags"); raw != "" {
+			parts := strings.Split(raw, ",")
+			tmp := make([]string, 0, len(parts))
+			for _, p := range parts {
+				if s := strings.TrimSpace(p); s != "" {
+					tmp = append(tmp, s)
+				}
+			}
+			q.Tags = tmp
+		}
+	}
+	// Fallback: if path param is provided as menu_slug
+	if q.MenuSlug == "" {
+		if ms := c.Query("menu_slug"); ms != "" {
+			q.MenuSlug = ms
+		}
+		if ms := c.Param("menu_slug"); ms != "" {
+			q.MenuSlug = ms
+		}
+	}
+	if q.MenuSlug == "" {
+		dto.WriteValidationError(c, "menu_slug", "menu_slug is required", "missing_menu_slug", nil)
+		return
+	}
+	items, total, err := h.UseCase.SearchItems(q.ToDomain())
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+	page := q.Page
+	size := q.PageSize
+	if page <= 0 {
+		page = 1
+	}
+	if size <= 0 {
+		size = 10
+	}
+	totalPages := (total + int64(size) - 1) / int64(size)
+	c.JSON(http.StatusOK, gin.H{
+		"page":       page,
+		"pageSize":   size,
+		"total":      total,
+		"totalPages": totalPages,
+		"items":      dto.ItemToResponseList(items),
+	})
+}
+
 // Helper to extract user ID from context (if available)
 func getUserID(c *gin.Context) string {
 	if uid, ok := c.Get("user_id"); ok {
