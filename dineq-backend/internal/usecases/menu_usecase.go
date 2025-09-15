@@ -194,7 +194,10 @@ func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *d
 		return nil, domain.ErrMenuNotPublished
 	}
 
-	res, err := uc.qrService.GenerateQRCode(restaurantId, req)
+	// Build slugs for URL: use the restaurantId as slug (router passes slug) and the menu slug
+	restSlug := restaurantId // router passes :restaurant_slug, which is a slug
+	menuSlug := menu.Slug
+	res, err := uc.qrService.GenerateQRCode(restSlug, menuSlug, req)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +209,7 @@ func (uc *MenuUseCase) GenerateQRCode(restaurantId string, menuId string, req *d
 		DownloadURL:   res.DownloadURL,
 		MenuID:        menu.ID,
 		RestaurantID:  restaurantId,
-		IsActive:      res.IsActive,
+		IsActive:      true,
 		CreatedAt:     res.CreatedAt,
 		ExpiresAt:     res.ExpiresAt,
 	}
