@@ -1,0 +1,2737 @@
+{
+  "info": {
+    "_postman_id": "d2d08772-826d-488f-a8c6-bb83768f4e72",
+    "name": "MenuMate API v1 - Comprehensive Collection",
+    "description": "Complete API documentation for MenuMate Backend - A restaurant management and discovery platform.\n\n## Overview\n\nMenuMate is a comprehensive restaurant management system that allows restaurant owners to manage restaurants, menus, staff, and for customers to discover and review places.\n\n## Base URL\n\n`http://localhost:8080/api/v1`\n\n## Authentication\n\nMost endpoints require JWT authentication. Send the access token via Authorization header or cookies.\n\n- Header: `Authorization: Bearer`\n    \n- Cookies: `access_token` and `refresh_token` are set by the server when you login/register.\n    \n\n## API Versioning\n\nAll endpoints are prefixed with `/api/v1`.\n\n## Errors\n\nStandard error format (refactored unified schema):\n\n```json\n{\n  \"message\": \"Short human readable explanation\",\n  \"code\": \"snake_case_machine_code\",\n  \"field\": \"field_name_if_applicable\",\n  \"error\": \"internal or debug detail (may be omitted in production)\"\n}\n```\n\nExamples:\n```json\n{\n  \"message\": \"email already in use\",\n  \"code\": \"email_already_in_use\",\n  \"field\": \"email\"\n}\n```\n```json\n{\n  \"message\": \"invalid credentials\",\n  \"code\": \"invalid_credentials\"\n}\n```\n\n## Success\n\nStandard success format may be either:\n\n``` json\n{ \"message\": \"Operation completed successfully\", \"data\": { ... } }\n```\nOR an object payload (e.g., login returns tokens).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "43798053",
+    "_collection_link": "https://tesfamichael.postman.co/workspace/cd610ad1-271f-46f0-80a2-fb050932281a/collection/43798053-d2d08772-826d-488f-a8c6-bb83768f4e72?action=share&source=collection_link&creator=43798053"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Public Auth",
+          "item": [
+            {
+              "name": "Register User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Capture nested tokens from register response",
+                      "if (pm.response.code === 201) {",
+                      "  const json = pm.response.json();",
+                      "  if (json.tokens) {",
+                      "    if (json.tokens.access_token) pm.environment.set('access_token', json.tokens.access_token);",
+                      "    if (json.tokens.refresh_token) pm.environment.set('refresh_token', json.tokens.refresh_token);",
+                      "    pm.environment.set('token_expiry', (Date.now()+ (15*60*1000)).toString());",
+                      "  }",
+                      "  if (json.user && json.user.id) pm.environment.set('user_id', json.user.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"username\": \"johndoe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"securepassword123\",\n  \"auth_provider\": \"EMAIL\",\n  \"role\":\"OWNER\",\n  \"first_name\": \"John\",\n  \"last_name\": \"Doe\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "register"]
+                },
+                "description": "Register a new user account.\n\n**Registration Rules:**\nYou MUST provide: \n- `username` (unique)\n- `password`\n- Either `email` OR `phone_number` (at least one)\n- `auth_provider` must match the primary credential used: `EMAIL` when using email, `PHONE` when using phone-only signup, `GOOGLE` for OAuth flow.\n\n**Request Body Fields (Standard Email Registration):**\n- `username` (string, required): 3-50 alphanumeric characters\n- `email` (string, required if auth_provider=EMAIL): Valid email address\n- `phone_number` (string, required if auth_provider=PHONE): E.164 format (e.g. +15551234567)\n- `password` (string, required): 6-100 characters\n- `auth_provider` (string, required): One of `EMAIL`, `PHONE`, `GOOGLE`\n- `first_name` (string, optional): 2-50 alphabetic characters\n- `last_name` (string, optional): 2-50 alphabetic characters\n- `role` (string, optional): One of `CUSTOMER`, `OWNER`, `MANAGER`, `STAFF`, `ADMIN` (defaults to `CUSTOMER`)\n\n**Examples:**\n_Email Based:_\n```json\n{\n  \"username\": \"johndoe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"securepassword123\",\n  \"auth_provider\": \"EMAIL\"\n}\n```\n_Phone Based:_\n```json\n{\n  \"username\": \"janedoe\",\n  \"phone_number\": \"+15551234567\",\n  \"password\": \"securepassword123\",\n  \"auth_provider\": \"PHONE\"\n}\n```\n\n**Conflict Handling (409):**\n- `username already exists`\n- `email already exists`\n- `phone number already exists`\n\n**Response:** Returns created user object without password hash."
+              },
+              "response": [
+                {
+                  "name": "201 Created",
+                  "status": "Created",
+                  "code": 201,
+                  "_postman_previewlanguage": "json",
+                  "body": "{\n  \"message\": \"Registration successful\",\n  \"user\": {\n    \"id\": \"663f1c...\",\n    \"username\": \"johndoe\",\n    \"email\": \"john.doe@example.com\"\n  },\n  \"tokens\": {\n    \"access_token\": \"eyJ...\",\n    \"refresh_token\": \"eyJ...\"\n  }\n}"
+                },
+                {
+                  "name": "409 Conflict (Email)",
+                  "status": "Conflict",
+                  "code": 409,
+                  "_postman_previewlanguage": "json",
+                  "body": "{\n  \"message\": \"email already in use\",\n  \"code\": \"email_already_in_use\",\n  \"field\": \"email\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "Login User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Updated to support nested { tokens: { access_token, refresh_token }, user } structure",
+                      "if (pm.response.code === 200) {",
+                      "  const json = pm.response.json();",
+                      "  const access = json.tokens ? json.tokens.access_token : json.access_token;",
+                      "  const refresh = json.tokens ? json.tokens.refresh_token : json.refresh_token;",
+                      "  pm.test('access token present', function(){ pm.expect(access).to.be.a('string'); });",
+                      "  if (access) pm.environment.set('access_token', access);",
+                      "  if (refresh) pm.environment.set('refresh_token', refresh);",
+                      "  if (json.user && json.user.id) pm.environment.set('user_id', json.user.id);",
+                      "  pm.environment.set('token_acquired', Date.now().toString());",
+                      "  pm.environment.set('token_expiry', (Date.now() + (15*60*1000)).toString());",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"identifier\": \"john.doe@example.com\",\n  \"password\": \"securepassword123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "login"]
+                },
+                "description": "Authenticate user and get JWTs. Response: { message, user, tokens:{access_token,refresh_token} }. Fields: identifier, password. TTL: access ~15m, refresh ~7d."
+              },
+              "response": [
+                {
+                  "name": "200 OK",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"identifier\": \"john.doe@example.com\",\n  \"password\": \"securepassword123\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{base_url}}/auth/login",
+                      "host": ["{{base_url}}"],
+                      "path": ["auth", "login"]
+                    },
+                    "description": "Authenticate user and obtain JWT tokens (nested response)."
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"message\": \"Login successful\",\n  \"user\": { \n    \"id\": \"663f1c...\",\n    \"username\": \"johndoe\",\n    \"email\": \"john.doe@example.com\"\n  },\n  \"tokens\": {\n    \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n    \"refresh_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n  }\n}"
+                },
+                {
+                  "name": "401 Unauthorized",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"identifier\": \"john.doe@example.com\",\n  \"password\": \"securepassword123\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{base_url}}/auth/login",
+                      "host": ["{{base_url}}"],
+                      "path": ["auth", "login"]
+                    },
+                    "description": "401 when identifier/password mismatch."
+                  },
+                  "status": "Unauthorized",
+                  "code": 401,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"message\": \"invalid credentials\",\n  \"code\": \"invalid_credentials\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "Refresh Token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "// Refresh token response returns flat {access_token, refresh_token?} per handler",
+                      "if (pm.response.code === 200) {",
+                      "  const json = pm.response.json();",
+                      "  if (json.access_token) pm.environment.set('access_token', json.access_token);",
+                      "  if (json.refresh_token) pm.environment.set('refresh_token', json.refresh_token);",
+                      "  pm.environment.set('token_expiry', (Date.now() + (15*60*1000)).toString());",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/refresh",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "refresh"]
+                },
+                "description": "Get new access and refresh tokens using a valid refresh token.\n\n**Request Body Fields:**\n- `refresh_token` (string, required): Valid refresh token\n\n**Response:**\n```json\n{\n  \"access_token\": \"new_jwt_access_token\",\n  \"refresh_token\": \"new_jwt_refresh_token\"\n}\n```\n\n**Error Responses:**\n- `401`: Invalid or expired refresh token\n- `400`: Missing refresh token"
+              },
+              "response": [
+                {
+                  "name": "200 OK",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{base_url}}/auth/refresh",
+                      "host": ["{{base_url}}"],
+                      "path": ["auth", "refresh"]
+                    },
+                    "description": "Get new access and refresh tokens using a valid refresh token.\n\n**Request Body Fields:**\n- `refresh_token` (string, required): Valid refresh token\n\n**Response:**\n```json\n{\n  \"access_token\": \"new_jwt_access_token\",\n  \"refresh_token\": \"new_jwt_refresh_token\"\n}\n```\n\n**Error Responses:**\n- `401`: Invalid or expired refresh token\n- `400`: Missing refresh token"
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"access_token\": \"new_access_token...\",\n  \"refresh_token\": \"new_or_same_refresh_token...\"\n}"
+                },
+                {
+                  "name": "401 Unauthorized",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{base_url}}/auth/refresh",
+                      "host": ["{{base_url}}"],
+                      "path": ["auth", "refresh"]
+                    },
+                    "description": "Get new access and refresh tokens using a valid refresh token.\n\n**Request Body Fields:**\n- `refresh_token` (string, required): Valid refresh token\n\n**Response:**\n```json\n{\n  \"access_token\": \"new_jwt_access_token\",\n  \"refresh_token\": \"new_jwt_refresh_token\"\n}\n```\n\n**Error Responses:**\n- `401`: Invalid or expired refresh token\n- `400`: Missing refresh token"
+                  },
+                  "status": "Unauthorized",
+                  "code": 401,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"message\": \"invalid or expired token\",\n  \"error\": \"token revoked or expired\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "Forgot Password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/forgot-password",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "forgot-password"]
+                },
+                "description": "Send password reset email to user.\n\n**Request Body Fields:**\n- `email` (string, required): Valid email address\n\n**Response:**\n```json\n{\n  \"message\": \"Password reset email sent successfully\"\n}\n```\n\n**Notes:**\n- Reset tokens expire in 10 minutes (configurable)\n- Email will contain a reset link with token\n- No error returned if email doesn't exist (security measure)"
+              },
+              "response": [
+                {
+                  "name": "200 OK",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{base_url}}/auth/forgot-password",
+                      "host": ["{{base_url}}"],
+                      "path": ["auth", "forgot-password"]
+                    },
+                    "description": "Send password reset email to user.\n\n**Request Body Fields:**\n- `email` (string, required): Valid email address\n\n**Response:**\n```json\n{\n  \"message\": \"Password reset email sent successfully\"\n}\n```\n\n**Notes:**\n- Reset tokens expire in 10 minutes (configurable)\n- Email will contain a reset link with token\n- No error returned if email doesn't exist (security measure)"
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"message\": \"Password reset email sent successfully\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "Reset Password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"token\": \"password_reset_token_from_email\",\n  \"new_password\": \"newSecurePassword123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/reset-password",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "reset-password"]
+                },
+                "description": "Reset user password using reset token.\n\n**Request Body Fields:**\n- `email` (string, required): User's email address\n- `token` (string, required): Reset token from email\n- `new_password` (string, required): New password (minimum 6 characters)\n\n**Response:**\n```json\n{\n  \"message\": \"Password reset successfully\"\n}\n```\n\n**Error Responses:**\n- `400`: Invalid or expired token\n- `404`: User not found"
+              },
+              "response": [
+                {
+                  "name": "200 OK",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"token\": \"password_reset_token_from_email\",\n  \"new_password\": \"newSecurePassword123\"\n}"
+                    },
+                    "url": {
+                      "raw": "{{base_url}}/auth/reset-password",
+                      "host": ["{{base_url}}"],
+                      "path": ["auth", "reset-password"]
+                    },
+                    "description": "Reset user password using reset token.\n\n**Request Body Fields:**\n- `email` (string, required): User's email address\n- `token` (string, required): Reset token from email\n- `new_password` (string, required): New password (minimum 6 characters)\n\n**Response:**\n```json\n{\n  \"message\": \"Password reset successfully\"\n}\n```\n\n**Error Responses:**\n- `400`: Invalid or expired token\n- `404`: User not found"
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"message\": \"Password reset successfully\"\n}"
+                }
+              ]
+            },
+            {
+              "name": "Logout",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/logout",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "logout"]
+                },
+                "description": "Logout user and invalidate refresh tokens.\n\n**Response:**\n```json\n{\n  \"message\": \"Logged out successfully\"\n}\n```\n\n**Notes:**\n- Invalidates all refresh tokens for the user\n- Access tokens will still be valid until expiry (stateless)"
+              },
+              "response": [
+                {
+                  "name": "200 OK",
+                  "originalRequest": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{}"
+                    },
+                    "url": {
+                      "raw": "{{base_url}}/auth/logout",
+                      "host": ["{{base_url}}"],
+                      "path": ["auth", "logout"]
+                    },
+                    "description": "Logout user and invalidate refresh tokens.\n\n**Response:**\n```json\n{\n  \"message\": \"Logged out successfully\"\n}\n```\n\n**Notes:**\n- Invalidates all refresh tokens for the user\n- Access tokens will still be valid until expiry (stateless)"
+                  },
+                  "status": "OK",
+                  "code": 200,
+                  "_postman_previewlanguage": "json",
+                  "header": [
+                    {
+                      "key": "Content-Type",
+                      "value": "application/json"
+                    }
+                  ],
+                  "cookie": [],
+                  "body": "{\n  \"message\": \"success\"\n}"
+                }
+              ]
+            }
+          ],
+          "description": "Authentication endpoints that don't require authorization"
+        },
+        {
+          "name": "Google OAuth",
+          "item": [
+            {
+              "name": "Google Login Redirect",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/auth/google/login",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "google", "login"]
+                },
+                "description": "Redirect to Google OAuth2 consent screen.\n\n**Response:**\n- Redirects to Google OAuth consent page\n- User authorizes the application\n- Google redirects to callback URL\n\n**Usage:**\n1. Direct users to this URL in browser\n2. User completes OAuth flow\n3. Google calls the callback endpoint\n4. Application receives tokens"
+              },
+              "response": []
+            },
+            {
+              "name": "Google OAuth Callback",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/auth/google/callback?code=google_auth_code&state=optional_state",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "google", "callback"],
+                  "query": [
+                    {
+                      "key": "code",
+                      "value": "google_auth_code",
+                      "description": "Authorization code from Google"
+                    },
+                    {
+                      "key": "state",
+                      "value": "optional_state",
+                      "description": "Optional state parameter"
+                    }
+                  ]
+                },
+                "description": "Handle Google OAuth2 callback and authenticate user.\n\n**Query Parameters:**\n- `code` (string, required): Authorization code from Google\n- `state` (string, optional): State parameter for CSRF protection\n\n**Response:**\n```json\n{\n  \"access_token\": \"jwt_access_token\",\n  \"refresh_token\": \"jwt_refresh_token\",\n  \"user\": {\n    \"id\": \"user_id\",\n    \"email\": \"user@gmail.com\",\n    \"username\": \"google_user123\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Doe\",\n    \"auth_provider\": \"GOOGLE\",\n    \"role\": \"CUSTOMER\"\n  }\n}\n```\n\n**Notes:**\n- Creates new user with `auth_provider=GOOGLE` if first-time login\n- Links existing account if the email matches an existing user\n- Username is generated or derived if not provided"
+              },
+              "response": []
+            }
+          ],
+          "description": "Google OAuth2 authentication flow"
+        },
+        {
+          "name": "Protected Auth",
+          "item": [
+            {
+              "name": "Verify Email Request",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/verify-email",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "verify-email"]
+                },
+                "description": "Send email verification OTP to user.\n\n**Request Body Fields:**\n- `email` (string, required): Valid email address to verify\n\n**Response:**\n```json\n{\n  \"message\": \"Verification email sent successfully\"\n}\n```\n\n**Notes:**\n- Requires valid access token\n- Sends 6-digit OTP to email\n- OTP expires in configured minutes (default: 15 minutes)\n- Maximum attempts limit applies"
+              },
+              "response": []
+            },
+            {
+              "name": "Resend OTP",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/resend-otp",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "resend-otp"]
+                },
+                "description": "Resend OTP for email verification.\n\n**Response:**\n```json\n{\n  \"message\": \"OTP resent successfully\"\n}\n```\n\n**Notes:**\n- Requires valid access token\n- Invalidates previous OTP\n- Same expiry and attempt limits apply\n- Rate limiting may apply"
+              },
+              "response": []
+            },
+            {
+              "name": "Verify OTP",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"123456\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/verify-otp",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "verify-otp"]
+                },
+                "description": "Verify OTP and mark email as verified.\n\n**Request Body Fields:**\n- `code` (string, required): 6-digit OTP code\n\n**Response:**\n```json\n{\n  \"message\": \"Email verified successfully\",\n  \"user\": {\n    \"id\": \"user_id\",\n    \"email\": \"john.doe@example.com\",\n    \"is_verified\": true\n  }\n}\n```\n\n**Error Responses:**\n- `400`: Invalid or expired OTP\n- `429`: Too many attempts\n- `401`: Invalid access token"
+              },
+              "response": []
+            }
+          ],
+          "description": "Authentication endpoints that require valid access token"
+        }
+      ],
+      "description": "User authentication and authorization endpoints including registration, login, password management, and OAuth integration."
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Returns overall system health and component statuses (currently database)."
+          },
+          "response": []
+        }
+      ],
+      "description": "System level endpoints (health, diagnostics)"
+    },
+    {
+      "name": "OCR",
+      "item": [
+        {
+          "name": "Upload Menu Image (OCR Job)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "menuImage",
+                  "description": "Menu image file to process (jpg/png, max 5MB)",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/ocr/upload",
+              "host": ["{{base_url}}"],
+              "path": ["ocr", "upload"]
+            },
+            "description": "Upload a menu image to start an OCR job.\n\nAuthorization: Requires bearer access token.\n\nForm Data:\n- menuImage (file, required): Image of the menu.\n\nResponse (200): Returns extracted structured menu data if immediate processing succeeds; otherwise job status pending."
+          },
+          "response": []
+        },
+        {
+          "name": "Get OCR Job",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ocr/:jobId",
+              "host": ["{{base_url}}"],
+              "path": ["ocr", ":jobId"],
+              "variable": [
+                {
+                  "key": "jobId",
+                  "value": "job_id"
+                }
+              ]
+            },
+            "description": "Fetch OCR job status and extracted data if completed.\n\nPath Params:\n- jobId: OCR job identifier.\n\nAuthorization: Requires bearer access token."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete OCR Job",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ocr/:id",
+              "host": ["{{base_url}}"],
+              "path": ["ocr", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "ocr_job_id",
+                  "description": "OCR Job ID"
+                }
+              ]
+            },
+            "description": "Delete (cancel) an OCR job and its processed data.\n\nPath Params:\n- `id` (string, required): OCR job id.\n\nAuthorization: Bearer token required.\n\nResponses:\n- 200: `{ \"message\": \"OCR job deleted successfully\" }`\n- 404: `{ \"message\": \"ocr job not found\" }`\n- 401: Unauthorized token missing/invalid"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"OCR job deleted\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"ocr job not found\"\n}"
+            },
+            {
+              "name": "500 Server Error",
+              "status": "Internal Server Error",
+              "code": 500,
+              "body": "{\n  \"error\": \"unexpected failure deleting job\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Retry OCR Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/ocr/:id/retry",
+              "host": ["{{base_url}}"],
+              "path": ["ocr", ":id", "retry"],
+              "variable": [{ "key": "id", "value": "ocr_job_id" }]
+            },
+            "description": "Retry processing a failed OCR job. Only jobs in failed/error status can be retried.\n\nPath Params:\n- `id`: OCR job id.\n\nResponses:\n- 200: Returns updated job `{ id, status: 'pending' }`\n- 409: `{ \"message\": \"job not in failed state\" }`\n- 404: Job not found"
+          },
+          "response": [
+            {
+              "name": "202 Accepted",
+              "status": "Accepted",
+              "code": 202,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"job_id\": \"ocr_job_id\",\n    \"status\": \"processing\",\n    \"estimated_completion_time\": \"2025-09-04T11:40:00Z\"\n  }\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"error\": \"job not in failed state\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "OCR job submission and status endpoints for extracting menu data."
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Create Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"title\": \"Menu Published\",\n  \"message\": \"Your menu 'Lunch Specials' is now live.\",\n  \"type\": \"MENU_EVENT\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/notifications/",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", ""]
+            },
+            "description": "Create a notification (system/internal usage).\n\nBody Fields:\n- `user_id` (string) target user\n- `title` (string) short heading\n- `message` (string) detailed message\n- `type` (string) classification (e.g. MENU_EVENT, SYSTEM, ALERT)\n\nResponses:\n- 201: Created notification object\n- 400: Validation error\n- 401: Unauthorized"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"id\": \"notif_id\",\n  \"user_id\": \"{{user_id}}\",\n  \"title\": \"Menu Published\",\n  \"message\": \"Your menu 'Lunch Specials' is now live.\",\n  \"type\": \"MENU_EVENT\",\n  \"is_read\": false,\n  \"created_at\": \"2025-09-04T08:35:00Z\"\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"error\": \"validation error details\"\n}"
+            },
+            {
+              "name": "500 Server Error",
+              "status": "Internal Server Error",
+              "code": 500,
+              "body": "{\n  \"error\": \"failed to persist notification\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/:userId",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", ":userId"],
+              "variable": [{ "key": "userId", "value": "{{user_id}}" }]
+            },
+            "description": "Return notifications for a user ordered by newest first.\n\nPath Params:\n- `userId`: user id.\n\nQuery (optional):\n- `unread` (bool) filter only unread.\n\nResponses:\n- 200: `[ { id, user_id, title, message, type, is_read, created_at } ]`\n- 401: Unauthorized"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "[\n  {\n    \"id\": \"notif_id\",\n    \"user_id\": \"{{user_id}}\",\n    \"title\": \"Menu Published\",\n    \"message\": \"Your menu 'Lunch Specials' is now live.\",\n    \"type\": \"MENU_EVENT\",\n    \"is_read\": false,\n    \"created_at\": \"2025-09-04T08:35:00Z\"\n  }\n]"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"error\": \"Notifications not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Mark Notifications Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/notifications/:userId/read",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", ":userId", "read"],
+              "variable": [{ "key": "userId", "value": "{{user_id}}" }]
+            },
+            "description": "Mark all (or filtered) notifications as read for a user.\n\nResponses:\n- 200: `{ \"message\": \"marked as read\" , count: <number> }`\n- 401: Unauthorized\n- 404: User not found"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Notification marked as read\"\n}"
+            },
+            {
+              "name": "500 Server Error",
+              "status": "Internal Server Error",
+              "code": 500,
+              "body": "{\n  \"error\": \"failed to mark notifications\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Notifications WebSocket",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/notifications/ws",
+              "host": ["{{base_url}}"],
+              "path": ["notifications", "ws"]
+            },
+            "description": "WebSocket endpoint that streams live notifications.\n\nUpgrade Request: `GET /notifications/ws` with standard WS headers.\n\nClient Message Format (optional ping): `{ \"type\": \"ping\" }`\nServer Push Format: `{ id, title, message, type, created_at }`\n\nNote: Postman can't maintain custom WS auth via bearer automatically; open a raw WebSocket client and include `Authorization: Bearer <token>` in the headers (if supported) or use a token query param if backend allows (not recommended)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Real-time and REST notification endpoints (create, fetch, mark read, WebSocket)."
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "first_name",
+                  "value": "John",
+                  "description": "First name (2-50 alphabetic characters)",
+                  "type": "text"
+                },
+                {
+                  "key": "last_name",
+                  "value": "Smith",
+                  "description": "Last name (2-50 alphabetic characters)",
+                  "type": "text"
+                },
+                {
+                  "key": "bio",
+                  "value": "Updated bio - Food enthusiast and restaurant critic",
+                  "description": "User biography (max 500 characters)",
+                  "type": "text"
+                },
+                {
+                  "key": "avatar",
+                  "description": "Profile picture file (optional)",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/users/update-profile",
+              "host": ["{{base_url}}"],
+              "path": ["users", "update-profile"]
+            },
+            "description": "Update user profile basic information and optional profile image.\n\n**Form Fields:**\n- `first_name` (string, optional): 2-50 alphabetic characters\n- `last_name` (string, optional): 2-50 alphabetic characters\n- `bio` (string, optional / legacy - currently ignored if provided)\n- `avatar` (file, optional): Profile image file (mapped to `profile_image` URL after upload)\n\n**Supported File Types:**\n- JPEG, PNG, GIF\n- Max size: 5MB\n\n**Response:**\n```json\n{\n  \"message\": \"Profile updated successfully\",\n  \"data\": {\n    \"id\": \"user_id\",\n    \"username\": \"johndoe\",\n    \"email\": \"john.doe@example.com\",\n    \"first_name\": \"John\",\n    \"last_name\": \"Smith\",\n    \"profile_image\": \"https://storage.example.com/profile/johndoe.jpg\",\n    \"updated_at\": \"2024-01-15T10:30:00Z\"\n  }\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"currentPassword123\",\n  \"new_password\": \"newSecurePassword456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["users", "change-password"]
+            },
+            "description": "Change user password.\n\n**Request Body Fields:**\n- `old_password` (string, required): Current password (6-100 characters)\n- `new_password` (string, required): New password (6-100 characters)\n\n**Response:**\n```json\n{\n  \"message\": \"Password changed successfully\"\n}\n```\n\n**Error Responses:**\n- `400`: Invalid old password\n- `422`: New password doesn't meet requirements\n- `401`: Invalid access token\n\n**Password Requirements:**\n- Minimum 6 characters\n- Maximum 100 characters\n- Should contain mix of letters, numbers, and special characters (recommended)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User Info",
+          "request": {
+            "auth": {
+              "type": "bearer"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": ["{{base_url}}"],
+              "path": ["me"]
+            }
+          },
+          "response": [
+            {
+              "name": "New Request",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/me",
+                  "host": ["{{base_url}}"],
+                  "path": ["me"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Access-Control-Allow-Headers",
+                  "value": "Origin, Content-Type, Authorization, Accept"
+                },
+                {
+                  "key": "Access-Control-Allow-Methods",
+                  "value": "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 03 Sep 2025 07:26:30 GMT"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "447"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Operation completed successfully\",\n    \"data\": {\n        \"id\": \"68b784c7674d44adb1b2c11b\",\n        \"username\": \"johndoe16\",\n        \"email\": \"john.doe16@example.com\",\n        \"first_name\": \"John\",\n        \"last_name\": \"Doe\",\n        \"role\": \"OWNER\",\n        \"status\": \"ACTIVE\",\n        \"auth_provider\": \"EMAIL\",\n        \"profile_image\": \"https://res.cloudinary.com/dmahwet/image/upload/v1756857542/dineQ/profile/hf1cocceefpewsble3oq.png\",\n        \"is_verified\": false,\n        \"created_at\": \"0001-01-01T00:00:00Z\",\n        \"updated_at\": \"0001-01-01T00:00:00Z\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/:id",
+              "host": ["{{base_url}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "68b6ae242e9d6461f9e0f136"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "New Request",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/users/:id",
+                  "host": ["{{base_url}}"],
+                  "path": ["users", ":id"],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "68b6ae242e9d6461f9e0f136"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Access-Control-Allow-Headers",
+                  "value": "Origin, Content-Type, Authorization, Accept"
+                },
+                {
+                  "key": "Access-Control-Allow-Methods",
+                  "value": "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 03 Sep 2025 07:26:42 GMT"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "300"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Operation completed successfully\",\n    \"data\": {\n        \"id\": \"68b6ae242e9d6461f9e0f136\",\n        \"username\": \"johndoe14\",\n        \"first_name\": \"John\",\n        \"last_name\": \"Doe\",\n        \"role\": \"CUSTOMER\",\n        \"status\": \"ACTIVE\",\n        \"auth_provider\": \"EMAIL\",\n        \"is_verified\": false,\n        \"created_at\": \"0001-01-01T00:00:00Z\",\n        \"updated_at\": \"0001-01-01T00:00:00Z\"\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get User Avatar Image Options",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/users/avatar-options?number=30&gender=male",
+              "host": ["{{base_url}}"],
+              "path": ["users", "avatar-options"],
+              "query": [
+                {
+                  "key": "number",
+                  "value": "30",
+                  "description": "1 - 49 = Male & 50 - 100 = Female"
+                },
+                {
+                  "key": "gender",
+                  "value": "male",
+                  "description": "male or female"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Get User Avatar Image Options",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/users/avatar-options?number=30&gender=male",
+                  "host": ["{{base_url}}"],
+                  "path": ["users", "avatar-options"],
+                  "query": [
+                    {
+                      "key": "number",
+                      "value": "30",
+                      "description": "1 - 49 = Male & 50 - 100 = Female"
+                    },
+                    {
+                      "key": "gender",
+                      "value": "male",
+                      "description": "male or female"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Access-Control-Allow-Credentials",
+                  "value": "true"
+                },
+                {
+                  "key": "Access-Control-Allow-Headers",
+                  "value": "Origin, Content-Type, Authorization, Accept"
+                },
+                {
+                  "key": "Access-Control-Allow-Methods",
+                  "value": "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+                },
+                {
+                  "key": "Access-Control-Allow-Origin",
+                  "value": "*"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 03 Sep 2025 07:26:53 GMT"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"data\": {\n        \"avatars\": [\n            {\n                \"id\": 1,\n                \"url\": \"https://avatar.iran.liara.run/public/1\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 2,\n                \"url\": \"https://avatar.iran.liara.run/public/2\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 3,\n                \"url\": \"https://avatar.iran.liara.run/public/3\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 4,\n                \"url\": \"https://avatar.iran.liara.run/public/4\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 5,\n                \"url\": \"https://avatar.iran.liara.run/public/5\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 6,\n                \"url\": \"https://avatar.iran.liara.run/public/6\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 7,\n                \"url\": \"https://avatar.iran.liara.run/public/7\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 8,\n                \"url\": \"https://avatar.iran.liara.run/public/8\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 9,\n                \"url\": \"https://avatar.iran.liara.run/public/9\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 10,\n                \"url\": \"https://avatar.iran.liara.run/public/10\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 11,\n                \"url\": \"https://avatar.iran.liara.run/public/11\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 12,\n                \"url\": \"https://avatar.iran.liara.run/public/12\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 13,\n                \"url\": \"https://avatar.iran.liara.run/public/13\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 14,\n                \"url\": \"https://avatar.iran.liara.run/public/14\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 15,\n                \"url\": \"https://avatar.iran.liara.run/public/15\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 16,\n                \"url\": \"https://avatar.iran.liara.run/public/16\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 17,\n                \"url\": \"https://avatar.iran.liara.run/public/17\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 18,\n                \"url\": \"https://avatar.iran.liara.run/public/18\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 19,\n                \"url\": \"https://avatar.iran.liara.run/public/19\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 20,\n                \"url\": \"https://avatar.iran.liara.run/public/20\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 21,\n                \"url\": \"https://avatar.iran.liara.run/public/21\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 22,\n                \"url\": \"https://avatar.iran.liara.run/public/22\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 23,\n                \"url\": \"https://avatar.iran.liara.run/public/23\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 24,\n                \"url\": \"https://avatar.iran.liara.run/public/24\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 25,\n                \"url\": \"https://avatar.iran.liara.run/public/25\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 26,\n                \"url\": \"https://avatar.iran.liara.run/public/26\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 27,\n                \"url\": \"https://avatar.iran.liara.run/public/27\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 28,\n                \"url\": \"https://avatar.iran.liara.run/public/28\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 29,\n                \"url\": \"https://avatar.iran.liara.run/public/29\",\n                \"gender\": \"male\"\n            },\n            {\n                \"id\": 30,\n                \"url\": \"https://avatar.iran.liara.run/public/30\",\n                \"gender\": \"male\"\n            }\n        ],\n        \"count\": 30\n    },\n    \"success\": true\n}"
+            }
+          ]
+        }
+      ],
+      "description": "User profile and account management endpoints"
+    },
+    {
+      "name": "Restaurant Management",
+      "item": [
+        {
+          "name": "Create Restaurant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.test('has id and slug', function () {",
+                  "    pm.expect(json).to.have.property('id');",
+                  "    pm.expect(json).to.have.property('slug');",
+                  "  });",
+                  "  pm.environment.set('restaurant_id', json.id);",
+                  "  pm.environment.set('restaurant_slug', json.slug);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "restaurant_name",
+                  "value": "The Italian Corner",
+                  "type": "text"
+                },
+                {
+                  "key": "restaurant_phone",
+                  "value": "+1234567890",
+                  "type": "text"
+                },
+                {
+                  "key": "about",
+                  "value": "Authentic Italian cuisine with fresh ingredients and traditional recipes passed down through generations.",
+                  "type": "text"
+                },
+                {
+                  "key": "tags",
+                  "value": "Italian,Pizza,Pasta,Fine Dining,Family Friendly",
+                  "type": "text"
+                },
+                {
+                  "key": "verification_docs",
+                  "type": "file",
+                  "src": "/home/tesfamichaelt/Downloads/photo_2025-08-21_13-58-09 (copy).jpg"
+                },
+                {
+                  "key": "logo_image",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "cover_image",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/restaurants",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants"]
+            },
+            "description": "Create a new restaurant.\n\n**Request Body Fields (multipart/form-data):**\n- `restaurant_name` (string, required): Restaurant name\n- `restaurant_phone` (string, required): Restaurant phone number\n- `about` (string, optional): Restaurant description\n- `tags` (string, optional): Comma-separated tags (e.g., \"Italian,Pizza,Pasta\") or multiple form keys\n- `logo_image` (file, optional): Restaurant logo image file\n- `verification_docs` (file, optional): Business verification documents\n- `cover_image` (file, optional): Restaurant cover image\n\n**Tag Input Formats:**\n1. CSV: `\"Italian,Pizza,Pasta\"`\n2. Multiple keys: `tags=Italian&tags=Pizza`\n3. Array notation: `tags[]=Italian&tags[]=Pizza`\n\n**Automatic Fields:**\n- `manager_id`: Set from authenticated user\n- `slug`: Generated from restaurant name\n- `verification_status`: Set to \"pending\"\n- `average_rating`: Initialized to 0\n- `view_count`: Initialized to 0\n\n**Response (snake_case):**\n```json\n{\n  \"id\": \"restaurant_id\",\n  \"slug\": \"the-italian-corner\",\n  \"restaurant_name\": \"The Italian Corner\",\n  \"manager_id\": \"user_id\",\n  \"restaurant_phone\": \"+1234567890\",\n  \"about\": \"Restaurant description\",\n  \"tags\": [\"Italian\", \"Pizza\"],\n  \"previous_slugs\": [],\n  \"verification_status\": \"pending\",\n  \"average_rating\": 0,\n  \"view_count\": 0,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-15T10:30:00Z\"\n}\n```"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "restaurant_name",
+                      "value": "The Italian Corner",
+                      "type": "text"
+                    },
+                    {
+                      "key": "restaurant_phone",
+                      "value": "+1234567890",
+                      "type": "text"
+                    },
+                    {
+                      "key": "about",
+                      "value": "Authentic Italian cuisine with fresh ingredients and traditional recipes passed down through generations.",
+                      "type": "text"
+                    },
+                    {
+                      "key": "tags",
+                      "value": "Italian,Pizza,Pasta,Fine Dining,Family Friendly",
+                      "type": "text"
+                    },
+                    {
+                      "key": "verification_docs",
+                      "type": "file",
+                      "src": "/home/tesfamichaelt/Downloads/photo_2025-08-21_13-58-09 (copy).jpg"
+                    },
+                    {
+                      "key": "logo_image",
+                      "type": "file",
+                      "src": []
+                    },
+                    {
+                      "key": "cover_image",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/restaurants",
+                  "host": ["{{base_url}}"],
+                  "path": ["restaurants"]
+                },
+                "description": "Create a new restaurant.\n\n**Request Body Fields (multipart/form-data):**\n- `restaurant_name` (string, required): Restaurant name\n- `restaurant_phone` (string, required): Restaurant phone number\n- `about` (string, optional): Restaurant description\n- `tags` (string, optional): Comma-separated tags (e.g., \"Italian,Pizza,Pasta\") or multiple form keys\n- `logo_image` (file, optional): Restaurant logo image file\n- `verification_docs` (file, optional): Business verification documents\n- `cover_image` (file, optional): Restaurant cover image\n\n**Tag Input Formats:**\n1. CSV: `\"Italian,Pizza,Pasta\"`\n2. Multiple keys: `tags=Italian&tags=Pizza`\n3. Array notation: `tags[]=Italian&tags[]=Pizza`\n\n**Automatic Fields:**\n- `manager_id`: Set from authenticated user\n- `slug`: Generated from restaurant name\n- `verification_status`: Set to \"pending\"\n- `average_rating`: Initialized to 0\n- `view_count`: Initialized to 0\n\n**Response (snake_case):**\n```json\n{\n  \"id\": \"restaurant_id\",\n  \"slug\": \"the-italian-corner\",\n  \"restaurant_name\": \"The Italian Corner\",\n  \"manager_id\": \"user_id\",\n  \"restaurant_phone\": \"+1234567890\",\n  \"about\": \"Restaurant description\",\n  \"tags\": [\"Italian\", \"Pizza\"],\n  \"previous_slugs\": [],\n  \"verification_status\": \"pending\",\n  \"average_rating\": 0,\n  \"view_count\": 0,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-15T10:30:00Z\"\n}\n```"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"65f1c4e7a2b3c4d5e6f7a8b9\",\n  \"slug\": \"the-italian-corner\",\n  \"restaurant_name\": \"The Italian Corner\",\n  \"manager_id\": \"65f1c4e7a2b3c4d5e6f7a111\",\n  \"restaurant_phone\": \"+1234567890\",\n  \"about\": \"Authentic Italian cuisine\",\n  \"tags\": [\"Italian\", \"Pizza\"],\n  \"previous_slugs\": [],\n  \"verification_status\": \"pending\",\n  \"average_rating\": 0,\n  \"view_count\": 0,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-15T10:30:00Z\"\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "restaurant_name",
+                      "value": "The Italian Corner",
+                      "type": "text"
+                    },
+                    {
+                      "key": "restaurant_phone",
+                      "value": "+1234567890",
+                      "type": "text"
+                    },
+                    {
+                      "key": "about",
+                      "value": "Authentic Italian cuisine with fresh ingredients and traditional recipes passed down through generations.",
+                      "type": "text"
+                    },
+                    {
+                      "key": "tags",
+                      "value": "Italian,Pizza,Pasta,Fine Dining,Family Friendly",
+                      "type": "text"
+                    },
+                    {
+                      "key": "verification_docs",
+                      "type": "file",
+                      "src": "/home/tesfamichaelt/Downloads/photo_2025-08-21_13-58-09 (copy).jpg"
+                    },
+                    {
+                      "key": "logo_image",
+                      "type": "file",
+                      "src": []
+                    },
+                    {
+                      "key": "cover_image",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/restaurants",
+                  "host": ["{{base_url}}"],
+                  "path": ["restaurants"]
+                },
+                "description": "Create a new restaurant.\n\n**Request Body Fields (multipart/form-data):**\n- `restaurant_name` (string, required): Restaurant name\n- `restaurant_phone` (string, required): Restaurant phone number\n- `about` (string, optional): Restaurant description\n- `tags` (string, optional): Comma-separated tags (e.g., \"Italian,Pizza,Pasta\") or multiple form keys\n- `logo_image` (file, optional): Restaurant logo image file\n- `verification_docs` (file, optional): Business verification documents\n- `cover_image` (file, optional): Restaurant cover image\n\n**Tag Input Formats:**\n1. CSV: `\"Italian,Pizza,Pasta\"`\n2. Multiple keys: `tags=Italian&tags=Pizza`\n3. Array notation: `tags[]=Italian&tags[]=Pizza`\n\n**Automatic Fields:**\n- `manager_id`: Set from authenticated user\n- `slug`: Generated from restaurant name\n- `verification_status`: Set to \"pending\"\n- `average_rating`: Initialized to 0\n- `view_count`: Initialized to 0\n\n**Response (snake_case):**\n```json\n{\n  \"id\": \"restaurant_id\",\n  \"slug\": \"the-italian-corner\",\n  \"restaurant_name\": \"The Italian Corner\",\n  \"manager_id\": \"user_id\",\n  \"restaurant_phone\": \"+1234567890\",\n  \"about\": \"Restaurant description\",\n  \"tags\": [\"Italian\", \"Pizza\"],\n  \"previous_slugs\": [],\n  \"verification_status\": \"pending\",\n  \"average_rating\": 0,\n  \"view_count\": 0,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-15T10:30:00Z\"\n}\n```"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"invalid input\",\n  \"error\": \"name is required\"\n}"
+            },
+            {
+              "name": "401 Unauthorized",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "restaurant_name",
+                      "value": "The Italian Corner",
+                      "type": "text"
+                    },
+                    {
+                      "key": "restaurant_phone",
+                      "value": "+1234567890",
+                      "type": "text"
+                    },
+                    {
+                      "key": "about",
+                      "value": "Authentic Italian cuisine with fresh ingredients and traditional recipes passed down through generations.",
+                      "type": "text"
+                    },
+                    {
+                      "key": "tags",
+                      "value": "Italian,Pizza,Pasta,Fine Dining,Family Friendly",
+                      "type": "text"
+                    },
+                    {
+                      "key": "verification_docs",
+                      "type": "file",
+                      "src": "/home/tesfamichaelt/Downloads/photo_2025-08-21_13-58-09 (copy).jpg"
+                    },
+                    {
+                      "key": "logo_image",
+                      "type": "file",
+                      "src": []
+                    },
+                    {
+                      "key": "cover_image",
+                      "type": "file",
+                      "src": []
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/restaurants",
+                  "host": ["{{base_url}}"],
+                  "path": ["restaurants"]
+                },
+                "description": "Create a new restaurant.\n\n**Request Body Fields (multipart/form-data):**\n- `restaurant_name` (string, required): Restaurant name\n- `restaurant_phone` (string, required): Restaurant phone number\n- `about` (string, optional): Restaurant description\n- `tags` (string, optional): Comma-separated tags (e.g., \"Italian,Pizza,Pasta\") or multiple form keys\n- `logo_image` (file, optional): Restaurant logo image file\n- `verification_docs` (file, optional): Business verification documents\n- `cover_image` (file, optional): Restaurant cover image\n\n**Tag Input Formats:**\n1. CSV: `\"Italian,Pizza,Pasta\"`\n2. Multiple keys: `tags=Italian&tags=Pizza`\n3. Array notation: `tags[]=Italian&tags[]=Pizza`\n\n**Automatic Fields:**\n- `manager_id`: Set from authenticated user\n- `slug`: Generated from restaurant name\n- `verification_status`: Set to \"pending\"\n- `average_rating`: Initialized to 0\n- `view_count`: Initialized to 0\n\n**Response (snake_case):**\n```json\n{\n  \"id\": \"restaurant_id\",\n  \"slug\": \"the-italian-corner\",\n  \"restaurant_name\": \"The Italian Corner\",\n  \"manager_id\": \"user_id\",\n  \"restaurant_phone\": \"+1234567890\",\n  \"about\": \"Restaurant description\",\n  \"tags\": [\"Italian\", \"Pizza\"],\n  \"previous_slugs\": [],\n  \"verification_status\": \"pending\",\n  \"average_rating\": 0,\n  \"view_count\": 0,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-15T10:30:00Z\"\n}\n```"
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"unauthorized\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Restaurant by Slug",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('returns requested slug', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json.slug).to.eql(pm.request.url.variables.get('slug'));",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/restaurants/:slug",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", ":slug"],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Get restaurant details by slug.\n\n**Path Parameters:**\n- `slug` (string, required): Restaurant slug (URL-friendly identifier)\n\n**Response:**\n```json\n{\n  \"id\": \"restaurant_id\",\n  \"slug\": \"the-italian-corner\",\n  \"name\": \"The Italian Corner\",\n  \"manager_id\": \"user_id\",\n  \"phone\": \"+1234567890\",\n  \"menu_id\": \"menu_id\",\n  \"about\": \"Restaurant description\",\n  \"logo_image\": \"https://example.com/logo.jpg\",\n  \"tags\": [\"Italian\", \"Pizza\", \"Pasta\"],\n  \"verification_status\": \"verified\",\n  \"average_rating\": 4.5,\n  \"view_count\": 1250,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-20T14:20:00Z\"\n}\n```\n\n**Error Responses:**\n- `404`: Restaurant not found\n\n**Notes:**\n- This endpoint is public (no authentication required)\n- Increments view count on each request\n- Returns full restaurant details"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/restaurants/:slug",
+                  "host": ["{{base_url}}"],
+                  "path": ["restaurants", ":slug"],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": ""
+                    }
+                  ]
+                },
+                "description": "Get restaurant details by slug.\n\n**Path Parameters:**\n- `slug` (string, required): Restaurant slug (URL-friendly identifier)\n\n**Response:**\n```json\n{\n  \"id\": \"restaurant_id\",\n  \"slug\": \"the-italian-corner\",\n  \"name\": \"The Italian Corner\",\n  \"manager_id\": \"user_id\",\n  \"phone\": \"+1234567890\",\n  \"menu_id\": \"menu_id\",\n  \"about\": \"Restaurant description\",\n  \"logo_image\": \"https://example.com/logo.jpg\",\n  \"tags\": [\"Italian\", \"Pizza\", \"Pasta\"],\n  \"verification_status\": \"verified\",\n  \"average_rating\": 4.5,\n  \"view_count\": 1250,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-20T14:20:00Z\"\n}\n```\n\n**Error Responses:**\n- `404`: Restaurant not found\n\n**Notes:**\n- This endpoint is public (no authentication required)\n- Increments view count on each request\n- Returns full restaurant details"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": \"65f1c4e7a2b3c4d5e6f7a8b9\",\n  \"slug\": \"the-italian-corner\",\n  \"name\": \"The Italian Corner\",\n  \"manager_id\": \"65f1c4e7a2b3c4d5e6f7a111\",\n  \"phone\": \"+1234567890\",\n  \"menu_id\": null,\n  \"about\": \"Authentic Italian cuisine\",\n  \"logo_image\": \"https://example.com/logo.jpg\",\n  \"tags\": [\"Italian\", \"Pizza\"],\n  \"verification_status\": \"verified\",\n  \"average_rating\": 4.5,\n  \"view_count\": 1251,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-20T14:20:00Z\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/restaurants/:slug",
+                  "host": ["{{base_url}}"],
+                  "path": ["restaurants", ":slug"],
+                  "variable": [
+                    {
+                      "key": "slug",
+                      "value": ""
+                    }
+                  ]
+                },
+                "description": "Get restaurant details by slug.\n\n**Path Parameters:**\n- `slug` (string, required): Restaurant slug (URL-friendly identifier)\n\n**Response:**\n```json\n{\n  \"id\": \"restaurant_id\",\n  \"slug\": \"the-italian-corner\",\n  \"name\": \"The Italian Corner\",\n  \"manager_id\": \"user_id\",\n  \"phone\": \"+1234567890\",\n  \"menu_id\": \"menu_id\",\n  \"about\": \"Restaurant description\",\n  \"logo_image\": \"https://example.com/logo.jpg\",\n  \"tags\": [\"Italian\", \"Pizza\", \"Pasta\"],\n  \"verification_status\": \"verified\",\n  \"average_rating\": 4.5,\n  \"view_count\": 1250,\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"updated_at\": \"2024-01-20T14:20:00Z\"\n}\n```\n\n**Error Responses:**\n- `404`: Restaurant not found\n\n**Notes:**\n- This endpoint is public (no authentication required)\n- Increments view count on each request\n- Returns full restaurant details"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"restaurant not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Restaurant",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTY4NzQ3MTQsImlzX3ZlcmlmaWVkIjpmYWxzZSwicm9sZSI6Ik9XTkVSIiwic3RhdHVzIjoiQUNUSVZFIiwic3ViIjoiNjhiNmFmYTJjNDY4NGNiZDM5MTI5ZTFmIiwidXNlcm5hbWUiOiJqb2huZG9lIn0.RBHYkDjCHwDh-Rv_i5VgsQnexikc7xYwKYhWLzuGd14",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "pizzzas are bad",
+                  "type": "text"
+                },
+                {
+                  "key": "phone",
+                  "value": "+121212120",
+                  "type": "text"
+                },
+                {
+                  "key": "logo_image",
+                  "type": "file",
+                  "src": "c:\\Users\\dtaye\\Pictures\\Screenshots\\Screenshot 2025-05-07 090007.png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/restaurants/pizzahut-d9320b39",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "pizzahut-d9320b39"]
+            },
+            "description": "Update restaurant information.\n\n**Path Parameters:**\n- `slug` (string, required): Restaurant slug\n\n**Request Body Fields:**\n- `name` (string, optional): Updated restaurant name\n- `phone` (string, optional): Updated phone number\n- `about` (string, optional): Updated description\n- `tags` (array, optional): Updated tags array\n- `logo_image` (string, optional): Updated logo URL\n\n**Authorization:**\n- Only restaurant manager/owner can update\n- Admin users can update any restaurant\n\n**Response:**\n```json\n{\n  \"message\": \"Restaurant updated successfully\",\n  \"data\": {\n    \"id\": \"restaurant_id\",\n    \"slug\": \"the-italian-corner-updated\",\n    \"name\": \"The Italian Corner - Updated\",\n    \"updated_at\": \"2024-01-20T15:45:00Z\"\n  }\n}\n```\n\n**Notes:**\n- Slug is regenerated if name changes\n- Update timestamp is automatically set\n- Verification status may be reset if significant changes are made"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{access_token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "name",
+                      "value": "pizzzas are'nt bad",
+                      "type": "text"
+                    },
+                    {
+                      "key": "phone",
+                      "value": "+121212134",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{base_url}}/restaurants/pizzzas-are-bad-c5c76203",
+                  "host": ["{{base_url}}"],
+                  "path": ["restaurants", "pizzzas-are-bad-c5c76203"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                },
+                {
+                  "key": "Date",
+                  "value": "Tue, 02 Sep 2025 20:34:22 GMT"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "573"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"id\": \"68b6f7fdae3ccdcdec87a06a\",\n    \"slug\": \"pizzzas-are-nt-bad-e3ca0f7f\",\n    \"name\": \"pizzzas are'nt bad\",\n    \"manager_id\": \"68b6afa2c4684cbd39129e1f\",\n    \"phone\": \"+121212134\",\n    \"about\": \"best pizza\",\n    \"logo_image\": \"https://res.cloudinary.com/dmahwet/image/upload/v1756845064/dineQ/restaurant_images/kp9nzdxu7wzdtcqsbpxs.png\",\n    \"verification_status\": \"\",\n    \"verification_docs\": \"https://res.cloudinary.com/dmahwet/image/upload/v1756821491/dineQ/restaurant_images/c1b9axkuduklneftou2n.png\",\n    \"average_rating\": 0,\n    \"view_count\": 0,\n    \"created_at\": \"2025-09-02T13:58:21.241Z\",\n    \"updated_at\": \"2025-09-02T20:34:11.44Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Restaurant",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/restaurants/:id",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "restaurant_object_id",
+                  "description": "Restaurant MongoDB ObjectID"
+                }
+              ]
+            },
+            "description": "Delete a restaurant (soft delete).\n\n**Path Parameters:**\n- `id` (string, required): Restaurant MongoDB ObjectID (24-character hex string)\n\n**Authorization:**\n- Only restaurant manager/owner can delete their restaurant\n- Admin users can delete any restaurant\n\n**Response:**\n```json\n{\n  \"message\": \"Restaurant deleted successfully\"\n}\n```\n\n**Error Responses:**\n- `404`: Restaurant not found\n- `403`: Not authorized to delete this restaurant\n- `400`: Invalid ObjectID format\n\n**Notes:**\n- This is a soft delete (sets `is_deleted` flag)\n- Restaurant data is preserved for audit purposes\n- Associated menus and items are also soft deleted\n- Operation is irreversible for non-admin users"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Restaurant Branches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/restaurants/:slug/branches?page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", ":slug", "branches"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10",
+                  "description": "Items per page (default: 10, max: 100)"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "slug",
+                  "value": "mcdonalds",
+                  "description": "Restaurant slug"
+                }
+              ]
+            },
+            "description": "Get all branches of a restaurant by slug with pagination.\n\n**Path Parameters:**\n- `slug` (string, required): Restaurant slug\n\n**Query Parameters:**\n- `page` (integer, optional): Page number (default: 1)\n- `pageSize` (integer, optional): Items per page (default: 10, max: 100)\n\n**Response:**\n```json\n{\n  \"data\": [\n    {\n      \"id\": \"branch_1_id\",\n      \"slug\": \"mcdonalds\",\n      \"name\": \"McDonald's - Downtown\",\n      \"phone\": \"+1234567890\",\n      \"location\": {\n        \"street\": \"123 Main St\",\n        \"city\": \"New York\",\n        \"state\": \"NY\",\n        \"postal_code\": \"10001\",\n        \"country\": \"USA\"\n      },\n      \"verification_status\": \"verified\",\n      \"average_rating\": 4.2,\n      \"view_count\": 850\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"pageSize\": 10,\n    \"total\": 25,\n    \"totalPages\": 3,\n    \"hasNext\": true,\n    \"hasPrev\": false\n  }\n}\n```\n\n**Use Cases:**\n- Display all branches of a restaurant chain\n- Location-based restaurant search\n- Branch comparison and selection"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unique Restaurants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('has data array', function () {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('data');",
+                  "  pm.expect(json.data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/restaurants?page=1&pageSize=20",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "20",
+                  "description": "Items per page (default: 10, max: 100)"
+                }
+              ]
+            },
+            "description": "Get list of unique restaurants (one per restaurant brand/name) with pagination.\n\n**Query Parameters:**\n- `page` (integer, optional): Page number (default: 1)\n- `pageSize` (integer, optional): Items per page (default: 10, max: 100)\n\n**Response:**\n```json\n{\n  \"data\": [\n    {\n      \"id\": \"restaurant_id\",\n      \"slug\": \"the-italian-corner\",\n      \"name\": \"The Italian Corner\",\n      \"manager_id\": \"user_id\",\n      \"phone\": \"+1234567890\",\n      \"about\": \"Authentic Italian cuisine\",\n      \"logo_image\": \"https://example.com/logo.jpg\",\n      \"tags\": [\"Italian\", \"Pizza\", \"Pasta\"],\n      \"verification_status\": \"verified\",\n      \"average_rating\": 4.5,\n      \"view_count\": 1250,\n      \"branch_count\": 3\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"pageSize\": 20,\n    \"total\": 150,\n    \"totalPages\": 8,\n    \"hasNext\": true,\n    \"hasPrev\": false\n  }\n}\n```\n\n**Notes:**\n- Returns one representative restaurant per unique slug/brand\n- Includes branch count for restaurants with multiple locations\n- Sorted by popularity (view count + rating)\n- Perfect for restaurant discovery and browsing"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/restaurants?page=1&pageSize=20",
+                  "host": ["{{base_url}}"],
+                  "path": ["restaurants"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1",
+                      "description": "Page number (default: 1)"
+                    },
+                    {
+                      "key": "pageSize",
+                      "value": "20",
+                      "description": "Items per page (default: 10, max: 100)"
+                    }
+                  ]
+                },
+                "description": "Get list of unique restaurants (one per restaurant brand/name) with pagination.\n\n**Query Parameters:**\n- `page` (integer, optional): Page number (default: 1)\n- `pageSize` (integer, optional): Items per page (default: 10, max: 100)\n\n**Response:**\n```json\n{\n  \"data\": [\n    {\n      \"id\": \"restaurant_id\",\n      \"slug\": \"the-italian-corner\",\n      \"name\": \"The Italian Corner\",\n      \"manager_id\": \"user_id\",\n      \"phone\": \"+1234567890\",\n      \"about\": \"Authentic Italian cuisine\",\n      \"logo_image\": \"https://example.com/logo.jpg\",\n      \"tags\": [\"Italian\", \"Pizza\", \"Pasta\"],\n      \"verification_status\": \"verified\",\n      \"average_rating\": 4.5,\n      \"view_count\": 1250,\n      \"branch_count\": 3\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"pageSize\": 20,\n    \"total\": 150,\n    \"totalPages\": 8,\n    \"hasNext\": true,\n    \"hasPrev\": false\n  }\n}\n```\n\n**Notes:**\n- Returns one representative restaurant per unique slug/brand\n- Includes branch count for restaurants with multiple locations\n- Sorted by popularity (view count + rating)\n- Perfect for restaurant discovery and browsing"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"data\": [ { \n    \"id\": \"65f1c4e7a2b3c4d5e6f7a8b9\", \n    \"slug\": \"the-italian-corner\", \n    \"name\": \"The Italian Corner\", \n    \"branch_count\": 3 \n  } ],\n  \"pagination\": { \n    \"page\": 1, \n    \"pageSize\": 20, \n    \"total\": 1, \n    \"totalPages\": 1, \n    \"hasNext\": false, \n    \"hasPrev\": false \n  }\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Restaurant CRUD operations and management endpoints"
+    },
+    {
+      "name": "Menus",
+      "item": [
+        {
+          "name": "List Menus",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menus/:restaurant_slug",
+              "host": ["{{base_url}}"],
+              "path": ["menus", ":restaurant_slug"],
+              "variable": [
+                {
+                  "key": "restaurant_slug",
+                  "value": "restaurant-slug"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Menu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Main Menu\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/menus/:restaurant_slug",
+              "host": ["{{base_url}}"],
+              "path": ["menus", ":restaurant_slug"],
+              "variable": [
+                {
+                  "key": "restaurant_slug",
+                  "value": "restaurant-slug"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Publish Menu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menus/:restaurant_slug/publish/:id",
+              "host": ["{{base_url}}"],
+              "path": ["menus", ":restaurant_slug", "publish", ":id"],
+              "variable": [
+                {
+                  "key": "restaurant_slug",
+                  "value": "restaurant-slug"
+                },
+                {
+                  "key": "id",
+                  "value": "menu_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate Menu QR",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"foreground_color\": \"#000000\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/menus/:restaurant_slug/qrcode/:id",
+              "host": ["{{base_url}}"],
+              "path": ["menus", ":restaurant_slug", "qrcode", ":id"],
+              "variable": [
+                {
+                  "key": "restaurant_slug",
+                  "value": "restaurant-slug"
+                },
+                {
+                  "key": "id",
+                  "value": "menu_id"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Menu By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menus/:restaurant_slug/:id",
+              "host": ["{{base_url}}"],
+              "path": ["menus", ":restaurant_slug", ":id"],
+              "variable": [
+                { "key": "restaurant_slug", "value": "{{restaurant_slug}}" },
+                { "key": "id", "value": "menu_id" }
+              ]
+            },
+            "description": "Fetch single menu by id within a restaurant. Public if published; otherwise requires ownership.\n\nResponses:\n- 200: Full menu object\n- 404: Not found\n- 403: Not authorized (unpublished)"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Operation completed successfully\",\n  \"data\": {\n    \"menu\": {\n      \"id\": \"menu_id\",\n      \"restaurant_id\": \"{{restaurant_slug}}\",\n      \"slug\": \"menu-slug\",\n      \"version\": 1,\n      \"is_published\": false,\n      \"items\": [],\n      \"created_at\": \"2025-09-04T08:30:00Z\",\n      \"updated_at\": \"2025-09-04T08:30:00Z\",\n      \"view_count\": 0\n    }\n  }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"message\": \"not found\",\n  \"error\": \"menu not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Menu",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Lunch Menu\",\n  \"description\": \"Seasonal items updated\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/menus/:restaurant_slug/:id",
+              "host": ["{{base_url}}"],
+              "path": ["menus", ":restaurant_slug", ":id"],
+              "variable": [
+                { "key": "restaurant_slug", "value": "{{restaurant_slug}}" },
+                { "key": "id", "value": "menu_id" }
+              ]
+            },
+            "description": "Update mutable fields of a menu (title, description, status— if draft). Published menus may have limited fields.\n\nResponses:\n- 200: `{ message, data:{ id, title, updated_at }}`\n- 400: Validation error\n- 403: Not owner\n- 404: Menu not found"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Resource updated successfully\",\n  \"data\": {\n    \"menu\": {\n      \"id\": \"menu_id\",\n      \"restaurant_id\": \"{{restaurant_slug}}\",\n      \"slug\": \"menu-slug\",\n      \"version\": 2,\n      \"is_published\": false,\n      \"items\": [],\n      \"updated_at\": \"2025-09-04T09:00:00Z\"\n    }\n  }\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"message\": \"invalid request\",\n  \"error\": \"validation failure details\"\n}"
+            },
+            {
+              "name": "500 Server Error",
+              "status": "Internal Server Error",
+              "code": 500,
+              "body": "{\n  \"message\": \"internal server error\",\n  \"error\": \"database update failed\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Menu",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menus/:restaurant_slug/:id",
+              "host": ["{{base_url}}"],
+              "path": ["menus", ":restaurant_slug", ":id"],
+              "variable": [
+                { "key": "restaurant_slug", "value": "{{restaurant_slug}}" },
+                { "key": "id", "value": "menu_id" }
+              ]
+            },
+            "description": "Soft delete a menu (unpublishes & marks deleted).\n\nResponses:\n- 200: `{ message: 'Menu deleted successfully' }`\n- 404: Not found\n- 403: Not authorized"
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "status": "No Content",
+              "code": 204,
+              "body": "{\n  \"message\": \"Resource deleted successfully\"\n}"
+            },
+            {
+              "name": "500 Server Error",
+              "status": "Internal Server Error",
+              "code": 500,
+              "body": "{\n  \"message\": \"internal server error\",\n  \"error\": \"failed to delete menu\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Menu Management",
+      "item": [
+        {
+          "name": "Create Menu",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurant_id\": \"restaurant_id\",\n  \"name\": \"Main Menu\",\n  \"description\": \"Our signature dishes and specialties\",\n  \"is_active\": true,\n  \"categories\": [\n    {\n      \"name\": \"Appetizers\",\n      \"description\": \"Start your meal with our delicious appetizers\",\n      \"order\": 1\n    },\n    {\n      \"name\": \"Main Courses\",\n      \"description\": \"Hearty main dishes\",\n      \"order\": 2\n    },\n    {\n      \"name\": \"Desserts\",\n      \"description\": \"Sweet endings to your meal\",\n      \"order\": 3\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/menus",
+              "host": ["{{base_url}}"],
+              "path": ["menus"]
+            },
+            "description": "**[FUTURE FEATURE]** Create a new menu for a restaurant.\n\nThis endpoint will allow restaurant managers to create structured menus with categories and organization.\n\n**Planned Features:**\n- Menu versioning and scheduling\n- Category management\n- Menu templates\n- Seasonal menu support\n- Multi-language menu support"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Menu",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/menus/:menuId",
+              "host": ["{{base_url}}"],
+              "path": ["menus", ":menuId"],
+              "variable": [
+                {
+                  "key": "menuId",
+                  "value": "menu_id"
+                }
+              ]
+            },
+            "description": "**[FUTURE FEATURE]** Get menu details with all items and categories.\n\n**Planned Response Structure:**\n```json\n{\n  \"id\": \"menu_id\",\n  \"restaurant_id\": \"restaurant_id\",\n  \"name\": \"Main Menu\",\n  \"description\": \"Our signature dishes\",\n  \"categories\": [\n    {\n      \"name\": \"Appetizers\",\n      \"items\": [\n        {\n          \"id\": \"item_id\",\n          \"name\": \"Caesar Salad\",\n          \"description\": \"Fresh romaine lettuce with Caesar dressing\",\n          \"price\": 12.99,\n          \"image\": \"https://example.com/caesar-salad.jpg\",\n          \"allergens\": [\"dairy\", \"eggs\"],\n          \"dietary_info\": [\"vegetarian\"]\n        }\n      ]\n    }\n  ]\n}\n```"
+          },
+          "response": []
+        }
+      ],
+      "description": "Menu and menu item management endpoints (Future Implementation)"
+    },
+    {
+      "name": "Menu Items",
+      "item": [
+        {
+          "name": "List Items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menu-items/:menu_slug",
+              "host": ["{{base_url}}"],
+              "path": ["menu-items", ":menu_slug"],
+              "variable": [
+                {
+                  "key": "menu_slug",
+                  "value": "menu-slug"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Espresso\",\n  \"price\": 4.5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/menu-items/:menu_slug/",
+              "host": ["{{base_url}}"],
+              "path": ["menu-items", ":menu_slug", ""],
+              "variable": [
+                {
+                  "key": "menu_slug",
+                  "value": "menu-slug"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Item By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menu-items/:menu_slug/:id",
+              "host": ["{{base_url}}"],
+              "path": ["menu-items", ":menu_slug", ":id"],
+              "variable": [
+                { "key": "menu_slug", "value": "menu-slug" },
+                { "key": "id", "value": "item_id" }
+              ]
+            },
+            "description": "Get a menu item details (public if menu published)."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Resource retrieved successfully\",\n  \"data\": { \n    \"item\": { \n      \"id\": \"item_id\",\n      \"name\": \"Double Espresso\",\n      \"price\": 5,\n      \"currency\": \"USD\"\n    }\n  }\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"message\": \"code not found\",\n  \"error\": \"item not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Double Espresso\",\n  \"price\": 5.0,\n  \"description\": \"Rich and bold double shot\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/menu-items/:menu_slug/:id",
+              "host": ["{{base_url}}"],
+              "path": ["menu-items", ":menu_slug", ":id"],
+              "variable": [
+                { "key": "menu_slug", "value": "menu-slug" },
+                { "key": "id", "value": "item_id" }
+              ]
+            },
+            "description": "Update menu item fields.\nResponses:\n- 200: Updated item\n- 404: Not found\n- 403: Not authorized"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Resource updated successfully\",\n  \"data\": { \n    \"item\": { \n      \"id\": \"item_id\",\n      \"name\": \"Double Espresso\",\n      \"price\": 5,\n      \"currency\": \"USD\"\n    }\n  }\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"message\": \"invalid input\",\n  \"error\": \"validation error details\"\n}"
+            },
+            {
+              "name": "500 Server Error",
+              "status": "Internal Server Error",
+              "code": 500,
+              "body": "{\n  \"message\": \"Failed to update item\",\n  \"error\": \"database failure\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add Item Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Fantastic flavor and aroma!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/menu-items/:menu_slug/:id/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["menu-items", ":menu_slug", ":id", "reviews"],
+              "variable": [
+                { "key": "menu_slug", "value": "menu-slug" },
+                { "key": "id", "value": "item_id" }
+              ]
+            },
+            "description": "Add a review to a menu item.\n\nResponses:\n- 201: Review stored\n- 400: Validation error\n- 404: Item not found"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Review added successfully\"\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"message\": \"invalid request\",\n  \"error\": \"invalid JSON payload\"\n}"
+            },
+            {
+              "name": "500 Server Error",
+              "status": "Internal Server Error",
+              "code": 500,
+              "body": "{\n  \"message\": \"Failed to add review\",\n  \"error\": \"database error\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menu-items/:menu_slug/:id",
+              "host": ["{{base_url}}"],
+              "path": ["menu-items", ":menu_slug", ":id"],
+              "variable": [
+                { "key": "menu_slug", "value": "menu-slug" },
+                { "key": "id", "value": "item_id" }
+              ]
+            },
+            "description": "Delete (soft) a menu item.\nResponses:\n- 200: `{ message: 'Item deleted' }`\n- 404: Not found"
+          },
+          "response": [
+            {
+              "name": "204 No Content",
+              "status": "No Content",
+              "code": 204,
+              "body": ""
+            },
+            {
+              "name": "500 Server Error",
+              "status": "Internal Server Error",
+              "code": 500,
+              "body": "{\n  \"message\": \"Failed to delete item\",\n  \"error\": \"database failure\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "QR Codes",
+      "item": [
+        {
+          "name": "Get QR Code",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/qr-code/:restaurant_slug",
+              "host": ["{{base_url}}"],
+              "path": ["qr-code", ":restaurant_slug"],
+              "variable": [
+                {
+                  "key": "restaurant_slug",
+                  "value": "restaurant-slug"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle QR Code",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/qr-code/:restaurant_slug/:status",
+              "host": ["{{base_url}}"],
+              "path": ["qr-code", ":restaurant_slug", ":status"],
+              "variable": [
+                {
+                  "key": "restaurant_slug",
+                  "value": "restaurant-slug"
+                },
+                {
+                  "key": "status",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete QR Code",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/qr-code/:restaurant_slug",
+              "host": ["{{base_url}}"],
+              "path": ["qr-code", ":restaurant_slug"],
+              "variable": [
+                { "key": "restaurant_slug", "value": "restaurant-slug" }
+              ]
+            },
+            "description": "Delete QR code for a restaurant (disables scanning).\nResponses:\n- 200: `{ message: 'QR code deleted' }`\n- 404: Not found\n- 403: Not authorized"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"message\": \"Resource deleted successfully\"\n}"
+            },
+            {
+              "name": "404 Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "body": "{\n  \"message\": \"qr code not found\",\n  \"error\": \"qr code not found\"\n}"
+            },
+            {
+              "name": "500 Server Error",
+              "status": "Internal Server Error",
+              "code": 500,
+              "body": "{\n  \"message\": \"failed to delete qr code\",\n  \"error\": \"internal error\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Reviews & Ratings",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurant_id\": \"restaurant_id\",\n  \"rating\": 5,\n  \"title\": \"Excellent Italian Experience!\",\n  \"comment\": \"The pasta was absolutely delicious and the service was outstanding. The ambiance was perfect for a romantic dinner. Highly recommended!\",\n  \"visit_date\": \"2024-01-15T19:00:00Z\",\n  \"photos\": [\n    \"https://example.com/review-photo-1.jpg\",\n    \"https://example.com/review-photo-2.jpg\"\n  ],\n  \"categories\": {\n    \"food_quality\": 5,\n    \"service\": 5,\n    \"ambiance\": 4,\n    \"value_for_money\": 4\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["reviews"]
+            },
+            "description": "**[FUTURE FEATURE]** Create a restaurant review.\n\n**Planned Features:**\n- Multi-criteria ratings (food, service, ambiance, value)\n- Photo uploads with reviews\n- Review verification system\n- Helpful/unhelpful voting\n- Review response from restaurant owners\n- Spam and fake review detection"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Restaurant Reviews",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/restaurants/:restaurantId/reviews?page=1&pageSize=10&sort=newest&rating=all",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", ":restaurantId", "reviews"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "newest",
+                  "description": "newest, oldest, highest_rated, lowest_rated, most_helpful"
+                },
+                {
+                  "key": "rating",
+                  "value": "all",
+                  "description": "all, 5, 4, 3, 2, 1"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "restaurantId",
+                  "value": "restaurant_id"
+                }
+              ]
+            },
+            "description": "**[FUTURE FEATURE]** Get reviews for a restaurant with filtering and sorting.\n\n**Planned Features:**\n- Advanced filtering (rating, date range, verified reviews)\n- Multiple sorting options\n- Review summary and statistics\n- Sentiment analysis of reviews\n- Photo gallery from reviews"
+          },
+          "response": []
+        }
+      ],
+      "description": "Restaurant review and rating system endpoints (Future Implementation)"
+    },
+    {
+      "name": "Staff Management",
+      "item": [
+        {
+          "name": "Add Staff Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurant_id\": \"restaurant_id\",\n  \"user_email\": \"staff@example.com\",\n  \"role\": \"server\",\n  \"permissions\": [\n    \"manage_orders\",\n    \"view_menu\",\n    \"handle_payments\"\n  ],\n  \"shift_schedule\": {\n    \"monday\": {\"start\": \"09:00\", \"end\": \"17:00\"},\n    \"tuesday\": {\"start\": \"09:00\", \"end\": \"17:00\"},\n    \"wednesday\": {\"start\": \"09:00\", \"end\": \"17:00\"}\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/restaurants/:restaurantId/staff",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", ":restaurantId", "staff"],
+              "variable": [
+                {
+                  "key": "restaurantId",
+                  "value": "restaurant_id"
+                }
+              ]
+            },
+            "description": "**[FUTURE FEATURE]** Add a staff member to a restaurant.\n\n**Planned Features:**\n- Role-based permissions\n- Shift scheduling\n- Performance tracking\n- Training module integration\n- Staff communication tools"
+          },
+          "response": []
+        }
+      ],
+      "description": "Restaurant staff management endpoints (Future Implementation)"
+    },
+    {
+      "name": "Analytics & Reports",
+      "item": [
+        {
+          "name": "Restaurant Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/restaurants/:restaurantId/analytics?period=30d&metrics=all",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", ":restaurantId", "analytics"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "30d",
+                  "description": "7d, 30d, 90d, 1y"
+                },
+                {
+                  "key": "metrics",
+                  "value": "all",
+                  "description": "all, views, ratings, reviews, revenue"
+                }
+              ],
+              "variable": [
+                {
+                  "key": "restaurantId",
+                  "value": "restaurant_id"
+                }
+              ]
+            },
+            "description": "**[FUTURE FEATURE]** Get restaurant analytics and performance metrics.\n\n**Planned Metrics:**\n- Page views and engagement\n- Rating trends\n- Review sentiment analysis\n- Popular menu items\n- Peak hours and seasons\n- Revenue analytics (if integrated with POS)\n- Customer demographics\n- Competitor analysis"
+          },
+          "response": []
+        }
+      ],
+      "description": "Business analytics and reporting endpoints (Future Implementation)"
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Verify Restaurant",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"verification_status\": \"verified\",\n  \"verification_notes\": \"All documents verified. Restaurant meets all requirements.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/restaurants/:restaurantId/verify",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "restaurants", ":restaurantId", "verify"],
+              "variable": [
+                {
+                  "key": "restaurantId",
+                  "value": "restaurant_id"
+                }
+              ]
+            },
+            "description": "**[FUTURE FEATURE]** Admin endpoint to verify or reject restaurant applications.\n\n**Planned Features:**\n- Document verification workflow\n- Verification notes and history\n- Bulk verification operations\n- Verification reminder system\n- Automated verification checks"
+          },
+          "response": []
+        },
+        {
+          "name": "System Health Check",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/health",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "health"]
+            },
+            "description": "**[FUTURE FEATURE]** System health check and monitoring.\n\n**Planned Health Metrics:**\n- Database connectivity\n- External service status (email, storage, etc.)\n- API response times\n- Error rates\n- System resource usage\n- Recent error logs"
+          },
+          "response": []
+        }
+      ],
+      "description": "Administrative endpoints for system management (Future Implementation)"
+    },
+    {
+      "name": "Image Search",
+      "item": [
+        {
+          "name": "Image Search",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/images/search?item=pasta&limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["images", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "pasta",
+                  "description": "Search query phrase"
+                },
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "Max results (default 10)"
+                }
+              ]
+            },
+            "description": "Search for relevant images (e.g., dish photos) via integrated image search provider.\n\nQuery Params:\n- `q` (string, required) search keywords\n- `limit` (int, optional) number of results\n\nResponses:\n- 200: `{ data: [ { url, thumbnail, title, source } ] }`\n- 400: Missing query\n- 401: Unauthorized (if restricted)"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"item\": \"pasta\",\n    \"restaurant\": \"Trattoria\",\n    \"count\": 3,\n    \"results\": [\n      {\n        \"item_name\": \"pasta\",\n        \"photo_url\": \"https://example.com/pasta1.jpg\",\n        \"thumbnail_url\": \"https://example.com/pasta1_t.jpg\",\n        \"confidence_score\": 0.95,\n        \"source\": \"google_custom_search\",\n        \"alt_text\": \"pasta - dish\"\n      }\n    ]\n  }\n}"
+            },
+            {
+              "name": "400 Bad Request",
+              "status": "Bad Request",
+              "code": 400,
+              "body": "{\n  \"success\": false,\n  \"error\": \"item query param required\"\n}"
+            },
+            {
+              "name": "503 Service Unavailable",
+              "status": "Service Unavailable",
+              "code": 503,
+              "body": "{\n  \"success\": false,\n  \"error\": \"image search disabled\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request: auto refresh if expiry <60s & attach Authorization header",
+          "const access = pm.environment.get('access_token');",
+          "const exp = parseInt(pm.environment.get('token_expiry')||'0',10);",
+          "const now = Date.now();",
+          "function setAuthHeader(){ if(pm.environment.get('access_token')) pm.request.headers.upsert({key:'Authorization', value:'Bearer '+pm.environment.get('access_token')}); }",
+          "if (access && exp && (exp - now) < 60000) {",
+          "  const rt = pm.environment.get('refresh_token');",
+          "  if (rt) {",
+          "    pm.sendRequest({ url: pm.environment.get('base_url') + '/auth/refresh', method:'POST', header:{'Content-Type':'application/json'}, body:{ mode:'raw', raw: JSON.stringify({ refresh_token: rt }) } }, (err,res)=>{",
+          "      if(!err && res.code===200){ try { const j=res.json(); if(j.access_token){ pm.environment.set('access_token', j.access_token); pm.environment.set('token_expiry', (Date.now()+15*60*1000).toString()); } if(j.refresh_token) pm.environment.set('refresh_token', j.refresh_token);}catch(e){} } setAuthHeader(); });",
+          "  } else { setAuthHeader(); }",
+          "} else { setAuthHeader(); }"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Capture nested or flat token responses globally",
+          "try { const j = pm.response.json(); if(j){",
+          "  if(j.tokens){ if(j.tokens.access_token){ pm.environment.set('access_token', j.tokens.access_token); pm.environment.set('token_expiry',(Date.now()+15*60*1000).toString()); } if(j.tokens.refresh_token) pm.environment.set('refresh_token', j.tokens.refresh_token); }",
+          "  if(j.access_token && !j.tokens){ pm.environment.set('access_token', j.access_token); pm.environment.set('token_expiry',(Date.now()+15*60*1000).toString()); }",
+          "  if(j.refresh_token && !j.tokens) pm.environment.set('refresh_token', j.refresh_token);",
+          "  if(j.user && j.user.id) pm.environment.set('user_id', j.user.id); } } catch(e){}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "https://g6-menumate-1.onrender.com/api/v1" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "token_expiry", "value": "" },
+    { "key": "user_id", "value": "" },
+    { "key": "restaurant_slug", "value": "" },
+    { "key": "menu_slug", "value": "" },
+    { "key": "item_id", "value": "" }
+  ]
+}
