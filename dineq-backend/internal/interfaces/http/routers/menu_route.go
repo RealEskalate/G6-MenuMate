@@ -1,0 +1,72 @@
+package routers
+
+import (
+	"time"
+
+	"github.com/RealEskalate/G6-MenuMate/internal/bootstrap"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/repositories"
+	services "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/service"
+	handler "github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/handlers"
+	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/middleware"
+	usecase "github.com/RealEskalate/G6-MenuMate/internal/usecases"
+	"github.com/gin-gonic/gin"
+)
+
+func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database, notifUc domain.INotificationUseCase) {
+	// context time out
+	ctxTimeout := time.Duration(env.CtxTSeconds) * time.Second
+
+	qrService := services.NewQRService()
+
+	qrRepo := repositories.NewQRCodeRepository(db, env.QRCodeCollection)
+	qrUsecase := usecase.NewQRCodeUseCase(qrRepo, ctxTimeout)
+
+	// storage services
+	cloudinaryStorage := services.NewCloudinaryStorage(
+		env.CloudinaryName,
+		env.CloudinaryAPIKey,
+		env.CloudinarySecret,
+	)
+
+	menuRepo := repositories.NewMenuRepository(db, env.MenuCollection)
+	menuUsecase := usecase.NewMenuUseCase(menuRepo, *qrService, ctxTimeout)
+
+	restaurantRepo := repositories.NewRestaurantRepo(db, env.RestaurantCollection)
+
+	cloudinaryStorage = services.NewCloudinaryStorage(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinarySecret)
+	restaurantUsecase := usecase.NewRestaurantUsecase(restaurantRepo, ctxTimeout, cloudinaryStorage)
+
+	// View events repository for logging views
+	viewEventRepo := repositories.NewViewEventRepository(db, env.ViewEventCollection)
+
+	menuHandler := handler.NewMenuHandler(menuUsecase, qrUsecase, restaurantUsecase, notifUc, viewEventRepo)
+
+	// Public (unauthenticated) menu routes - only expose published menus
+	public := group.Group("/public/menus")
+	{
+		public.GET("/:restaurant_slug", menuHandler.PublicGetPublishedMenus)
+		public.GET("/:restaurant_slug/:id", menuHandler.PublicGetPublishedMenuByID)
+	}
+
+	// Also provide public read endpoints under standard path for convenience (no auth)
+	group.GET("/menus/:restaurant_slug", menuHandler.PublicGetPublishedMenus)
+	group.GET("/menus/:restaurant_slug/:id", menuHandler.PublicGetPublishedMenuByID)
+
+	protected := group.Group("/menus")
+	protected.Use(middleware.AuthMiddleware(*env))
+	protected.Use(middleware.ManagerAndOwnerOnly())
+	{
+		// Authenticated endpoints for managing menus
+		protected.POST("/:restaurant_slug", menuHandler.CreateMenu)
+		protected.PATCH("/:restaurant_slug/:id", menuHandler.UpdateMenu)
+		protected.DELETE("/:restaurant_slug/:id", menuHandler.DeleteMenu)
+		protected.POST("/:restaurant_slug/qrcode/:id", menuHandler.GenerateQRCode)
+		protected.POST("/:restaurant_slug/publish/:id", menuHandler.PublishMenu)
+		protected.PATCH("/item/:menu_slug", menuHandler.MenuItemUpdate)
+		protected.GET("/item/:menu_slug/:item_slug", menuHandler.GetMenuItemBySlug)
+
+	}
+
+}

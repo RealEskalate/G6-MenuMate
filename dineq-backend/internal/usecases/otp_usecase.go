@@ -1,0 +1,169 @@
+package usecase
+
+import (
+	"context"
+	"fmt"
+	"math/rand"
+	"time"
+
+	utils "github.com/RealEskalate/G6-MenuMate/Utils"
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
+)
+
+type OTPUsecase struct {
+	OTPRepo            domain.IOTPRepository
+	EmailService       domain.IEmailService
+	ctxtimeout         time.Duration
+	otpExpiration      time.Duration
+	otpMaximumAttempts int
+	secretSalt         string
+}
+
+func NewOTPUsecase(repo domain.IOTPRepository, emailService domain.IEmailService, timeout time.Duration, expiration time.Duration, maxAttempts int, secretSalt string) domain.IOTPUsecase {
+	return &OTPUsecase{
+		OTPRepo:            repo,
+		ctxtimeout:         timeout,
+		EmailService:       emailService,
+		otpExpiration:      expiration,
+		otpMaximumAttempts: maxAttempts,
+		secretSalt:         secretSalt,
+	}
+}
+
+// RequestOTP
+func (otpuc *OTPUsecase) RequestOTP(email string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), otpuc.ctxtimeout)
+	defer cancel()
+
+	otp := &domain.OTP{
+		Email: email,
+	}
+	code, otpExist, err := otpuc.generateRegistrationOTP(ctx, otp)
+	if err != nil {
+		return err
+	}
+
+	var data = struct {
+		Title   string
+		Name    string
+		Message string
+		OTP     string
+		Expiry  int
+	}{Title: "Email Verification", Name: "User", Message: "Use the OTP below to verify your email address.", OTP: code, Expiry: int(otpuc.otpExpiration.Minutes())}
+	body, err := utils.RenderTemplate("otp.html", data)
+	if err != nil {
+		return err
+	}
+
+	err = otpuc.EmailService.SendEmail(ctx, email, "Your OTP Code", body)
+	if err != nil {
+		return err
+	}
+	if otpExist {
+		err = otpuc.OTPRepo.UpdateOTPByID(ctx, otp)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	err = otpuc.OTPRepo.SaveOTP(ctx, otp)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// GenerateOTP generates a new OTP for the given email and purpose
+func (otpuc *OTPUsecase) generateRegistrationOTP(ctx context.Context, otp *domain.OTP) (string, bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, otpuc.ctxtimeout)
+	defer cancel()
+
+	// Check if the user already requested an OTP
+	existingOTP, err := otpuc.OTPRepo.FindOTPByEmail(ctx, otp.Email)
+	if err != nil && err != domain.ErrOTPNotFound {
+		return "", existingOTP != nil, err
+	}
+
+	if existingOTP != nil {
+		otp.ID = existingOTP.ID
+		// Check if the OTP is still valid
+		if time.Now().Before(existingOTP.ExpiresAt) {
+			return "", existingOTP != nil, domain.ErrOTPStillValid
+		}
+
+		// Check if the user has reached the maximum attempts
+		if existingOTP.Attempts >= otpuc.otpMaximumAttempts {
+			if time.Since(existingOTP.CreatedAt) < 24*time.Hour {
+				return "", existingOTP != nil, domain.ErrOTPMaxAttempts
+			}
+			// Reset attempts after 24 hours
+			existingOTP.Attempts = 0
+		}
+	}
+
+	// Set the expiration time for the new OTP
+	otpRandCode := fmt.Sprintf("%06d", rand.Intn(1000000))
+	code := otpRandCode + otpuc.secretSalt
+	otp.ExpiresAt = time.Now().Add(otpuc.otpExpiration)
+	otp.CreatedAt = time.Now()
+	otp.CodeHash = security.HashOTPCode(code)
+
+	// Increment the attempts
+	if existingOTP != nil {
+		otp.Attempts = existingOTP.Attempts + 1
+	} else {
+		otp.Attempts = 1
+	}
+	return otpRandCode, existingOTP != nil, nil
+}
+
+// delete by id
+func (otpuc *OTPUsecase) DeleteByID(id string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), otpuc.ctxtimeout)
+	defer cancel()
+
+	return otpuc.OTPRepo.DeleteOTPByID(ctx, id)
+}
+
+// find by email
+func (otpuc *OTPUsecase) findByEmail(ctx context.Context, email string) (*domain.OTP, error) {
+	ctx, cancel := context.WithTimeout(ctx, otpuc.ctxtimeout)
+	defer cancel()
+
+	otp, err := otpuc.OTPRepo.FindOTPByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	if otp == nil {
+		return nil, domain.ErrOTPNotFound
+	}
+
+	return otp, nil
+}
+
+// VerifyOTP verifies the OTP for the given email
+func (otpuc *OTPUsecase) VerifyOTP(email, code string) (*domain.OTP, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), otpuc.ctxtimeout)
+	defer cancel()
+
+	otp, err := otpuc.findByEmail(ctx, email)
+	if err != nil {
+		return nil, domain.ErrOTPNotFound
+	}
+
+	if time.Now().After(otp.ExpiresAt) {
+		if err := otpuc.DeleteByID(otp.ID); err != nil {
+			return nil, err
+		}
+		return nil, domain.ErrOTPExpired
+	}
+
+	if security.VerifyOTPCode(otp.CodeHash, code+otpuc.secretSalt) {
+		return otp, nil
+	}
+
+	return nil, domain.ErrOTPInvalidCode
+}

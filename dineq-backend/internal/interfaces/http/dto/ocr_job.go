@@ -1,0 +1,59 @@
+package dto
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+)
+
+// OCRJobDTO represents the data transfer object for an OCRJob
+type OCRJobDTO struct {
+	ID               string    `json:"id"`
+	RestaurantID     string    `json:"restaurant_id"`
+	ImageURL         string    `json:"image_url"`
+	Status           string    `json:"status"`
+	ResultText       string    `json:"result_text,omitempty"`
+	StructuredMenuID string    `json:"structured_menu_id,omitempty"`
+	Error            string    `json:"error,omitempty"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+// Validate checks the OCRJobDTO for required fields
+func (oj *OCRJobDTO) Validate() error {
+	if oj.RestaurantID == "" || oj.ImageURL == "" || oj.Status == "" {
+		return fmt.Errorf("ocrJob ID, restaurantID, imageURL, and status are required")
+	}
+	return nil
+}
+
+// ToDomain converts the OCRJobDTO to a domain.OCRJob entity
+func (oj *OCRJobDTO) ToDomain() *domain.OCRJob {
+	return &domain.OCRJob{
+		ID:               oj.ID,
+		RestaurantID:     oj.RestaurantID,
+		ImageURL:         oj.ImageURL,
+		Status:           domain.OCRJobStatus(oj.Status),
+		ResultText:       oj.ResultText,
+		StructuredMenuID: oj.StructuredMenuID,
+		Error:            oj.Error,
+		CreatedAt:        oj.CreatedAt,
+		UpdatedAt:        oj.UpdatedAt,
+	}
+}
+
+// FromDomain converts a domain.OCRJob entity to an OCRJobDTO
+func (oj *OCRJobDTO) FromDomain(job *domain.OCRJob) *OCRJobDTO {
+	return &OCRJobDTO{
+		ID:               job.ID,
+		RestaurantID:     job.RestaurantID,
+		ImageURL:         job.ImageURL,
+		Status:           string(job.Status),
+		ResultText:       job.ResultText,
+		StructuredMenuID: job.StructuredMenuID,
+		Error:            job.Error,
+		CreatedAt:        job.CreatedAt,
+		UpdatedAt:        job.UpdatedAt,
+	}
+}

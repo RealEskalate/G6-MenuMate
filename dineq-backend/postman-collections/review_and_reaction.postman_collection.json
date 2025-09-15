@@ -1,0 +1,155 @@
+{
+  "info": {
+    "name": "MenuMate Reviews & Reactions (Derived Path IDs)",
+    "description": "Collection for review and reaction endpoints using path-based identifiers only.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080/api/v1" },
+    { "key": "auth_token", "value": "" },
+    { "key": "restaurant_id", "value": "" },
+    { "key": "item_id", "value": "" },
+    { "key": "review_id", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Reviews",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/restaurants/id/{{restaurant_id}}/items/{{item_id}}/reviews",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "id", "{{restaurant_id}}", "items", "{{item_id}}", "reviews"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"picture\": \"https://example.com/img.jpg\",\n  \"description\": \"Great taste\",\n  \"rating\": 4.5\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Review",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/reviews/{{review_id}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Review",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/reviews/{{review_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"picture\": \"https://example.com/new.jpg\",\n  \"description\": \"Updated description\",\n  \"rating\": 5\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/reviews/{{review_id}}"
+          },
+          "response": []
+        },
+        {
+          "name": "List Reviews By Item",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/items/{{item_id}}/reviews?page=1&limit=10"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Item Average Rating",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/items/{{item_id}}/average-rating"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Restaurant Average Rating",
+            "request": {
+              "method": "GET",
+              "url": "{{base_url}}/restaurants/v/{{restaurant_id}}/average-rating"
+            },
+            "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reactions",
+      "item": [
+        {
+          "name": "React Like",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/restaurants/id/{{restaurant_id}}/items/{{item_id}}/reviews/{{review_id}}/reaction",
+            "body": { "mode": "raw", "raw": "{ \n  \"type\": \"like\" \n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "React Dislike",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/restaurants/id/{{restaurant_id}}/items/{{item_id}}/reviews/{{review_id}}/reaction",
+            "body": { "mode": "raw", "raw": "{ \n  \"type\": \"dislike\" \n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Reaction (Empty Type)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/restaurants/id/{{restaurant_id}}/items/{{item_id}}/reviews/{{review_id}}/reaction",
+            "body": { "mode": "raw", "raw": "{ \n  \"type\": \"\" \n}" }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reaction Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{auth_token}}" }
+            ],
+            "url": "{{base_url}}/restaurants/id/{{restaurant_id}}/items/{{item_id}}/reviews/{{review_id}}/reaction"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
