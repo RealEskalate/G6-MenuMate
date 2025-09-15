@@ -40,7 +40,7 @@ export default function MenuPage() {
           </h2>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {menu.items.map((item: MenuItem) => {
+            {/* {menu.items.map((item: MenuItem) => {
                 // Convert allergies to array if it's a string
                 const transformedItem = {
                     ...item,
@@ -48,8 +48,8 @@ export default function MenuPage() {
                     
                 };
 
-                return <MenuItemCard key={item.id} item={transformedItem} />;
-                })}
+                return <MenuItemCard key={item.id}  />;
+                })} */}
           </div>
         </div>
       ))}

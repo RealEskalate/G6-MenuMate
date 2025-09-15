@@ -9,6 +9,7 @@ import { useMenuContext } from "@/context/MenuOcrContext";
 import { uploadMenuOCR, getOCRStatus } from "@/lib/api";
 import { Upload, CheckCircle, Loader2, ImageIcon, Edit, X } from "lucide-react";
 
+// replace both MenuItem and OCRMenuItem with ONE interface
 interface MenuItem {
   name: string;
   name_am: string;
@@ -16,7 +17,12 @@ interface MenuItem {
   description_am: string;
   price: number;
   currency: string;
+  image?: string;
+  ingredients?: string[];
+  instructions?: string;
 }
+
+
 
 const MenuUploader = () => {
   const { data: session } = useSession();
@@ -27,6 +33,7 @@ const MenuUploader = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [editedItems, setEditedItems] = useState<MenuItem[]>([]);
+
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   const handleUpload = async () => {
@@ -46,10 +53,31 @@ const MenuUploader = () => {
           const statusRes = await getOCRStatus(jobId, session.accessToken);
           setProgress(statusRes.data.progress);
 
-          if (statusRes.data.status === "completed") {
-            clearInterval(interval);
-            const ocrResults = statusRes.data.results;
-            setEditedItems(ocrResults?.menu_items || []);
+       if (statusRes.data.status === "completed") {
+  clearInterval(interval);
+
+  if (statusRes.data.status === "completed") {
+  clearInterval(interval);
+
+  const items: MenuItem[] = (statusRes.data.results?.menu_items || []).map(
+    (item: any) => ({
+      id: item.id || crypto.randomUUID(), // make sure each item has an id
+      name: item.name || "",
+      name_am: item.name_am || "",
+      price: item.price || 0,
+      description: item.description || "",
+      description_am: item.description_am || "",
+      currency: item.currency || "ETB",
+      image_url: item.image_url || "",
+      slug: item.slug || "",
+      menu_slug: item.menu_slug || "",
+      allergies: item.allergies || [],
+    })
+  );
+
+  // setMenuItems(items); // Assuming you have a state hook for menu items
+
+
             setCurrentStep(3);
             setLoading(false);
           }

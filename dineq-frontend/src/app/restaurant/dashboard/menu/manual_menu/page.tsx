@@ -232,8 +232,8 @@ const ManualMenu = () => {
           ...item.nutritional_info,
           [subField]: value,
         };
-        newSections[sectionIndex].items[itemIndex].nutritional_info =
-          updatedNutritionalInfo;
+        // newSections[sectionIndex].items[itemIndex].nutritional_info =
+        //   updatedNutritionalInfo;
         return newSections;
       });
     },
