@@ -20,7 +20,9 @@ import (
 type IAIService interface {
 	StructureWithGemini(ctx context.Context, ocrText string) (*domain.Menu, error)
 	TranslateAIBit(text, target string) (string, error)
+	IsEthiopianFood(ctx context.Context, item string) (bool, error)
 }
+
 
 type GeminiService struct {
 	client  *genai.Client
@@ -199,6 +201,45 @@ func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string
 
 // RawLastAIJSON returns the last raw AI JSON (best-effort) produced by StructureWithGemini
 func (gs *GeminiService) RawLastAIJSON() string { return gs.lastRaw }
+
+// IsEthiopianFood asks the Gemini model a short yes/no question whether the
+// provided item is an Ethiopian food (origin/or commonly eaten there).
+// It expects the model to reply with exactly 'yes' or 'no' (case-insensitive)
+func (gs *GeminiService) IsEthiopianFood(ctx context.Context, item string) (bool, error) {
+	if gs == nil || gs.client == nil {
+		return false, fmt.Errorf("gemini not configured")
+	}
+	// If the item contains Ethiopic/Amharic script characters it's very likely
+	// to be Ethiopian - short circuit and avoid the AI call for faster/safer
+	// behaviour and to reduce token usage.
+	if containsEthiopicScript(item) {
+		fmt.Printf("[AI] Detected Ethiopic script in '%s' -> treating as Ethiopian\n", item)
+		return true, nil
+	}
+	// Ask Gemini: prefer concise yes/no answer. Note to the model that presence
+	// of Amharic (Ethiopic) script characters strongly indicates Ethiopian food.
+	prompt := fmt.Sprintf("Question: Is '%s' an Ethiopian food or dish (originating from Ethiopia or commonly eaten in Ethiopia)? If the provided word contains Amharic/Ethiopic script characters, treat that as a very strong signal it's Ethiopian. Reply with exactly one word: 'yes' or 'no'. Do not add any extra text.", item)
+	resp, err := gs.client.Models.GenerateContent(ctx, gs.model, genai.Text(prompt), nil)
+	if err != nil {
+		return false, fmt.Errorf("gemini call failed: %w", err)
+	}
+	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
+		return false, fmt.Errorf("no response from gemini")
+	}
+	var buf strings.Builder
+	for _, p := range resp.Candidates[0].Content.Parts {
+		buf.WriteString(fmt.Sprintf("%v", p))
+	}
+	out := strings.ToLower(strings.TrimSpace(buf.String()))
+	// Accept concise answers or answers that contain the token
+	if strings.HasPrefix(out, "yes") || strings.Contains(out, " yes") {
+		return true, nil
+	}
+	if strings.HasPrefix(out, "no") || strings.Contains(out, " no") {
+		return false, nil
+	}
+	return false, fmt.Errorf("unexpected gemini reply: %s", out)
+}
 
 func (gs *GeminiService) createMenuStructuringPrompt(ocrText, restaurantName string) string {
 	return fmt.Sprintf(`You are an expert Ethiopian menu structuring AI. Produce ONLY one valid JSON object. No markdown, no commentary.
@@ -463,4 +504,16 @@ func amharicScriptForLabel(label string) string {
 	default:
 		return "" // unknown -> let caller fallback
 	}
+}
+
+// containsEthiopicScript returns true if the input contains any Ethiopic
+// (Amharic) Unicode codepoints. Range: U+1200–U+137F (Ethiopic block) and
+// U+1380–U+139F (Ethiopic Supplement) — we check a conservative subset.
+func containsEthiopicScript(s string) bool {
+	for _, r := range s {
+		if r >= 0x1200 && r <= 0x139F {
+			return true
+		}
+	}
+	return false
 }

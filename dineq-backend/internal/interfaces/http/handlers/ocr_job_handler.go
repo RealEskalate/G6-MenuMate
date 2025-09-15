@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
@@ -44,7 +45,7 @@ type menuItemOut struct {
 	ImageThumbnails []string            `json:"image_thumbnails,omitempty"`
 	Price           float64             `json:"price,omitempty"`
 	Currency        string              `json:"currency,omitempty"`
-	Allergies       string              `json:"allergies,omitempty"`
+	Allergies       []string            `json:"allergies,omitempty"`
 	AllergiesAm     string              `json:"allergies_am,omitempty"`
 	Ingredients     []string            `json:"ingredients,omitempty"`
 	IngredientsAm   []string            `json:"ingredients_am,omitempty"`
@@ -192,7 +193,15 @@ func (h *OCRJobHandler) GetOCRJobByID(c *gin.Context) {
 			for _, tab := range res.Menu.Tabs { // flatten tabs -> categories
 				for _, cat := range tab.Categories {
 					for _, it := range cat.Items {
-						englishAllergies := joinSlice(it.Allergies)
+						// Use domain 'Allergies' slice directly for the API response.
+						var allergiesArr []string
+						for _, a := range it.Allergies {
+							a = strings.TrimSpace(a)
+							if a != "" {
+								allergiesArr = append(allergiesArr, a)
+							}
+						}
+
 						mi := menuItemOut{
 							Name:            it.Name,
 							NameAm:          fallbackTranslate(it.Name, it.NameAm),
@@ -201,7 +210,7 @@ func (h *OCRJobHandler) GetOCRJobByID(c *gin.Context) {
 							TabTags:         []string{tab.Name},
 							Price:           it.Price,
 							Currency:        it.Currency,
-							Allergies:       englishAllergies,
+							Allergies:       allergiesArr,
 							AllergiesAm:     it.AllergiesAm,
 							Ingredients:     it.Ingredients,
 							IngredientsAm:   it.IngredientsAm,
@@ -209,8 +218,8 @@ func (h *OCRJobHandler) GetOCRJobByID(c *gin.Context) {
 							HowToEat:        anyToString(it.HowToEat),
 							HowToEatAm:      fallbackTranslate(anyToString(it.HowToEat), anyToString(it.HowToEatAm)),
 						}
-						if mi.Allergies == "" && mi.AllergiesAm != "" {
-							mi.Allergies = "Contains none commonly recognized. Please inform staff of any allergies."
+						if len(mi.Allergies) == 0 && mi.AllergiesAm != "" {
+							mi.Allergies = []string{"Contains none commonly recognized. Please inform staff of any allergies."}
 						}
 						if tab.NameAm != "" {
 							mi.TabTagsAm = []string{tab.NameAm}

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sort"
 	"time"
@@ -34,11 +35,11 @@ type ImageSearchHandler struct {
 	google   services.IGoogleCustomSearchService
 	unsplash *services.UnsplashSearchService
 	pexels   *services.PexelsSearchService
-	clf      services.EthiopianFoodClassifier
+	ai       services.IAIService
 }
 
-func NewImageSearchHandler(google services.IGoogleCustomSearchService, unsplash *services.UnsplashSearchService, pexels *services.PexelsSearchService, clf services.EthiopianFoodClassifier) *ImageSearchHandler {
-	return &ImageSearchHandler{google: google, unsplash: unsplash, pexels: pexels, clf: clf}
+func NewImageSearchHandler(google services.IGoogleCustomSearchService, unsplash *services.UnsplashSearchService, pexels *services.PexelsSearchService, ai services.IAIService) *ImageSearchHandler {
+	return &ImageSearchHandler{google: google, unsplash: unsplash, pexels: pexels, ai: ai}
 }
 
 // performSearch encapsulates the core image search aggregation logic.
@@ -54,45 +55,53 @@ type searchDiagnostics struct {
 func (h *ImageSearchHandler) performSearch(parent context.Context, item, restaurant string) []services.PhotoMatch {
 	ctx, cancel := context.WithTimeout(parent, 12*time.Second)
 	defer cancel()
-	perSource := 2 // default mixed strategy
+	// Default per-source limit = 2 (total up to 6). If AI says item is Ethiopian
+	// food, prefer Google search only and request up to 6 Google results.
+	googlePer := 2
+	unsPer := 2
+	pexPer := 2
 
-	// Strategy:
-	// - If item includes Amharic (Ethiopic) letters, use Google-only (6 results)
-	// - Else (Latin), if classifier exists and says yes -> Google-only (6), else mixed 2 each
-	googleOnly := containsEthiopic(item)
-	if !googleOnly && h.clf != nil {
-		if ok, err := h.clf.IsEthiopianFoodName(ctx, item); err == nil && ok {
-			googleOnly = true
+	// Ask AI if available. If AI is configured and returns yes, switch to
+	// google-only path (6 results); on error fall back to multi-source.
+	if h.ai != nil {
+		if isE, err := h.ai.IsEthiopianFood(ctx, item); err == nil {
+			if isE {
+				googlePer = 6
+				unsPer = 0
+				pexPer = 0
+			}
+		} else {
+			// log but continue with default multi-source
+			fmt.Printf("[ImageSearch] AI decision failed: %v\n", err)
 		}
 	}
 
 	var googleRes, unsRes, pexRes []services.PhotoMatch
-	if gr, err := h.google.SearchFoodImages(ctx, item, restaurant, func() int { if googleOnly { return 6 } else { return perSource } }()); err == nil {
+	if gr, err := h.google.SearchFoodImages(ctx, item, restaurant, googlePer); err == nil {
 		googleRes = gr
 	} else {
 		applog.Log.Warn().Err(err).Msg("google image search failed")
 	}
-	if h.unsplash != nil && !googleOnly {
-		if ur, err := h.unsplash.Search(ctx, item, perSource); err == nil {
+	if h.unsplash != nil && unsPer > 0 {
+		if ur, err := h.unsplash.Search(ctx, item, unsPer); err == nil {
 			unsRes = ur
 		} else {
 			applog.Log.Warn().Err(err).Msg("unsplash image search failed")
 		}
 	}
-	if h.pexels != nil && !googleOnly {
-		if pr, err := h.pexels.Search(ctx, item, perSource); err == nil {
+	if h.pexels != nil && pexPer > 0 {
+		if pr, err := h.pexels.Search(ctx, item, pexPer); err == nil {
 			pexRes = pr
 		} else {
 			applog.Log.Warn().Err(err).Msg("pexels image search failed")
 		}
 	}
 
-	// If Google-only, take top 6 from Google; else keep top 2 Google first
-	if googleOnly {
-		if len(googleRes) > 6 {
-			googleRes = googleRes[:6]
-		}
-	} else {
+	// If we are using multiple sources (unsplash or pexels) keep the first two
+	// Google results at the top (Google service already sorts by confidence).
+	// If this is the google-only path (unsPer == 0 && pexPer == 0) we should
+	// keep up to the requested googlePer results (e.g. 6) and not truncate here.
+	if unsPer > 0 || pexPer > 0 {
 		if len(googleRes) > 2 {
 			googleRes = googleRes[:2]
 		}
