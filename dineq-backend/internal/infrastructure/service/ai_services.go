@@ -23,7 +23,6 @@ type IAIService interface {
 	IsEthiopianFood(ctx context.Context, item string) (bool, error)
 }
 
-
 type GeminiService struct {
 	client  *genai.Client
 	model   string

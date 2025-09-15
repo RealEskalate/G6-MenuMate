@@ -94,14 +94,14 @@ type IRestaurantUsecase interface {
 
 // RestaurantFilter supports advanced filtering for restaurants
 type RestaurantFilter struct {
-	Name       string
-	Tags       []string
-	MinRating  *float64
-	MaxRating  *float64
-	MinViews   *int64 // popularity proxy
-	Slug       string // optional exact slug
-	Page       int
-	PageSize   int
-	SortBy     string // rating|popularity|created|updated|name
-	Order      int    // 1 asc, -1 desc
+	Name      string
+	Tags      []string
+	MinRating *float64
+	MaxRating *float64
+	MinViews  *int64 // popularity proxy
+	Slug      string // optional exact slug
+	Page      int
+	PageSize  int
+	SortBy    string // rating|popularity|created|updated|name
+	Order     int    // 1 asc, -1 desc
 }

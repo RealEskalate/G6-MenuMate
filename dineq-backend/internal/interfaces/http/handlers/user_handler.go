@@ -22,7 +22,6 @@ func NewUserController(userUC domain.IUserUsecase, notificationUC domain.INotifi
 	return &UserController{userUC: userUC, notificationUC: notificationUC}
 }
 
-
 func (ctrl *UserController) GetAvatarOptions(c *gin.Context) {
 	gender := c.Query("gender")
 	numParam := c.Query("number")

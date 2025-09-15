@@ -58,4 +58,3 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 		api.GET("/health", h.Health)
 	}
 }
-

@@ -385,7 +385,6 @@ func (repo *RestaurantRepo) GetByManagerId(ctx context.Context, manager string) 
 	return model.ToDomain(), nil
 }
 
-
 // IncrementRestaurantViewCount increments the view count for a restaurant by 1
 func (repo *RestaurantRepo) IncrementRestaurantViewCount(ctx context.Context, id string) error {
 	oid, err := bson.ObjectIDFromHex(id)
@@ -408,30 +407,52 @@ func (repo *RestaurantRepo) SearchRestaurants(ctx context.Context, f domain.Rest
 	col := repo.db.Collection(repo.restaurantCol)
 	// Base match
 	match := bson.M{"isDeleted": false}
-	if f.Slug != "" { match["slug"] = f.Slug }
-	if f.Name != "" { match["name"] = bson.M{"$regex": f.Name, "$options": "i"} }
-	if len(f.Tags) > 0 { match["tags"] = bson.M{"$all": f.Tags} }
+	if f.Slug != "" {
+		match["slug"] = f.Slug
+	}
+	if f.Name != "" {
+		match["name"] = bson.M{"$regex": f.Name, "$options": "i"}
+	}
+	if len(f.Tags) > 0 {
+		match["tags"] = bson.M{"$all": f.Tags}
+	}
 	if f.MinRating != nil || f.MaxRating != nil {
 		rr := bson.M{}
-		if f.MinRating != nil { rr["$gte"] = *f.MinRating }
-		if f.MaxRating != nil { rr["$lte"] = *f.MaxRating }
+		if f.MinRating != nil {
+			rr["$gte"] = *f.MinRating
+		}
+		if f.MaxRating != nil {
+			rr["$lte"] = *f.MaxRating
+		}
 		match["averageRating"] = rr
 	}
-	if f.MinViews != nil { match["viewCount"] = bson.M{"$gte": *f.MinViews} }
+	if f.MinViews != nil {
+		match["viewCount"] = bson.M{"$gte": *f.MinViews}
+	}
 
 	page := f.Page
 	size := f.PageSize
-	if page <= 0 { page = 1 }
-	if size <= 0 { size = 10 }
-	if size > 100 { size = 100 }
+	if page <= 0 {
+		page = 1
+	}
+	if size <= 0 {
+		size = 10
+	}
+	if size > 100 {
+		size = 100
+	}
 
 	order := -1
-	if f.Order == 1 { order = 1 }
+	if f.Order == 1 {
+		order = 1
+	}
 
 	// If sorting by popularity, compute a weighted score via aggregation.
 	if f.SortBy == "popularity" {
 		reviewsColl := os.Getenv("REVIEW_COLLECTION")
-		if reviewsColl == "" { reviewsColl = "reviews" }
+		if reviewsColl == "" {
+			reviewsColl = "reviews"
+		}
 		// Popularity components:
 		// - normalized averageRating (0..1) assuming 5-star scale
 		// - log-scaled viewCount
@@ -443,7 +464,7 @@ func (repo *RestaurantRepo) SearchRestaurants(ctx context.Context, f domain.Rest
 			bson.D{{Key: "$match", Value: match}},
 			bson.D{{Key: "$lookup", Value: bson.M{
 				"from": reviewsColl,
-				"let": bson.M{"rid": "$_id"},
+				"let":  bson.M{"rid": "$_id"},
 				"pipeline": bson.A{
 					bson.D{{Key: "$match", Value: bson.M{
 						"$expr": bson.M{"$and": bson.A{
@@ -485,27 +506,39 @@ func (repo *RestaurantRepo) SearchRestaurants(ctx context.Context, f domain.Rest
 
 		// Execute pipelines
 		cur, err := col.Aggregate(ctx, pipeline)
-		if err != nil { return nil, 0, err }
+		if err != nil {
+			return nil, 0, err
+		}
 		defer cur.Close(ctx)
 		var models []mapper.RestaurantModel
-		if err := cur.All(ctx, &models); err != nil { return nil, 0, err }
+		if err := cur.All(ctx, &models); err != nil {
+			return nil, 0, err
+		}
 
 		// total
-	var total int64
-	ccur, err := col.Aggregate(ctx, countPipeline)
+		var total int64
+		ccur, err := col.Aggregate(ctx, countPipeline)
 		if err == nil {
-			var ct []struct{ Total int64 `bson:"total"` }
-			if err := ccur.All(ctx, &ct); err == nil && len(ct) > 0 { total = ct[0].Total }
+			var ct []struct {
+				Total int64 `bson:"total"`
+			}
+			if err := ccur.All(ctx, &ct); err == nil && len(ct) > 0 {
+				total = ct[0].Total
+			}
 		}
 
 		out := make([]*domain.Restaurant, len(models))
-		for i := range models { out[i] = models[i].ToDomain() }
+		for i := range models {
+			out[i] = models[i].ToDomain()
+		}
 		return out, total, nil
 	}
 
 	// Default simple find/sort path
 	total, err := col.CountDocuments(ctx, match)
-	if err != nil { return nil, 0, err }
+	if err != nil {
+		return nil, 0, err
+	}
 
 	sortField := "createdAt"
 	switch f.SortBy {
@@ -518,18 +551,24 @@ func (repo *RestaurantRepo) SearchRestaurants(ctx context.Context, f domain.Rest
 	}
 
 	opts := options.Find().
-		SetSkip(int64((page-1)*size)).
+		SetSkip(int64((page - 1) * size)).
 		SetLimit(int64(size)).
 		SetSort(bson.D{{Key: sortField, Value: order}})
 
 	cur, err := col.Find(ctx, match, opts)
-	if err != nil { return nil, 0, err }
+	if err != nil {
+		return nil, 0, err
+	}
 	defer cur.Close(ctx)
 
 	var models []mapper.RestaurantModel
-	if err := cur.All(ctx, &models); err != nil { return nil, 0, err }
+	if err := cur.All(ctx, &models); err != nil {
+		return nil, 0, err
+	}
 
 	out := make([]*domain.Restaurant, len(models))
-	for i := range models { out[i] = models[i].ToDomain() }
+	for i := range models {
+		out[i] = models[i].ToDomain()
+	}
 	return out, total, nil
 }
