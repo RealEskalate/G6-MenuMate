@@ -21,7 +21,6 @@ import '../../features/restaurant_management/presentation/pages/generated_qr_pag
 import '../../features/restaurant_management/presentation/pages/legal_info_page.dart';
 import '../../features/restaurant_management/presentation/pages/qr_customization_page.dart';
 import '../../features/restaurant_management/presentation/pages/restaurant_details_page.dart';
-import '../../features/restaurant_management/presentation/pages/restaurant_profile_page.dart';
 import '../../features/search/presentation/pages/item_details_page.dart';
 import '../../features/search/presentation/pages/main_shell.dart';
 import '../../features/search/presentation/pages/profile_page.dart';
@@ -151,8 +150,6 @@ class AppRoute {
         return MaterialPageRoute(
             builder: (_) => ItemDetailsPage(item: settings.arguments as Item));
       // Restaurant management routes
-      case restaurantProfile:
-        return MaterialPageRoute(builder: (_) => const RestaurantProfilePage());
       case restaurantDetails:
         return MaterialPageRoute(
             builder: (_) => RestaurantDetailsPage(

@@ -3,8 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiEndpoints {
   // private base URL
-  static String get _baseUrl =>
-      dotenv.env['BASE_URL']!;
+  static String get _baseUrl => dotenv.env['BASE_URL']!;
   // Public root accessor when the raw base URL is required (kept minimal)
   static String get root => _baseUrl;
 
@@ -50,6 +49,7 @@ class ApiEndpoints {
   // Restaurant endpoints (features/dinq/restaurant_management/restaurant)
   // -----------------------------
   static String get restaurants => '$_baseUrl/restaurants';
+  static String get ownerRestaurants => '$_baseUrl/restaurants/me';
   static String restaurantBySlug(String slug) => '$_baseUrl/restaurants/$slug';
   static String restaurantById(String id) => '$_baseUrl/restaurants/$id';
 

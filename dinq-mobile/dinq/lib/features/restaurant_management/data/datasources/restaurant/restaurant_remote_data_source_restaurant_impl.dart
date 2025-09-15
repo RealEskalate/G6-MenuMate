@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../../../core/error/exceptions.dart';
 import '../../../../../../core/network/api_endpoints.dart';
@@ -15,6 +16,18 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   @override
   Future<RestaurantModel> createRestaurant(FormData restaurant) async {
+    // Debug: Print FormData contents
+    debugPrint('=== CREATE RESTAURANT FORM DATA ===');
+    debugPrint('FormData fields:');
+    restaurant.fields.forEach((field) {
+      debugPrint('  ${field.key}: ${field.value}');
+    });
+    debugPrint('FormData files:');
+    restaurant.files.forEach((file) {
+      debugPrint('  ${file.key}: ${file.value.filename ?? "No filename"}');
+    });
+    debugPrint('=====================================');
+
     try {
       final headers = await TokenManager.getAuthHeadersStatic();
       headers['Content-Type'] = content;
@@ -183,6 +196,52 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
     } catch (e) {
       throw ServerException(
         'Unexpected error occurred while fetching restaurants list: ${e.toString()}',
+      );
+    }
+  }
+
+  @override
+  Future<List<RestaurantModel>> getOwnerRestaurants() async {
+    try {
+      final headers = await TokenManager.getAuthHeadersStatic();
+      headers['Content-Type'] = content;
+      final response = await dio.get(
+        ApiEndpoints.ownerRestaurants,
+        options: Options(headers: headers),
+      );
+      final statusCode = response.statusCode;
+      if (statusCode == 200) {
+        final data = response.data;
+        // API returns direct array of restaurants
+        if (data is List) {
+          return data.map((json) => RestaurantModel.fromMap(json)).toList();
+        } else {
+          throw ServerException(
+            'Invalid response format: expected restaurants array',
+            statusCode: statusCode,
+          );
+        }
+      } else {
+        throw ServerException(
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'fetching owner restaurants',
+          ),
+          statusCode: statusCode,
+        );
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'fetching owner restaurants',
+        ),
+        statusCode: statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error occurred while fetching owner restaurants: ${e.toString()}',
       );
     }
   }

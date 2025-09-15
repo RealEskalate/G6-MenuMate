@@ -1,4 +1,3 @@
-
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 
@@ -13,10 +12,10 @@ abstract class RestaurantRepository {
     int pageSize = 20,
   });
   Future<Either<Failure, Restaurant>> getRestaurantBySlug(String slug);
+  Future<Either<Failure, List<Restaurant>>> getOwnerRestaurants();
   Future<Either<Failure, Restaurant>> updateRestaurant(
     FormData restaurant,
     String slug,
   );
   Future<Either<Failure, void>> deleteRestaurant(String restaurantId);
-  
 }

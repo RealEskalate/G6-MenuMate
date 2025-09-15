@@ -32,11 +32,8 @@ import 'features/auth/domain/usecases/save_favorite_restaurant_ids_usecase.dart'
 import 'features/auth/domain/usecases/update_profile_usecase.dart';
 import 'features/auth/domain/usecases/verify_email_usecase.dart';
 import 'features/auth/domain/usecases/verify_otp_usecase.dart';
-import 'features/auth/presentation/bloc/user_bloc.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
-import 'features/restaurant_management/presentation/bloc/menu_bloc.dart';
-import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
-import 'features/restaurant_management/presentation/bloc/review_bloc.dart';
+import 'features/auth/presentation/bloc/user_bloc.dart';
 import 'features/restaurant_management/data/datasources/menu/menu_remote_data_source.dart';
 import 'features/restaurant_management/data/datasources/menu/menu_remote_data_source_impl.dart';
 import 'features/restaurant_management/data/datasources/restaurant/restaurant_remote_data_source_restaurant.dart';
@@ -58,12 +55,17 @@ import 'features/restaurant_management/domain/usecases/menu/update_menu.dart';
 import 'features/restaurant_management/domain/usecases/menu/upload_menu.dart';
 import 'features/restaurant_management/domain/usecases/restaurant/create_restaurant.dart';
 import 'features/restaurant_management/domain/usecases/restaurant/delete_restaurant.dart';
+import 'features/restaurant_management/domain/usecases/restaurant/get_owner_restaurants.dart';
 import 'features/restaurant_management/domain/usecases/restaurant/get_restaurant_by_slug.dart';
 import 'features/restaurant_management/domain/usecases/restaurant/get_restaurants.dart';
 import 'features/restaurant_management/domain/usecases/restaurant/update_restaurant.dart';
 import 'features/restaurant_management/domain/usecases/review/delete_review.dart';
 import 'features/restaurant_management/domain/usecases/review/get_reviews.dart';
 import 'features/restaurant_management/domain/usecases/review/get_user_images.dart';
+import 'features/restaurant_management/presentation/bloc/menu_bloc.dart';
+import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import 'features/restaurant_management/presentation/bloc/restaurant_management_bloc.dart';
+import 'features/restaurant_management/presentation/bloc/review_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -88,6 +90,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetReviews(sl()));
   sl.registerLazySingleton(() => GetUserImages(sl()));
   sl.registerLazySingleton(() => GetRestaurantBySlug(sl()));
+  sl.registerLazySingleton(() => GetOwnerRestaurants(sl()));
   sl.registerLazySingleton(() => CreateRestaurant(sl()));
   sl.registerLazySingleton(() => UpdateRestaurant(sl()));
   sl.registerLazySingleton(() => DeleteRestaurant(sl()));
@@ -120,6 +123,21 @@ Future<void> init() async {
     () => ReviewBloc(
       getReviews: sl(),
       getUserImages: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => RestaurantManagementBloc(
+      getOwnerRestaurants: sl(),
+      getRestaurantBySlug: sl(),
+      createRestaurant: sl(),
+      updateRestaurant: sl(),
+      deleteRestaurant: sl(),
+      getMenu: sl(),
+      createMenu: sl(),
+      updateMenu: sl(),
+      deleteMenu: sl(),
+      publishMenu: sl(),
     ),
   );
 

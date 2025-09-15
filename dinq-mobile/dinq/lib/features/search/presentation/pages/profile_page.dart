@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/util/theme.dart';
 import '../../../auth/presentation/Pages/login_page.dart';
 import '../../../auth/presentation/Pages/register_page.dart';
+import '../../../auth/presentation/Pages/resturant_registration.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -303,6 +304,20 @@ class _ProfilePageState extends State<ProfilePage> {
                   title: 'Personal Information',
                   subtitle: 'Update your profile details',
                   onTap: () {},
+                ),
+                const SizedBox(height: 12),
+                _buildProfileOption(
+                  icon: Icons.restaurant,
+                  title: 'Register Restaurant',
+                  subtitle: 'Create and manage your restaurant',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RestaurantRegistration(),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 12),
                 _buildProfileOption(

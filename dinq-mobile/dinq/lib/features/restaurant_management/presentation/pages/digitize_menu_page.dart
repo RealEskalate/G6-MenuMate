@@ -138,9 +138,9 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
           const SizedBox(width: 12),
           ElevatedButton(
             onPressed: () {
-              // Navigate to create menu page with parsed data
+              // Navigate to edit menu page with parsed data
               Navigator.of(context).pushNamed(
-                AppRoute.createMenuManually,
+                AppRoute.editMenu,
                 arguments: {
                   'restaurantId': widget.restaurantId,
                   'parsedMenuData': _createModel,

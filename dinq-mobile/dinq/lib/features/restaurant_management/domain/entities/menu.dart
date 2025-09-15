@@ -6,6 +6,7 @@ class Menu extends Equatable {
   final String id;
   final String restaurantId;
   final String name;
+  final String? description;
   final String? slug;
   final int? version;
   final bool isPublished;
@@ -20,6 +21,7 @@ class Menu extends Equatable {
     required this.id,
     required this.restaurantId,
     required this.name,
+    this.description,
     this.slug,
     this.version,
     required this.isPublished,

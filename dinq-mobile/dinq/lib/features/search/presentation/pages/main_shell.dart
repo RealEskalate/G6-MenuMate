@@ -62,7 +62,7 @@ class _MainShellState extends State<MainShell> {
                     allDishes: <Item>[],
                     showOwnerNavBar: false),
                 const AnalyticsPage(),
-                MenusPage(restaurantSlug: widget.restaurantId ?? ''),
+                const MenusPage(),
                 const SettingsPage(),
               ]
             : [
@@ -112,6 +112,7 @@ class _MainShellState extends State<MainShell> {
                 ),
               ];
 
+        // Always provide RestaurantManagementBloc
         return Scaffold(
           body: IndexedStack(
             index: _selectedIndex,

@@ -6,6 +6,10 @@ class Restaurant extends Equatable {
   final String restaurantName;
   final String managerId;
   final String restaurantPhone;
+  final String? email;
+  final String? location;
+  final String? website;
+  final String? cuisineType;
   final String? about;
   final List<String>? tags;
   final String? logoImage;
@@ -13,6 +17,11 @@ class Restaurant extends Equatable {
   final String? verificationDocs;
   final List<String> previousSlugs;
   final String verificationStatus;
+  final String? defaultCurrency;
+  final String? defaultLanguage;
+  final double? defaultVat;
+  final String? primaryColor;
+  final String? accentColor;
   final double averageRating;
   final double viewCount;
   final DateTime createdAt;
@@ -24,6 +33,10 @@ class Restaurant extends Equatable {
     required this.restaurantName,
     required this.managerId,
     required this.restaurantPhone,
+    this.email,
+    this.location,
+    this.website,
+    this.cuisineType,
     this.about,
     this.tags,
     this.logoImage,
@@ -31,6 +44,11 @@ class Restaurant extends Equatable {
     this.verificationDocs,
     required this.previousSlugs,
     required this.verificationStatus,
+    this.defaultCurrency,
+    this.defaultLanguage,
+    this.defaultVat,
+    this.primaryColor,
+    this.accentColor,
     required this.averageRating,
     required this.viewCount,
     required this.createdAt,

@@ -95,6 +95,27 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   }
 
   @override
+  Future<Either<Failure, List<Restaurant>>> getOwnerRestaurants() async {
+    final connected = await network.isConnected;
+    if (connected) {
+      try {
+        final restaurantModels =
+            await restRemoteDataSource.getOwnerRestaurants();
+        return Right(
+            restaurantModels.map((model) => model.toEntity()).toList());
+      } catch (e) {
+        return Left(ExceptionMapper.toFailure(e as Exception));
+      }
+    } else {
+      return const Left(
+        NetworkFailure(
+          'No internet connection available. Please check your network settings and try again.',
+        ),
+      );
+    }
+  }
+
+  @override
   Future<Either<Failure, Restaurant>> updateRestaurant(
     FormData restaurant,
     String slug,

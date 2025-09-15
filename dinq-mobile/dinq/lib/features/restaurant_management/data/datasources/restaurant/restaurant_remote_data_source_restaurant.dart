@@ -12,6 +12,7 @@ abstract class RestaurantRemoteDataSource {
     int pageSize = 10,
   });
   Future<RestaurantModel> getRestaurantBySlug(String slug);
+  Future<List<RestaurantModel>> getOwnerRestaurants();
   Future<RestaurantModel> updateRestaurant(FormData restaurant, String slug);
   Future<void> deleteRestaurant(String restaurantId);
 }

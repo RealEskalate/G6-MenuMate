@@ -13,6 +13,7 @@ import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/user_bloc.dart';
 import 'features/restaurant_management/presentation/bloc/menu_bloc.dart';
 import 'features/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import 'features/restaurant_management/presentation/bloc/restaurant_management_bloc.dart';
 import 'features/restaurant_management/presentation/bloc/review_bloc.dart';
 import 'injection_container.dart' as di;
 
@@ -60,6 +61,9 @@ class _MyAppState extends State<MyApp> {
         ),
         BlocProvider(
           create: (_) => di.sl<UserBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => di.sl<RestaurantManagementBloc>(),
         ),
       ],
       child: MaterialApp(
