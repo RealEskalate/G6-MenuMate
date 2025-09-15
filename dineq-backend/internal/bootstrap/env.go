@@ -36,7 +36,7 @@ type Env struct {
 	UserCollection string `mapstructure:"USER_COLLECTION"`
 
 	// review collection
-	ReviewCollection string 	`mapstructure:"REVIEW_COLLECTION"`
+	ReviewCollection string `mapstructure:"REVIEW_COLLECTION"`
 
 	// Cookie / Security settings
 	CookieSecure    bool   `mapstructure:"COOKIE_SECURE"`
@@ -50,7 +50,7 @@ type Env struct {
 	// user refresh token collection
 	RefreshTokenCollection string `mapstructure:"REFRESH_TOKEN_COLLECTION"`
 	// reaction collection
-	ReactionCollection	string `mapstructure:"REACTION_COLLECTION"`
+	ReactionCollection string `mapstructure:"REACTION_COLLECTION"`
 
 	// restaurant collection
 	RestaurantCollection string `mapstructure:"RESTAURANT_COLLECTION"`
@@ -132,8 +132,6 @@ type Env struct {
 	// reset password session expiry
 	PasswordResetSessionExpiry     int    `mapstructure:"PASSWORD_RESET_SESSION_EXPIRE_MINUTES"` // in minutes
 	PasswordResetSessionCollection string `mapstructure:"PASSWORD_RESET_SESSION_COLLECTION"`
-
-
 }
 
 // Viper can be made injectable

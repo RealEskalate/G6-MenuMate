@@ -8,6 +8,7 @@ import (
 type Menu struct {
 	ID             string    `json:"id"`
 	Name           string    `json:"name"`
+	RestaurantID   string    `json:"restaurant_id"`
 	RestaurantSlug string    `json:"restaurant_slug"`
 	Slug           string    `json:"slug"`
 	Version        int       `json:"version"`

@@ -1,19 +1,20 @@
 # Air config to properly build and run the API from cmd/api on changes
 # Generated to fix stale binary issue (previously: "no Go files in ...")
 
-root = "."
+root = "dineq-backend"
 
 [build]
-# Windows executable output
-bin = "tmp/main.exe"
-cmd = "go build -o tmp/main.exe ./cmd/api"
+# Linux executable output (use no .exe on linux)
+bin = "tmp/main"
+# Build the API package under cmd/api (module root is dineq-backend)
+cmd = "go build -o tmp/main ./cmd/api"
 # Exclude tmp build dir itself
 exclude_dir = ["tmp"]
-# Watch .go, .mod, .sum, .env
+# Watch common Go and env files
 include_ext = ["go", "mod", "sum", "env"]
 # Graceful delay (ms) before rebuilding after changes
 delay = 500
-# Send SIGINT then SIGKILL after timeout
+# Send SIGINT then SIGKILL after timeout (ms)
 kill_delay = 500
 
 [log]
