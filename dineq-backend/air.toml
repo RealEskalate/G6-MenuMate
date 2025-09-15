@@ -1,7 +1,7 @@
 # Air config to properly build and run the API from cmd/api on changes
 # Generated to fix stale binary issue (previously: "no Go files in ...")
 
-root = "dineq-backend"
+root = "."
 
 [build]
 # Linux executable output (use no .exe on linux)
