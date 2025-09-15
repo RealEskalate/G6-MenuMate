@@ -16,8 +16,8 @@ import (
 func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-	var tokenStr string
-	var err error
+		var tokenStr string
+		var err error
 
 		// Prefer Authorization header (Bearer) then fallback to cookie
 		authHeader := c.GetHeader("Authorization")

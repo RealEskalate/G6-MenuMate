@@ -427,17 +427,17 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			_ = ac.RefreshTokenUsecase.Save(refreshToken)
 		}
 
-		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain,  Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
+		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
 		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: response.AccessToken, MaxAge: int(time.Until(response.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
-	       redir := ac.FrontendBaseURL
-	       fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
-	       if redir == "" {
-		       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
-		       redir = "http://localhost:3000"
-	       }
-	       fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success\n", redir)
-			   c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success")
-	       return
+		redir := ac.FrontendBaseURL
+		fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
+		if redir == "" {
+			fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
+			redir = "http://localhost:3000"
+		}
+		fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success\n", redir)
+		c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success")
+		return
 	}
 
 	newUser := &domain.User{Username: strings.Split(userInfo.Email, "@")[0], Email: strings.ToLower(userInfo.Email), FirstName: userInfo.GivenName, LastName: userInfo.FamilyName, Role: domain.RoleCustomer, AuthProvider: domain.AuthGoogle, ProfileImage: userInfo.Picture, CreatedAt: time.Now(), UpdatedAt: time.Now(), IsVerified: true}
@@ -452,14 +452,14 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	}
 	refreshToken := &domain.RefreshToken{Token: newTokens.RefreshToken, UserID: newUser.ID, ExpiresAt: newTokens.RefreshTokenExpiresAt, Revoked: false, CreatedAt: time.Now()}
 	_ = ac.RefreshTokenUsecase.Save(refreshToken)
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: newTokens.RefreshToken, MaxAge: int(time.Until(newTokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain,  Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
-	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: newTokens.AccessToken, MaxAge: int(time.Until(newTokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain,  Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
-       redir := ac.FrontendBaseURL
-       fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
-       if redir == "" {
-	       fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
-	       redir = "http://localhost:3000"
-       }
-       fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success?new=1\n", redir)
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: newTokens.RefreshToken, MaxAge: int(time.Until(newTokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: newTokens.AccessToken, MaxAge: int(time.Until(newTokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
+	redir := ac.FrontendBaseURL
+	fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
+	if redir == "" {
+		fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
+		redir = "http://localhost:3000"
+	}
+	fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success?new=1\n", redir)
 	c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success?new=1")
 }

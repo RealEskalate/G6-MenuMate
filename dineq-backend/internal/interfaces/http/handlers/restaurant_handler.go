@@ -603,36 +603,55 @@ func (h *RestaurantHandler) AdvancedSearchRestaurants(c *gin.Context) {
 	slug := c.Query("slug")
 	tags := c.QueryArray("tags[]")
 	var minRatingPtr, maxRatingPtr *float64
-	if v := c.Query("min_rating"); v != "" { if f, err := strconv.ParseFloat(v, 64); err == nil { minRatingPtr = &f } }
-	if v := c.Query("max_rating"); v != "" { if f, err := strconv.ParseFloat(v, 64); err == nil { maxRatingPtr = &f } }
+	if v := c.Query("min_rating"); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			minRatingPtr = &f
+		}
+	}
+	if v := c.Query("max_rating"); v != "" {
+		if f, err := strconv.ParseFloat(v, 64); err == nil {
+			maxRatingPtr = &f
+		}
+	}
 	var minViewsPtr *int64
-	if v := c.Query("min_views"); v != "" { if n, err := strconv.ParseInt(v, 10, 64); err == nil { minViewsPtr = &n } }
+	if v := c.Query("min_views"); v != "" {
+		if n, err := strconv.ParseInt(v, 10, 64); err == nil {
+			minViewsPtr = &n
+		}
+	}
 	sortBy := c.DefaultQuery("sort_by", "created")
 	order, _ := strconv.Atoi(c.DefaultQuery("order", "-1"))
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "10"))
 
 	res, total, err := h.RestaurantUsecase.SearchRestaurants(c.Request.Context(), domain.RestaurantFilter{
-		Name: name,
-		Slug: slug,
-		Tags: tags,
+		Name:      name,
+		Slug:      slug,
+		Tags:      tags,
 		MinRating: minRatingPtr,
 		MaxRating: maxRatingPtr,
-		MinViews: minViewsPtr,
-		SortBy: sortBy,
-		Order: order,
-		Page: page,
-		PageSize: pageSize,
+		MinViews:  minViewsPtr,
+		SortBy:    sortBy,
+		Order:     order,
+		Page:      page,
+		PageSize:  pageSize,
 	})
-	if err != nil { dto.WriteError(c, err); return }
-	if page <= 0 { page = 1 }
-	if pageSize <= 0 { pageSize = 10 }
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+	if page <= 0 {
+		page = 1
+	}
+	if pageSize <= 0 {
+		pageSize = 10
+	}
 	totalPages := (total + int64(pageSize) - 1) / int64(pageSize)
 	c.JSON(http.StatusOK, gin.H{
-		"page": page,
-		"pageSize": pageSize,
-		"total": total,
-		"totalPages": totalPages,
+		"page":        page,
+		"pageSize":    pageSize,
+		"total":       total,
+		"totalPages":  totalPages,
 		"restaurants": dto.ToRestaurantResponseList(res),
 	})
 }

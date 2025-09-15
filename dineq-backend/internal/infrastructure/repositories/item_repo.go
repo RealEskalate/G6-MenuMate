@@ -227,7 +227,9 @@ func (r *ItemRepository) IncrementItemViewCount(ctx context.Context, id string) 
 func (r *ItemRepository) SearchItems(ctx context.Context, filter domain.ItemFilter) ([]domain.Item, int64, error) {
 	// Search inside menus collection's embedded items array
 	menuCollName := os.Getenv("MENU_COLLECTION")
-	if menuCollName == "" { menuCollName = "menus" }
+	if menuCollName == "" {
+		menuCollName = "menus"
+	}
 	coll := r.database.Collection(menuCollName)
 
 	// Validate menu slug
@@ -238,9 +240,15 @@ func (r *ItemRepository) SearchItems(ctx context.Context, filter domain.ItemFilt
 	// pagination
 	page := filter.Page
 	size := filter.PageSize
-	if page <= 0 { page = 1 }
-	if size <= 0 { size = 10 }
-	if size > 100 { size = 100 }
+	if page <= 0 {
+		page = 1
+	}
+	if size <= 0 {
+		size = 10
+	}
+	if size > 100 {
+		size = 100
+	}
 
 	// sorting
 	sortField := "createdAt"
@@ -255,19 +263,31 @@ func (r *ItemRepository) SearchItems(ctx context.Context, filter domain.ItemFilt
 		sortField = "updatedAt"
 	}
 	order := -1
-	if filter.Order == 1 { order = 1 }
+	if filter.Order == 1 {
+		order = 1
+	}
 
 	// Build item-level match
 	itemMatch := bson.M{"isDeleted": false}
-	if len(filter.Tags) > 0 { itemMatch["tabTags"] = bson.M{"$in": filter.Tags} }
+	if len(filter.Tags) > 0 {
+		itemMatch["tabTags"] = bson.M{"$in": filter.Tags}
+	}
 	if filter.MinPrice != nil || filter.MaxPrice != nil {
 		pr := bson.M{}
-		if filter.MinPrice != nil { pr["$gte"] = *filter.MinPrice }
-		if filter.MaxPrice != nil { pr["$lte"] = *filter.MaxPrice }
+		if filter.MinPrice != nil {
+			pr["$gte"] = *filter.MinPrice
+		}
+		if filter.MaxPrice != nil {
+			pr["$lte"] = *filter.MaxPrice
+		}
 		itemMatch["price"] = pr
 	}
-	if filter.MinRating != nil { itemMatch["averageRating"] = bson.M{"$gte": *filter.MinRating} }
-	if filter.Query != "" { itemMatch["name"] = bson.M{"$regex": filter.Query, "$options": "i"} }
+	if filter.MinRating != nil {
+		itemMatch["averageRating"] = bson.M{"$gte": *filter.MinRating}
+	}
+	if filter.Query != "" {
+		itemMatch["name"] = bson.M{"$regex": filter.Query, "$options": "i"}
+	}
 
 	// Aggregation pipeline over menus -> items
 	matchMenu := bson.M{"slug": filter.MenuSlug, "isDeleted": false}
@@ -292,17 +312,27 @@ func (r *ItemRepository) SearchItems(ctx context.Context, filter domain.ItemFilt
 	}
 
 	cur, err := coll.Aggregate(ctx, pipeline)
-	if err != nil { return nil, 0, err }
+	if err != nil {
+		return nil, 0, err
+	}
 	defer cur.Close(ctx)
 
 	var facet []struct {
 		TotalData  []mapper.ItemDB `bson:"totalData"`
-		TotalCount []struct{ Count int64 `bson:"count"` } `bson:"totalCount"`
+		TotalCount []struct {
+			Count int64 `bson:"count"`
+		} `bson:"totalCount"`
 	}
-	if err := cur.All(ctx, &facet); err != nil { return nil, 0, err }
-	if len(facet) == 0 { return []domain.Item{}, 0, nil }
+	if err := cur.All(ctx, &facet); err != nil {
+		return nil, 0, err
+	}
+	if len(facet) == 0 {
+		return []domain.Item{}, 0, nil
+	}
 	total := int64(0)
-	if len(facet[0].TotalCount) > 0 { total = facet[0].TotalCount[0].Count }
+	if len(facet[0].TotalCount) > 0 {
+		total = facet[0].TotalCount[0].Count
+	}
 	items := mapper.ItemDBToDomainList(facet[0].TotalData)
 	return items, total, nil
 }

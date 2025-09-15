@@ -192,14 +192,14 @@ func (r *MenuRepository) GetByRestaurantID(ctx context.Context, restaurantID str
 
 	// Try to parse as ObjectID first
 	_, err := bson.ObjectIDFromHex(restaurantID)
-	
+
 	if err == nil {
 		// If it's a valid ObjectID, query by restaurantId
 		filter := bson.M{
 			"restaurantId": restaurantID,
-			"isDeleted": false,
+			"isDeleted":    false,
 		}
-		
+
 		cursor, err := r.database.Collection(r.coll).Find(ctx, filter)
 		if err != nil {
 			return nil, err
@@ -216,11 +216,11 @@ func (r *MenuRepository) GetByRestaurantID(ctx context.Context, restaurantID str
 			return nil, err
 		}
 	}
-	
+
 	// Also try querying by RestaurantSlug (for backward compatibility)
 	filter2 := bson.M{
 		"RestaurantSlug": restaurantID,
-		"isDeleted": false,
+		"isDeleted":      false,
 	}
 	cursor2, err := r.database.Collection(r.coll).Find(ctx, filter2)
 	if err != nil {
@@ -247,7 +247,7 @@ func (r *MenuRepository) GetByRestaurantID(ctx context.Context, restaurantID str
 	if err := cursor2.Err(); err != nil {
 		return nil, err
 	}
-	
+
 	menus := make([]*domain.Menu, len(dbMenus))
 	for i, dbMenu := range dbMenus {
 		menus[i] = mapper.ToDomainMenu(&dbMenu)
@@ -257,7 +257,7 @@ func (r *MenuRepository) GetByRestaurantID(ctx context.Context, restaurantID str
 
 func (r *MenuRepository) MenuItemUpdate(ctx context.Context, itemSlug string, menuItem *domain.Item) error {
 	filter := bson.M{
-		"menu.slug": menuItem.MenuSlug,
+		"menu.slug":  menuItem.MenuSlug,
 		"items.slug": itemSlug,
 	}
 

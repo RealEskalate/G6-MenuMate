@@ -35,11 +35,12 @@ type ImageSearchHandler struct {
 	google   services.IGoogleCustomSearchService
 	unsplash *services.UnsplashSearchService
 	pexels   *services.PexelsSearchService
+	clf      services.EthiopianFoodClassifier
 	ai       services.IAIService
 }
 
-func NewImageSearchHandler(google services.IGoogleCustomSearchService, unsplash *services.UnsplashSearchService, pexels *services.PexelsSearchService, ai services.IAIService) *ImageSearchHandler {
-	return &ImageSearchHandler{google: google, unsplash: unsplash, pexels: pexels, ai: ai}
+func NewImageSearchHandler(google services.IGoogleCustomSearchService, unsplash *services.UnsplashSearchService, pexels *services.PexelsSearchService, clf services.EthiopianFoodClassifier, ai services.IAIService) *ImageSearchHandler {
+	return &ImageSearchHandler{google: google, unsplash: unsplash, pexels: pexels, clf: clf, ai: ai}
 }
 
 // performSearch encapsulates the core image search aggregation logic.
@@ -147,7 +148,13 @@ func (h *ImageSearchHandler) performSearchWithDiagnostics(parent context.Context
 
 	var googleRes, unsRes, pexRes []services.PhotoMatch
 	if diag.GoogleEnabled {
-		if gr, err := h.google.SearchFoodImages(ctx, item, restaurant, func() int { if googleOnly { return 6 } else { return perSource } }()); err == nil {
+		if gr, err := h.google.SearchFoodImages(ctx, item, restaurant, func() int {
+			if googleOnly {
+				return 6
+			} else {
+				return perSource
+			}
+		}()); err == nil {
 			googleRes = gr
 		} else {
 			diag.GoogleError = err.Error()

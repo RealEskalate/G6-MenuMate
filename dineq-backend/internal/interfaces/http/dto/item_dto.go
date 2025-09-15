@@ -140,7 +140,7 @@ func (i *ItemDTO) ToDomain() *domain.Item {
 		Image:           i.Image,
 		Price:           i.Price,
 		Currency:        i.Currency,
-	Allergies:       i.Allergies,
+		Allergies:       i.Allergies,
 		AllergiesAm:     i.AllergiesAm,
 		TabTags:         i.TabTags,
 		TabTagsAm:       i.TabTagsAm,
@@ -184,7 +184,7 @@ func (i *ItemDTO) FromDomain(item *domain.Item) *ItemDTO {
 		Image:           item.Image,
 		Price:           item.Price,
 		Currency:        item.Currency,
-	Allergies:       item.Allergies,
+		Allergies:       item.Allergies,
 		AllergiesAm:     item.AllergiesAm,
 		TabTags:         item.TabTags,
 		TabTagsAm:       item.TabTagsAm,
@@ -231,7 +231,7 @@ func RequestToItem(r *ItemRequest) *domain.Item {
 		Image:           r.Image,
 		Price:           r.Price,
 		Currency:        r.Currency,
-	Allergies:       r.Allergies.ToSlice(),
+		Allergies:       r.Allergies.ToSlice(),
 		AllergiesAm:     r.AllergiesAm,
 		UserImages:      r.UserImages,
 		TabTags:         r.TabTags,
@@ -331,16 +331,16 @@ func ItemToResponseList(items []domain.Item) []ItemResponse {
 
 // ItemSearchQuery represents query params for filtering items within a menu
 type ItemSearchQuery struct {
-	MenuSlug string   `form:"menu_slug" binding:"required"`
-	Tags     []string `form:"tags[]"`
-	MinPrice *float64 `form:"min_price"`
-	MaxPrice *float64 `form:"max_price"`
+	MenuSlug  string   `form:"menu_slug" binding:"required"`
+	Tags      []string `form:"tags[]"`
+	MinPrice  *float64 `form:"min_price"`
+	MaxPrice  *float64 `form:"max_price"`
 	MinRating *float64 `form:"min_rating"`
-	Q        string   `form:"q"`
-	SortBy   string   `form:"sort_by"`
-	Order    int      `form:"order"`
-	Page     int      `form:"page"`
-	PageSize int      `form:"pageSize"`
+	Q         string   `form:"q"`
+	SortBy    string   `form:"sort_by"`
+	Order     int      `form:"order"`
+	Page      int      `form:"page"`
+	PageSize  int      `form:"pageSize"`
 }
 
 func (q *ItemSearchQuery) ToDomain() domain.ItemFilter {

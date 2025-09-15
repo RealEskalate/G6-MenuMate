@@ -123,4 +123,3 @@ func idempotentID(id string) bson.ObjectID {
 	objID, _ := bson.ObjectIDFromHex(id)
 	return objID
 }
-
