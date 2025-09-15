@@ -1,20 +1,20 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 // import type { NextRequest } from "next/server";
-import type { NextRequestWithAuth } from "next-auth/middleware"; 
+import type { NextRequestWithAuth } from "next-auth/middleware";
 export default withAuth(
   async function middleware(request: NextRequestWithAuth) {
     const token = request.nextauth.token;
     const pathname = request.nextUrl.pathname;
 
-    console.log("Middleware triggered, token:", token);
+ 
     console.log("Middleware pathname:", pathname);
 
     if (!token) {
-      console.log(
-        `Middleware: No token, redirecting to /signin from ${pathname}`
+      
+      return NextResponse.redirect(
+        new URL("/auth/signin", request.nextUrl.origin)
       );
-      return NextResponse.redirect(new URL("/auth/signin", request.nextUrl.origin));
     }
 
     const role = token.role as string;
@@ -33,30 +33,35 @@ export default withAuth(
 
     if (
       pathname === "/dashboard/menu" ||
-      pathname.startsWith("/dashboard/menu") 
+      pathname.startsWith("/dashboard/menu")
     ) {
       if (!role) {
         console.log("Middleware: No role defined, redirecting to /dashboard");
-        return NextResponse.redirect(new URL("/dashboard", request.nextUrl.origin));
+        return NextResponse.redirect(
+          new URL("/dashboard", request.nextUrl.origin)
+        );
       }
       console.log(`Middleware: Redirecting ${role} to ${redirectUrl}`);
-      return NextResponse.redirect(new URL(redirectUrl, request.nextUrl.origin));
+      return NextResponse.redirect(
+        new URL(redirectUrl, request.nextUrl.origin)
+      );
     }
 
     if (
       pathname.startsWith("/restaurant") &&
-      (role !== "OWNER" && role !== "MANAGER" && role !== "STAFF")
+      role !== "OWNER" &&
+      role !== "MANAGER" &&
+      role !== "STAFF"
     ) {
       return NextResponse.redirect(new URL(redirectUrl, request.url));
     }
-    if (
-      pathname.startsWith("/user") &&
-      role !== "CUSTOMER"
-    ) {
+    if (pathname.startsWith("/user") && role !== "CUSTOMER") {
       console.log(
         `Middleware: Unauthorized user access by ${role}, redirecting to ${redirectUrl}`
       );
-      return NextResponse.redirect(new URL(redirectUrl, request.nextUrl.origin));
+      return NextResponse.redirect(
+        new URL(redirectUrl, request.nextUrl.origin)
+      );
     }
 
     console.log("Middleware: Allowing access to", pathname);
@@ -76,6 +81,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/restaurant/:path*", "/user/:path*",],
+  matcher: ["/user/:path*"],
 };
-

@@ -15,20 +15,31 @@ export default function BasicInfoForm() {
   const logoImage = data.logo_image || null;
   const coverImage = data.cover_image || null;
   const router = useRouter();
+  const [tagsInput, setTagsInput] = useState(data.tags?.join(", ") || "");
+
 
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!data.restaurant || !data.phone || !location || !businessLicense) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-    setError(null);
-    router.push("/restaurant/register/review");
-  };
+  e.preventDefault();
 
-  const handleFileChange = (file: UploadedFile | null, key: "logo_image" | "businessLicense") => {
+  if (
+    !data.restaurant?.trim() ||
+    !data.phone?.trim() ||
+    !data.lat ||
+    !data.lng ||
+    !data.businessLicense
+  ) {
+    setError("Please fill in all required fields.");
+    return;
+  }
+
+  setError(null);
+  router.push("/restaurant/register/review");
+};
+
+
+  const handleFileChange = (file: UploadedFile | null, key: "logo_image" | "businessLicense" | "cover_image") => {
     if (file) {
       updateData({
         [key]: {
@@ -45,19 +56,22 @@ export default function BasicInfoForm() {
   return (
     <div className="flex items-center justify-center px-4 py-4">
       <form
-        className="bg-white rounded-lg p-6 w-full max-w-3xl space-y-4"
+        className="bg-white rounded-lg p-6 w-full max-w-3xl space-y-4
+             [&_input]:py-3 [&_input]:text-base 
+             [&_textarea]:py-3 [&_textarea]:text-base 
+             [&_label]:text-xl [&_label]:font-medium [&_label]:mb-2 "
         onSubmit={handleSubmit}
       >
         {/* Heading */}
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 text-left">
+        <div className="mt-4 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-900 text-left">
             Restaurant Information
           </h2>
         </div>
 
         {/* Restaurant Name */}
         <div>
-          <label className="block text-md font-medium text-gray-700 mb-1 text-left">
+          <label className="block text-xl font-medium text-gray-700 mb-1 text-left">
             Restaurant Name
           </label>
           <div className="relative w-full">
@@ -77,7 +91,7 @@ export default function BasicInfoForm() {
 
         {/* Phone Number */}
         <div>
-          <label className="block text-md font-medium text-gray-700 mb-1 text-left">
+          <label className="block text-xl font-medium text-gray-700 mb-1 text-left">
             Phone Number
           </label>
           <div className="relative w-full">
@@ -86,6 +100,8 @@ export default function BasicInfoForm() {
               value={data.phone}
               onChange={(e) => updateData({ phone: e.target.value })}
               placeholder="Enter phone number"
+              pattern="\+?[0-9]+$"
+              inputMode="numeric"
               className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm
                          focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
@@ -123,19 +139,20 @@ export default function BasicInfoForm() {
           <div className="relative w-full">
             <input
               type="text"
-              value={data.tags?.join(", ") || ""}
-              onChange={(e) =>
-                updateData({
-                  tags: e.target.value
-                    .split(",")
-                    .map((t) => t.trim())
-                    .filter((t) => t.length > 0),
-                })
-              }
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              onBlur={() => {
+                const tagsArray = tagsInput
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter((t) => t.length > 0);
+                updateData({ tags: tagsArray });
+              }}
               placeholder="Enter tags separated by commas (e.g. Ethiopian, Vegan, Fast Food)"
               className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm
-                         focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                        focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
+
             <span className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
               <FaTags className="text-gray-400 text-sm" />
             </span>
@@ -144,8 +161,13 @@ export default function BasicInfoForm() {
 
         {/* Location */}
         <LocationPicker
-          value={location}
-          onChange={(v) => updateData({ address: v })}
+          value={{ lat: data.lat ?? null, lng: data.lng ?? null }}
+          onChange={(loc) =>
+            updateData({
+              lat: loc.lat,
+              lng: loc.lng,
+            })
+          }
           compact={true}
         />
 
@@ -155,16 +177,16 @@ export default function BasicInfoForm() {
           required={false}
           file={logoImage}
           onFileChange={(file) => handleFileChange(file, "logo_image")}
-          compact={true}
+          compact={false}
         />
 
         {/* Banner Upload */}
         <FileUploadBox
           label="Banner Image"
-          required
+          required={false}
           file={coverImage}
-          onFileChange={(file) => handleFileChange(file, "businessLicense")}
-          compact={true}
+          onFileChange={(file) => handleFileChange(file, "cover_image")}
+          compact={false}
         />
 
         {/* License Upload */}
@@ -173,7 +195,7 @@ export default function BasicInfoForm() {
           required
           file={businessLicense}
           onFileChange={(file) => handleFileChange(file, "businessLicense")}
-          compact={true}
+          compact={false}
         />
 
         

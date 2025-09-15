@@ -1,10 +1,39 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   images: {
-    domains: ['placehold.co', 'example.com'],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: 'https',
+        hostname: 'avatar.iran.liara.run',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'example.com',
+      },
+      // ✅ Add the new hostname for Unsplash images
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

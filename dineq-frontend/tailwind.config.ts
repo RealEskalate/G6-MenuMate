@@ -1,8 +1,7 @@
-// tailwind.config.js
-module.exports = {
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx}", // adjust if needed
-  ],
+import type { Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
+
+export default {
   theme: {
     extend: {
       keyframes: {
@@ -14,7 +13,11 @@ module.exports = {
       animation: {
         fadeInUp: "fadeInUp 0.6s ease forwards",
       },
+      fontFamily: {
+        body: ["var(--font-body)", ...defaultTheme.fontFamily.sans],
+        headings: ["var(--font-headings)", ...defaultTheme.fontFamily.serif],
+      },
     },
   },
   plugins: [],
-};
+} satisfies Config;

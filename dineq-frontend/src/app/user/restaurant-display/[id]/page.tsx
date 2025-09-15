@@ -3,35 +3,42 @@
 import { FaHeart } from "react-icons/fa";
 import { Phone } from "lucide-react";
 import SafeImage from "@/components/common/SafeImage";
-import NavBar from "@/components/common/NavBar";
 import { useParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store/store";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { fetchRestaurantById, ApiRestaurant } from "@/store/restaurantsSlice";
 import { RestaurantDetailSkeleton } from "@/components/common/LoadingSkeletons";
+import MenuSection from "@/app/user/menu-handling/MenuSection";
+import { useFavorites } from "@/context/FavoritesContext";
 
 export default function SingleRestaurant() {
   const params = useParams<{ id: string }>();
-  const id = useMemo(() => String(params?.id || ""), [params]);
+  const id = params?.id || "";
   const dispatch = useDispatch<AppDispatch>();
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
 
   const { currentRestaurant, currentLoading, currentError } = useSelector(
     (state: RootState) => state.restaurants
   );
 
   useEffect(() => {
-    if (id) {
-      dispatch(fetchRestaurantById(id));
-    }
+    if (id) dispatch(fetchRestaurantById(id));
   }, [dispatch, id]);
 
   const restaurant: ApiRestaurant | null = currentRestaurant;
 
+  const toggleFavorite = () => {
+    if (!restaurant) return;
+    if (isFavorite(restaurant.id)) {
+      removeFavorite(restaurant.id);
+    } else {
+      addFavorite(restaurant);
+    }
+  };
+
   return (
     <>
-      <NavBar role="CUSTOMER" />
-
       {!id ? (
         <div className="flex justify-center p-8">Invalid restaurant id.</div>
       ) : currentLoading ? (
@@ -39,11 +46,12 @@ export default function SingleRestaurant() {
       ) : currentError ? (
         <div className="flex justify-center p-8 text-red-600">{currentError}</div>
       ) : !restaurant ? (
-        <div className="flex justify-center p-8">Restaurant not found.</div>
+        <RestaurantDetailSkeleton />
       ) : (
-        <div className="flex flex-col items-center px-4 sm:px-6 md:px-8 pb-8">
+        <div className="flex flex-col items-center px-4 sm:px-6 md:px-8 pb-8 ">
+          <div className=" bg-gray-100  rounded-lg  max-w-5xl shadow-md">
           {/* Header Image */}
-          <div className="w-full max-w-5xl h-40 sm:h-52 md:h-64 relative rounded-lg overflow-hidden shadow-lg mt-4">
+          <div className="w-full  h-40 sm:h-52 md:h-64 relative rounded-lg overflow-hidden shadow-lg ">
             <SafeImage
               src={restaurant.logo_image ?? "/Background.png"}
               alt={restaurant.name}
@@ -53,7 +61,7 @@ export default function SingleRestaurant() {
           </div>
 
           {/* Restaurant Info */}
-          <div className="w-full max-w-5xl bg-gray-100 p-5 rounded-lg mt-5 shadow-md">
+          <div className="w-full p-5 ">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
               <div className="flex flex-col mb-4 md:mb-0">
                 <h1 className="text-3xl font-bold">{restaurant.name}</h1>
@@ -62,25 +70,35 @@ export default function SingleRestaurant() {
                 </p>
                 <p className="mt-2 text-gray-700">{restaurant.about}</p>
               </div>
+            
 
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 px-6 py-3 text-white rounded-full transition-colors duration-200"
-                style={{ backgroundColor: "var(--color-primary)" }}
+                className={`flex items-center justify-center gap-2 px-6 py-3 text-white rounded-full transition-colors duration-200 ${
+                  isFavorite(restaurant.id)
+                    ? "bg-red-500"
+                    : "bg-[var(--color-primary)]"
+                }`}
+                onClick={toggleFavorite}
               >
                 <FaHeart className="w-5 h-5" />
-                Save
+                {isFavorite(restaurant.id) ? "Remove Favorite" : "Add to Favorites"}
               </button>
             </div>
 
             {/* Extra Details */}
             <div className="mt-6 space-y-3">
-              
               <p className="flex items-center gap-3 text-lg text-gray-600">
                 <Phone className="w-6 h-6 text-green-500" />
                 {restaurant.phone ?? "Phone not available"}
               </p>
             </div>
+          </div>
+          </div>
+
+          {/* Menu Section */}
+          <div className="w-full max-w-5xl mt-8">
+            <MenuSection id = {id} restaurantSlug={restaurant.slug} />
           </div>
         </div>
       )}

@@ -9,19 +9,19 @@ import { useSession } from "next-auth/react";
 export default function ReviewPage() {
   const router = useRouter();
   const { data, resetData } = useRegister();
-  const { data: session } = useSession(); 
-  const tempToken =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NTY5MDE4NjAsImlzX3ZlcmlmaWVkIjpmYWxzZSwicm9sZSI6Ik1BTkFHRVIiLCJzdGF0dXMiOiJBQ1RJVkUiLCJzdWIiOiI2OGI2ZTUxMjhmNGY5NTJkOGEyYWI1ZTkiLCJ1c2VybmFtZSI6Im5hbmFudGkifQ.q7AusSduKNQ2gLSUUPP-tcMMUvG3VAGfMTqiwex4_HM";
+  const { data: session } = useSession();  
+
 
   const basicInfo = {
-    Name: data.name,
-    Email: data.email,
-    Restaurant: data.restaurant,
-    Address: data.address,
-    Phone: data.phone,
-    About: data.about || "N/A",
-    Tags: data.tags?.join(", ") || "None",
-  };
+  Restaurant: data.restaurant,
+  Address: data.address,
+  Phone: data.phone,
+  Latitude: data.lat ?? "N/A",
+  Longitude: data.lng ?? "N/A",
+  About: data.about || "N/A",
+  Tags: data.tags?.join(", ") || "None",
+};
+
 
   const logoFile = data.logo_image;
   const documents = data.businessLicense ? [data.businessLicense] : [];
@@ -45,6 +45,9 @@ export default function ReviewPage() {
       formData.append("restaurant_phone", data.phone);
       formData.append("about", data.about || "");
 
+      if (data.lat) formData.append("lat", String(data.lat));
+      if (data.lng) formData.append("lng", String(data.lng));
+
       if (data.tags && data.tags.length > 0) {
         data.tags.forEach((tag: string) => {
           formData.append("tags", tag);
@@ -56,24 +59,32 @@ export default function ReviewPage() {
       if (data.businessLicense?.file) formData.append("verification_docs", data.businessLicense.file);
       if (data.cover_image?.file) formData.append("cover_image", data.cover_image.file);
 
-      const res = await fetch("https://g6-menumate.onrender.com/v1/restaurants", {
+      const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+      const res = await fetch(`${apiUrl}/restaurants`, {
         method: "POST",
         body: formData,
         headers: {
-          Authorization: `Bearer ${tempToken}`,
+          Authorization: `Bearer ${session.accessToken}`,
         },
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Failed to create restaurant");
+      const responseText = await res.text();
+      let responseData;
+      try {
+          responseData = responseText ? JSON.parse(responseText) : {};
+      } catch (error) {
+          console.error("Failed to parse JSON response:", responseText);
+          throw new Error("Received an invalid response from the server.");
       }
 
-      const result = await res.json();
-      console.log("✅ Created restaurant:", result);
+      if (!res.ok) {
+        throw new Error(responseData.message || `Request failed with status ${res.status}`);
+      }
+
+      console.log("✅ Created restaurant:", responseData);
 
       resetData();
-      router.push("/restaurant/success");
+      router.push("/restaurant/register/success");
     } catch (err: unknown) {
       setError(
         typeof err === "object" && err !== null && "message" in err

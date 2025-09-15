@@ -23,6 +23,7 @@ interface ApiResponseEnvelope {
   restaurants: ApiRestaurant[];
   total: number;
   totalPages: number;
+  message?: string;
 }
 
 // Define the type of the parameter for fetchRestaurants
@@ -35,14 +36,25 @@ interface FetchRestaurantsParams {
 export const fetchRestaurants = createAsyncThunk(
   "restaurants/fetch",
   async ({ page = 1, pageSize = 20 }: FetchRestaurantsParams) => {
-    const url = `https://g6-menumate-1.onrender.com/api/v1/restaurants?page=${encodeURIComponent(
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const url = `${apiUrl}/restaurants?page=${encodeURIComponent(
       page
     )}&pageSize=${encodeURIComponent(pageSize)}`;
 
     const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error("Failed to fetch restaurants");
+    const responseText = await res.text();
+    let data: ApiResponseEnvelope;
+    try {
+        data = responseText ? JSON.parse(responseText) : { restaurants: [] };
+    } catch (error) {
+        console.error("Failed to parse JSON response:", responseText);
+        throw new Error("Received an invalid response from the server.");
+    }
 
-    const data: ApiResponseEnvelope = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || `Request failed with status ${res.status}`);
+    }
+
     return data.restaurants; // array of restaurants
   }
 );
@@ -53,16 +65,20 @@ export const fetchRestaurantById = createAsyncThunk(
   async (id: string) => {
     // Try direct endpoint first
     const direct = await fetch(
-      `https://g6-menumate-1.onrender.com/api/v1/restaurants/${encodeURIComponent(id)}`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/restaurants/${encodeURIComponent(id)}`,
       { cache: "no-store" }
     );
 
     if (direct.ok) {
-      const data = (await direct.json()) as
-        | { restaurant?: ApiRestaurant; data?: ApiRestaurant }
-        | ApiRestaurant;
+      const responseText = await direct.text();
+      let data;
+      try {
+          data = responseText ? JSON.parse(responseText) : {};
+      } catch (error) {
+          console.error("Failed to parse JSON response:", responseText);
+          throw new Error("Received an invalid response from the server.");
+      }
 
-      // Type narrowing
       let entity: ApiRestaurant | undefined;
       if ("restaurant" in data && data.restaurant) {
         entity = data.restaurant;
@@ -77,12 +93,19 @@ export const fetchRestaurantById = createAsyncThunk(
 
     // Fallback to list and find
     const listRes = await fetch(
-      `https://g6-menumate-1.onrender.com/api/v1/restaurants?page=1&pageSize=50`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/restaurants?page=1&pageSize=50`,
       { cache: "no-store" }
     );
     if (!listRes.ok) throw new Error("Failed to fetch restaurant");
 
-    const listData = (await listRes.json()) as { restaurants?: ApiRestaurant[]; data?: ApiRestaurant[] } | ApiRestaurant[];
+    const responseText = await listRes.text();
+    let listData;
+    try {
+        listData = responseText ? JSON.parse(responseText) : {};
+    } catch (error) {
+        console.error("Failed to parse JSON response:", responseText);
+        throw new Error("Received an invalid response from the server.");
+    }
     let list: ApiRestaurant[] = [];
 
     if (Array.isArray(listData)) {
@@ -155,3 +178,4 @@ const restaurantsSlice = createSlice({
 });
 
 export default restaurantsSlice.reducer;
+

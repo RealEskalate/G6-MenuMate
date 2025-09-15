@@ -1,0 +1,100 @@
+// src/api/menuApi.ts
+export const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+/** Menu item shape */
+
+
+/** Menu shape (without items at first) */
+export interface Menu {
+  id: string;
+  name: string;
+  restaurant_id: string;
+  slug: string;
+  is_published: boolean;
+  view_count?: number;
+  average_rating?: number;
+  items : MenuItem[]
+}
+export interface NutritionalInfo {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface MenuItem {
+  id: string;
+  name: string;
+  image?: string[];
+  name_am: string;
+  description: string;
+  description_am?: string;
+  how_to_eat?: string;
+  how_to_eat_am?: string;
+  allergies: string[];
+  allergies_am: string;
+  average_rating: number;
+  created_at: string;   // ISO date string
+  updated_at: string;   // ISO date string
+  is_deleted?: boolean;
+  menu_slug: string;
+  slug: string;
+  currency?: string;
+  price?: number;
+  preparation_time?: number;
+  nutritional_info?: NutritionalInfo;
+  review_ids?: string[];
+  tab_tags?: string[];
+  tab_tags_am: string[];
+  view_count: number;
+}
+
+
+/** Fetch all menus for a restaurant by slug */
+export async function getMenusByRestaurantSlug(
+  restaurantSlug: string,
+  token?: string
+): Promise<Menu[]> {
+  const res = await fetch(`${BASE_URL}/menus/${restaurantSlug}`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    if (res.status === 404) return [];
+    throw new Error(`Failed to fetch menus: ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  console.log("🍽️ Menus API response:", data);
+
+  // ✅ API returns { data: { menus: [...] } }
+  return data.data?.menus ?? [];
+}
+
+/** Fetch items for a given menu slug */
+export async function getMenuItemsBySlug(
+  menuSlug: string,
+  token?: string
+): Promise<MenuItem[]> {
+  const res = await fetch(`${BASE_URL}/menu-items/${menuSlug}`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    if (res.status === 404) return [];
+    throw new Error(`Failed to fetch menu items: ${res.statusText}`);
+  }
+
+  const data = await res.json();
+  console.log("🥘 Menu Items API response:", data);
+
+  return data.data?.items ?? [];
+}
