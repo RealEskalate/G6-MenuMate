@@ -86,11 +86,11 @@ export default function MenuEditorPage() {
                   router.push(`/restaurant/dashboard/menu/${menuSlug}/${item.id}`)
                 }
               >
-                <MenuItemCard item={{
+                {/* <MenuItemCard item={{
                   ...item,
                   allergies:
                     typeof item.allergies === "string" ? [item.allergies] : item.allergies,
-                }} />
+                }} /> */}
 
                 {/* Optional Pencil Icon on Hover */}
                 <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">

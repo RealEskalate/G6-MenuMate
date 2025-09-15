@@ -22,10 +22,10 @@ export default function FavoritesPage() {
           key={restaurant.id}
           id={restaurant.id}
           name={restaurant.name}
-          logoImage={restaurant.logoImage}
+          logo_image={restaurant.logoImage}
           about={restaurant.about}
-          averageRating={restaurant.averageRating}
-          contact={restaurant.contact}
+          average_rating={restaurant.averageRating}
+          // contact={restaurant.contact}
           location={restaurant.location}
         />
       ))}

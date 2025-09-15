@@ -47,8 +47,8 @@ export default function FoodMiniNavBar({ item , id }: FoodMiniNavBarProps) {
       <div className="mt-6">
         {activeTab === "description" && <Description item={item} />}
         {activeTab === "howtoeat" && <FoodTip item={item} />}
-        {activeTab === "reviews" && <Review id = {id} />}
-        {activeTab === "writeReview" && <ReviewForm id = {id}  />}
+        {/* {activeTab === "reviews" && <Review id = {id} />}
+        {activeTab === "writeReview" && <ReviewForm id = {id}  />} */}
       </div>
     </div>
   );
