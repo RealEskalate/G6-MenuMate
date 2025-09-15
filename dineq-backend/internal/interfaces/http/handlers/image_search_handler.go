@@ -12,35 +12,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// containsEthiopic returns true if s contains any Ethiopic (Ge'ez) script rune.
-func containsEthiopic(s string) bool {
-	for _, r := range s {
-		if r >= 0x1200 && r <= 0x137F { // Ethiopic block
-			return true
-		}
-		if r >= 0x1380 && r <= 0x139F { // Ethiopic Supplement
-			return true
-		}
-		if r >= 0x2D80 && r <= 0x2DDF { // Ethiopic Extended
-			return true
-		}
-		if r >= 0xAB00 && r <= 0xAB2F { // Ethiopic Extended-A
-			return true
-		}
-	}
-	return false
-}
-
 type ImageSearchHandler struct {
 	google   services.IGoogleCustomSearchService
 	unsplash *services.UnsplashSearchService
 	pexels   *services.PexelsSearchService
-	clf      services.EthiopianFoodClassifier
 	ai       services.IAIService
 }
 
-func NewImageSearchHandler(google services.IGoogleCustomSearchService, unsplash *services.UnsplashSearchService, pexels *services.PexelsSearchService, clf services.EthiopianFoodClassifier, ai services.IAIService) *ImageSearchHandler {
-	return &ImageSearchHandler{google: google, unsplash: unsplash, pexels: pexels, clf: clf, ai: ai}
+func NewImageSearchHandler(google services.IGoogleCustomSearchService, unsplash *services.UnsplashSearchService, pexels *services.PexelsSearchService, ai services.IAIService) *ImageSearchHandler {
+	return &ImageSearchHandler{google: google, unsplash: unsplash, pexels: pexels, ai: ai}
 }
 
 // performSearch encapsulates the core image search aggregation logic.
@@ -139,9 +119,9 @@ func (h *ImageSearchHandler) performSearchWithDiagnostics(parent context.Context
 	defer cancel()
 	perSource := 2
 
-	googleOnly := containsEthiopic(item)
-	if !googleOnly && h.clf != nil {
-		if ok, err := h.clf.IsEthiopianFoodName(ctx, item); err == nil && ok {
+	googleOnly := false
+	if h.ai != nil {
+		if isE, err := h.ai.IsEthiopianFood(ctx, item); err == nil && isE {
 			googleOnly = true
 		}
 	}

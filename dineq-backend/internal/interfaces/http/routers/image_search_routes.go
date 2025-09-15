@@ -15,15 +15,12 @@ func NewImageSearchRoutes(env *bootstrap.Env, group *gin.RouterGroup) {
 	unsplashSvc := services.NewUnsplashSearchService(env.UnsplashAPIKey)
 	pexelsSvc := services.NewPexelsSearchService(env.PexelsAPIKey)
 	var aiSvc services.IAIService
-	var clfSvc services.EthiopianFoodClassifier
 	if env.GeminiAPIKey != "" {
 		if svc, err := services.NewAIService(context.Background(), env.GeminiAPIKey, env.GeminiModelName, nil); err == nil {
 			aiSvc = svc
 		}
-		// also create the optional classifier wrapper (returns nil if key empty)
-		clfSvc = services.NewGeminiFoodClassifier(env.GeminiAPIKey, env.GeminiModelName)
 	}
-	h := handler.NewImageSearchHandler(googleSvc, unsplashSvc, pexelsSvc, clfSvc, aiSvc)
+	h := handler.NewImageSearchHandler(googleSvc, unsplashSvc, pexelsSvc, aiSvc)
 	g := group.Group("/images")
 	g.Use(middleware.AuthMiddleware(*env))
 	{
