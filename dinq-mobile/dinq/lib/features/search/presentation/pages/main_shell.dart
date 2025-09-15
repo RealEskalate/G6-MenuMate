@@ -28,6 +28,7 @@ class MainShell extends StatefulWidget {
 
 class _MainShellState extends State<MainShell> {
   late int _selectedIndex;
+  bool _wasOwner = false;
 
   @override
   void initState() {
@@ -46,6 +47,12 @@ class _MainShellState extends State<MainShell> {
           print('DEBUG: User is owner ${state.user.role}');
         }
         print('DEBUG: isOwner: $isOwner');
+
+        // Reset index to 0 if user role changed from owner to non-owner
+        if (_wasOwner && !isOwner && _selectedIndex >= 3) {
+          _selectedIndex = 0;
+        }
+        _wasOwner = isOwner;
 
         final pages = isOwner
             ? [

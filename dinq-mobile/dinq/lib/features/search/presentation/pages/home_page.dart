@@ -288,7 +288,7 @@ class _HomePageState extends State<HomePage> {
                                 onTap: () => Navigator.pushNamed(
                                   context,
                                   AppRoute.itemDetail,
-                                  arguments: {'item': item},
+                                  arguments: item,
                                 ),
                               );
                             },

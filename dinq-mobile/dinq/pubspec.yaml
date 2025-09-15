@@ -43,6 +43,7 @@ dependencies:
 dev_dependencies:
   build_runner: ^2.7.0
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
   flutter_test:
     sdk: flutter
 
@@ -52,3 +53,8 @@ flutter:
   assets:
     - assets/images/
     - .env
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/brand.png"

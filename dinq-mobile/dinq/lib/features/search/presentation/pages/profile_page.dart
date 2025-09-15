@@ -81,16 +81,18 @@ class _ProfilePageState extends State<ProfilePage> {
       listener: (context, state) async {
         if (state is Authenticated) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Login successful!'),
+            content: Text('Welcome!'),
             backgroundColor: Colors.green,
           ));
           // Close any login/register routes and refresh profile view
           // tokens and user are already cached by the repository
-        } else if (state is Authenticated) {
+        } else if (state is Unauthenticated) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Registration successful!'),
+            content: Text('Signed out successfully.'),
             backgroundColor: Colors.green,
           ));
+          // Pop to root
+          Navigator.of(context).popUntil((route) => route.isFirst);
         } else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(state.message),
