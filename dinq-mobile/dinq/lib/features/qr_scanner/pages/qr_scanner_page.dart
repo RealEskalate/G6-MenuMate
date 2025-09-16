@@ -112,11 +112,12 @@ class _QrScannerPageState extends State<QrScannerPage> {
   }
 
   /// Extract restaurant slug from QR code URL
-  /// Returns the last segment of the URL path as the restaurant identifier
+  /// Returns the second segment of the URL path as the restaurant identifier
+  /// Expected URL format: /user/{restaurant-slug}/{menu-slug}
   String? extractRestaurantSlug(String url) {
     final uri = Uri.tryParse(url);
-    if (uri == null || uri.pathSegments.isEmpty) return null;
-    return uri.pathSegments.last;
+    if (uri == null || uri.pathSegments.length < 2) return null;
+    return uri.pathSegments[1]; // Second segment is the restaurant slug
   }
 
   void _showError(String message) {

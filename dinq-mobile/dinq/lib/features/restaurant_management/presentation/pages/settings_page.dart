@@ -13,18 +13,6 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RestaurantManagementBloc, RestaurantManagementState>(
-        builder: (context, state) {
-      // Automatically load owner restaurants if not loaded yet
-      if (state is RestaurantManagementInitial ||
-          (state is! OwnerRestaurantsLoaded &&
-              state is! RestaurantManagementLoading)) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          context
-              .read<RestaurantManagementBloc>()
-              .add(const LoadOwnerRestaurants());
-        });
-      }
 
       return Scaffold(
         appBar: AppBar(
@@ -42,38 +30,13 @@ class SettingsPage extends StatelessWidget {
               leadingIcon: Icons.restaurant,
               iconColor: AppColors.primaryColor,
               onTap: () {
-                if (state is OwnerRestaurantsLoaded) {
-                  if (state.selectedRestaurant != null) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RestaurantDetailsPage(
-                            restaurant: state.selectedRestaurant!),
+                        builder: (context) => RestaurantDetailsPage(),
                       ),
                     );
-                  } else if (state.restaurants.isNotEmpty) {
-                    // Auto-select the first restaurant
-                    context
-                        .read<RestaurantManagementBloc>()
-                        .add(SelectRestaurant(state.restaurants.first));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text(
-                              'Selected your restaurant. Tap again to view details.')),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text(
-                              'No restaurants found. Please create a restaurant first.')),
-                    );
-                  }
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Loading restaurants...')),
-                  );
-                }
-              },
+                  } 
             ),
             SettingsItem(
               title: 'User profile',
@@ -110,6 +73,5 @@ class SettingsPage extends StatelessWidget {
           ],
         ),
       );
-    });
+    }
   }
-}

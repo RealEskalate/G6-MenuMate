@@ -132,7 +132,7 @@ class _UserRegisterState extends State<UserRegister>
               username: _usernameController.text.trim(),
               email: _emailController.text.trim(),
               password: _passwordController.text,
-              role: 'OWNER',
+              role: 'CUSTOMER',
               authProvider: 'EMAIL',
             ),
           );

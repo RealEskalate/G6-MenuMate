@@ -223,7 +223,7 @@ class _RestaurantRegistrationState extends State<RestaurantRegistration> {
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    RestaurantDetailsPage(restaurant: state.restaurant),
+                    RestaurantDetailsPage(),
               ),
             );
           } else if (state is RestaurantManagementError) {
