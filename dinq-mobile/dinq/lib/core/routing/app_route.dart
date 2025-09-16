@@ -10,7 +10,6 @@ import '../../features/auth/presentation/Pages/resturant_registration.dart';
 import '../../features/auth/presentation/Pages/user_register.dart';
 import '../../features/qr_scanner/pages/qr_scanner_page.dart';
 import '../../features/restaurant_management/domain/entities/item.dart';
-import '../../features/restaurant_management/domain/entities/restaurant.dart';
 import '../../features/restaurant_management/presentation/pages/billing_page.dart';
 import '../../features/restaurant_management/presentation/pages/branding_preferences_page.dart';
 import '../../features/restaurant_management/presentation/pages/create_menu_manually_page.dart';
@@ -152,8 +151,7 @@ class AppRoute {
       // Restaurant management routes
       case restaurantDetails:
         return MaterialPageRoute(
-            builder: (_) => RestaurantDetailsPage(
-                restaurant: settings.arguments as Restaurant));
+            builder: (_) => RestaurantDetailsPage());
       case legalInfo:
         return MaterialPageRoute(builder: (_) => const LegalInfoPage());
       case brandingPreferences:

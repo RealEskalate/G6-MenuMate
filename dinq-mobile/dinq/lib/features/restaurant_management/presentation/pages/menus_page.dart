@@ -95,16 +95,8 @@ class MenusPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<RestaurantManagementBloc, RestaurantManagementState>(
       builder: (context, state) {
-        // Automatically load owner restaurants if not loaded yet
-        if (state is RestaurantManagementInitial ||
-            (state is! OwnerRestaurantsLoaded &&
-                state is! RestaurantManagementLoading)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            context
-                .read<RestaurantManagementBloc>()
-                .add(const LoadOwnerRestaurants());
-          });
-        }
+        final bloc = context.read<RestaurantManagementBloc>();
+        final menus = bloc.currentMenus;
 
         return Scaffold(
           backgroundColor: AppColors.whiteColor,
@@ -125,40 +117,7 @@ class MenusPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
-                // Restaurant selector
-                if (state is OwnerRestaurantsLoaded &&
-                    state.restaurants.isNotEmpty)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.primaryColor),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: DropdownButton<String>(
-                      value: state.selectedRestaurant?.id,
-                      hint: const Text('Select Restaurant'),
-                      isExpanded: true,
-                      underline: const SizedBox(),
-                      items: state.restaurants.map((restaurant) {
-                        return DropdownMenuItem<String>(
-                          value: restaurant.id,
-                          child: Text(restaurant.restaurantName),
-                        );
-                      }).toList(),
-                      onChanged: (restaurantId) {
-                        if (restaurantId != null) {
-                          final restaurant = state.restaurants
-                              .firstWhere((r) => r.id == restaurantId);
-                          context
-                              .read<RestaurantManagementBloc>()
-                              .add(SelectRestaurant(restaurant));
-                        }
-                      },
-                    ),
-                  ),
-
+                // Add menu button at the top
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -178,122 +137,29 @@ class MenusPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Expanded(
-                  child: Builder(
-                    builder: (context) {
-                      if (state is RestaurantManagementLoading) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (state is RestaurantSelected) {
-                        final menus = state.menus;
-                        if (menus.isEmpty) {
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.restaurant_menu,
-                                  size: 80,
-                                  color:
-                                      AppColors.primaryColor.withOpacity(0.5),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No menus yet',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall
-                                      ?.copyWith(
-                                        color: AppColors.secondaryColor,
-                                      ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Create your first menu to get started',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        color: AppColors.secondaryColor
-                                            .withOpacity(0.7),
-                                      ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 32),
-                                ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primaryColor,
-                                    foregroundColor: AppColors.whiteColor,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 32, vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('Add New Menu'),
-                                  onPressed: () => _showAddMenuDialog(context),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                        return Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primaryColor,
-                                    foregroundColor: AppColors.whiteColor,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('Add menu'),
-                                  onPressed: () => _showAddMenuDialog(context),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Expanded(
-                              child: ListView.builder(
-                                itemCount: menus.length,
-                                itemBuilder: (context, idx) {
-                                  final menu = menus[idx];
-                                  return RestMenuCard(
-                                    tab: menu,
-                                    isPublished: menu.isPublished,
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      } else if (state is RestaurantManagementError) {
-                        return Center(
-                          child: Text(
-                            state.message,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(color: Colors.red),
-                          ),
-                        );
-                      } else if (state is OwnerRestaurantsLoaded &&
-                          state.selectedRestaurant == null) {
-                        return Center(
+                  child: menus.isNotEmpty
+                      ? ListView.builder(
+                          itemCount: menus.length,
+                          itemBuilder: (context, idx) {
+                            final menu = menus[idx];
+                            return RestMenuCard(
+                              tab: menu,
+                              isPublished: menu.isPublished,
+                            );
+                          },
+                        )
+                      : Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.restaurant,
+                                Icons.restaurant_menu,
                                 size: 80,
                                 color: AppColors.primaryColor.withOpacity(0.5),
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Select a restaurant',
+                                'No menus yet',
                                 style: Theme.of(context)
                                     .textTheme
                                     .headlineSmall
@@ -303,7 +169,7 @@ class MenusPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Choose a restaurant from the dropdown above to view and manage menus',
+                                'Create your first menu to get started',
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -313,13 +179,24 @@ class MenusPage extends StatelessWidget {
                                     ),
                                 textAlign: TextAlign.center,
                               ),
+                              const SizedBox(height: 32),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryColor,
+                                  foregroundColor: AppColors.whiteColor,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 32, vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.add),
+                                label: const Text('Add New Menu'),
+                                onPressed: () => _showAddMenuDialog(context),
+                              ),
                             ],
                           ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
+                        ),
                 ),
               ],
             ),
