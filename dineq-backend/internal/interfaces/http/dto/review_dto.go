@@ -8,7 +8,11 @@ import (
 
 // ReviewRequest is used for creating or updating a review
 type ReviewRequest struct {
+	// Accept both legacy `image_urls` and new `pictures` fields.
 	ImageURLs   []string `json:"image_urls,omitempty" validate:"omitempty,dive,url"`
+	Pictures    []string `json:"pictures,omitempty" validate:"omitempty,dive,url"`
+	// Accept single legacy `picture` string for compatibility (will be coerced to array)
+	Picture     string   `json:"picture,omitempty" validate:"omitempty,url"`
 	Description string   `json:"description" validate:"required,max=500"`
 	Rating      float64  `json:"rating" validate:"required,min=1,max=5"`
 }
@@ -35,11 +39,21 @@ type ReviewResponse struct {
 
 // Mapper: ReviewRequest → domain.Review
 func ToDomainReview(req ReviewRequest, userID string, itemID string, restaurantID string) *domain.Review {
+	// Prefer `Pictures` if provided, else use `ImageURLs` or single `Picture` value
+	var urls []string
+	if len(req.Pictures) > 0 {
+		urls = req.Pictures
+	} else if len(req.ImageURLs) > 0 {
+		urls = req.ImageURLs
+	} else if req.Picture != "" {
+		urls = []string{req.Picture}
+	}
 	return &domain.Review{
 		ItemID:       itemID,
 		RestaurantID: restaurantID,
 		UserID:       userID,
-		ImageURLs:    req.ImageURLs,
+		ImageURLs:    urls,
+		Pictures:     urls,
 		Description:  req.Description,
 		Rating:       req.Rating,
 		CreatedAt:    time.Now(),

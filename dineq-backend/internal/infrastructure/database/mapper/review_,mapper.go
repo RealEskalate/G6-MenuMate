@@ -35,6 +35,7 @@ func ReviewToDomain(r *ReviewModel) *domain.Review {
 		UserID:           r.UserID,
 		RestaurantID:     r.RestaurantID,
 		ImageURLs:        r.ImageURLs,
+		Pictures:         r.ImageURLs, // DB stores under imageUrls; populate Pictures alias as well
 		Username:         r.Username,
 		UserProfileImage: r.UserProfileImage,
 		Description:      r.Description,
@@ -67,7 +68,13 @@ func ReviewFromDomain(r *domain.Review) *ReviewModel {
 		ItemID:           r.ItemID,
 		UserID:           r.UserID,
 		RestaurantID:     r.RestaurantID,
-		ImageURLs:        r.ImageURLs,
+		// Persist images to imageUrls field. Prefer domain.ImageURLs, fallback to domain.Pictures
+		ImageURLs:        func() []string {
+			if len(r.ImageURLs) > 0 {
+				return r.ImageURLs
+			}
+			return r.Pictures
+		}(),
 		Username:         r.Username,
 		UserProfileImage: r.UserProfileImage,
 		Description:      r.Description,

@@ -10,7 +10,8 @@ type Review struct {
 	ItemID           string    //`bson:"itemId" json:"item_id"`
 	RestaurantID     string    //`bson:"restaurantId" json:"restaurant_id"`
 	UserID           string    //`bson:"userId" json:"user_id"`
-	ImageURLs        []string  // list of additional image URLs
+	ImageURLs        []string  // list of additional image URLs (stored in DB as imageUrls)
+	Pictures         []string  // alias for ImageURLs to support API field name `pictures`
 	Username         string    // denormalized username for fast listing
 	UserProfileImage string    // denormalized user profile image URL
 	Description      string    //`bson:"description" json:"description"`
