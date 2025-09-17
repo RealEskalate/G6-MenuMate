@@ -7,6 +7,7 @@ Status: production-ready backend for MenuMate. This document is a detailed devel
 ## Overview
 
 MenuMate (DineQ) is a restaurant management and discovery backend that supports:
+
 - Restaurants and menus management (create, update, publish, QR codes).
 - Menu items and item-level operations (search, reviews, reactions).
 - Authentication: JWT access/refresh tokens, OTP, password reset, Google OAuth.
@@ -19,6 +20,7 @@ This README supplements the Postman collection at `postman-collections/` and the
 ---
 
 ## Maintainers / Ownership
+
 - Primary owner: Backend Team
 - For urgent production issues, the lead coordinates rollback and hotfixes.
 
@@ -53,6 +55,7 @@ This README supplements the Postman collection at `postman-collections/` and the
 The app exposes a v1 API under `/api/v1`. Below is a representative (non-exhaustive) list of endpoints discovered from the running router and Postman collection. Refer to `postman-collections/MenuMate API v1 - Comprehensive Collection.postman_collection.json` for the complete collection and examples.
 
 Authentication
+
 - POST /api/v1/auth/register
 - POST /api/v1/auth/login
 - POST /api/v1/auth/logout
@@ -60,47 +63,52 @@ Authentication
 - POST /api/v1/auth/verify-reset-token
 - POST /api/v1/auth/reset-password
 - POST /api/v1/auth/refresh
-- GET  /api/v1/auth/google/login
-- GET  /api/v1/auth/google/callback
+- GET /api/v1/auth/google/login
+- GET /api/v1/auth/google/callback
 - POST /api/v1/auth/verify-email
 - POST /api/v1/auth/resend-otp
 - PATCH /api/v1/auth/verify-otp
 
 Users
-- GET    /api/v1/me
-- GET    /api/v1/users/:id
-- GET    /api/v1/users/avatar-options
-- PATCH  /api/v1/users/update-profile
-- PATCH  /api/v1/users/change-password
+
+- GET /api/v1/me
+- GET /api/v1/users/:id
+- GET /api/v1/users/avatar-options
+- PATCH /api/v1/users/update-profile
+- PATCH /api/v1/users/change-password
 
 OCR (menu ingestion)
-- POST   /api/v1/ocr/upload
-- GET    /api/v1/ocr/:id
+
+- POST /api/v1/ocr/upload
+- GET /api/v1/ocr/:id
 - DELETE /api/v1/ocr/:id
-- POST   /api/v1/ocr/:id/retry
+- POST /api/v1/ocr/:id/retry
 
 Notifications
+
 - POST /api/v1/notifications/
-- GET  /api/v1/notifications/:userId
-- PUT  /api/v1/notifications/:userId/read
-- GET  /api/v1/notifications/ws (WebSocket)
+- GET /api/v1/notifications/:userId
+- PUT /api/v1/notifications/:userId/read
+- GET /api/v1/notifications/ws (WebSocket)
 
 Restaurants
-- GET    /api/v1/restaurants
-- GET    /api/v1/restaurants/search
-- GET    /api/v1/restaurants/search/advanced
-- GET    /api/v1/restaurants/:slug
-- GET    /api/v1/restaurants/nearby
-- POST   /api/v1/restaurants
-- GET    /api/v1/restaurants/me
-- PATCH  /api/v1/restaurants/:slug
+
+- GET /api/v1/restaurants
+- GET /api/v1/restaurants/search
+- GET /api/v1/restaurants/search/advanced
+- GET /api/v1/restaurants/:slug
+- GET /api/v1/restaurants/nearby
+- POST /api/v1/restaurants
+- GET /api/v1/restaurants/me
+- PATCH /api/v1/restaurants/:slug
 - DELETE /api/v1/restaurants/:id
 
 Menus & Public Menus
-- GET  /api/v1/public/menus/:restaurant_slug
-- GET  /api/v1/public/menus/:restaurant_slug/:id
-- GET  /api/v1/menus/:restaurant_slug
-- GET  /api/v1/menus/:restaurant_slug/:id
+
+- GET /api/v1/public/menus/:restaurant_slug
+- GET /api/v1/public/menus/:restaurant_slug/:id
+- GET /api/v1/menus/:restaurant_slug
+- GET /api/v1/menus/:restaurant_slug/:id
 - POST /api/v1/menus/:restaurant_slug
 - PATCH /api/v1/menus/:restaurant_slug/:id
 - DELETE /api/v1/menus/:restaurant_slug/:id
@@ -108,38 +116,44 @@ Menus & Public Menus
 - POST /api/v1/menus/:restaurant_slug/publish/:id
 
 Menu items
-- GET  /api/v1/menu-items/:menu_slug
-- GET  /api/v1/menu-items/:menu_slug/:id
-- GET  /api/v1/menu-items/search/advanced
-- GET  /api/v1/menu-items/:menu_slug/search
+
+- GET /api/v1/menu-items/:menu_slug
+- GET /api/v1/menu-items/:menu_slug/:id
+- GET /api/v1/menu-items/search/advanced
+- GET /api/v1/menu-items/:menu_slug/search
 - POST /api/v1/menu-items/:menu_slug/
 - PATCH /api/v1/menu-items/:menu_slug/:id
 - POST /api/v1/menu-items/:menu_slug/:id/reviews
 - DELETE /api/v1/menu-items/:menu_slug/:id
 
 Reviews & Reactions
-- POST   /api/v1/restaurants/id/:restaurant_id/items/:item_id/reviews/:review_id/reaction
-- GET    /api/v1/restaurants/id/:restaurant_id/items/:item_id/reviews/:review_id/reaction
-- POST   /api/v1/reviews
-- PATCH  /api/v1/reviews/:id
+
+- POST /api/v1/restaurants/id/:restaurant_id/items/:item_id/reviews/:review_id/reaction
+- GET /api/v1/restaurants/id/:restaurant_id/items/:item_id/reviews/:review_id/reaction
+- POST /api/v1/reviews
+- PATCH /api/v1/reviews/:id
 - DELETE /api/v1/reviews/:id
-- GET    /api/v1/reviews/:id
-- GET    /api/v1/items/:item_id/reviews
-- GET    /api/v1/items/:item_id/average-rating
-- GET    /api/v1/restaurants/v/:restaurant_id/average-rating
+- GET /api/v1/reviews/:id
+- GET /api/v1/items/:item_id/reviews
+- GET /api/v1/items/:item_id/average-rating
+- GET /api/v1/restaurants/v/:restaurant_id/average-rating
 
 Image search
-- GET  /api/v1/images/search?item={name}&restaurant={slug}
+
+- GET /api/v1/images/search?item={name}&restaurant={slug}
 - POST /api/v1/images/search
 
 Uploads
+
 - POST /api/v1/uploads/logo
 - POST /api/v1/uploads/image
 
 Health
+
 - GET /api/v1/health
 
 Notes
+
 - Most endpoints require JWT authentication (Bearer token) or cookies (`access_token`/`refresh_token`). See Postman collection for request bodies and examples.
 
 ---
@@ -149,12 +163,14 @@ Notes
 The application is configured entirely via environment variables. `internal/bootstrap/env.go` enumerates available settings. Below are the important ones to set for local development and staging.
 
 Core
+
 - PORT (default `:8080`)
 - APP_ENV (development|staging|production)
 - DB_URI (mongodb connection string, e.g. `mongodb://localhost:27017`)
 - DB_NAME (e.g. `dineq_db`)
 
 Auth/security
+
 - REFRESH_TOKEN_SECRET
 - ACCESS_TOKEN_SECRET
 - REFRESH_TOKEN_EXPIRE_HOURS
@@ -163,6 +179,7 @@ Auth/security
 - COOKIE_DOMAIN
 
 Third-party / optional integrations
+
 - GEMINI_API_KEY (Gemini AI model key)
 - GEMINI_MODEL_NAME
 - SEARCH_ENGINE_ID (Google Programmable Search Engine)
@@ -175,10 +192,12 @@ Third-party / optional integrations
 - SMTP_HOST / SMTP_PORT / SMTP_FROM / SMTP_USERNAME / SMTP_PASSWORD
 
 Redis / caching
+
 - REDIS_HOST / REDIS_PORT / REDIS_PASSWORD / REDIS_DB
 - CACHE_EXPIRATION_SECONDS
 
 Misc collections and names (optional)
+
 - USER_COLLECTION, MENU_COLLECTION, RESTAURANT_COLLECTION, OTP_COLLECTION, OCR_JOB_COLLECTION, NOTIFICATION_COLLECTION, etc.
 
 Tip: use a `.env` file in development and `godotenv` loader will pick it up. Sensitive keys should be injected by your CI/CD system for staging/production.
@@ -188,33 +207,43 @@ Tip: use a `.env` file in development and `godotenv` loader will pick it up. Sen
 ## Local development (quick start)
 
 Prereqs
+
 - Go 1.20+ (project uses modern Go modules)
 - MongoDB running locally
 - Optional: Redis if you use caching / sessions
 - Optional: Air installed for hot reload: `go install github.com/air-verse/air@latest`
 
 Steps
+
 1. Copy `.env.example` to `.env` and fill values:
+
 ```bash
 cp .env.example .env
 # edit .env
 ```
+
 2. Build and run (no hot reload):
+
 ```bash
 cd dineq-backend
-go build -o tmp/main ./cmd/api
-./tmp/main
+go run ./cmd/api
+
 ```
+
 3. Run with hot-reload (recommended):
+
 ```bash
 cd dineq-backend
 air -c air.toml
 # or from repo root: air -c dineq-backend/air.toml
 ```
+
 4. Use Postman collection `postman-collections/MenuMate API v1 - Comprehensive Collection.postman_collection.json` to exercise endpoints.
 
 Skip DB mode (quick CORS/middleware test)
+
 - Set `SKIP_DB=true` to start the server without connecting to MongoDB (useful for testing CORS or middleware changes):
+
 ```bash
 SKIP_DB=true go run ./cmd/api
 ```
@@ -232,6 +261,7 @@ SKIP_DB=true go run ./cmd/api
 ## Database & Indexes
 
 The app ensures indexes on startup (look at `internal/infrastructure/database/indexes.go`). Representative indexes created:
+
 - restaurants: `ux_slug`, `ix_previous_slugs`, `ix_location_2dsphere`, `ix_name`, `ix_tags`, `ix_averageRating`, `ix_viewCount`
 - users: `ux_email`, `ux_phone_number`, `ux_username`
 - refresh_tokens and password_reset_tokens: token hash and TTL fields
@@ -254,6 +284,7 @@ The code gracefully degrades when keys are missing (services are nil and fallbac
 ## Postman & API documentation
 
 Postman collection: `postman-collections/MenuMate API v1 - Comprehensive Collection.postman_collection.json`.
+
 - Import to Postman to get example requests, collections and environment examples are in `postman-collections/environments/`.
 - The Postman collection includes expected request/response formats, and auth flows.
 
@@ -303,8 +334,7 @@ Postman collection: `postman-collections/MenuMate API v1 - Comprehensive Collect
 ```bash
 # Build & run
 cd dineq-backend
-go build -o tmp/main ./cmd/api
-./tmp/main
+go run ./cmd/api
 
 # Hot reload (Air)
 air -c air.toml
@@ -323,6 +353,7 @@ go test ./test/integration -run TestRestaurantIntegration
 ---
 
 ## Further improvements / TODOs
+
 - Add full automated integration pipeline in CI with ephemeral MongoDB instances.
 - Add API rate-limiting middleware and request tracing (OpenTelemetry).
 - Add swagger generation from router/DTO annotations to keep API docs DRY.
