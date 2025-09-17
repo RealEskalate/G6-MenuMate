@@ -11,6 +11,7 @@ import (
 
 	utils "github.com/RealEskalate/G6-MenuMate/Utils"
 	"github.com/RealEskalate/G6-MenuMate/internal/domain"
+	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/exchange"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/oauth"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/security"
 	"github.com/RealEskalate/G6-MenuMate/internal/interfaces/http/dto"
@@ -428,17 +429,22 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			_ = ac.RefreshTokenUsecase.Save(refreshToken)
 		}
 
+		// create a one-time code for exchange
+		code := exchange.CreateCode(response.AccessToken, response.RefreshToken, response.AccessTokenExpiresAt, response.RefreshTokenExpiresAt, 60)
+
+		// still set cookies for server-side session if desired
 		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: response.RefreshToken, MaxAge: int(time.Until(response.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
 		utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: response.AccessToken, MaxAge: int(time.Until(response.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, SameSite: http.SameSiteLaxMode})
+
 		redir := ac.FrontendBaseURL
 		fmt.Printf("[DEBUG] FrontendBaseURL from env/config: %s\n", redir)
 		if redir == "" {
 			fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
 			redir = "http://localhost:3000"
 		}
-	fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success#access_token=...&refresh_token=...\n", redir)
-	redirectURL := fmt.Sprintf("%s/auth/google/success#access_token=%s&refresh_token=%s", strings.TrimRight(redir, "/"), url.QueryEscape(response.AccessToken), url.QueryEscape(response.RefreshToken))
-	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+		fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success#code=...\n", redir)
+		redirectURL := fmt.Sprintf("%s/auth/google/success#code=%s", strings.TrimRight(redir, "/"), url.QueryEscape(code))
+		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 		return
 	}
 
@@ -454,6 +460,9 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 	}
 	refreshToken := &domain.RefreshToken{Token: newTokens.RefreshToken, UserID: newUser.ID, ExpiresAt: newTokens.RefreshTokenExpiresAt, Revoked: false, CreatedAt: time.Now()}
 	_ = ac.RefreshTokenUsecase.Save(refreshToken)
+	// create a one-time code for exchange for new users as well
+	code = exchange.CreateCode(newTokens.AccessToken, newTokens.RefreshToken, newTokens.AccessTokenExpiresAt, newTokens.RefreshTokenExpiresAt, 60)
+
 	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: newTokens.RefreshToken, MaxAge: int(time.Until(newTokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
 	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: newTokens.AccessToken, MaxAge: int(time.Until(newTokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
 	redir := ac.FrontendBaseURL
@@ -462,7 +471,30 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
 		redir = "http://localhost:3000"
 	}
-	fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success#new=1&access_token=...&refresh_token=...\n", redir)
-	redirectURL := fmt.Sprintf("%s/auth/google/success#new=1&access_token=%s&refresh_token=%s", strings.TrimRight(redir, "/"), url.QueryEscape(newTokens.AccessToken), url.QueryEscape(newTokens.RefreshToken))
+	fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success#new=1&code=...\n", redir)
+	redirectURL := fmt.Sprintf("%s/auth/google/success#new=1&code=%s", strings.TrimRight(redir, "/"), url.QueryEscape(code))
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
+}
+
+// ExchangeCodeHandler handles exchange of a one-time code for tokens. Accepts JSON body { code: "" }
+func (ac *AuthController) ExchangeCodeHandler(c *gin.Context) {
+	var payload struct{
+		Code string `json:"code"`
+	}
+	if err := c.ShouldBindJSON(&payload); err != nil || payload.Code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "code is required"})
+		return
+	}
+
+	access, refresh, accessExp, refreshExp, ok := exchange.ExchangeCode(payload.Code)
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "invalid_or_expired_code"})
+		return
+	}
+
+	// set cookies (non-HttpOnly so SPA can read, but HttpOnly setting is configurable)
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: refresh, MaxAge: int(time.Until(refreshExp).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
+	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: access, MaxAge: int(time.Until(accessExp).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: http.SameSiteLaxMode})
+
+	c.JSON(http.StatusOK, dto.LoginResponse{AccessToken: access, RefreshToken: refresh})
 }

@@ -88,6 +88,7 @@ func NewAuthRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database) 
 	{
 		auth.POST("/register", authController.RegisterRequest)
 		auth.POST("/login", authController.LoginRequest)
+		auth.POST("/exchange", authController.ExchangeCodeHandler)
 		auth.POST("/logout", authController.LogoutRequest)
 		auth.POST("/forgot-password", authController.ForgotPasswordRequest)
 		auth.POST("/verify-reset-token", authController.VerifyResetToken)
