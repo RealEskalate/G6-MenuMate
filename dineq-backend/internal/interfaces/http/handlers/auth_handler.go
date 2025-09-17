@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -435,8 +436,9 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
 			redir = "http://localhost:3000"
 		}
-		fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success\n", redir)
-		c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success")
+	fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success?access_token=...&refresh_token=...\n", redir)
+	redirectURL := fmt.Sprintf("%s/auth/google/success?access_token=%s&refresh_token=%s", strings.TrimRight(redir, "/"), url.QueryEscape(response.AccessToken), url.QueryEscape(response.RefreshToken))
+	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 		return
 	}
 
@@ -460,6 +462,7 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
 		redir = "http://localhost:3000"
 	}
-	fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success?new=1\n", redir)
-	c.Redirect(http.StatusTemporaryRedirect, strings.TrimRight(redir, "/")+"/auth/google/success?new=1")
+	fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success?new=1&access_token=...&refresh_token=...\n", redir)
+	redirectURL := fmt.Sprintf("%s/auth/google/success?new=1&access_token=%s&refresh_token=%s", strings.TrimRight(redir, "/"), url.QueryEscape(newTokens.AccessToken), url.QueryEscape(newTokens.RefreshToken))
+	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
