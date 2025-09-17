@@ -358,31 +358,48 @@ func (repo *RestaurantRepo) ListRestaurantsByName(ctx context.Context, name stri
 	return result, total, nil
 }
 
-func (repo *RestaurantRepo) GetByManagerId(ctx context.Context, manager string) (*domain.Restaurant, error) {
+func (repo *RestaurantRepo) GetByManagerId(ctx context.Context, manager string) ([]*domain.Restaurant, int64, error) {
 	oid, err := bson.ObjectIDFromHex(manager)
 
 	if err != nil {
-		return nil, domain.ErrServerIssue
+		return nil, 0, domain.ErrServerIssue
 	}
-	filter := bson.M{"managerId": oid, "isDeleted": false} // BEGIN:
-	var model mapper.RestaurantModel
 
-	err = repo.db.Collection(repo.restaurantCol).FindOne(ctx, filter).Decode(&model)
+	filter := bson.M{"managerId": oid, "isDeleted": false}
+
+	// find all restaurants for manager
+	cursor, err := repo.db.Collection(repo.restaurantCol).Find(ctx, filter)
 	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var models []mapper.RestaurantModel
+	if err := cursor.All(ctx, &models); err != nil {
 		if err == mongo.ErrNoDocuments() {
-			// Check if it exists but marked deleted to return 410 scenario
-			deletedFilter := bson.M{"managerId": oid, "isDeleted": true} // END:
+			// check deleted
+			deletedFilter := bson.M{"managerId": oid, "isDeleted": true}
 			var deleted mapper.RestaurantModel
 			derr := repo.db.Collection(repo.restaurantCol).FindOne(ctx, deletedFilter).Decode(&deleted)
-			if derr == nil { // exists but deleted
-				return nil, domain.ErrRestaurantDeleted
+			if derr == nil {
+				return nil, 0, domain.ErrRestaurantDeleted
 			}
-			return nil, domain.ErrRestaurantNotFound
+			return nil, 0, domain.ErrRestaurantNotFound
 		}
-		return nil, err
+		return nil, 0, err
 	}
 
-	return model.ToDomain(), nil
+	// count
+	total, err := repo.db.Collection(repo.restaurantCol).CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	out := make([]*domain.Restaurant, len(models))
+	for i, m := range models {
+		out[i] = m.ToDomain()
+	}
+	return out, total, nil
 }
 
 // IncrementRestaurantViewCount increments the view count for a restaurant by 1

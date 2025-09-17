@@ -32,14 +32,14 @@ func (h *RestaurantHandler) GetRestaurantsByManager(c *gin.Context) {
 		dto.WriteValidationError(c, "userId", "invalid or missing userId", "invalid_user_id", nil)
 		return
 	}
-	restaurants, err := h.RestaurantUsecase.GetRestaurantByManagerId(c.Request.Context(), userId)
+	restaurants, _, err := h.RestaurantUsecase.GetRestaurantByManagerId(c.Request.Context(), userId)
 	if err != nil {
 		dto.WriteError(c, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"userId":      userId,
-		"restaurants": dto.ToRestaurantResponse(restaurants),
+		"restaurants": dto.ToRestaurantResponseList(restaurants),
 	})
 }
 
@@ -261,18 +261,18 @@ func (h *RestaurantHandler) SearchRestaurants(c *gin.Context) {
 
 func (h *RestaurantHandler) GetRestaurantByManagerId(c *gin.Context) {
 	manager := c.GetString("user_id")
-	r, err := h.RestaurantUsecase.GetRestaurantByManagerId(c.Request.Context(), manager)
+	restaurants, _, err := h.RestaurantUsecase.GetRestaurantByManagerId(c.Request.Context(), manager)
 	if err != nil {
 		if err == domain.ErrRestaurantDeleted {
 			c.JSON(http.StatusGone, gin.H{"error": "restaurant deleted"})
 			return
 		} else {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			return
 		}
-
 	}
 
-	c.JSON(http.StatusOK, dto.ToRestaurantResponse(r))
+	c.JSON(http.StatusOK, gin.H{"restaurants": dto.ToRestaurantResponseList(restaurants)})
 }
 
 // UpdateRestaurant updates an existing restaurant, supporting both JSON and multipart form data.

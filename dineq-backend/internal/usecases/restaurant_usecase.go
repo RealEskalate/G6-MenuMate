@@ -128,10 +128,23 @@ func (s *RestaurantUsecase) GetRestaurantByName(ctx context.Context, name string
 	return s.Repo.ListRestaurantsByName(c, name, page, pageSize)
 }
 
-func (s *RestaurantUsecase) GetRestaurantByManagerId(ctx context.Context, manager string) (*domain.Restaurant, error) {
+// GetRestaurantByManagerId returns a list of restaurants owned/managed by the given manager and the total count
+func (s *RestaurantUsecase) GetRestaurantByManagerId(ctx context.Context, manager string) ([]*domain.Restaurant, int64, error) {
 	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
 	defer cancel()
 	return s.Repo.GetByManagerId(c, manager)
+}
+
+// GetFirstRestaurantByManagerId is a compatibility helper that returns the first restaurant if callers expect a single item
+func (s *RestaurantUsecase) GetFirstRestaurantByManagerId(ctx context.Context, manager string) (*domain.Restaurant, error) {
+	rests, _, err := s.GetRestaurantByManagerId(ctx, manager)
+	if err != nil {
+		return nil, err
+	}
+	if len(rests) == 0 {
+		return nil, domain.ErrRestaurantNotFound
+	}
+	return rests[0], nil
 }
 
 // IncrementRestaurantViewCount increments the view count for a restaurant by 1
