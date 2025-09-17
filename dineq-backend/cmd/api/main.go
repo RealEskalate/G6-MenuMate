@@ -50,6 +50,9 @@ func main() {
 
 	// Gin router
 	router := gin.Default()
+	// Disable automatic redirects 
+	router.RedirectTrailingSlash = false
+	router.RedirectFixedPath = false
 	// router.Use(middleware.RequestLogger())
 	// router.Use(middleware.Recovery())
 

@@ -35,7 +35,10 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 		pub.GET("/search", restaurantHandler.SearchRestaurants)
 		pub.GET("/search/advanced", restaurantHandler.AdvancedSearchRestaurants)
 		pub.GET("/:slug", restaurantHandler.GetRestaurant)
+		// register the '/nearby/' path explicitly to avoid 404s from clients
+		// that include a trailing slash.
 		pub.GET("/nearby", restaurantHandler.GetNearby)
+		pub.GET("/nearby/", restaurantHandler.GetNearby)
 	}
 
 	// Protected endpoints (auth required)
