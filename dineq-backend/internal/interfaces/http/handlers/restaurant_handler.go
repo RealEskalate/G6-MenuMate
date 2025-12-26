@@ -160,6 +160,10 @@ func (h *RestaurantHandler) CreateRestaurant(c *gin.Context) {
 // GetRestaurant retrieves a restaurant by its slug.
 func (h *RestaurantHandler) GetRestaurant(c *gin.Context) {
 	slug := c.Param("slug")
+	// Debug: log slug and auth/origin so we can detect when '/restaurants/me' is handled by this route
+	hasAuth := c.Request.Header.Get("Authorization") != ""
+	origin := c.Request.Header.Get("Origin")
+	log.Info().Str("slug", slug).Bool("has_auth", hasAuth).Str("origin", origin).Msg("GetRestaurant invoked")
 	r, err := h.RestaurantUsecase.GetRestaurantBySlug(c.Request.Context(), slug)
 	if err != nil {
 		if err == domain.ErrRestaurantDeleted {
@@ -261,10 +265,15 @@ func (h *RestaurantHandler) SearchRestaurants(c *gin.Context) {
 
 func (h *RestaurantHandler) GetRestaurantByManagerId(c *gin.Context) {
 	manager := c.GetString("user_id")
+	// Debug: log manager and request metadata so we can see if browser GET reaches this handler
+	hasAuth := c.Request.Header.Get("Authorization") != ""
+	origin := c.Request.Header.Get("Origin")
+	log.Info().Str("manager", manager).Bool("has_auth", hasAuth).Str("origin", origin).Msg("GetRestaurantByManagerId invoked")
 	restaurants, _, err := h.RestaurantUsecase.GetRestaurantByManagerId(c.Request.Context(), manager)
 	if err != nil {
 		if err == domain.ErrRestaurantDeleted {
-			c.JSON(http.StatusGone, gin.H{"error": "restaurant deleted"})
+			// Return an empty array with 200 OK so clients can render an empty state.
+			c.JSON(http.StatusOK, gin.H{"restaurants": []*dto.RestaurantResponse{}})
 			return
 		} else {
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -272,6 +281,7 @@ func (h *RestaurantHandler) GetRestaurantByManagerId(c *gin.Context) {
 		}
 	}
 
+	// Normal case: return restaurant list
 	c.JSON(http.StatusOK, gin.H{"restaurants": dto.ToRestaurantResponseList(restaurants)})
 }
 

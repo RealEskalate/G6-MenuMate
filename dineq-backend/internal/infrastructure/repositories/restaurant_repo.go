@@ -377,17 +377,11 @@ func (repo *RestaurantRepo) GetByManagerId(ctx context.Context, manager string) 
 	var models []mapper.RestaurantModel
 	if err := cursor.All(ctx, &models); err != nil {
 		if err == mongo.ErrNoDocuments() {
-			// check deleted
-			deletedFilter := bson.M{"managerId": oid, "isDeleted": true}
-			var deleted mapper.RestaurantModel
-			derr := repo.db.Collection(repo.restaurantCol).FindOne(ctx, deletedFilter).Decode(&deleted)
-			if derr == nil {
-				return nil, 0, domain.ErrRestaurantDeleted
-			}
-			return nil, 0, domain.ErrRestaurantNotFound
+			// No active restaurants for this manager. Return empty list so UI can allow registration.
+			return []*domain.Restaurant{}, 0, nil
 		}
 		return nil, 0, err
-	}
+	} 
 
 	// count
 	total, err := repo.db.Collection(repo.restaurantCol).CountDocuments(ctx, filter)

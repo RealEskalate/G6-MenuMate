@@ -18,7 +18,7 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 	// Configure CORS to allow all origins (with credentials). For stricter control, scope this down.
 	cfg := cors.Config{
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "X-Requested-With"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept", "X-Requested-With", "X-Debug-Auth"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
