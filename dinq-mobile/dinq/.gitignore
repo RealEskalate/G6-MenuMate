@@ -57,3 +57,10 @@ app.*.map.json
 *.mocks.dart
 
 
+# Flutter desktop generated files
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/
+macos/Flutter/ephemeral/
+
+# Build outputs
+build/
