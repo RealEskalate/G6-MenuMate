@@ -1,3 +1,4 @@
 export default interface Roles {
-  role: "OWNER" | "MANAGER" | "STAFF" | "CUSTOMER" | "ADMIN";
+  // make role optional because some components may render without an explicit role
+  role?: "OWNER" | "MANAGER" | "STAFF" | "CUSTOMER" | "ADMIN";
 }
