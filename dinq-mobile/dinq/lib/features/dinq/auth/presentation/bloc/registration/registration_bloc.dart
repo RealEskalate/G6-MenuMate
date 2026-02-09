@@ -6,6 +6,8 @@ import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart
 import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_event.dart';
 import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_state.dart';
 
+import '../../../domain/repository/auth_repository.dart';
+
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository;
@@ -31,12 +33,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         email: event.email,
         password: event.password,
         authProvider: event.authProvider,
-        // role: event.role ?? 'CUSTOMER',
-        role: event.role ??'',
-        // firstName: event.firstName,
-        // lastName: event.lastName,
-        firstName: event.firstName ?? "MEKDI",
-        lastName: event.lastName ?? "Lastname",
+        role: event.role,
+        firstName: event.firstName ?? '',
+        lastName: event.lastName ?? '',
         phoneNumber: event.phoneNumber,
       );
       emit(AuthRegistered(user: user));

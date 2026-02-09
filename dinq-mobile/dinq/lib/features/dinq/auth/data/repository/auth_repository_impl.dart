@@ -3,7 +3,7 @@ import 'package:dinq/core/network/api_client.dart';
 import 'package:dinq/core/network/api_endpoints.dart';
 import 'package:dinq/core/network/api_exceptions.dart';
 import 'package:dinq/core/network/token_manager.dart';
-import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart';
+import 'package:dinq/features/dinq/auth/domain/repository/auth_repository.dart';
 import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -17,10 +17,10 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
     required String authProvider,
+    required String role,
     String? firstName,
     String? lastName,
     String? phoneNumber,
-    String? role ,
   }) async {
     try {
       final userData = {
@@ -31,7 +31,7 @@ class AuthRepositoryImpl implements AuthRepository {
         'role': role,
         if (firstName != null) 'first_name': firstName,
         if (lastName != null) 'last_name': lastName,
-        // if (phoneNumber != null) 'phone_number': phoneNumber,
+        if (phoneNumber != null) 'phone_number': phoneNumber,
       };
 
       final response = await _apiClient.post(ApiEndpoints.register, body: userData);
@@ -53,24 +53,26 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<UserModel> login({
-    required String email,
+    required String emailUsernamePhone,
     required String password,
   }) async {
     try {
       final loginData = {
-        'identifier': email, // API uses 'identifier' field
+        'identifier': emailUsernamePhone, // API uses 'identifier' field
         'password': password,
       };
 
       final response = await _apiClient.post(ApiEndpoints.login, body: loginData);
 
-      // API returns tokens nested under 'data' key
-      final data = response['data'] as Map<String, dynamic>?;
-      if (data != null && data.containsKey('access_token') && data.containsKey('refresh_token')) {
+      // API may return tokens under different keys depending on backend:
+      // - { "tokens": { "access_token": ..., "refresh_token": ... }, ... }
+      // - { "data": { "access_token": ..., "refresh_token": ... }, ... }
+      final tokensMap = (response['tokens'] as Map<String, dynamic>?) ?? (response['data'] as Map<String, dynamic>?);
+      if (tokensMap != null && tokensMap.containsKey('access_token') && tokensMap.containsKey('refresh_token')) {
         // Store tokens
         await TokenManager.saveTokens(
-          data['access_token'],
-          data['refresh_token'],
+          tokensMap['access_token'],
+          tokensMap['refresh_token'],
         );
 
         // Return a minimal UserModel with just the identifier

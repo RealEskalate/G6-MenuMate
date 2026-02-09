@@ -2,8 +2,9 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiEndpoints {
-  // Temporary CORS proxy solution
-  static  String baseUrl = dotenv.env['BASE_URL']!;
+  // Read BASE_URL at runtime to avoid accessing dotenv during library
+  // initialization (which can happen before dotenv is loaded).
+  static String get baseUrl => dotenv.env['BASE_URL'] ?? '';
 
   // Or alternative proxies:
   // static const String baseUrl = 'https://api.allorigins.win/raw?url=https://g6-menumate.onrender.com/api/v1';

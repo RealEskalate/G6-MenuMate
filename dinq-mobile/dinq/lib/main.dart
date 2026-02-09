@@ -1,3 +1,4 @@
+
 // main.dart - CORRECTED
 import 'package:dinq/features/dinq/auth/presentation/Pages/email_verfiction.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/verify_page.dart';
@@ -11,11 +12,15 @@ import 'core/routing/app_route.dart';
 import 'core/util/theme.dart';
 import 'features/dinq/auth/presentation/Pages/onboarding_first.dart';
 import 'features/dinq/restaurant_management/presentation/bloc/restaurant_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // ConfigPresets.developmentDemo();
+  // Load environment variables before initializing DI so runtime
+  // lookups (like ApiEndpoints.baseUrl) can access them.
+  await dotenv.load(fileName: '.env');
   await di.init();
   runApp(const MyApp());
 }

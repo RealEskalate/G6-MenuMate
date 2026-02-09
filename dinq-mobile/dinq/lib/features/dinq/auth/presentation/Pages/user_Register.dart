@@ -10,7 +10,7 @@ import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registrat
 import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_state.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
-import 'package:dinq/features/dinq/auth/domain/repository/customer_reg_repo.dart';
+import 'package:dinq/features/dinq/auth/domain/repository/auth_repository.dart';
 
 class UserRegister extends StatefulWidget {
   const UserRegister({super.key});
