@@ -1,4 +1,3 @@
-
 // main.dart - CORRECTED
 import 'package:dinq/features/dinq/auth/presentation/Pages/email_verfiction.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/verify_page.dart';
