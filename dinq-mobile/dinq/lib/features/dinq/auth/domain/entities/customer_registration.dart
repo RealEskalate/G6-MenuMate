@@ -1,36 +1,43 @@
-import 'package:equatable/equatable.dart';
-
-class CustomerRegistration extends Equatable {
+class User {
   final String id;
   final String username;
   final String email;
-  final String password;
-  final String role;
-  final String authprovider;
-  final String? phoneNumber;
   final String? firstName;
   final String? lastName;
-  CustomerRegistration({
+  final String? phoneNumber;
+  final String role;
+
+  User({
     required this.id,
     required this.username,
     required this.email,
-    required this.password,
     required this.role,
-    required this.authprovider,
     this.firstName,
     this.lastName,
     this.phoneNumber,
   });
-  @override
-  List<Object> get props => [
-    id,
-        username,
-        email,
-        password,
-        role,
-        authprovider,
-        phoneNumber ?? '',
-        firstName ?? '',
-        lastName ?? '',
-  ];
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'] as String,
+      username: json['username'] as String,
+      email: json['email'] as String,
+      role: json['role'] as String,
+      firstName: json['firstName'] as String?,
+      lastName: json['lastName'] as String?,
+      phoneNumber: json['phoneNumber'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'username': username,
+      'email': email,
+      'role': role,
+      'firstName': firstName,
+      'lastName': lastName,
+      'phoneNumber': phoneNumber,
+    };
+  }
 }

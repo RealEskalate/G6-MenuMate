@@ -1,10 +1,11 @@
-// lib/features/dinq/auth/Domain/repository/auth_repository.dart
-import 'package:dinq/features/dinq/auth/domain/entities/customer_registration.dart';
-import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
+// lib/features/DineQ_App/auth/domain/repository/auth_repository.dart
+import 'package:fpdart/fpdart.dart';
+import '../../../../../core/error/failures.dart';
+import '../../data/entities/Auth_response.dart';
+import '../entities/customer_registration.dart';
 
 abstract class AuthRepository {
-  // Registration
-  Future<UserModel> registerUser({
+  Future<Either<Failure, User>> register({
     required String username,
     required String email,
     required String password,
@@ -13,31 +14,26 @@ abstract class AuthRepository {
     String? firstName,
     String? lastName,
     String? phoneNumber,
-
   });
 
-  // Authentication
-  Future<UserModel> login({
-    required String emailUsernamePhone, // Can be username, email, or phone
+  Future<Either<Failure, User>> login({
+    required String email,
     required String password,
   });
 
+  Future<Either<Failure, void>> logout();
 
-  Future<void> logout();
+  Future<Either<Failure, void>> forgotPassword({required String email});
 
-  // Password Management
-  Future<void> forgotPassword({
-    required String email,
-  });
-
-  Future<void> resetPassword({
+  Future<Either<Failure, void>> resetPassword({
     required String email,
     required String token,
     required String newPassword,
   });
 
-  // Availability Checks
-  Future<bool> checkUsernameAvailability(String username);
-  Future<bool> checkEmailAvailability(String email);
-  Future<bool> checkPhoneAvailability(String phoneNumber);
+  Future<Either<Failure, bool>> checkUsernameAvailability(String username);
+
+  Future<Either<Failure, bool>> checkEmailAvailability(String email);
+
+  Future<Either<Failure, bool>> checkPhoneAvailability(String phoneNumber);
 }

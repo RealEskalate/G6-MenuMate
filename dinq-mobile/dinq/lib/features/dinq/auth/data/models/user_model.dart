@@ -1,55 +1,42 @@
-// lib/features/DineQ_App/auth/data/models/user_model.dart
 import 'package:dinq/features/dinq/auth/domain/entities/customer_registration.dart';
 
-
-
-class UserModel extends CustomerRegistration {
-  final String? phoneNumber;
-
+class UserModel extends User {
   UserModel({
     required String id,
     required String username,
     required String email,
-    required String password,
     required String role,
-    required String authprovider,
     String? firstName,
     String? lastName,
-    this.phoneNumber,
+    String? phoneNumber,
   }) : super(
-         id: id,
-         username: username,
-         email: email,
-         password: password,
-         role: role,
-         authprovider: authprovider,
-         firstName: firstName,
-         lastName: lastName,
-         phoneNumber: phoneNumber,
-       );
+          id: id,
+          username: username,
+          email: email,
+          role: role,
+          firstName: firstName,
+          lastName: lastName,
+          phoneNumber: phoneNumber,
+        );
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] ?? '',
       username: json['username'] ?? '',
       email: json['email'] ?? '',
-      password: json['password'] ?? '',
       role: json['role'] ?? 'CUSTOMER',
-      authprovider: json['auth_provider'] ?? 'EMAIL',
       firstName: json['first_name'],
       lastName: json['last_name'],
       phoneNumber: json['phone_number'],
     );
   }
-
+  @override
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'username': username,
       'email': email,
       'role': role,
-      'password': password,
-      'auth_provider': authprovider,
       'first_name': firstName,
       'last_name': lastName,
       'phone_number': phoneNumber,

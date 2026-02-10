@@ -1,18 +1,17 @@
-// lib/features/DineQ_App/auth/data/repositories/auth_repository_impl.dart
-import 'package:dinq/core/network/api_client.dart';
-import 'package:dinq/core/network/api_endpoints.dart';
-import 'package:dinq/core/network/api_exceptions.dart';
 import 'package:dinq/core/network/token_manager.dart';
-import 'package:dinq/features/dinq/auth/domain/repository/auth_repository.dart';
-import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
+import 'package:fpdart/fpdart.dart';
+import '../../../../../core/error/failures.dart';
+import '../../domain/repository/auth_repository.dart';
+import '../datasources/auth_remote_data_source.dart';
+import '../models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final ApiClient _apiClient;
+  final AuthRemoteDataSource remoteDataSource;
 
-  AuthRepositoryImpl({required ApiClient apiClient}) : _apiClient = apiClient;
+  AuthRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<UserModel> registerUser({
+  Future<Either<Failure, UserModel>> register({
     required String username,
     required String email,
     required String password,
@@ -21,240 +20,91 @@ class AuthRepositoryImpl implements AuthRepository {
     String? firstName,
     String? lastName,
     String? phoneNumber,
-  }) async {
-    try {
-      final userData = {
-        'username': username,
-        'email': email,
-        'password': password,
-        'auth_provider': authProvider,
-        'role': role,
-        if (firstName != null) 'first_name': firstName,
-        if (lastName != null) 'last_name': lastName,
-        if (phoneNumber != null) 'phone_number': phoneNumber,
-      };
-
-      final response = await _apiClient.post(ApiEndpoints.register, body: userData);
-
-      return UserModel.fromJson(response);
-
-    } on ApiException catch (e) {
-      throw ApiException(
-        message: _getRegisterErrorMessage(e),
-        statusCode: e.statusCode,
+  }) {
+    return TaskEither<Failure, UserModel>(() async {
+      final result = await remoteDataSource.register(
+        username: username,
+        email: email,
+        password: password,
+        authProvider: authProvider,
+        role: role,
+        firstName: firstName,
+        lastName: lastName,
+        phoneNumber: phoneNumber,
       );
-    } catch (e) {
-      throw ApiException(
-        message: 'Registration failed: ${e.toString()}',
-        statusCode: 500,
-      );
-    }
+
+      return result.map((authResponse) {
+        // Save tokens as a side effect
+        TokenManager.saveTokens(
+          authResponse.accessToken,
+          authResponse.refreshToken,
+        );
+        // Return only the user
+        return authResponse.userModel;
+      });
+    }).run();
   }
 
   @override
-  Future<UserModel> login({
-    required String emailUsernamePhone,
+  Future<Either<Failure, UserModel>> login({
+    required String email,
     required String password,
-  }) async {
-    try {
-      final loginData = {
-        'identifier': emailUsernamePhone, // API uses 'identifier' field
-        'password': password,
-      };
+  }) {
+    return TaskEither<Failure, UserModel>(() async {
+      final result = await remoteDataSource.login(email: email, password: password);
 
-      final response = await _apiClient.post(ApiEndpoints.login, body: loginData);
-
-      // API may return tokens under different keys depending on backend:
-      // - { "tokens": { "access_token": ..., "refresh_token": ... }, ... }
-      // - { "data": { "access_token": ..., "refresh_token": ... }, ... }
-      final tokensMap = (response['tokens'] as Map<String, dynamic>?) ?? (response['data'] as Map<String, dynamic>?);
-      if (tokensMap != null && tokensMap.containsKey('access_token') && tokensMap.containsKey('refresh_token')) {
-        // Store tokens
-        await TokenManager.saveTokens(
-          tokensMap['access_token'],
-          tokensMap['refresh_token'],
+      return result.map((authResponse) {
+        TokenManager.saveTokens(
+          authResponse.accessToken,
+          authResponse.refreshToken,
         );
-
-        // Return a minimal UserModel with just the identifier
-        // In a real app, you might want to fetch user profile separately
-        return UserModel(
-          id: 'temp_id', // Temporary ID since we don't have user data
-          username: email, // Use email as username for now
-          email: email,
-          password: '', // Don't store password
-          role: 'CUSTOMER',
-          authprovider: 'EMAIL',
-        );
-      } else {
-        throw ApiException(
-          message: 'Invalid login response format - missing tokens',
-          statusCode: 500,
-        );
-      }
-
-    } on ApiException catch (e) {
-      throw ApiException(
-        message: _getLoginErrorMessage(e),
-        statusCode: e.statusCode,
-      );
-    } catch (e) {
-      throw ApiException(
-        message: 'Login failed: ${e.toString()}',
-        statusCode: 500,
-      );
-    }
+        return authResponse.userModel; // return just the user
+      });
+    }).run();
   }
 
   @override
-  Future<void> logout() async {
-    try {
-      // Clear tokens first
-      await TokenManager.clearTokens();
+  Future<Either<Failure, void>> logout() {
+    return TaskEither<Failure, void>(() async {
+      final result = await remoteDataSource.logout();
 
-      // Try to logout on server (optional, since tokens are stateless)
-      try {
-        await _apiClient.post(ApiEndpoints.logout);
-      } catch (serverError) {
-        // Don't throw error for server logout failure since tokens are already cleared
-      }
-
-    } on ApiException catch (e) {
-      throw ApiException(
-        message: 'Logout failed: ${e.message}',
-        statusCode: e.statusCode,
-      );
-    } catch (e) {
-      throw ApiException(
-        message: 'Logout failed: ${e.toString()}',
-        statusCode: 500,
-      );
-    }
+      return result.map((_) {
+        TokenManager.clearTokens();
+        return null;
+      });
+    }).run();
   }
 
   @override
-  Future<void> forgotPassword({required String email}) async {
-    try {
-      await _apiClient.post(ApiEndpoints.forgotPassword, body: {'email': email});
-    } on ApiException catch (e) {
-      throw ApiException(
-        message: 'Password reset request failed: ${e.message}',
-        statusCode: e.statusCode,
-      );
-    } catch (e) {
-      throw ApiException(
-        message: 'Password reset request failed: ${e.toString()}',
-        statusCode: 500,
-      );
-    }
+  Future<Either<Failure, void>> forgotPassword({required String email}) {
+    return remoteDataSource.forgotPassword(email: email);
   }
 
   @override
-  Future<void> resetPassword({
+  Future<Either<Failure, void>> resetPassword({
     required String email,
     required String token,
     required String newPassword,
-  }) async {
-    try {
-      await _apiClient.post(ApiEndpoints.resetPassword, body: {
-        'email': email,
-        'token': token,
-        'new_password': newPassword,
-      });
-    } on ApiException catch (e) {
-      throw ApiException(
-        message: 'Password reset failed: ${e.message}',
-        statusCode: e.statusCode,
-      );
-    } catch (e) {
-      throw ApiException(
-        message: 'Password reset failed: ${e.toString()}',
-        statusCode: 500,
-      );
-    }
+  }) {
+    return remoteDataSource.resetPassword(
+      email: email,
+      token: token,
+      newPassword: newPassword,
+    );
   }
 
   @override
-  Future<bool> checkUsernameAvailability(String username) async {
-    try {
-      final response = await _apiClient.get('${ApiEndpoints.checkUsername}/$username');
-      final isAvailable = response['available'] ?? false;
-      return isAvailable;
-    } on ApiException catch (e) {
-      if (e.statusCode == 409) return false; // Username exists
-      throw ApiException(
-        message: 'Username availability check failed: ${e.message}',
-        statusCode: e.statusCode,
-      );
-    } catch (e) {
-      throw ApiException(
-        message: 'Username availability check failed: ${e.toString()}',
-        statusCode: 500,
-      );
-    }
+  Future<Either<Failure, bool>> checkUsernameAvailability(String username) {
+    return remoteDataSource.checkUsernameAvailability(username);
   }
 
   @override
-  Future<bool> checkEmailAvailability(String email) async {
-    try {
-      final response = await _apiClient.get('${ApiEndpoints.checkEmail}/$email');
-      final isAvailable = response['available'] ?? false;
-      return isAvailable;
-    } on ApiException catch (e) {
-      if (e.statusCode == 409) return false; // Email exists
-      throw ApiException(
-        message: 'Email availability check failed: ${e.message}',
-        statusCode: e.statusCode,
-      );
-    } catch (e) {
-      throw ApiException(
-        message: 'Email availability check failed: ${e.toString()}',
-        statusCode: 500,
-      );
-    }
+  Future<Either<Failure, bool>> checkEmailAvailability(String email) {
+    return remoteDataSource.checkEmailAvailability(email);
   }
 
   @override
-  Future<bool> checkPhoneAvailability(String phoneNumber) async {
-    try {
-      final response = await _apiClient.get('${ApiEndpoints.checkPhone}/$phoneNumber');
-      final isAvailable = response['available'] ?? false;
-      return isAvailable;
-    } on ApiException catch (e) {
-      if (e.statusCode == 409) return false; // Phone exists
-      throw ApiException(
-        message: 'Phone availability check failed: ${e.message}',
-        statusCode: e.statusCode,
-      );
-    } catch (e) {
-      throw ApiException(
-        message: 'Phone availability check failed: ${e.toString()}',
-        statusCode: 500,
-      );
-    }
-  }
-
-  // Error message handling
-  String _getRegisterErrorMessage(ApiException e) {
-    if (e.statusCode == 409) {
-      if (e.message.toLowerCase().contains('username')) {
-        return 'Username already exists';
-      } else if (e.message.toLowerCase().contains('email')) {
-        return 'Email already registered';
-      } else if (e.message.toLowerCase().contains('phone')) {
-        return 'Phone number already registered';
-      }
-    } else if (e.statusCode == 400) {
-      return 'Invalid registration data';
-    }
-    return e.message;
-  }
-
-  String _getLoginErrorMessage(ApiException e) {
-    if (e.statusCode == 401) {
-      return 'Invalid email or password';
-    } else if (e.statusCode == 404) {
-      return 'User not found';
-    }
-    return e.message;
+  Future<Either<Failure, bool>> checkPhoneAvailability(String phoneNumber) {
+    return remoteDataSource.checkPhoneAvailability(phoneNumber);
   }
 }

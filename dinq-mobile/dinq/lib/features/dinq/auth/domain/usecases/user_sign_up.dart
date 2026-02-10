@@ -1,10 +1,10 @@
 // lib/features/dinq/auth/domain/usecases/register_user_usecase.dart
-import 'package:dinq/features/dinq/auth/Domain/entities/customer_registration.dart';
-import 'package:dinq/features/dinq/auth/Domain/repository/customer_reg_repo.dart';
-import 'package:dinq/features/dinq/auth/data/models/user_model.dart';
-
+import '../../../../../core/error/failures.dart';
 import '../../../../../core/usecase/usecase.dart';
+import '../entities/customer_registration.dart';
 import '../repository/auth_repository.dart';
+import 'package:fpdart/fpdart.dart';
+
 
 // class RegisterUserUseCase {
 //   final AuthRepository repository;
@@ -34,20 +34,44 @@ import '../repository/auth_repository.dart';
 //   }
 // }
 
-class UserSignUp implements UseCase<String, UserSignUpParams> {
+class UserSignUp implements UseCase<User, UserSignUpParams> {
   final AuthRepository authRepository;
   const UserSignUp(this.authRepository);
   @override
+   Future<Either<Failure, User>> call(UserSignUpParams params)async {
+      return await authRepository.register(
+        firstName: params.firstName,
+        lastName: params.lastName,
+        username: params.username,
+        password: params.password,
+        authProvider: params.authProvider,
+        role: params.role,
+        phoneNumber: params.phoneNumber,
+        email: params.email
+      );
+
+  }
 
 }
 
 class UserSignUpParams{
+    String username;
+    String email;
+    String password;
+    String authProvider;
+    String role;
+    String? firstName;
+    String? lastName;
+    String? phoneNumber;
   UserSignUpParams({
-      required String username,
-    required String email,
-    required String password,
-    required String authProvider,
-    String? firstName,
-    String? lastName,
-    String? phoneNumber,});
+    required this.username,
+    required this.email,
+    required this.password,
+    required this.authProvider,
+    required this.role,
+    this.firstName,
+    this.lastName,
+    this.phoneNumber,
+
+    });
 }
