@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dinq/core/network/api_client.dart';
-import 'package:dinq/core/network/api_endpoints.dart';
 import 'package:dinq/core/util/theme.dart';
-import 'package:dinq/features/dinq/auth/domain/repository/Customer_reg_repo.dart';
-import 'package:dinq/features/dinq/auth/data/repository/auth_repository_impl.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/manger_registration.dart';
 import 'package:dinq/features/dinq/auth/presentation/Pages/user_Register.dart';
-import 'package:dinq/features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/choose_box.dart';
 
-import 'resturant_registration.dart';
+import '../bloc/registration/registration_bloc.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -36,7 +31,6 @@ class _RegisterPageState extends State<RegisterPage>
       vsync: this,
     );
 
-    // Title animation - fades in and slides from top
     _titleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -44,7 +38,6 @@ class _RegisterPageState extends State<RegisterPage>
       ),
     );
 
-    // Subtitle animation - fades in after title
     _subtitleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -52,7 +45,6 @@ class _RegisterPageState extends State<RegisterPage>
       ),
     );
 
-    // First box animation - slides from left
     _box1Animation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -60,7 +52,6 @@ class _RegisterPageState extends State<RegisterPage>
       ),
     );
 
-    // Second box animation - slides from right
     _box2Animation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
@@ -68,7 +59,6 @@ class _RegisterPageState extends State<RegisterPage>
       ),
     );
 
-    // Start the animation
     _controller.forward();
   }
 
@@ -78,25 +68,16 @@ class _RegisterPageState extends State<RegisterPage>
     super.dispose();
   }
 
-  // Create AuthBloc with your actual repository
-  AuthBloc _createAuthBloc() {
-    final apiClient = ApiClient(baseUrl: ApiEndpoints.baseUrl);
-    final AuthRepository authRepository = AuthRepositoryImpl(apiClient: apiClient);
-    return AuthBloc(authRepository: authRepository);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => _createAuthBloc(),
-      child: Scaffold(
+    return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
           child: Column(
             children: [
               const SizedBox(height: 30),
-              // Animated title
+              // Title
               AnimatedBuilder(
                 animation: _titleAnimation,
                 builder: (context, child) {
@@ -123,7 +104,7 @@ class _RegisterPageState extends State<RegisterPage>
                 },
               ),
               const SizedBox(height: 16),
-              // Animated subtitle
+              // Subtitle
               AnimatedBuilder(
                 animation: _subtitleAnimation,
                 builder: (context, child) {
@@ -151,7 +132,7 @@ class _RegisterPageState extends State<RegisterPage>
                 },
               ),
               const SizedBox(height: 40),
-              // Animated Customer option
+              // Customer option
               AnimatedBuilder(
                 animation: _box1Animation,
                 builder: (context, child) {
@@ -167,53 +148,13 @@ class _RegisterPageState extends State<RegisterPage>
                             Navigator.push(
                               context,
                               PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => BlocProvider.value(
+                                pageBuilder: (context, animation, secondaryAnimation) =>
+                                    BlocProvider.value(
                                   value: authBloc,
                                   child: const UserRegister(),
                                 ),
-                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                  return FadeTransition(
-                                    opacity: animation,
-                                    child: child,
-                                  );
-                                },
-                                transitionDuration: const Duration(milliseconds: 500),
-                              ),
-                            );
-                          },
-                          child: ChooseBox(
-                            category: "Customer",
-                            explanation: "Discover dishes, scan QR menus and share reviews",
-                            icon: Icons.person,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              // Animated Restaurant option
-AnimatedBuilder(
-                animation: _box1Animation,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset((1 - _box1Animation.value) * -100, 0),
-                    child: Opacity(
-                      opacity: _box1Animation.value,
-                      child: Transform.scale(
-                        scale: 0.9 + (_box1Animation.value * 0.1),
-                        child: GestureDetector(
-                          onTap: () {
-                            final authBloc = context.read<AuthBloc>();
-                            Navigator.push(
-                              context,
-                              PageRouteBuilder(
-                                pageBuilder: (context, animation, secondaryAnimation) => BlocProvider.value(
-                                  value: authBloc,
-                                  child: const MangerRegistration(),
-                                ),
-                                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                transitionsBuilder:
+                                    (context, animation, secondaryAnimation, child) {
                                   return FadeTransition(
                                     opacity: animation,
                                     child: child,
@@ -224,8 +165,54 @@ AnimatedBuilder(
                             );
                           },
                           child: const ChooseBox(
-                            category: "Resturant",
-                            explanation: "Create and manage digital menus, generate QR codes and track performance",
+                            category: "Customer",
+                            explanation:
+                                "Discover dishes, scan QR menus and share reviews",
+                            icon: Icons.person,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+              // Restaurant option
+              AnimatedBuilder(
+                animation: _box2Animation,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset((1 - _box2Animation.value) * 100, 0),
+                    child: Opacity(
+                      opacity: _box2Animation.value,
+                      child: Transform.scale(
+                        scale: 0.9 + (_box2Animation.value * 0.1),
+                        child: GestureDetector(
+                          onTap: () {
+                            final authBloc = context.read<AuthBloc>();
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder: (context, animation, secondaryAnimation) =>
+                                    BlocProvider.value(
+                                  value: authBloc,
+                                  child: const MangerRegistration(),
+                                ),
+                                transitionsBuilder:
+                                    (context, animation, secondaryAnimation, child) {
+                                  return FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  );
+                                },
+                                transitionDuration: const Duration(milliseconds: 500),
+                              ),
+                            );
+                          },
+                          child: const ChooseBox(
+                            category: "Restaurant",
+                            explanation:
+                                "Create and manage digital menus, generate QR codes and track performance",
                             icon: Icons.restaurant,
                           ),
                         ),
@@ -238,7 +225,6 @@ AnimatedBuilder(
             ],
           ),
         ),
-      ),
       ),
     );
   }

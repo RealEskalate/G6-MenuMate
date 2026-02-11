@@ -34,11 +34,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           'phoneNumber': phoneNumber,
         },
       );
-
       final authResponse = AuthResponse.fromJson(response);
       return Right(authResponse);
     } catch (e) {
-      return Left(ServerFailure( e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -51,15 +50,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final response = await apiClient.post(
         '/auth/login',
         body: {
-          'email': email,
+          // identifier
+          'identifier': email,
           'password': password,
         },
       );
+      print('in data source: ${response}');
+
 
       final authResponse = AuthResponse.fromJson(response);
+      print('after data source: ${response}');
+
       return Right(authResponse);
     } catch (e) {
-      return Left(ServerFailure( e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -69,7 +73,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await apiClient.post('/auth/logout');
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure( e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -79,7 +83,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await apiClient.post('/auth/forgot-password', body: {'email': email});
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure( e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -97,17 +101,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       });
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure( e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, bool>> checkUsernameAvailability(String username) async {
+  Future<Either<Failure, bool>> checkUsernameAvailability(
+      String username) async {
     try {
       final response = await apiClient.get('/auth/check-username/$username');
       return Right(response['available'] as bool);
     } catch (e) {
-      return Left(ServerFailure( e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -117,17 +122,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final response = await apiClient.get('/auth/check-email/$email');
       return Right(response['available'] as bool);
     } catch (e) {
-      return Left(ServerFailure( e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, bool>> checkPhoneAvailability(String phoneNumber) async {
+  Future<Either<Failure, bool>> checkPhoneAvailability(
+      String phoneNumber) async {
     try {
       final response = await apiClient.get('/auth/check-phone/$phoneNumber');
       return Right(response['available'] as bool);
     } catch (e) {
-      return Left(ServerFailure( e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 }

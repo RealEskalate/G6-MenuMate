@@ -13,17 +13,20 @@ class AuthResponse {
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
+    print("reached this point");
+
     return AuthResponse(
-      accessToken: json['accessToken'] as String,
-      refreshToken: json['refreshToken'] as String,
+      accessToken: json['tokens']['access_token'] as String,
+      refreshToken: json['tokens']['refresh_token'] as String,
+
       userModel: UserModel.fromJson(json['user'] as Map<String, dynamic>),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'accessToken': accessToken,
-      'refreshToken': refreshToken,
+      'access_token': accessToken,
+      'refresh_token': refreshToken,
       'user': userModel.toJson(),
     };
   }

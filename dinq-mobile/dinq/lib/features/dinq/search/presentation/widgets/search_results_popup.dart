@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../restaurant_management/data/model/restaurant_model.dart';
-import '../widgets/nearby_restaurant_card.dart';
+import 'restaurant_card.dart';
 
 class SearchResultsPopup extends StatelessWidget {
   final List<RestaurantModel> restaurants;
@@ -107,7 +107,7 @@ class SearchResultsPopup extends StatelessWidget {
                             final restaurant = restaurants[index];
                             return Container(
                               margin: const EdgeInsets.only(bottom: 12),
-                              child: NearbyRestaurantCard(
+                              child: RestaurantCard(
                                 imageUrl: restaurant.logoImage ?? '',
                                 name: restaurant.restaurantName,
                                 cuisine: restaurant.tags?.join(', ') ?? 'Restaurant',

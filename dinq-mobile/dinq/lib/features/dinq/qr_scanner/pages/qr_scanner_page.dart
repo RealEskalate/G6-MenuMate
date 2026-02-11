@@ -9,7 +9,7 @@ import 'package:dinq/core/util/theme.dart';
 import 'package:dinq/core/constants/constants.dart';
 import '../../../../core/error/failures.dart';
 import '../widgets/tip_row.dart';
-import 'package:dinq/core/error/failure.dart' hide ServerFailure, Failure;
+// import 'package:dinq/core/error/failure.dart' hide ServerFailure, Failure;
 
 class QrScannerPage extends StatefulWidget {
   const QrScannerPage({Key? key}) : super(key: key);

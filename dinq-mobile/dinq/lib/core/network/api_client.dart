@@ -10,60 +10,65 @@ class ApiClient {
   final http.Client client;
 
   ApiClient({required this.baseUrl, http.Client? client})
-    : client = client ?? http.Client();
+      : client = client ?? http.Client();
 
- // Update your ApiClient with detailed debugging
-Future<Map<String, dynamic>> get(
-  String endpoint, {
-  Map<String, String>? headers,
-  Map<String, dynamic>? queryParameters,
-}) async {
-  try {
-    final uri = Uri.parse('$baseUrl$endpoint').replace(
-      queryParameters: queryParameters,
-    );
+  // Update your ApiClient with detailed debugging
+  Future<Map<String, dynamic>> get(
+    String endpoint, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? queryParameters,
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl$endpoint').replace(
+        queryParameters: queryParameters,
+      );
 
-    final requestHeaders = await _withDefaultHeaders(headers);
+      final requestHeaders = await _withDefaultHeaders(headers);
 
-    final response = await client.get(uri, headers: requestHeaders);
+      final response = await client.get(uri, headers: requestHeaders);
 
-    return _handleResponse(response);
-  } catch (e) {
-    throw _handleError(e);
+      return _handleResponse(response);
+    } catch (e) {
+      throw _handleError(e);
+    }
   }
-}
- // lib/core/network/api_client.dart - UPDATED
-Future<Map<String, dynamic>> post(
-  String endpoint, {
-  Map<String, String>? headers,
-  dynamic body,
-}) async {
-  try {
-    final uri = Uri.parse('$baseUrl$endpoint');
-    print('🌐 POST Request URL: $uri');
 
-    final requestHeaders = await _withDefaultHeaders(headers);
-    print('📋 Request headers: $requestHeaders');
+  // lib/core/network/api_client.dart - UPDATED
+  Future<Map<String, dynamic>> post(
+    String endpoint, {
+    Map<String, String>? headers,
+    dynamic body,
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl$endpoint');
+      print('🌐 POST Request URL: $uri');
 
-    final requestBody = body != null ? json.encode(body) : null;
-    print('📤 Request body: $requestBody');
+      final requestHeaders = await _withDefaultHeaders(headers);
+      print('📋 Request headers: $requestHeaders');
 
-    final response = await client.post(
-      uri,
-      headers: requestHeaders,
-      body: requestBody,
-    );
+      final requestBody = body != null ? json.encode(body) : null;
+      print('📤 Request body: $requestBody');
 
-    print('📥 POST Response - Status: ${response.statusCode}');
-    print('📄 POST Response body: ${response.body}');
+      final response = await client.post(
+        uri,
+        headers: requestHeaders,
+        body: requestBody,
+      );
 
-    return _handleResponse(response);
-  } catch (e) {
-    print('❌ POST Request failed: $e');
-    throw _handleError(e);
+      print('📥 POST Response - Status: ${response.statusCode}');
+      print('📄 POST Response body: ${response.body}');
+
+      final res = _handleResponse(response);
+      print(res);
+      return res;
+    } catch (e) {
+      print('❌ POST Request failed: $e');
+      throw _handleError(e);
+    }
   }
-}
-  Future<Map<String, String>> _withDefaultHeaders(Map<String, String>? headers) async {
+
+  Future<Map<String, String>> _withDefaultHeaders(
+      Map<String, String>? headers) async {
     final defaultHeaders = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -86,7 +91,8 @@ Future<Map<String, dynamic>> post(
       if (responseBody.isEmpty) {
         return {};
       }
-      return json.decode(responseBody);
+      final js = json.decode(responseBody);
+      return js;
     } else {
       throw ApiException.fromResponse(response);
     }
@@ -122,20 +128,31 @@ Future<Map<String, dynamic>> post(
       const maxSize = 5 * 1024 * 1024; // 5MB in bytes
       if (fileSize > maxSize) {
         throw ApiException(
-          message: 'File size exceeds 5MB limit. Current size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB',
+          message:
+              'File size exceeds 5MB limit. Current size: ${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB',
           statusCode: 413,
         );
       }
-      print('✅ File size validation passed: ${(fileSize / 1024).toStringAsFixed(2)}KB');
+      print(
+          '✅ File size validation passed: ${(fileSize / 1024).toStringAsFixed(2)}KB');
 
       // Validate file type (should be image)
       final fileName = file.path.split('/').last.toLowerCase();
-      final validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
-      final hasValidExtension = validExtensions.any((ext) => fileName.endsWith(ext));
+      final validExtensions = [
+        '.jpg',
+        '.jpeg',
+        '.png',
+        '.gif',
+        '.bmp',
+        '.webp'
+      ];
+      final hasValidExtension =
+          validExtensions.any((ext) => fileName.endsWith(ext));
 
       if (!hasValidExtension) {
         throw ApiException(
-          message: 'Invalid file format. Supported formats: JPG, PNG, GIF, BMP, WebP',
+          message:
+              'Invalid file format. Supported formats: JPG, PNG, GIF, BMP, WebP',
           statusCode: 400,
         );
       }
@@ -150,7 +167,8 @@ Future<Map<String, dynamic>> post(
       final authHeaders = await TokenManager.getAuthHeaders();
       if (authHeaders != null) {
         request.headers.addAll(authHeaders);
-        print('🔑 Authorization header added: ${authHeaders['Authorization']?.substring(0, 20)}...');
+        print(
+            '🔑 Authorization header added: ${authHeaders['Authorization']?.substring(0, 20)}...');
       } else {
         print('❌ No authorization headers found!');
       }
@@ -175,7 +193,8 @@ Future<Map<String, dynamic>> post(
         contentType: contentType,
       );
       request.files.add(fileStream);
-      print('📤 File added to request: $fieldName = $fileName (using field name: $fieldName)');
+      print(
+          '📤 File added to request: $fieldName = $fileName (using field name: $fieldName)');
 
       print('🚀 Sending multipart request...');
       final streamedResponse = await request.send();

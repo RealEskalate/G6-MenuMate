@@ -20,6 +20,7 @@ class UserModel extends User {
         );
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    print("reached this point");
     return UserModel(
       id: json['id'] ?? '',
       username: json['username'] ?? '',
@@ -27,7 +28,7 @@ class UserModel extends User {
       role: json['role'] ?? 'CUSTOMER',
       firstName: json['first_name'],
       lastName: json['last_name'],
-      phoneNumber: json['phone_number'],
+      phoneNumber: json['phone_number'] ?? '',
     );
   }
   @override

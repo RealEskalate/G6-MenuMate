@@ -42,6 +42,7 @@ class AuthRepositoryImpl implements AuthRepository {
         // Return only the user
         return authResponse.userModel;
       });
+      
     }).run();
   }
 

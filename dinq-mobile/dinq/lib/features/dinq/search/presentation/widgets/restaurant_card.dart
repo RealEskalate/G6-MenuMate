@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/util/theme.dart';
 
-class NearbyRestaurantCard extends StatelessWidget {
+class RestaurantCard extends StatelessWidget {
   final String imageUrl;
   final String name;
   final String cuisine;
@@ -10,7 +10,7 @@ class NearbyRestaurantCard extends StatelessWidget {
   final int reviews;
   final VoidCallback? onViewMenu;
 
-  const NearbyRestaurantCard({
+  const RestaurantCard({
     super.key,
     required this.imageUrl,
     required this.name,
