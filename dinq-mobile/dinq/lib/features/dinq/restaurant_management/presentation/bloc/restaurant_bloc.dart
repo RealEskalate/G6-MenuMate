@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../../core/usecase/usecase.dart';
 import '../../domain/usecases/get_user_images.dart';
 import '../../domain/usecases/menu/get_menu.dart';
 import '../../domain/usecases/restaurant/create_restaurant.dart';
@@ -37,7 +38,6 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
   }) : super(const RestaurantInitial()) {
     on<LoadRestaurants>(_onLoadRestaurants);
     on<LoadMenu>(_onLoadMenu);
-    // on<LoadCategories>(_onLoadCategories);
     on<LoadUserImages>(_onLoadUserImages);
     on<LoadReviews>(_onLoadReviews);
     on<LoadRestaurantBySlug>(_onLoadRestaurantBySlug);
@@ -77,7 +77,8 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     Emitter<RestaurantState> emit,
   ) async {
     emit(const RestaurantLoading());
-    final result = await updateRestaurant(event.restaurant as Map<String, dynamic>, event.slug);
+    final result = await updateRestaurant(
+        event.restaurant as Map<String, dynamic>, event.slug);
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
       (restaurant) => emit(
@@ -105,10 +106,9 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     Emitter<RestaurantState> emit,
   ) async {
     emit(const RestaurantLoading());
-    final result = await getRestaurants(
-      page: event.page,
-      pageSize: event.pageSize,
-    );
+
+    final params = GetRestaurantsParams();
+    final result = await getRestaurants(params);
     result.fold(
       (failure) => emit(RestaurantError(failure.message)),
       (restaurants) => emit(RestaurantsLoaded(restaurants)),

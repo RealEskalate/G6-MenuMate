@@ -30,21 +30,36 @@ class RestaurantCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       child: ListTile(
+        // ensure leading has a fixed size to avoid layout warnings
         minLeadingWidth: 0,
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            imageUrl,
-            width: 56,
-            height: 56,
-            fit: BoxFit.cover,
+        leading: SizedBox(
+          width: 56,
+          height: 56,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: (imageUrl.isNotEmpty &&
+                    (imageUrl.startsWith('http://') ||
+                        imageUrl.startsWith('https://')))
+                ? Image.network(
+                    imageUrl,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                        color: Colors.grey[200],
+                        child:
+                            const Icon(Icons.restaurant, color: Colors.grey)),
+                  )
+                : Container(
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.restaurant, color: Colors.grey)),
           ),
         ),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('$cuisine • $distance', style: const TextStyle(fontSize: 13)),
+            // Text('$cuisine • $distance', style: const TextStyle(fontSize: 13)),
             Row(
               children: [
                 const Icon(Icons.star, color: Colors.orange, size: 16),

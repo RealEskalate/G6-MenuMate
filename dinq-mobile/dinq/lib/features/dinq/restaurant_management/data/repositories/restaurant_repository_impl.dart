@@ -1,7 +1,9 @@
 import 'dart:io';
 
-import 'package:dartz/dartz.dart';
+// import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import 'package:fpdart/fpdart.dart';
 
 import '../../../../../core/error/exceptions.dart';
 import '../../../../../core/error/failures.dart';
@@ -12,7 +14,6 @@ import '../../domain/entities/review.dart';
 import '../../domain/repositories/restaurant_repository.dart';
 import '../datasources/restaurant_remote_data_source.dart';
 import '../model/menu_model.dart';
-import '../model/restaurant_model.dart';
 
 class RestaurantRepositoryImpl implements RestaurantRepository {
   final RestaurantRemoteDataSource remoteDataSource;
@@ -22,6 +23,19 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
     required this.remoteDataSource,
     required this.network,
   });
+
+
+  @override
+  Future<Either<Failure, List<Menu>>> getListOfMenus(String slug) async {
+    final connected = await network.isConnected;
+    print('[Reop] getListOfMenus - isconnected = $connected');
+    try {
+      final listMenus = await remoteDataSource.getListOfMenues(slug);
+      return Right(listMenus);
+    } catch (e) {
+      return Left(ExceptionMapper.toFailure(e as Exception));
+    }
+  }
 
   // Restaurant
   @override
@@ -231,6 +245,28 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
       try {
         final reviewModels = await remoteDataSource.getReviews(itemId);
         return Right(reviewModels.map((m) => m.toEntity()).toList());
+      } catch (e) {
+        return Left(ExceptionMapper.toFailure(e as Exception));
+      }
+    } else {
+      return const Left(
+        NetworkFailure(
+          'No internet connection available. Please check your network settings and try again.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Restaurant>>> searchRestaurants(
+      String name) async {
+    final connected = await network.isConnected;
+    print('[Repo] getReviews - isConnected=$connected search for =$name');
+    if (connected) {
+      try {
+        final restaurants =
+            await remoteDataSource.searchRestaurants(name: name);
+        return Right(restaurants.map((m) => m.toEntity()).toList());
       } catch (e) {
         return Left(ExceptionMapper.toFailure(e as Exception));
       }

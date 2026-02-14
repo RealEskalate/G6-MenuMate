@@ -1,6 +1,9 @@
 import 'dart:io';
 
-import 'package:dartz/dartz.dart';
+// import 'package:dartz/dartz.dart';
+
+import 'package:fpdart/fpdart.dart';
+
 import '../../../../../core/error/failures.dart';
 import '../entities/menu.dart';
 import '../entities/restaurant.dart';
@@ -19,6 +22,7 @@ abstract class RestaurantRepository {
     Map<String, dynamic> restaurant,
     String slug,
   );
+  Future<Either<Failure, List<Restaurant>>> searchRestaurants(String name);
   Future<Either<Failure, void>> deleteRestaurant(String restaurantId);
   // Menu
   Future<Either<Failure, Menu>> uploadMenu(File printedMenu);
@@ -30,5 +34,6 @@ abstract class RestaurantRepository {
   Future<Either<Failure, void>> deleteReview(String reviewId);
   // UserImage
   Future<Either<Failure, List<String>>> getUserImages(String slug);
+  Future<Either<Failure, List<Menu>>> getListOfMenus(String slug);
   // Future<Either<Failure, void>> updateItem();
 }
