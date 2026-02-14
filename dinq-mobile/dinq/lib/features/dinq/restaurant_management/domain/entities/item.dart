@@ -7,7 +7,6 @@ class Item extends Equatable {
   final String slug;
   final String categoryId;
   final String? description;
-  final String? descriptionAm;
   final List<String>? image;
   final int price;
   final String currency;
@@ -22,6 +21,9 @@ class Item extends Equatable {
   final int viewCount;
   final double averageRating;
   final List<String> reviewIds;
+  final String? protein;
+  final String? carbs;
+  final String? fat;
 
   const Item({
     required this.id,
@@ -30,7 +32,6 @@ class Item extends Equatable {
     required this.slug,
     required this.categoryId,
     this.description,
-    this.descriptionAm,
     this.image,
     required this.price,
     required this.currency,
@@ -42,6 +43,9 @@ class Item extends Equatable {
     this.preparationTime,
     this.howToEat,
     this.howToEatAm,
+    this.protein,
+    this.carbs,
+    this.fat,
     required this.viewCount,
     required this.averageRating,
     required this.reviewIds,
