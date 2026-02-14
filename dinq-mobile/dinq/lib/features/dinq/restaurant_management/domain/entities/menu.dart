@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'item.dart';
 import 'tab.dart';
 
 class Menu extends Equatable {
@@ -9,12 +10,9 @@ class Menu extends Equatable {
   final String? slug;
   final int? version;
   final bool isPublished;
-  final List<Tab> tabs;
-  final int viewCount;
-  final bool? isDeleted;
+  final List<Item> items;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-  final double? averageRating;
 
   const Menu({
     required this.id,
@@ -23,12 +21,9 @@ class Menu extends Equatable {
     this.slug,
     this.version,
     required this.isPublished,
-    required this.tabs,
-    required this.viewCount,
-    this.isDeleted,
+    required this.items,
     this.createdAt,
     this.updatedAt,
-    this.averageRating,
   });
 
   @override

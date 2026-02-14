@@ -1,4 +1,6 @@
-import 'package:dartz/dartz.dart';
+
+import 'package:fpdart/fpdart.dart';
+
 import '../../../../../../core/error/failures.dart';
 import '../../entities/menu.dart';
 import '../../repositories/restaurant_repository.dart';

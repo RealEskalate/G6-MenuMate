@@ -24,17 +24,20 @@ class PopularDishCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 140,
-        height: 200, // 🔥 Fixed height for consistency
-        margin: const EdgeInsets.only(right: 14),
+        // slightly smaller card so it fits in the parent container
+        width: 116,
+        height: 148,
+        margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.primaryColor.withOpacity(0.06)),
+          // subtle orange top accent to reinforce branding
           boxShadow: const [
             BoxShadow(
               color: Colors.black12,
-              blurRadius: 4,
-              offset: Offset(0, 2),
+              blurRadius: 6,
+              offset: Offset(0, 3),
             ),
           ],
         ),
@@ -48,9 +51,13 @@ class PopularDishCard extends StatelessWidget {
               ),
               child: Image.network(
                 imageUrl,
-                height: 100, // 🔥 Fixed image height
-                width: 140,
+                height: 72,
+                width: 116,
                 fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.fastfood, color: Colors.grey),
+                ),
               ),
             ),
             Padding(
@@ -88,7 +95,7 @@ class PopularDishCard extends StatelessWidget {
                       Row(
                         children: [
                           const Icon(Icons.star,
-                              color: Colors.orange, size: 15),
+                              color: AppColors.primaryColor, size: 15),
                           const SizedBox(width: 2),
                           Text(
                             rating.toStringAsFixed(1),

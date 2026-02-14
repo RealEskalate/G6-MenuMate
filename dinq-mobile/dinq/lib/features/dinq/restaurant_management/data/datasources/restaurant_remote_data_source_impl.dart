@@ -15,6 +15,60 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   final Dio dio;
 
   RestaurantRemoteDataSourceImpl({required this.dio});
+  @override
+Future<List<MenuModel>> getListOfMenues(String slug) async {
+  try {
+    final uri = Uri.parse('$baseUrl/menus').replace(
+      queryParameters: {
+        'restaurant_slug': slug,
+      },
+    );
+
+    final response = await dio.getUri(uri);
+    final statusCode = response.statusCode;
+
+    if (statusCode == 200 || statusCode == 201) {
+      final responseData = response.data;
+
+      if (responseData == null ||
+          responseData['data'] == null ||
+          responseData['data']['menu'] == null) {
+        throw ServerException(
+          'Invalid response structure while getting menus',
+          statusCode: statusCode,
+        );
+      }
+
+      final List<dynamic> menuList =
+          responseData['data']['menu'];
+
+      return menuList
+          .map((e) => MenuModel.fromMap(
+                e as Map<String, dynamic>,
+              ))
+          .toList();
+    } else {
+      throw ServerException(
+        HttpErrorHandler.getExceptionMessage(
+          statusCode,
+          'getting menus',
+        ),
+        statusCode: statusCode,
+      );
+    }
+  } on DioException catch (e) {
+    final statusCode = e.response?.statusCode;
+
+    throw ServerException(
+      HttpErrorHandler.getExceptionMessage(statusCode, 'getting menus'),
+      statusCode: e.response?.statusCode,
+    );
+  } catch (e) {
+    throw ServerException(
+      'Unexpected error while getting menus: $e',
+    );
+  }
+}
 
   @override
   Future<RestaurantModel> createRestaurant(FormData restaurant) async {
