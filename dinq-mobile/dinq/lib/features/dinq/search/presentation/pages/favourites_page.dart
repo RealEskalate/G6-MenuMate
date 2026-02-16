@@ -257,13 +257,13 @@ class _FavouritesPageState extends State<FavouritesPage>
             elevation: 0,
           ),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    RestaurantPage(restaurantId: restaurant.id),
-              ),
-            );
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (context) =>
+
+            //   ),
+            // );
           },
           child: const Text('View Menu'),
         ),

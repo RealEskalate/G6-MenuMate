@@ -24,13 +24,13 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
     required this.network,
   });
 
-
   @override
   Future<Either<Failure, List<Menu>>> getListOfMenus(String slug) async {
     final connected = await network.isConnected;
     print('[Reop] getListOfMenus - isconnected = $connected');
     try {
       final listMenus = await remoteDataSource.getListOfMenues(slug);
+      print(listMenus);
       return Right(listMenus);
     } catch (e) {
       return Left(ExceptionMapper.toFailure(e as Exception));

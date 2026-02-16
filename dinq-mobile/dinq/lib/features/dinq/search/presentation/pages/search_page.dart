@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/util/theme.dart';
 
-import '../bloc/home_bloc.dart';
-import '../bloc/home_event.dart';
-import '../bloc/home_state.dart';
+import '../bloc/HomeBloc/home_bloc.dart';
+import '../bloc/HomeBloc/home_event.dart';
+import '../bloc/HomeBloc/home_state.dart';
 import '../widgets/restaurant_card.dart';
 
 class SearchPage extends StatefulWidget {

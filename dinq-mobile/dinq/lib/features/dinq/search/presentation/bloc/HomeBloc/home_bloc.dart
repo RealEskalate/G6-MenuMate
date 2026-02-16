@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../restaurant_management/domain/usecases/restaurant/get_restaurants.dart';
-import '../../../restaurant_management/domain/usecases/restaurant/search_restaurants.dart';
+import '../../../../restaurant_management/domain/usecases/restaurant/get_list_menus.dart';
+import '../../../../restaurant_management/domain/usecases/restaurant/get_restaurants.dart';
+import '../../../../restaurant_management/domain/usecases/restaurant/search_restaurants.dart';
 // import '../../../restaurant_management/presentation/bloc/restaurant_event.dart';
 import 'home_event.dart';
 import 'home_state.dart';
@@ -9,17 +10,39 @@ import 'home_state.dart';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetRestaurants getRestaurants;
   final SearchRestaurants searchRestaurants;
+  final GetListMenus getListMenus;
 
   Timer? _debounce;
 
-  HomeBloc({
-    required this.getRestaurants,
-    required this.searchRestaurants,
-  }) : super(const HomeState()) {
+  HomeBloc(
+      {required this.getRestaurants,
+      required this.searchRestaurants,
+      required this.getListMenus})
+      : super(const HomeState()) {
     on<LoadRestaurants>(_onLoadRestaurants);
     on<SearchQueryChanged>(_onSearchChanged);
     on<ClearSearch>(_onClearSearch);
+    // on<LoadListOfMenus>(_onLoadListOfMenus);
   }
+
+  // Future<void> _onLoadListOfMenus(
+  //     LoadListOfMenus event, Emitter<HomeState> emit) async {
+  //   emit(state.copyWith(status: HomeStatus.loading));
+  //   final params = GetListMenusParams(slug: event.slug);
+  //   final result = await getListMenus(params);
+  //   result.fold((failure) {
+  //     emit(state.copyWith(
+  //       status: HomeStatus.error,
+  //       errorMessage: failure.message,
+  //     ));
+  //   }, (menus) {
+  //     if (menus.isEmpty) {
+  //       emit(state.copyWith(status: HomeStatus.empty));
+  //     } else {
+  //       emit(state.copyWith(status: HomeStatus.success, Menus:menus));
+  //     }
+  //   });
+  // }
 
   // Load all restaurants on page load
   Future<void> _onLoadRestaurants(

@@ -121,17 +121,17 @@ class MenusPage extends StatelessWidget {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is MenuLoaded) {
                       final menu = state.menu;
-                      final menus = menu.tabs;
-                      return ListView.builder(
-                        itemCount: menus.length,
-                        itemBuilder: (context, idx) {
-                          final tab = menus[idx];
-                          return RestMenuCard(
-                            tab: tab,
-                            isPublished: menu.isPublished,
-                          );
-                        },
-                      );
+                      // final menus = menu.tabs;
+                      // return ListView.builder(
+                      //   itemCount: menus.length,
+                      //   itemBuilder: (context, idx) {
+                      //     final tab = menus[idx];
+                      //     return RestMenuCard(
+                      //       tab: tab,
+                      //       isPublished: menu.isPublished,
+                      //     );
+                      //   },
+                      // );
                     } else if (state is RestaurantError) {
                       return Center(
                         child: Text(

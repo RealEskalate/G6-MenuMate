@@ -4,8 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../injection_container.dart';
 import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
 import '../../../restaurant_management/presentation/pages/restaurant_details_page.dart';
-import '../bloc/home_bloc.dart';
-import '../bloc/home_state.dart';
+import '../bloc/HomeBloc/home_bloc.dart';
+import '../bloc/Menu_bloc/menu_bloc.dart';
+import '../bloc/HomeBloc/home_state.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../widgets/popular_dish_card.dart';
 import '../widgets/restaurant_card.dart';
@@ -197,18 +198,19 @@ class _HomePageState extends State<HomePage>
                         final r = restaurants[i];
                         return RestaurantCard(
                           imageUrl: (r.logoImage ?? r.coverImage) ?? '',
-                          name: r.restaurantName ?? '',
+                          name: r.restaurantName ,
                           cuisine: (r.tags != null && r.tags!.isNotEmpty)
                               ? r.tags!.first
                               : '',
                           distance: '',
-                          rating: (r.averageRating ?? 0).toDouble(),
+                          rating: (r.averageRating).toDouble(),
                           reviews: 0,
                           onViewMenu: () async {
                             await Navigator.of(context).push(
                               MaterialPageRoute(
-                                  builder: (_) => RestaurantPage(
-                                        restaurantId: restaurants[i].id,
+                                  builder: (_) => BlocProvider<MenuBloc>(
+                                        create: (_) => sl<MenuBloc>(),
+                                        child: RestaurantPage(restaurant: r),
                                       )),
                             );
                           },

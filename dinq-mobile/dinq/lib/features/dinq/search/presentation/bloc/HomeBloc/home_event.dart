@@ -12,32 +12,15 @@ class SearchQueryChanged extends HomeEvent {
 
   const SearchQueryChanged(this.query);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   @override
   List<Object?> get props => [query];
+}
+
+class LoadListOfMenus extends HomeEvent {
+  final String slug;
+  const LoadListOfMenus(this.slug);
+  @override
+  List<Object?> get props => [slug];
 }
 
 class ClearSearch extends HomeEvent {}

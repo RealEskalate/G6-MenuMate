@@ -16,59 +16,60 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   RestaurantRemoteDataSourceImpl({required this.dio});
   @override
-Future<List<MenuModel>> getListOfMenues(String slug) async {
-  try {
-    final uri = Uri.parse('$baseUrl/menus').replace(
-      queryParameters: {
-        'restaurant_slug': slug,
-      },
-    );
+  Future<List<MenuModel>> getListOfMenues(String slug) async {
+    try {
+      final uri = Uri.parse('/menus/$slug');
+      print(uri);
 
-    final response = await dio.getUri(uri);
-    final statusCode = response.statusCode;
+      final response = await dio.get('/menus/$slug');
+      final statusCode = response.statusCode;
+      print(response);
+      if (statusCode == 200 || statusCode == 201) {
+        final responseData = response.data;
 
-    if (statusCode == 200 || statusCode == 201) {
-      final responseData = response.data;
+        if (responseData == null ||
+            responseData['data'] == null ) {
+          throw ServerException(
+            'Invalid response structure while getting menus',
+            statusCode: statusCode,
+          );
+        }
 
-      if (responseData == null ||
-          responseData['data'] == null ||
-          responseData['data']['menu'] == null) {
+        final List<dynamic> menuList = responseData['data']['menus'] ?? responseData['data']['menu'];
+
+        return menuList
+            .map((e) => MenuModel.fromMap(
+                  e as Map<String, dynamic>,
+                ))
+            .toList();
+      } else {
         throw ServerException(
-          'Invalid response structure while getting menus',
+          HttpErrorHandler.getExceptionMessage(
+            statusCode,
+            'getting menus',
+          ),
           statusCode: statusCode,
         );
       }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+       print('❌ DioException occurred');
+  print('Message: ${e.message}');
+  print('StatusCode: ${e.response?.statusCode}');
+  print('ResponseData: ${e.response?.data}');
+  print('Request path: ${e.requestOptions.path}');
+  print('Full URL: ${e.requestOptions.uri}');
 
-      final List<dynamic> menuList =
-          responseData['data']['menu'];
-
-      return menuList
-          .map((e) => MenuModel.fromMap(
-                e as Map<String, dynamic>,
-              ))
-          .toList();
-    } else {
       throw ServerException(
-        HttpErrorHandler.getExceptionMessage(
-          statusCode,
-          'getting menus',
-        ),
-        statusCode: statusCode,
+        HttpErrorHandler.getExceptionMessage(statusCode, 'getting menus'),
+        statusCode: e.response?.statusCode,
+      );
+    } catch (e) {
+      throw ServerException(
+        'Unexpected error while getting menus: $e',
       );
     }
-  } on DioException catch (e) {
-    final statusCode = e.response?.statusCode;
-
-    throw ServerException(
-      HttpErrorHandler.getExceptionMessage(statusCode, 'getting menus'),
-      statusCode: e.response?.statusCode,
-    );
-  } catch (e) {
-    throw ServerException(
-      'Unexpected error while getting menus: $e',
-    );
   }
-}
 
   @override
   Future<RestaurantModel> createRestaurant(FormData restaurant) async {
@@ -184,21 +185,25 @@ Future<List<MenuModel>> getListOfMenues(String slug) async {
         print('✅ [DATASOURCE] Status 200 - parsing response...');
 
         // Check if response.data is a Map and has 'restaurants' key
-        if (response.data is Map && (response.data as Map).containsKey('restaurants')) {
+        if (response.data is Map &&
+            (response.data as Map).containsKey('restaurants')) {
           print('📦 [DATASOURCE] Found restaurants key in response');
           final data = response.data['restaurants'] as List<dynamic>;
-          print('🍽️ [DATASOURCE] Found ${data.length} restaurants in response');
+          print(
+              '🍽️ [DATASOURCE] Found ${data.length} restaurants in response');
 
           final restaurants = data.map((json) {
             print('🏪 [DATASOURCE] Parsing restaurant: $json');
             return RestaurantModel.fromMap(json);
           }).toList();
 
-          print('✅ [DATASOURCE] Successfully parsed ${restaurants.length} restaurants');
+          print(
+              '✅ [DATASOURCE] Successfully parsed ${restaurants.length} restaurants');
           return restaurants;
         } else {
           print('❌ [DATASOURCE] No restaurants key found in response');
-          print('🔍 [DATASOURCE] Available keys: ${(response.data as Map?)?.keys.toList() ?? "Not a Map"}');
+          print(
+              '🔍 [DATASOURCE] Available keys: ${(response.data as Map?)?.keys.toList() ?? "Not a Map"}');
           return [];
         }
       } else {
@@ -454,9 +459,10 @@ Future<List<MenuModel>> getListOfMenues(String slug) async {
   Future<MenuModel> getMenu(String restaurantId) async {
     try {
       final response = await dio.get(
-        '$baseUrl/menus/:$restaurantId',
+        '\$baseUrl/menus/\$restaurantId',
         options: Options(headers: {'Content-Type': content}),
       );
+      print(response);
       final statusCode = response.statusCode;
       if (statusCode == 200) {
         return MenuModel.fromMap(response.data);

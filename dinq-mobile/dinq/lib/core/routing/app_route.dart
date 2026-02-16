@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/dinq/auth/presentation/Pages/login_page.dart';
 import '../../features/dinq/auth/presentation/Pages/onboarding_first.dart';
 import '../../features/dinq/qr_scanner/pages/qr_scanner_page.dart';
+import '../../features/dinq/restaurant_management/domain/entities/restaurant.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/analytics_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/billing_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/branding_preferences_page.dart';
@@ -25,6 +26,9 @@ import '../../features/dinq/search/presentation/pages/home_page.dart';
 import '../../features/dinq/search/presentation/pages/item_details_page.dart';
 import '../../features/dinq/search/presentation/pages/profile_page.dart';
 import '../../features/dinq/search/presentation/pages/restaurant_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../injection_container.dart';
+import '../../features/dinq/search/presentation/bloc/Menu_bloc/menu_bloc.dart';
 import '../../features/dinq/search/presentation/pages/scanned_menu_page.dart';
 
 class AppRoute {
@@ -83,10 +87,13 @@ class AppRoute {
         final item = args['item'];
         return MaterialPageRoute(builder: (_) => ItemDetailsPage(item: item));
       case restaurant:
-        final args = settings.arguments as Map<String, dynamic>? ?? {};
-        final restaurantId = args['restaurantId'] as String? ?? '';
+        final restaurant = settings.arguments as Restaurant;
+
         return MaterialPageRoute(
-          builder: (_) => RestaurantPage(restaurantId: restaurantId),
+          builder: (_) => BlocProvider<MenuBloc>(
+            create: (_) => sl<MenuBloc>(),
+            child: RestaurantPage(restaurant: restaurant),
+          ),
         );
       case scannedMenu:
         return MaterialPageRoute(builder: (_) => const ScannedMenuPage());

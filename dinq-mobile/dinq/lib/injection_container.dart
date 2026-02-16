@@ -24,9 +24,11 @@ import 'features/dinq/restaurant_management/data/datasources/restaurant_remote_d
 import 'features/dinq/restaurant_management/data/datasources/restaurant_remote_data_source_impl.dart';
 import 'features/dinq/restaurant_management/data/repositories/restaurant_repository_impl.dart';
 import 'features/dinq/restaurant_management/domain/repositories/restaurant_repository.dart';
+import 'features/dinq/restaurant_management/domain/usecases/restaurant/get_list_menus.dart';
 import 'features/dinq/restaurant_management/domain/usecases/restaurant/get_restaurants.dart';
 import 'features/dinq/restaurant_management/domain/usecases/restaurant/search_restaurants.dart';
-import 'features/dinq/search/presentation/bloc/home_bloc.dart';
+import 'features/dinq/search/presentation/bloc/HomeBloc/home_bloc.dart';
+import 'features/dinq/search/presentation/bloc/Menu_bloc/menu_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -79,9 +81,12 @@ Future<void> init() async {
 
   sl.registerLazySingleton(() => GetRestaurants(sl()));
   sl.registerLazySingleton(() => SearchRestaurants(sl()));
+  sl.registerLazySingleton(() => GetListMenus(sl()));
+  sl.registerFactory(() => MenuBloc(getListMenus: sl()));
 
   sl.registerFactory(() => HomeBloc(
         getRestaurants: sl(),
         searchRestaurants: sl(),
+        getListMenus: sl(),
       ));
 }

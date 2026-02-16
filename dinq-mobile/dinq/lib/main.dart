@@ -4,8 +4,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'core/routing/app_route.dart';
 import 'core/util/theme.dart';
-import 'features/dinq/search/presentation/bloc/home_bloc.dart';
-import 'features/dinq/search/presentation/bloc/home_event.dart';
+import 'features/dinq/search/presentation/bloc/HomeBloc/home_bloc.dart';
+import 'features/dinq/search/presentation/bloc/HomeBloc/home_event.dart';
+import 'features/dinq/search/presentation/bloc/Menu_bloc/menu_bloc.dart';
 import 'injection_container.dart' as di;
 
 import 'features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
               ),
             ),
         ),
+        // MenuBloc is provided locally when navigating to `RestaurantPage` (moved from global to route-level)
       ],
       child: MaterialApp(
         initialRoute: AppRoute.onboarding,
