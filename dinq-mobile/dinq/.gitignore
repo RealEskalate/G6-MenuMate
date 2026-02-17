@@ -113,6 +113,6 @@ app.*.map.json
 # Miscellaneous generated / temporary files
 # ---------------------------
 migrate_working_dir/
-.build/
+.build/ 
 .buildlog/
 *.swp
