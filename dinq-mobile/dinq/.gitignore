@@ -1,66 +1,118 @@
-# Miscellaneous
+# ---------------------------
+# Miscellaneous / System Files
+# ---------------------------
 *.class
 *.log
 *.pyc
 *.swp
 .DS_Store
-.atom/
-.build/
-.buildlog/
-.history
+Thumbs.db
+desktop.ini
+
+# OneDrive / Cloud backup temp files
+~$*
+*.tmp
+*.bak
+
+# Version control folders of other systems
 .svn/
-.swiftpm/
-migrate_working_dir/
+.hg/
+.cvs/
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
+# IDE / Editor files
 .idea/
+*.iml
+*.iws
+*.ipr
+.vscode/           # Optional: include if you want workspace settings ignored
+.atom/
+.history/
+*.code-workspace
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# ---------------------------
+# Flutter / Dart related
+# ---------------------------
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
-.pub-cache/
+.packages
 .pub/
+.pub-cache/
+.flutter-plugins
+.pubspec.lock        # Optional: commit for apps, ignore for libraries
+
+# Flutter generated documentation
+**/doc/api/
+
+# Flutter build outputs
 /build/
+/ios/Flutter/.last_build_id
+/windows/flutter/ephemeral/
+/linux/flutter/ephemeral/
+/macos/Flutter/ephemeral/
 
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-# Custom exclusions for MenuMate project
-# ======================================
-
-# Generated Flutter files - exclude from version control
-**/GeneratedPluginRegistrant.swift
-**/generated_plugin_registrant.cc
-**/generated_plugin_registrant.h
-**/generated_plugins.cmake
-# Generated files
+# Flutter generated plugin files
+**/GeneratedPluginRegistrant.*
+**/generated_plugin_registrant.*
 *.g.dart
 *.mocks.dart
+*.freezed.dart
+*.pb.dart
+*.pbenum.dart
 
+# ---------------------------
+# Symbolication / Obfuscation
+# ---------------------------
+app.*.symbols
+app.*.map.json
 
-# Flutter desktop generated files
-windows/flutter/ephemeral/
-linux/flutter/ephemeral/
-macos/Flutter/ephemeral/
+# ---------------------------
+# Android specific
+# ---------------------------
+**/android/.gradle/
+**/android/local.properties
+**/android/captures/
+**/android/.cxx/
 
-# Build outputs
-build/
+# Gradle caches
+.gradle/
+**/.gradle/
+
+# Android Studio project files
+**/android/.idea/
+
+# ---------------------------
+# iOS / Xcode
+# ---------------------------
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Runner.xcworkspace/
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# ---------------------------
+# macOS / Xcode desktop
+# ---------------------------
+**/macos/Flutter/ephemeral/
+**/macos/Pods/
+**/macos/Flutter/Flutter.framework
+**/macos/Flutter/Flutter.podspec
+
+# ---------------------------
+# Linux desktop
+# ---------------------------
+**/linux/flutter/ephemeral/
+
+# ---------------------------
+# Windows desktop
+# ---------------------------
+**/windows/flutter/ephemeral/
+
+# ---------------------------
+# Miscellaneous generated / temporary files
+# ---------------------------
+migrate_working_dir/
+.build/
+.buildlog/
+*.swp
