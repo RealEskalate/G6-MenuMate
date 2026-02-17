@@ -76,8 +76,7 @@ class AppRoute {
       case favorites:
         return MaterialPageRoute(
           builder: (_) => const FavouritesPage(
-            allRestaurants: [], // Pass your data here
-            allDishes: [],
+            
           ),
         );
       case home:
@@ -135,7 +134,8 @@ class AppRoute {
         return MaterialPageRoute(
           builder: (_) => QrCustomizationPage(
             menuId: args?['menuId'],
-            restaurantSlug: args?['restaurantSlug'] ?? 'the-italian-corner-4b144298',
+            restaurantSlug:
+                args?['restaurantSlug'] ?? 'the-italian-corner-4b144298',
           ),
         );
       case editSingleMenu:

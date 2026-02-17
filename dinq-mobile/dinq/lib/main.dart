@@ -11,7 +11,6 @@ import 'injection_container.dart' as di;
 
 import 'features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');

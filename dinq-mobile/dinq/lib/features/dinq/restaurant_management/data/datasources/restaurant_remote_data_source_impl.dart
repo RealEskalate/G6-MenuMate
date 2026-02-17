@@ -21,21 +21,22 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       final uri = Uri.parse('/menus/$slug');
       print(uri);
 
-      final response = await dio.get('/menus/$slug');
+      final response = await dio.get('$baseUrl/menus/$slug');
       final statusCode = response.statusCode;
       print(response);
       if (statusCode == 200 || statusCode == 201) {
         final responseData = response.data;
 
-        if (responseData == null ||
-            responseData['data'] == null ) {
+        if (responseData == null || responseData['data'] == null) {
           throw ServerException(
             'Invalid response structure while getting menus',
             statusCode: statusCode,
           );
         }
+        print(response.data);
 
-        final List<dynamic> menuList = responseData['data']['menus'] ?? responseData['data']['menu'];
+        final List<dynamic> menuList =
+            responseData['data']['menus'] ?? responseData['data']['menu'] ?? [];
 
         return menuList
             .map((e) => MenuModel.fromMap(
@@ -53,12 +54,12 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       }
     } on DioException catch (e) {
       final statusCode = e.response?.statusCode;
-       print('❌ DioException occurred');
-  print('Message: ${e.message}');
-  print('StatusCode: ${e.response?.statusCode}');
-  print('ResponseData: ${e.response?.data}');
-  print('Request path: ${e.requestOptions.path}');
-  print('Full URL: ${e.requestOptions.uri}');
+      print('❌ DioException occurred');
+      print('Message: ${e.message}');
+      print('StatusCode: ${e.response?.statusCode}');
+      print('ResponseData: ${e.response?.data}');
+      print('Request path: ${e.requestOptions.path}');
+      print('Full URL: ${e.requestOptions.uri}');
 
       throw ServerException(
         HttpErrorHandler.getExceptionMessage(statusCode, 'getting menus'),

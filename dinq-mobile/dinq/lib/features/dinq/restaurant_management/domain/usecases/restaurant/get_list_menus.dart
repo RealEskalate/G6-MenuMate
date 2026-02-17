@@ -2,14 +2,15 @@ import 'package:fpdart/fpdart.dart';
 
 import '../../../../../../core/error/failures.dart';
 import '../../../../../../core/usecase/usecase.dart';
+import '../../../data/model/menu_model.dart';
 import '../../entities/menu.dart';
 import '../../repositories/restaurant_repository.dart';
 
-class GetListMenus implements UseCase<List<Menu>, GetListMenusParams> {
+class GetListMenus implements UseCase<List<MenuModel>, GetListMenusParams> {
   final RestaurantRepository restaurantRepository;
   const GetListMenus(this.restaurantRepository);
   @override
-  Future<Either<Failure, List<Menu>>> call(GetListMenusParams params) async {
+  Future<Either<Failure, List<MenuModel>>> call(GetListMenusParams params) async {
     return await restaurantRepository.getListOfMenus(params.slug);
   }
 }

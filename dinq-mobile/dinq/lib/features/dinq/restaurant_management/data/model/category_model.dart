@@ -6,11 +6,17 @@ import 'menu_model.dart';
 
 class CategoryModel extends Category {
   const CategoryModel({
-    required super.id,
-    required super.name,
-    required super.nameAm,
-    required super.items,
-  });
+    required String id,
+    required String name,
+    required String nameAm,
+    required List<Item> items,
+  }):super(
+
+    id:id,
+    name: name,
+    nameAm: nameAm,
+    items: items
+  );
 
   /// Create a CategoryModel directly from a MenuModel
   factory CategoryModel.fromMenu(MenuModel menu) {

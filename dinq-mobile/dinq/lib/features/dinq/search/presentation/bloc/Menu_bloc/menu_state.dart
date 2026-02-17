@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../restaurant_management/data/model/menu_model.dart';
 import '../../../../restaurant_management/domain/entities/menu.dart';
 import '../../../../restaurant_management/domain/entities/restaurant.dart';
 
@@ -14,7 +15,7 @@ class MenuState extends Equatable {
   final MenuStatus status;
   final String? errorMessage;
   final String? slug;
-  final List<Menu> menus;
+  final List<MenuModel> menus;
 
   const MenuState({
     this.status = MenuStatus.initial,
@@ -28,7 +29,7 @@ class MenuState extends Equatable {
     List<Restaurant>? restaurants,
     String? errorMessage,
     String? slug,
-    List<Menu>? menus,
+    List<MenuModel>? menus,
   }) {
     return MenuState(
       status: status ?? this.status,

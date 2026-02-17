@@ -9,9 +9,10 @@ import '../../../search/presentation/bloc/Menu_bloc/menu_event.dart';
 import '../../../search/presentation/bloc/Menu_bloc/menu_state.dart';
 import '../../../search/presentation/pages/item_details_page.dart';
 import '../../../search/presentation/widgets/bottom_navbar.dart';
+import '../widgets/Item_card.dart';
 
-import 'menu_model.dart';
-import 'category_model.dart';
+// import 'menu_model.dart';
+// import 'category_model.dart';
 
 class RestaurantPage extends StatefulWidget {
   final Restaurant restaurant;
@@ -71,7 +72,8 @@ class _RestaurantPageState extends State<RestaurantPage>
               .map<CategoryModel>((menu) => CategoryModel.fromMenu(menu))
               .toList();
 
-          _tabController ??= TabController(length: categories.length, vsync: this);
+          _tabController ??=
+              TabController(length: categories.length, vsync: this);
 
           return Scaffold(
             body: SafeArea(
@@ -135,7 +137,9 @@ class _RestaurantPageState extends State<RestaurantPage>
             child: Text(
               widget.restaurant.restaurantName,
               style: const TextStyle(
-                  color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold),
             ),
           )
         ],
@@ -154,11 +158,13 @@ class _RestaurantPageState extends State<RestaurantPage>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
-                Text('Bole Atlas, Addis Ababa'),
-                SizedBox(height: 4),
-                Text('Open: 11:00 AM - 10:00 PM'),
-              ]),
+              Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text('Bole Atlas, Addis Ababa'),
+                    SizedBox(height: 4),
+                    Text('Open: 11:00 AM - 10:00 PM'),
+                  ]),
               Row(
                 children: [
                   const Icon(Icons.star, color: Colors.orange),
@@ -196,6 +202,7 @@ class _RestaurantPageState extends State<RestaurantPage>
   }
 
   Widget _buildTabContent(List<CategoryModel> categories) {
+    print(categories);
     return TabBarView(
       controller: _tabController,
       children: categories.map<Widget>((cat) {
@@ -204,7 +211,16 @@ class _RestaurantPageState extends State<RestaurantPage>
           itemCount: cat.items.length,
           itemBuilder: (context, idx) {
             final item = cat.items[idx];
-            return ItemDetailsPage(item: item);
+            // return ItemDetailsPage(it);
+            return ItemCard(
+                item: item,
+                onTap: () => {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context)=> ItemDetailsPage(item: item),)
+
+                      )
+                    });
           },
         );
       }).toList(),
@@ -218,7 +234,8 @@ class _RestaurantPageState extends State<RestaurantPage>
       child: Container(
         width: 40,
         height: 40,
-        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+        decoration:
+            const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
         child: Icon(icon, color: Colors.black87),
       ),
     );

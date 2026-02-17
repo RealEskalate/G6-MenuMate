@@ -1,3 +1,4 @@
+import '../../../restaurant_management/domain/entities/item.dart';
 import 'add_review_page.dart';
 import '../widgets/bottom_navbar.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ class _FavoritesStore {
 }
 
 class ItemDetailsPage extends StatefulWidget {
-  final models.Item item;
+  final Item item;
 
   const ItemDetailsPage({super.key, required this.item});
 
@@ -430,9 +431,9 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
           height: 250,
           width: double.infinity,
           color: Colors.grey[300],
-          child: widget.item.images != null && widget.item.images!.isNotEmpty
+          child: widget.item.image != null && widget.item.image!.isNotEmpty
               ? Image.network(
-                  widget.item.images![0],
+                  widget.item.image![0],
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => const Center(
                     child: Icon(Icons.restaurant, size: 80, color: Colors.grey),

@@ -26,8 +26,7 @@ Route<dynamic> generateRoute(RouteSettings settings) {
     case '/favorites':
       return MaterialPageRoute(
         builder: (_) => const FavouritesPage(
-          allRestaurants: [], // Pass your data here
-          allDishes: [],
+          
         ),
       );
     case '/home':
