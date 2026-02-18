@@ -17,7 +17,11 @@ class SearchQueryChanged extends HomeEvent {
 }
 
 class LoadMoreRestaurants extends HomeEvent {
-  List<Object?> get props => [];
+  final int page;
+  final int pageSize;
+  const LoadMoreRestaurants({required this.page, required this.pageSize});
+  @override
+  List<Object?> get props => [page, pageSize];
 }
 
 class LoadListOfMenus extends HomeEvent {
@@ -34,5 +38,6 @@ class LoadRestaurants extends HomeEvent {
   final int pageSize;
 
   const LoadRestaurants({required this.page, required this.pageSize});
+  @override
   List<Object?> get props => [page, pageSize];
 }

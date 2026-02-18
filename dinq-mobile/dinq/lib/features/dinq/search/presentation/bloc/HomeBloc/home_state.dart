@@ -8,6 +8,7 @@ enum HomeStatus {
   success,
   empty,
   error,
+  loadingMore,
 }
 
 class HomeState extends Equatable {
@@ -17,15 +18,17 @@ class HomeState extends Equatable {
   final String query;
   final List<Menu> menus;
   final bool hasMore;
-
-  const HomeState({
-    this.status = HomeStatus.initial,
-    this.restaurants = const [],
-    this.errorMessage,
-    this.query = '',
-    this.menus = const [],
-    this.hasMore=false
-  });
+  final int currentPage;
+  final int totalPages;
+  const HomeState(
+      {this.status = HomeStatus.initial,
+      this.restaurants = const [],
+      this.errorMessage,
+      this.query = '',
+      this.menus = const [],
+      this.hasMore = false,
+      this.currentPage = 1,
+      this.totalPages = 0});
 
   HomeState copyWith({
     HomeStatus? status,
@@ -33,7 +36,9 @@ class HomeState extends Equatable {
     String? errorMessage,
     String? query,
     List<Menu>? menus,
-    bool? hasmore
+    bool? hasmore,
+    int? currentPage,
+    int? totalPages,
   }) {
     return HomeState(
         status: status ?? this.status,
@@ -41,11 +46,11 @@ class HomeState extends Equatable {
         errorMessage: errorMessage ?? this.errorMessage,
         query: query ?? this.query,
         menus: menus ?? this.menus,
-        hasMore: hasmore?? this.hasMore,
-        );
-
+        hasMore: hasmore ?? this.hasMore,
+        currentPage: currentPage ?? this.currentPage);
   }
 
   @override
-  List<Object?> get props => [status, restaurants, errorMessage, query, hasMore];
+  List<Object?> get props =>
+      [status, restaurants, errorMessage, query, hasMore, currentPage, menus];
 }

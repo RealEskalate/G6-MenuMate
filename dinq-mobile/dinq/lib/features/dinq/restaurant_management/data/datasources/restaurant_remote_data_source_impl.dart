@@ -113,7 +113,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   @override
   Future<List<RestaurantModel>> getRestaurants({
     int page = 1,
-    int pageSize = 20,
+    int pageSize = 7,
   }) async {
     try {
       final uri = Uri.parse('$baseUrl/restaurants').replace(

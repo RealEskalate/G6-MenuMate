@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../../../core/error/failures.dart';
 import '../../../../restaurant_management/domain/usecases/restaurant/get_list_menus.dart';
 import '../../../../restaurant_management/domain/usecases/restaurant/get_restaurants.dart';
 import '../../../../restaurant_management/domain/usecases/restaurant/search_restaurants.dart';
@@ -46,8 +47,23 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   // }
   Future<void> _onLoadMoreRestaurants(
       LoadMoreRestaurants event, Emitter<HomeState> emit) async {
-    emit(state.copyWith(status: HomeStatus.loading));
-    
+    if (!state.hasMore || state.status == HomeStatus.loading) return;
+    emit(state.copyWith(status: HomeStatus.loadingMore));
+
+    final nextpage = state.currentPage + 1;
+    final params =
+        GetRestaurantsParams(page: nextpage, pageSize: event.pageSize);
+    final result = await getRestaurants(params);
+    result.fold((failure) {
+      emit(state.copyWith(
+          status: HomeStatus.error, errorMessage: failure.message));
+    }, (restaurants) {
+      if (restaurants.isEmpty) {
+        emit(state.copyWith(status: HomeStatus.empty));
+      } else {
+        emit(state.copyWith(status: HomeStatus.success, restaurants: ));
+      }
+    });
   }
 
   // Load all restaurants on page load
