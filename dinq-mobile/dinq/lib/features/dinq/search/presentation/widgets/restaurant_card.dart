@@ -45,25 +45,25 @@ class RestaurantCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image
+          // Bigger Image
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
               imageUrl,
-              width: 80,
-              height: 80,
+              width: 100, // wider
+              height: 100, // taller
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
-                width: 80,
-                height: 80,
+                width: 100,
+                height: 100,
                 color: Colors.grey.shade200,
-                child: const Icon(Icons.restaurant, color: Colors.grey),
+                child: const Icon(Icons.restaurant, color: Colors.grey, size: 40),
               ),
             ),
           ),
           const SizedBox(width: 12),
 
-          // Name, cuisine, rating
+          // Name, cuisine, rating and button column
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,10 +73,11 @@ class RestaurantCard extends StatelessWidget {
                   name,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 18, // larger font
                   ),
                 ),
                 const SizedBox(height: 4),
+
                 // Cuisine / Distance / Time row
                 Row(
                   children: [
@@ -111,9 +112,12 @@ class RestaurantCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // Rating badge
+
+                // Rating badge + View Menu button
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    // Rating badge
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
@@ -139,27 +143,29 @@ class RestaurantCard extends StatelessWidget {
                         ],
                       ),
                     ),
+
+                    // Small View Menu button next to rating
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6), // smaller
+                        elevation: 0,
+                      ),
+                      onPressed: onViewMenu,
+                      child: const Text(
+                        'View Menu',
+                        style: TextStyle(fontSize: 12), // smaller text
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
-          ),
-
-          const SizedBox(width: 12),
-
-          // View Menu button
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              elevation: 0,
-            ),
-            onPressed: onViewMenu,
-            child: const Text('View Menu'),
           ),
         ],
       ),
