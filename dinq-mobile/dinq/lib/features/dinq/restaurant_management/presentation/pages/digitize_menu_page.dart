@@ -241,7 +241,7 @@ class _DigitizeMenuPageState extends State<DigitizeMenuPage> {
                 style: BorderStyle.solid,
               ),
               borderRadius: BorderRadius.circular(16),
-              color: Theme.of(context).cardColor,
+              color: Colors.white,
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

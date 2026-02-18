@@ -207,7 +207,7 @@ class _RestaurantPageState extends State<RestaurantPage>
       controller: _tabController,
       children: categories.map<Widget>((cat) {
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(8),
           itemCount: cat.items.length,
           itemBuilder: (context, idx) {
             final item = cat.items[idx];

@@ -376,7 +376,7 @@ class _EditUploadedMenuPageState extends State<EditUploadedMenuPage> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          color:Colors.white,
           border: const Border(
             top: BorderSide(color: Color(0xFFEAEAEA), width: 1),
           ),
