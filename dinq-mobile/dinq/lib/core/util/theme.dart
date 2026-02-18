@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   // static const primaryColor = Color.fromARGB(255, 247, 115, 8);
-  static const primaryColor = Color.fromARGB(255, 241, 110, 54);
+  // static const primaryColor = Color.fromARGB(249, 115, 22, 1);
+  static const primaryColor = Color.fromARGB(255, 249, 115, 22);
+
   static const secondaryColor = Color(0xFF374151);
   static const whiteColor = Color(0xFFFFFFFF);
 }
