@@ -26,7 +26,7 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   });
 
   @override
-  Future<Either<Failure, RestaurantPageResponse>> getListOfMenus(String slug) async {
+  Future<Either<Failure, List<MenuModel>>> getListOfMenus(String slug) async {
     final connected = await network.isConnected;
     print('[Reop] getListOfMenus - isconnected = $connected');
     try {

@@ -30,7 +30,7 @@ abstract class RestaurantRemoteDataSource {
   Future<MenuModel> getMenu(String menuId);
   Future<void> deleteMenu(String menuId);
   Future<MenuModel> updateMenu(MenuModel menu);
-  Future<RestaurantPageResponse> getListOfMenues(String slug); // Review
+  Future<List<MenuModel>> getListOfMenues(String slug); // Review
   Future<List<ReviewModel>> getReviews(String itemId);
   Future<void> deleteReview(String reviewId);
 
