@@ -4,6 +4,7 @@ import '../../../../../core/util/theme.dart';
 import '../../../../../injection_container.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../bloc/HomeBloc/home_bloc.dart';
+import '../bloc/HomeBloc/home_event.dart';
 import '../bloc/HomeBloc/home_state.dart';
 import '../bloc/Menu_bloc/menu_bloc.dart';
 import '../widgets/popular_dish_card.dart';
@@ -205,14 +206,19 @@ class _HomePageState extends State<HomePage>
                                 );
                               },
                             );
-                          } else if (i == restaurants.length + 1) {
+                          } else if (i == restaurants.length + 1 && ) {
                             return Center(
                               child: TextButton(
-                                  onPressed: context.read<HomeBloc>().add(),
-                                  child: const Text(("Load More"))),
+                                  onPressed: () {
+                                    context
+                                        .read<HomeBloc>()
+                                        .add(const LoadMoreRestaurants(pageSize: 10));
+                                  },
+                                  child: const Text(('Load More Restaurants'))),
                             );
+                          }else if(i==restaurants.length+1){
 
-                          } else {
+                          }else {
                             // Popular Dishes
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

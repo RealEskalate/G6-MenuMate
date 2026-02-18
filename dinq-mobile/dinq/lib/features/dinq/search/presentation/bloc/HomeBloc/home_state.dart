@@ -17,7 +17,6 @@ class HomeState extends Equatable {
   final String? errorMessage;
   final String query;
   final List<Menu> menus;
-  final bool hasMore;
   final int currentPage;
   final int totalPages;
   const HomeState(
@@ -26,7 +25,6 @@ class HomeState extends Equatable {
       this.errorMessage,
       this.query = '',
       this.menus = const [],
-      this.hasMore = false,
       this.currentPage = 1,
       this.totalPages = 0});
 
@@ -46,11 +44,11 @@ class HomeState extends Equatable {
         errorMessage: errorMessage ?? this.errorMessage,
         query: query ?? this.query,
         menus: menus ?? this.menus,
-        hasMore: hasmore ?? this.hasMore,
+        totalPages:  totalPages?? this.totalPages,
         currentPage: currentPage ?? this.currentPage);
   }
 
   @override
   List<Object?> get props =>
-      [status, restaurants, errorMessage, query, hasMore, currentPage, menus];
+      [status, restaurants, errorMessage, query, totalPages,currentPage, menus];
 }

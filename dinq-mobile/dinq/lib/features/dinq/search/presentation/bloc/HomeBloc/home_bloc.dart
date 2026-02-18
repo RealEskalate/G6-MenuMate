@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../../core/error/failures.dart';
+import '../../../../restaurant_management/domain/entities/restaurant.dart';
 import '../../../../restaurant_management/domain/usecases/restaurant/get_list_menus.dart';
 import '../../../../restaurant_management/domain/usecases/restaurant/get_restaurants.dart';
 import '../../../../restaurant_management/domain/usecases/restaurant/search_restaurants.dart';
@@ -27,27 +28,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     // on<LoadListOfMenus>(_onLoadListOfMenus);
   }
 
-  // Future<void> _onLoadListOfMenus(
-  //     LoadListOfMenus event, Emitter<HomeState> emit) async {
-  //   emit(state.copyWith(status: HomeStatus.loading));
-  //   final params = GetListMenusParams(slug: event.slug);
-  //   final result = await getListMenus(params);
-  //   result.fold((failure) {
-  //     emit(state.copyWith(
-  //       status: HomeStatus.error,
-  //       errorMessage: failure.message,
-  //     ));
-  //   }, (menus) {
-  //     if (menus.isEmpty) {
-  //       emit(state.copyWith(status: HomeStatus.empty));
-  //     } else {
-  //       emit(state.copyWith(status: HomeStatus.success, Menus:menus));
-  //     }
-  //   });
-  // }
-  Future<void> _onLoadMoreRestaurants(
+ Future<void> _onLoadMoreRestaurants(
       LoadMoreRestaurants event, Emitter<HomeState> emit) async {
-    if (!state.hasMore || state.status == HomeStatus.loading) return;
+    if (state.status == HomeStatus.loading) return;
     emit(state.copyWith(status: HomeStatus.loadingMore));
 
     final nextpage = state.currentPage + 1;
@@ -61,7 +44,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       if (restaurants.isEmpty) {
         emit(state.copyWith(status: HomeStatus.empty));
       } else {
-        emit(state.copyWith(status: HomeStatus.success, restaurants: ));
+        List<Restaurant> updatedList = List.from(state.restaurants)..addAll(restaurants);
+        emit(state.copyWith(status: HomeStatus.success, restaurants:updatedList, currentPage: nextpage ));
       }
     });
   }
@@ -87,6 +71,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         } else {
           emit(state.copyWith(
             status: HomeStatus.success,
+            
             restaurants: restaurants,
           ));
         }
