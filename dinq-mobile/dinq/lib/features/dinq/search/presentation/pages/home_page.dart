@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/util/theme.dart';
 import '../../../../../injection_container.dart';
-import '../../../restaurant_management/presentation/bloc/restaurant_bloc.dart';
-import '../../../restaurant_management/presentation/pages/restaurant_details_page.dart';
 import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../bloc/HomeBloc/home_bloc.dart';
 import '../bloc/HomeBloc/home_state.dart';
@@ -24,37 +22,13 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
-  final List<String> tabs = ['All', 'Nearby', 'Favorites', 'Registered'];
-
-  final List<Map<String, dynamic>> popularDishes = [
-    {
-      'imageUrl': 'https://via.placeholder.com/140x100',
-      'name': 'Spicy Ramen',
-      'restaurant': 'Noodle House',
-      'price': '\$9.99',
-      'rating': 4.5,
-    },
-    {
-      'imageUrl': 'https://via.placeholder.com/140x100',
-      'name': 'Margherita Pizza',
-      'restaurant': 'Pizzeria Uno',
-      'price': '\$12.50',
-      'rating': 4.7,
-    },
-    {
-      'imageUrl': 'https://via.placeholder.com/140x100',
-      'name': 'Chicken Biryani',
-      'restaurant': 'Spice Villa',
-      'price': '\$10.00',
-      'rating': 4.6,
-    },
-    {
-      'imageUrl': 'https://via.placeholder.com/140x100',
-      'name': 'Sushi Platter',
-      'restaurant': 'Sakura',
-      'price': '\$18.00',
-      'rating': 4.8,
-    },
+  final List<String> tabs = [
+    'All',
+    'Nearby',
+    'Favorites',
+    'Registered',
+    'Top Rated',
+    'Desserts'
   ];
 
   @override
@@ -72,15 +46,32 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 
+  Color _tabBackground(bool isActive, bool isDark) {
+    if (isActive) {
+      return const Color(0xFFF97316); // orange-500
+    }
+    return isDark
+        ? const Color(0xFF1F2937) // gray-800
+        : const Color(0xFFF3F4F6); // gray-100
+  }
+
+  Color _tabTextColor(bool isActive, bool isDark) {
+    if (isActive) return Colors.white;
+    return isDark
+        ? const Color(0xFF9CA3AF) // gray-400
+        : const Color(0xFF4B5563); // gray-600
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black87,
-        centerTitle: false,
         leadingWidth: 120,
         leading: Padding(
           padding: const EdgeInsets.only(left: 16),
@@ -105,103 +96,113 @@ class _HomePageState extends State<HomePage>
       body: Column(
         children: [
           const SizedBox(height: 8),
+
+          // 🔥 Tabs
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SizedBox(
               height: 40,
-              child: AnimatedBuilder(
-                animation: _tabController.animation!,
-                builder: (context, _) {
-                  final animValue = _tabController.animation!.value;
-                  return TabBar(
-                    controller: _tabController,
-                    isScrollable: true,
-                    indicator: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    indicatorPadding: EdgeInsets.zero,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.grey[800],
-                    labelStyle: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 13),
-                    unselectedLabelStyle: const TextStyle(
-                        fontWeight: FontWeight.w500, fontSize: 13),
-                    tabs: tabs.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final tab = entry.value;
-                      final factor = (animValue - index).abs().clamp(0.0, 1.0);
-                      final bgColor = Color.lerp(
-                          Colors.transparent, Colors.grey[300], factor);
-                      final textColor =
-                          Color.lerp(Colors.white, Colors.grey[800], factor);
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                indicatorColor: Colors.transparent,
+                dividerColor: Colors.transparent,
+                tabs: List.generate(tabs.length, (index) {
+                  final isActive = _tabController.index == index;
 
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 6),
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: bgColor,
-                          borderRadius: BorderRadius.circular(20),
+                  return GestureDetector(
+                    onTap: () => _tabController.animateTo(index),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: _tabBackground(isActive, isDark),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        tabs[index],
+                        style: TextStyle(
+                          color: _tabTextColor(isActive, isDark),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
                         ),
-                        child: Text(
-                          tab,
-                          style: TextStyle(color: textColor),
-                        ),
-                      );
-                    }).toList(),
+                      ),
+                    ),
                   );
-                },
+                }),
               ),
             ),
           ),
+
           const SizedBox(height: 8),
 
-          // Expanded main content
+          // Main Content
           Expanded(
-            child: Column(
-              children: [
-                // Restaurants Tab
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: List.generate(tabs.length, (index) {
-                      if (index == 0) {
-                        return BlocBuilder<HomeBloc, HomeState>(
-                          builder: (context, state) {
-                            final status = state.status;
-                            final restaurants = state.restaurants;
-                            final errorMessage = state.errorMessage;
+            child: TabBarView(
+              controller: _tabController,
+              children: List.generate(tabs.length, (index) {
+                if (index == 0) {
+                  return BlocBuilder<HomeBloc, HomeState>(
+                    builder: (context, state) {
+                      final restaurants = state.restaurants;
 
-                            if (status == null || status == HomeStatus.loading) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
-                            } else if (status == HomeStatus.error) {
-                              return Center(
-                                  child: Text(errorMessage ?? 'Error'));
-                            } else if (status == HomeStatus.empty ||
-                                restaurants.isEmpty) {
-                              return Center(
-                                child: Text(
-                                  'No results',
-                                  style: TextStyle(color: Colors.grey[600]),
+                      if (state.status == HomeStatus.loading) {
+                        return const Center(
+                            child: CircularProgressIndicator());
+                      }
+
+                      if (restaurants.isEmpty) {
+                        return const Center(child: Text('No results'));
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 🔥 Header Row
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Restaurants',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
                                 ),
-                              );
-                            }
+                                TextButton(
+                                  onPressed: () {
+                                    // Navigate to full restaurant list page
+                                  },
+                                  style: TextButton.styleFrom(
+                                    foregroundColor:
+                                        AppColors.primaryColor, // primary color
+                                  ),
+                                  child: const Text('See all'),
+                                ),
+                              ],
+                            ),
+                          ),
 
-                            return ListView.separated(
+                          // Restaurant List
+                          Expanded(
+                            child: ListView.separated(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 8),
                               itemCount: restaurants.length,
                               separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: 8),
                               itemBuilder: (_, i) {
                                 final r = restaurants[i];
                                 return RestaurantCard(
                                   imageUrl: (r.logoImage ?? r.coverImage) ?? '',
                                   name: r.restaurantName,
-                                  cuisine: (r.tags != null && r.tags!.isNotEmpty)
+                                  cuisine: (r.tags != null &&
+                                          r.tags!.isNotEmpty)
                                       ? r.tags!.first
                                       : '',
                                   distance: '',
@@ -212,84 +213,54 @@ class _HomePageState extends State<HomePage>
                                       MaterialPageRoute(
                                         builder: (_) => BlocProvider<MenuBloc>(
                                           create: (_) => sl<MenuBloc>(),
-                                          child:
-                                              RestaurantPage(restaurant: r),
+                                          child: RestaurantPage(
+                                              restaurant: r),
                                         ),
                                       ),
                                     );
                                   },
                                 );
                               },
-                            );
-                          },
-                        );
-                      } else {
-                        return Center(
-                          child: Text(
-                            'No items — data will come from backend filters later',
-                            style: TextStyle(color: Colors.grey[600]),
-                            textAlign: TextAlign.center,
-                          ),
-                        );
-                      }
-                    }),
-                  ),
-                ),
-
-                // Popular Dishes Section (separated visually)
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Popular dishes',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primaryColor,
-                                ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.primaryColor,
-                              minimumSize: Size.zero,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 0),
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            child: const Text('See all'),
                           ),
                         ],
+                      );
+                    },
+                  );
+                }
+
+                return const Center(
+                  child: Text(
+                    'No items — data will come later',
+                  ),
+                );
+              }),
+            ),
+          ),
+
+          // Popular Dishes
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Popular dishes',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
                       ),
-                      const SizedBox(height: 6),
-                      SizedBox(
-                        height: 170,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          itemCount: popularDishes.length,
-                          itemBuilder: (_, i) {
-                            final d = popularDishes[i];
-                            return PopularDishCard(
-                              imageUrl: d['imageUrl'] as String,
-                              name: d['name'] as String,
-                              restaurant: d['restaurant'] as String,
-                              price: d['price'] as String,
-                              rating: d['rating'] as double,
-                              onTap: () {},
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                ),
+                const SizedBox(height: 6),
+                SizedBox(
+                  height: 170,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 4,
+                    itemBuilder: (_, i) {
+                      return const SizedBox(); // replace with your PopularDishCard
+                    },
                   ),
                 ),
               ],
@@ -299,15 +270,6 @@ class _HomePageState extends State<HomePage>
       ),
       bottomNavigationBar:
           const OwnerNavBar(isRestaurantOwner: true, currentIndex: 0),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 20),
-        child: FloatingActionButton(
-          onPressed: () {},
-          backgroundColor: AppColors.primaryColor,
-          child: const Icon(Icons.qr_code_scanner, color: Colors.white),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }
