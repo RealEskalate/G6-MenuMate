@@ -16,6 +16,7 @@ class HomeState extends Equatable {
   final String? errorMessage;
   final String query;
   final List<Menu> menus;
+  final bool hasMore;
 
   const HomeState({
     this.status = HomeStatus.initial,
@@ -23,6 +24,7 @@ class HomeState extends Equatable {
     this.errorMessage,
     this.query = '',
     this.menus = const [],
+    this.hasMore=false
   });
 
   HomeState copyWith({
@@ -31,16 +33,19 @@ class HomeState extends Equatable {
     String? errorMessage,
     String? query,
     List<Menu>? menus,
+    bool? hasmore
   }) {
     return HomeState(
-      status: status ?? this.status,
-      restaurants: restaurants ?? this.restaurants,
-      errorMessage: errorMessage ?? this.errorMessage,
-      query: query ?? this.query,
-      menus: menus ?? this.menus
-    );
+        status: status ?? this.status,
+        restaurants: restaurants ?? this.restaurants,
+        errorMessage: errorMessage ?? this.errorMessage,
+        query: query ?? this.query,
+        menus: menus ?? this.menus,
+        hasMore: hasmore?? this.hasMore,
+        );
+
   }
 
   @override
-  List<Object?> get props => [status, restaurants, errorMessage, query];
+  List<Object?> get props => [status, restaurants, errorMessage, query, hasMore];
 }

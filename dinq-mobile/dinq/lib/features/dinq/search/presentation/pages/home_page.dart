@@ -108,7 +108,7 @@ class _HomePageState extends State<HomePage>
                     return GestureDetector(
                       onTap: () {
                         _tabController.animateTo(index,
-                            duration: const Duration(milliseconds: 200),
+                            duration: const Duration(milliseconds: 100),
                             curve: Curves.easeInOut);
                       },
                       child: Container(
@@ -149,8 +149,7 @@ class _HomePageState extends State<HomePage>
                       final restaurants = state.restaurants;
 
                       if (state.status == HomeStatus.loading) {
-                        return const Center(
-                            child: CircularProgressIndicator());
+                        return const Center(child: CircularProgressIndicator());
                       }
 
                       if (restaurants.isEmpty) {
@@ -206,6 +205,13 @@ class _HomePageState extends State<HomePage>
                                 );
                               },
                             );
+                          } else if (i == restaurants.length + 1) {
+                            return Center(
+                              child: TextButton(
+                                  onPressed: context.read<HomeBloc>().add(),
+                                  child: const Text(("Load More"))),
+                            );
+
                           } else {
                             // Popular Dishes
                             return Column(

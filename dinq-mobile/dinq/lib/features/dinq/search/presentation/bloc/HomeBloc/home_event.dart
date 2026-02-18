@@ -16,6 +16,10 @@ class SearchQueryChanged extends HomeEvent {
   List<Object?> get props => [query];
 }
 
+class LoadMoreRestaurants extends HomeEvent {
+  List<Object?> get props => [];
+}
+
 class LoadListOfMenus extends HomeEvent {
   final String slug;
   const LoadListOfMenus(this.slug);

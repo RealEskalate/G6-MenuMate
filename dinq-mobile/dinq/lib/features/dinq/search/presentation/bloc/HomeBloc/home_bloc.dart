@@ -22,6 +22,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<LoadRestaurants>(_onLoadRestaurants);
     on<SearchQueryChanged>(_onSearchChanged);
     on<ClearSearch>(_onClearSearch);
+    on<LoadMoreRestaurants>(_onLoadMoreRestaurants);
     // on<LoadListOfMenus>(_onLoadListOfMenus);
   }
 
@@ -43,6 +44,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   //     }
   //   });
   // }
+  Future<void> _onLoadMoreRestaurants(
+      LoadMoreRestaurants event, Emitter<HomeState> emit) async {
+    emit(state.copyWith(status: HomeStatus.loading));
+    
+  }
 
   // Load all restaurants on page load
   Future<void> _onLoadRestaurants(
