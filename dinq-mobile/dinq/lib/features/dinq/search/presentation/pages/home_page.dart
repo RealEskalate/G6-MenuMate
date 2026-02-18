@@ -125,9 +125,9 @@ class _HomePageState extends State<HomePage>
                     labelColor: Colors.white,
                     unselectedLabelColor: Colors.grey[800],
                     labelStyle: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 14),
+                        fontWeight: FontWeight.w600, fontSize: 13),
                     unselectedLabelStyle: const TextStyle(
-                        fontWeight: FontWeight.w500, fontSize: 14),
+                        fontWeight: FontWeight.w500, fontSize: 13),
                     tabs: tabs.asMap().entries.map((entry) {
                       final index = entry.key;
                       final tab = entry.value;
@@ -195,7 +195,7 @@ class _HomePageState extends State<HomePage>
                                   horizontal: 16, vertical: 8),
                               itemCount: restaurants.length,
                               separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: 2),
                               itemBuilder: (_, i) {
                                 final r = restaurants[i];
                                 return RestaurantCard(
