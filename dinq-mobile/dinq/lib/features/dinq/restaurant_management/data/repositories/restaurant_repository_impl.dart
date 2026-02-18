@@ -14,6 +14,7 @@ import '../../domain/entities/review.dart';
 import '../../domain/repositories/restaurant_repository.dart';
 import '../datasources/restaurant_remote_data_source.dart';
 import '../model/menu_model.dart';
+import '../model/restaurant_page_response.dart';
 
 class RestaurantRepositoryImpl implements RestaurantRepository {
   final RestaurantRemoteDataSource remoteDataSource;
@@ -25,7 +26,7 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   });
 
   @override
-  Future<Either<Failure, List<MenuModel>>> getListOfMenus(String slug) async {
+  Future<Either<Failure, RestaurantPageResponse>> getListOfMenus(String slug) async {
     final connected = await network.isConnected;
     print('[Reop] getListOfMenus - isconnected = $connected');
     try {

@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 
 import '../model/menu_model.dart';
 import '../model/restaurant_model.dart';
+import '../model/restaurant_page_response.dart';
 import '../model/review_model.dart';
 
 abstract class RestaurantRemoteDataSource {
@@ -29,7 +30,7 @@ abstract class RestaurantRemoteDataSource {
   Future<MenuModel> getMenu(String menuId);
   Future<void> deleteMenu(String menuId);
   Future<MenuModel> updateMenu(MenuModel menu);
-  Future<List<MenuModel>> getListOfMenues(String slug); // Review
+  Future<RestaurantPageResponse> getListOfMenues(String slug); // Review
   Future<List<ReviewModel>> getReviews(String itemId);
   Future<void> deleteReview(String reviewId);
 

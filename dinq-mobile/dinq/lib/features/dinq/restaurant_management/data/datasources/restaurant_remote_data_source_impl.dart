@@ -6,6 +6,7 @@ import '../../../../../core/constants/constants.dart';
 import '../../../../../core/error/exceptions.dart';
 import '../model/menu_model.dart';
 import '../model/restaurant_model.dart';
+import '../model/restaurant_page_response.dart';
 import '../model/review_model.dart';
 import 'restaurant_remote_data_source.dart';
 
@@ -16,7 +17,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
 
   RestaurantRemoteDataSourceImpl({required this.dio});
   @override
-  Future<List<MenuModel>> getListOfMenues(String slug) async {
+  Future<RestaurantPageResponse> getListOfMenues(String slug) async {
     try {
       final uri = Uri.parse('/menus/$slug');
       print(uri);

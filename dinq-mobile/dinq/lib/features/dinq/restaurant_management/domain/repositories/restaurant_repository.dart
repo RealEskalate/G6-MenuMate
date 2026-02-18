@@ -6,6 +6,7 @@ import 'package:fpdart/fpdart.dart';
 
 import '../../../../../core/error/failures.dart';
 import '../../data/model/menu_model.dart';
+import '../../data/model/restaurant_page_response.dart';
 import '../entities/menu.dart';
 import '../entities/restaurant.dart';
 import '../entities/review.dart';
@@ -35,6 +36,6 @@ abstract class RestaurantRepository {
   Future<Either<Failure, void>> deleteReview(String reviewId);
   // UserImage
   Future<Either<Failure, List<String>>> getUserImages(String slug);
-  Future<Either<Failure, List<MenuModel>>> getListOfMenus(String slug);
+  Future<Either<Failure,RestaurantPageResponse>> getListOfMenus(String slug);
   // Future<Either<Failure, void>> updateItem();
 }
