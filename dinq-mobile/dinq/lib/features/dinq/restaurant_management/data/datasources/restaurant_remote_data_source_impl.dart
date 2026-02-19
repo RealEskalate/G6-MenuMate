@@ -6,6 +6,7 @@ import '../../../../../core/constants/constants.dart';
 import '../../../../../core/error/exceptions.dart';
 import '../model/menu_model.dart';
 import '../model/restaurant_model.dart';
+import '../model/restaurant_page_response.dart';
 import '../model/review_model.dart';
 import 'restaurant_remote_data_source.dart';
 
@@ -111,7 +112,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
   }
 
   @override
-  Future<List<RestaurantModel>> getRestaurants({
+  Future<RestaurantPageResponse> getRestaurants({
     int page = 1,
     int pageSize = 20,
   }) async {
@@ -126,7 +127,9 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       final statusCode = response.statusCode;
       if (statusCode == 200) {
         final data = response.data['restaurants'] as List<dynamic>;
-        return data.map((json) => RestaurantModel.fromMap(json)).toList();
+        // return data.map((json) => RestaurantModel.fromMap(json)).toList();
+        return RestaurantPageResponse(restaurants: data.map(json)=>RestaurantModel.tolist, page: page, totalPages: totalPages, total: total)
+
       } else {
         throw ServerException(
           HttpErrorHandler.getExceptionMessage(

@@ -64,7 +64,7 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   }
 
   @override
-  Future<Either<Failure, List<Restaurant>>> getRestaurants({
+  Future<Either<Failure,RestaurantPageResponse>> getRestaurants({
     int page = 1,
     int pageSize = 20,
   }) async {

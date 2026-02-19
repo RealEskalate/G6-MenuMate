@@ -2,16 +2,17 @@ import 'package:fpdart/fpdart.dart';
 
 import '../../../../../../core/error/failures.dart';
 import '../../../../../../core/usecase/usecase.dart';
+import '../../../data/model/restaurant_page_response.dart';
 import '../../entities/restaurant.dart';
 import '../../repositories/restaurant_repository.dart';
 
-class GetRestaurants implements UseCase<List<Restaurant>, GetRestaurantsParams> {
+class GetRestaurants implements UseCase<RestaurantPageResponse, GetRestaurantsParams> {
   final RestaurantRepository repository;
 
   const GetRestaurants(this.repository);
 
   @override
-  Future<Either<Failure, List<Restaurant>>> call(GetRestaurantsParams params) async {
+  Future<Either<Failure, RestaurantPageResponse>> call(GetRestaurantsParams params) async {
     return await repository.getRestaurants(
       page: params.page,
       pageSize: params.pageSize,

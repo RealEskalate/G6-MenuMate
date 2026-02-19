@@ -15,7 +15,7 @@ import 'package:dio/dio.dart';
 abstract class RestaurantRepository {
   // Restaurant
   Future<Either<Failure, Restaurant>> createRestaurant(FormData restaurant);
-  Future<Either<Failure, List<Restaurant>>> getRestaurants({
+  Future<Either<Failure, RestaurantPageResponse>> getRestaurants({
     int page = 1,
     int pageSize = 20,
   });

@@ -9,7 +9,7 @@ import '../model/review_model.dart';
 abstract class RestaurantRemoteDataSource {
   // Restaurant
   Future<RestaurantModel> createRestaurant(FormData restaurant);
-  Future<List<RestaurantModel>> getRestaurants({
+  Future<RestaurantPageResponse> getRestaurants({
     int page = 1,
     int pageSize = 20,
   });
