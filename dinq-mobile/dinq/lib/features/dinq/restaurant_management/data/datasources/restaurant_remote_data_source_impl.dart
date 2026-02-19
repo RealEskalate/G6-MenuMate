@@ -128,7 +128,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
       if (statusCode == 200) {
         final data = response.data['restaurants'] as List<dynamic>;
         // return data.map((json) => RestaurantModel.fromMap(json)).toList();
-        return RestaurantPageResponse(restaurants: data.map(json)=>RestaurantModel.tolist, page: page, totalPages: totalPages, total: total)
+        return RestaurantPageResponse(restaurants:  data.map((json) => RestaurantModel.fromMap(json)).toList(), page: response.data['page'], totalPages: response.data[''], total: total)
 
       } else {
         throw ServerException(
