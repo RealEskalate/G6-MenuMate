@@ -64,16 +64,18 @@ class RestaurantRepositoryImpl implements RestaurantRepository {
   }
 
   @override
-  Future<Either<Failure,RestaurantPageResponse>> getRestaurants({
+  Future<Either<Failure, RestaurantPageResponse>> getRestaurants({
     int page = 1,
-    int pageSize = 20,
+    int pageSize = 10,
   }) async {
     final connected = await network.isConnected;
     print('[Repo] getRestaurants - isConnected=$connected');
     if (connected) {
       try {
-        final restaurants = await remoteDataSource.getRestaurants();
-        return Right(restaurants.map((model) => model.toEntity()).toList());
+        // final restaurants = await remoteDataSource.getRestaurants();
+        final restaurantPageResponse = await remoteDataSource.getRestaurants();
+        // return Right(restaurants.map((model) => model.toEntity()).toList());
+        return Right(restaurantPageResponse);
       } catch (e) {
         return Left(ExceptionMapper.toFailure(e as Exception));
       }

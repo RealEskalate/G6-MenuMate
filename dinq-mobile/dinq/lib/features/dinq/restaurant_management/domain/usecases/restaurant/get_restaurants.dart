@@ -24,5 +24,5 @@ class GetRestaurantsParams {
   final int page;
   final int pageSize;
 
-  const GetRestaurantsParams({this.page = 1, this.pageSize = 20});
+  const GetRestaurantsParams({this.page = 1, this.pageSize = 10});
 }

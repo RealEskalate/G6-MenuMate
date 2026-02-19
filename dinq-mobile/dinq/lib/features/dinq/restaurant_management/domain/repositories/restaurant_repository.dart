@@ -17,7 +17,7 @@ abstract class RestaurantRepository {
   Future<Either<Failure, Restaurant>> createRestaurant(FormData restaurant);
   Future<Either<Failure, RestaurantPageResponse>> getRestaurants({
     int page = 1,
-    int pageSize = 20,
+    int pageSize = 10,
   });
   Future<Either<Failure, Restaurant>> getRestaurantBySlug(String slug);
   Future<Either<Failure, Restaurant>> updateRestaurant(
