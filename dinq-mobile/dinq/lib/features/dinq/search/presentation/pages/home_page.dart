@@ -210,10 +210,15 @@ class _HomePageState extends State<HomePage>
                             return Center(
                               child: TextButton(
                                   onPressed: () {
+
                                     context
                                         .read<HomeBloc>()
                                         .add(const LoadMoreRestaurants(pageSize: 10));
                                   },
+
+                                    style: TextButton.styleFrom(
+                                    foregroundColor: AppColors.primaryColor),
+
                                   child: const Text(('Load More Restaurants'))),
                             );
                           }else if(i==restaurants.length+1){
