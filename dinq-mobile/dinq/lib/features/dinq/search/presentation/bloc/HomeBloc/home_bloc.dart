@@ -40,12 +40,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     result.fold((failure) {
       emit(state.copyWith(
           status: HomeStatus.error, errorMessage: failure.message));
-    }, (restaurants) {
-      if (restaurants.isEmpty) {
+    }, (restaurantsResponsePage) {
+      if (restaurantsResponsePage.restaurants.isEmpty) {
         emit(state.copyWith(status: HomeStatus.empty));
       } else {
-        List<Restaurant> updatedList = List.from(state.restaurants)..addAll(restaurants);
-        emit(state.copyWith(status: HomeStatus.success, restaurants:updatedList, currentPage: nextpage ));
+        List<Restaurant> updatedList = List.from(state.restaurants)..addAll(restaurantsResponsePage.restaurants);
+        emit(state.copyWith(status: HomeStatus.success, restaurants:updatedList, currentPage: restaurantsResponsePage.page, totalPages: restaurantsResponsePage.total ));
       }
     });
   }

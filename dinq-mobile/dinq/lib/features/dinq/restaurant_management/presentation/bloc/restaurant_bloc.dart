@@ -36,7 +36,7 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     required this.updateRestaurant,
     required this.deleteRestaurant,
   }) : super(const RestaurantInitial()) {
-    on<LoadRestaurants>(_onLoadRestaurants);
+    // on<LoadRestaurants>(_onLoadRestaurants);
     on<LoadMenu>(_onLoadMenu);
     on<LoadUserImages>(_onLoadUserImages);
     on<LoadReviews>(_onLoadReviews);
@@ -101,19 +101,19 @@ class RestaurantBloc extends Bloc<RestaurantEvent, RestaurantState> {
     );
   }
 
-  Future<void> _onLoadRestaurants(
-    LoadRestaurants event,
-    Emitter<RestaurantState> emit,
-  ) async {
-    emit(const RestaurantLoading());
+  // Future<void> _onLoadRestaurants(
+  //   LoadRestaurants event,
+  //   Emitter<RestaurantState> emit,
+  // ) async {
+  //   emit(const RestaurantLoading());
 
-    final params = GetRestaurantsParams();
-    final result = await getRestaurants(params);
-    result.fold(
-      (failure) => emit(RestaurantError(failure.message)),
-      (restaurants) => emit(RestaurantsLoaded(restaurants)),
-    );
-  }
+  //   final params = GetRestaurantsParams();
+  //   final result = await getRestaurants(params);
+  //   result.fold(
+  //     (failure) => emit(RestaurantError(failure.message)),
+  //     (restaurants) => emit(RestaurantsLoaded(restaurants)),
+  //   );
+  // }
 
   Future<void> _onLoadMenu(
     LoadMenu event,

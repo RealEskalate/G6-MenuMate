@@ -206,7 +206,7 @@ class _HomePageState extends State<HomePage>
                                 );
                               },
                             );
-                          } else if (i == restaurants.length + 1 && ) {
+                          } else if (i == restaurants.length + 1 && state.currentPage < state.totalPages ) {
                             return Center(
                               child: TextButton(
                                   onPressed: () {
