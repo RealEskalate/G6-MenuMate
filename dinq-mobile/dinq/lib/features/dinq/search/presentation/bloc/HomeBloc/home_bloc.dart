@@ -65,14 +65,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           errorMessage: failure.message,
         ));
       },
-      (restaurants) {
-        if (restaurants.isEmpty) {
+      (restaurantsPageResponse) {
+        if (restaurantsPageResponse.restaurants.isEmpty) {
           emit(state.copyWith(status: HomeStatus.empty));
         } else {
           emit(state.copyWith(
             status: HomeStatus.success,
-            
-            restaurants: restaurants,
+
+            restaurants: restaurantsPageResponse.restaurants,
+            totalPages: restaurantsPageResponse.total,
+            currentPage: restaurantsPageResponse.page,
           ));
         }
       },
