@@ -1,45 +1,24 @@
 import 'package:flutter/material.dart';
-class OwnerShell extends StatefulWidget {
+
+import 'features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
+import 'features/dinq/auth/presentation/bloc/registration/registration_state.dart';
+import 'features/dinq/restaurant_management/presentation/widgets/owner_navbar.dart';
+import 'features/dinq/search/presentation/pages/home_page.dart';
+
+class OwnerShell extends StatelessWidget {
   const OwnerShell({super.key});
 
   @override
-  State<OwnerShell> createState() => _OwnerShellState();
-}
-
-class _OwnerShellState extends State<OwnerShell> {
-  int _currentIndex = 0;
-
-  final List<Widget> _pages = const [
-    OwnerHomePage(),
-    ManageMenuPage(),
-    OwnerProfilePage(),
-  ];
-
-  @override
   Widget build(BuildContext context) {
+    final state = context.read<AuthBloc>().state;
+    final restaurantId =
+        (state is AuthLoggedIn) ? state.user.restaurantId : null;
+
     return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_menu),
-            label: 'Menu',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+      body: const HomePage(), // shared content
+      bottomNavigationBar: OwnerNavBar(
+        currentIndex: 0,
+        restaurantId: restaurantId,
       ),
     );
   }
