@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../../core/util/theme.dart';
-import '../../../../../injection_container.dart';
-import '../../../auth/presentation/bloc/registration/registration_bloc.dart';
-import '../../../restaurant_management/data/datasources/restaurant_remote_data_source_impl.dart';
-import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
-import '../bloc/HomeBloc/home_bloc.dart';
-import '../bloc/HomeBloc/home_event.dart';
-import '../bloc/HomeBloc/home_state.dart';
-import '../bloc/Menu_bloc/menu_bloc.dart';
-import '../widgets/popular_dish_card.dart';
-import '../widgets/restaurant_card.dart';
-import 'restaurant_page.dart';
-import 'search_page.dart';
+import '../../../../../../core/util/theme.dart';
+import '../../../../../../injection_container.dart';
+import '../../../../auth/presentation/bloc/registration/registration_bloc.dart';
+import '../../../../restaurant_management/data/datasources/restaurant_remote_data_source_impl.dart';
+import '../../../../restaurant_management/presentation/widgets/owner_navbar.dart';
+import '../../bloc/HomeBloc/home_bloc.dart';
+import '../../bloc/HomeBloc/home_event.dart';
+import '../../bloc/HomeBloc/home_state.dart';
+import '../../bloc/Menu_bloc/menu_bloc.dart';
+import '../../widgets/popular_dish_card.dart';
+import '../../widgets/restaurant_card.dart';
+import '../restaurant_page.dart';
+import '../search_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -293,9 +293,7 @@ class _HomePageState extends State<HomePage>
           ),
         ],
       ),
-      bottomNavigationBar:
-
-          const OwnerNavBar(isRestaurantOwner: , currentIndex: 0),
+      
     );
   }
 }

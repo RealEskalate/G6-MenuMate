@@ -7,7 +7,7 @@ import 'package:dinq/features/dinq/auth/presentation/Pages/onboarding_first.dart
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
 import 'package:iconsax/iconsax.dart';
 
-import '../../../search/presentation/pages/home_page.dart';
+import '../../../search/presentation/pages/shared/home_page.dart';
 
 class ResturantRegistration extends StatefulWidget {
   const ResturantRegistration({super.key});

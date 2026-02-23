@@ -3,7 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:dinq/core/util/theme.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/prefiled.dart';
 
-import '../../../search/presentation/pages/home_page.dart';
+import '../../../search/presentation/pages/shared/home_page.dart';
 
 class RestaurantData extends StatefulWidget {
   final String name;

@@ -150,7 +150,7 @@ class MenusPage extends StatelessWidget {
           ),
         ),
         bottomNavigationBar: OwnerNavBar(
-          isRestaurantOwner: true,
+          
           currentIndex: 3,
           restaurantId: restaurantId,
         ),

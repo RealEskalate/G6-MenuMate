@@ -6,6 +6,7 @@ import 'package:dinq/features/dinq/auth/presentation/Pages/forget_password_page.
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_TextFields.dart';
 import 'package:dinq/features/dinq/auth/presentation/widgets/Login_button.dart';
 
+import '../../../../../core/routing/app_gate.dart';
 import '../bloc/registration/registration_bloc.dart';
 import '../bloc/registration/registration_event.dart';
 import '../bloc/registration/registration_state.dart';
@@ -144,7 +145,14 @@ class _LoginPageState extends State<LoginPage>
           duration: Duration(seconds: 2),
         ),
       );
-      Navigator.pushReplacementNamed(context, '/explore');
+      // Navigator.pushReplacementNamed(context, '/explore');
+      Navigator.pushReplacementNamed(context,
+        MaterialPageRoute(builder: (_)=>AppGate()
+
+
+        )
+      );
+
     }  else if (state is AuthError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

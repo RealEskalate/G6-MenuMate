@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../customer_shell.dart';
 import '../../features/dinq/auth/presentation/Pages/login_page.dart';
 import '../../features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
 import '../../features/dinq/auth/presentation/bloc/registration/registration_state.dart';
+import '../../owner_shell.dart';
 
 class AppGate extends StatelessWidget {
   const AppGate({super.key});

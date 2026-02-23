@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../../../core/network/token_manager.dart';
-import '../../../../../core/routing/app_route.dart';
-import '../../../../../core/util/theme.dart';
-import '../../../restaurant_management/presentation/widgets/owner_navbar.dart';
-import '../widgets/bottom_navbar.dart';
+import '../../../../../../core/network/token_manager.dart';
+import '../../../../../../core/routing/app_route.dart';
+import '../../../../../../core/util/theme.dart';
+import '../../../../restaurant_management/presentation/widgets/owner_navbar.dart';
+import '../../widgets/bottom_navbar.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -188,7 +188,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: Colors.grey,
                   ),
                   onTap: () {
-                    
+
                   },
                 ),
                 const Divider(
@@ -237,10 +237,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      bottomNavigationBar: const OwnerNavBar(
-        currentIndex: 2,
-        isRestaurantOwner: true,
-      ),
+
     );
   }
 }

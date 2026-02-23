@@ -21,10 +21,10 @@ import '../../features/dinq/restaurant_management/presentation/pages/qr_customiz
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_details_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/restaurant_profile_page.dart';
 import '../../features/dinq/restaurant_management/presentation/pages/settings_page.dart';
-import '../../features/dinq/search/presentation/pages/favourites_page.dart';
-import '../../features/dinq/search/presentation/pages/home_page.dart';
+import '../../features/dinq/search/presentation/pages/shared/favourites_page.dart';
+import '../../features/dinq/search/presentation/pages/shared/home_page.dart';
 import '../../features/dinq/search/presentation/pages/item_details_page.dart';
-import '../../features/dinq/search/presentation/pages/profile_page.dart';
+import '../../features/dinq/search/presentation/pages/shared/profile_page.dart';
 import '../../features/dinq/search/presentation/pages/restaurant_page.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../injection_container.dart';
@@ -76,7 +76,7 @@ class AppRoute {
       case favorites:
         return MaterialPageRoute(
           builder: (_) => const FavouritesPage(
-            
+
           ),
         );
       case home:

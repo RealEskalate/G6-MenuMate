@@ -27,7 +27,7 @@ class SettingsPage extends StatelessWidget {
               Navigator.pushNamed(context, '/restaurant_profile');
             },
           ),
-          
+
           SettingsItem(
             title: 'User profile',
             leadingIcon: Icons.person,
@@ -36,7 +36,7 @@ class SettingsPage extends StatelessWidget {
               // Navigate to user profile page
             },
           ),
-          
+
           SettingsItem(
             title: 'Legal info',
             leadingIcon: Icons.gavel,
@@ -45,7 +45,7 @@ class SettingsPage extends StatelessWidget {
               Navigator.pushNamed(context, '/legal_info');
             },
           ),
-          
+
           SettingsItem(
             title: 'Branding & Menu preferences',
             leadingIcon: Icons.palette,
@@ -54,7 +54,7 @@ class SettingsPage extends StatelessWidget {
               Navigator.pushNamed(context, '/branding_preferences');
             },
           ),
-          
+
           SettingsItem(
             title: 'Billing',
             leadingIcon: Icons.payment,
@@ -63,11 +63,11 @@ class SettingsPage extends StatelessWidget {
               Navigator.pushNamed(context, '/billing');
             },
           ),
-          
+
         ],
       ),
       bottomNavigationBar:
-          const OwnerNavBar(currentIndex: 4, isRestaurantOwner: true),
+          const OwnerNavBar(currentIndex: 4, ),
     );
   }
 }

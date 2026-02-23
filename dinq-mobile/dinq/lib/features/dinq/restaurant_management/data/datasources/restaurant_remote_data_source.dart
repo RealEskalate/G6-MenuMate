@@ -33,7 +33,6 @@ abstract class RestaurantRemoteDataSource {
   Future<List<MenuModel>> getListOfMenues(String slug); // Review
   Future<List<ReviewModel>> getReviews(String itemId);
   Future<void> deleteReview(String reviewId);
-
   // UserImage
   Future<List<String>> getUserImages(String slug);
 }
