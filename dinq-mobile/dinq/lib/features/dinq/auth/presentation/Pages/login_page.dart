@@ -146,10 +146,8 @@ class _LoginPageState extends State<LoginPage>
         ),
       );
       // Navigator.pushReplacementNamed(context, '/explore');
-      Navigator.pushReplacementNamed(context,
-        MaterialPageRoute(builder: (_)=>AppGate()
-
-
+      Navigator.pushReplacement(context,
+        MaterialPageRoute(builder: (_)=>const AppGate()
         )
       );
 

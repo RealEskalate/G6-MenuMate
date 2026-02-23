@@ -1,9 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../../../core/network/token_manager.dart';
 import '../../../../../../core/routing/app_route.dart';
 import '../../../../../../core/util/theme.dart';
+import '../../../../auth/presentation/bloc/registration/registration_bloc.dart';
+import '../../../../auth/presentation/bloc/registration/registration_state.dart';
 import '../../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../../widgets/bottom_navbar.dart';
 
@@ -102,142 +105,157 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        children: [
-          const SizedBox(height: 16),
-          // Profile Picture
-          Center(
-            child: Stack(
-              children: [
-                CircleAvatar(
-                  radius: 48,
-                  backgroundImage: _selectedImage != null
-                      ? FileImage(_selectedImage!) as ImageProvider
-                      : const AssetImage('assets/images/profile.jpg'),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: GestureDetector(
-                    onTap: _showImageSourceDialog,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      padding: const EdgeInsets.all(4),
-                      child: const Icon(
-                        Icons.camera_alt,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Name & Email
-          const Center(
-            child: Column(
-              children: [
-                Text(
-                  'Sarah Johnson',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'sarah.johnson@email.com',
-                  style: TextStyle(color: Colors.grey, fontSize: 15),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          // Account Settings Card
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 3,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(
-                    Icons.lock,
-                    color: AppColors.primaryColor,
-                  ),
-                  title: const Text(
-                    'Change Password',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  trailing: const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 18,
-                    color: Colors.grey,
-                  ),
-                  onTap: () {
+      body: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          if (state is AuthLoggedIn) {
+            final user = state.user;
 
-                  },
+            return ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              children: [
+                const SizedBox(height: 16),
+                // Profile Picture
+                Center(
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 48,
+                        backgroundImage: _selectedImage != null
+                            ? FileImage(_selectedImage!) as ImageProvider
+                            : const AssetImage('assets/images/profile.jpg'),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: _showImageSourceDialog,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            padding: const EdgeInsets.all(4),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: Color(0xFFEAEAEA),
+                const SizedBox(height: 12),
+                // Name & Email
+                 Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        '${user.firstName ?? 'firstname'}  ${ user.lastName ?? 'lastname'} ',
+                        style:const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        user.email,
+                        style: const TextStyle(color: Colors.grey, fontSize: 15),
+                      ),
+                    ],
+                  ),
                 ),
-                ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text(
-                    'Sign Out',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.w500,
+                const SizedBox(height: 24),
+                // Account Settings Card
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 3,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(
+                          Icons.lock,
+                          color: AppColors.primaryColor,
+                        ),
+                        title: const Text(
+                          'Change Password',
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+                        onTap: () {},
+                      ),
+                      const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: Color(0xFFEAEAEA),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.red),
+                        title: const Text(
+                          'Sign Out',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        onTap: () async {
+                          await _logout(context);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // Save Changes Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      // TODO: Implement save changes
+                    },
+                    child: const Text(
+                      '✓ Save Changes',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
-                  onTap: () async {
-                    await _logout(context);
-                  },
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 32),
-          // Save Changes Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                elevation: 0,
-              ),
-              onPressed: () {
-                // TODO: Implement save changes
-              },
-              child: const Text(
-                '✓ Save Changes',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-            ),
-          ),
-        ],
+            );
+          }
+          if (state is AuthLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          return const Center(
+            child: Text('Not logged in'),
+          );
+        },
       ),
-
     );
   }
 }

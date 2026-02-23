@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/routing/app_route.dart';
 import '../../../../../core/util/theme.dart';
+import '../../../search/presentation/pages/customer/customer_favorites_page.dart';
+import '../../../search/presentation/pages/customer/customer_home_page.dart';
+import '../../../search/presentation/pages/customer/customer_profile_page.dart';
 
 class CustomerNavBar extends StatelessWidget {
   final int currentIndex; // which tab is active
@@ -15,15 +18,15 @@ class CustomerNavBar extends StatelessWidget {
 
     switch (index) {
       case 0:
-        Navigator.pushReplacementNamed(context, AppRoute.explore);
+        Navigator.pushReplacement(context,MaterialPageRoute(builder: (_)=>CustomerHomePage()));
         break;
 
       case 1:
-        Navigator.pushReplacementNamed(context, AppRoute.favorites);
+        Navigator.pushReplacement(context,MaterialPageRoute(builder: (_)=>CustomerFavoritesPage()));
         break;
 
       case 2:
-        Navigator.pushReplacementNamed(context, AppRoute.profile);
+        Navigator.pushReplacement(context,MaterialPageRoute(builder: (_)=>CustomerProfilePage()));
         break;
     }
   }

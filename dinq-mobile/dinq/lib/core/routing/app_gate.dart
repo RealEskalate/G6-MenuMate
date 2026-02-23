@@ -19,7 +19,7 @@ class AppGate extends StatelessWidget {
         if (state is AuthLoggedIn ) {
           final user = state.user;
 
-          if (user.role == 'customer') {
+          if (user.role == 'CUSTOMER') {
             return const CustomerShell();
           } else {
             return const OwnerShell();
