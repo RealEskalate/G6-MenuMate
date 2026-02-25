@@ -1,6 +1,7 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import '../../../domain/entities/customer_registration.dart';
-
 
 abstract class AuthState extends Equatable {
   const AuthState();
@@ -27,6 +28,16 @@ class AuthRegistered extends AuthState {
 class AuthLoggedIn extends AuthState {
   final User user;
   const AuthLoggedIn({required this.user});
+
+  @override
+  List<Object?> get props => [user];
+}
+
+class AuthUpdate extends AuthState {
+  final String firstName;
+  final String lastName;
+  final File image;
+  const AuthUpdate({required this.firstName, r});
 
   @override
   List<Object?> get props => [user];

@@ -22,7 +22,11 @@ abstract class AuthRemoteDataSource {
     required String email,
     required String password,
   });
-
+  Future<Either<Failure, UserModel>> updateProfile({
+    required String firstName,
+    required String lastName,
+    File? image,
+  });
   Future<Either<Failure, void>> logout();
 
   Future<Either<Failure, void>> forgotPassword({required String email});
@@ -38,9 +42,5 @@ abstract class AuthRemoteDataSource {
   Future<Either<Failure, bool>> checkEmailAvailability(String email);
 
   Future<Either<Failure, bool>> checkPhoneAvailability(String phoneNumber);
-  Future<Either<Failure, UserModel>> updateProfile(
-    String firstName,
-    String lastName,
-    File? image,
-  );
+
 }

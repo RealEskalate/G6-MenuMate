@@ -45,31 +45,25 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
-
-
-
   @override
   Future<Either<Failure, UserModel>> updateProfile({
-    String? firstName,
-    String? lastName,
+    required String firstName,
+    required String lastName,
     File? image,
   }) async {
-
-
-  final response = await apiClient.patchMultipart(
-    'user/profile_update',
-    firstName: firstName,
-    lastName: lastName,
-    file: image,
-
-);
-final userResponse = UserModel.fromJson(response.data);
-return Right()
-
-
-
-
-}
+    try {
+      final response = await apiClient.patchMultipart(
+        'user/profile_update',
+        firstName: firstName,
+        lastName: lastName,
+        file: image,
+      );
+      final userResponse = UserModel.fromJson(response['data']);
+      return Right(userResponse);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 
   @override
   Future<Either<Failure, AuthResponse>> login({
@@ -86,7 +80,6 @@ return Right()
         },
       );
       print('in data source: ${response}');
-
 
       final authResponse = AuthResponse.fromJson(response);
       print('after data source: ${response}');

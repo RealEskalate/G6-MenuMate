@@ -1,7 +1,10 @@
 // lib/features/DineQ_App/auth/domain/repository/auth_repository.dart
+import 'dart:io';
+
 import 'package:fpdart/fpdart.dart';
 import '../../../../../core/error/failures.dart';
 import '../../data/entities/Auth_response.dart';
+import '../../data/models/user_model.dart';
 import '../entities/customer_registration.dart';
 
 abstract class AuthRepository {
@@ -19,6 +22,11 @@ abstract class AuthRepository {
   Future<Either<Failure, User>> login({
     required String email,
     required String password,
+  });
+  Future<Either<Failure, UserModel>> updateProfile({
+    required String firstName,
+    required String lastName,
+    File? image,
   });
 
   Future<Either<Failure, void>> logout();
