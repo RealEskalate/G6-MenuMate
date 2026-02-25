@@ -50,31 +50,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<Either<Failure, UserModel>> updateProfile({
-    String? firstName,
-    String? lastName,
+    String firstName,
+    String lastName,
     File? image,
   }) async {
-  final formData = FormData.fromMap({
-    "firstName": firstName,
-    "lastName": lastName,
-    if (image != null)
-      "profileImage": await MultipartFile.fromFile(
-        image.path,
-        filename: image.path.split('/').last,
-      ),
-  });
 
-  final response = await apiClient.putMultipart(
-  '/profile/update',
-  fields: {
-    "firstName": firstName,
-    "lastName": lastName,
-  },
-  file: image,
-  fileFieldName: "profileImage",
-);
 
-return UserModel.fromJson(response);
+  final response = await apiClient.patchMultipart(
+    'user/profile_update',
+    firstName: firstName,
+    lastName: lastName,
+    file: image,
+
+);}
 
   @override
   Future<Either<Failure, AuthResponse>> login({

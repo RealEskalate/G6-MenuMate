@@ -113,6 +113,83 @@ class ApiClient {
       );
     }
   }
+
+  Future<Map<String, dynamic>> patchMultipart(
+  String endpoint, {
+  String? firstName,
+  String? lastName,
+  File? file,
+  String fileFieldName = 'profileImage',
+  Map<String, String>? headers,
+}) async {
+  try {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    print('🌐 PATCH Multipart URL: $uri');
+
+    // Prevent empty update
+    if (firstName == null && lastName == null && file == null) {
+      throw ApiException(
+        message: 'No fields provided for update.',
+        statusCode: 400,
+      );
+    }
+
+    final request = http.MultipartRequest('PATCH', uri);
+
+    // Add auth headers
+    final authHeaders = await TokenManager.getAuthHeaders();
+    if (authHeaders != null) {
+      request.headers.addAll(authHeaders);
+    }
+
+    // Remove Content-Type if provided (multipart sets it automatically)
+    if (headers != null) {
+      final filteredHeaders = Map<String, String>.from(headers);
+      filteredHeaders.remove('Content-Type');
+      request.headers.addAll(filteredHeaders);
+    }
+
+    // Add optional text fields
+    if (firstName != null) {
+      request.fields['firstName'] = firstName;
+    }
+
+    if (lastName != null) {
+      request.fields['lastName'] = lastName;
+    }
+
+    // Add optional file
+    if (file != null) {
+      final fileName = file.path.split('/').last;
+      final fileBytes = await file.readAsBytes();
+      final contentType = _getContentType(fileName);
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          fileFieldName,
+          fileBytes,
+          filename: fileName,
+          contentType: contentType,
+        ),
+      );
+    }
+
+    print('📤 Fields: ${request.fields}');
+    print('📁 Files count: ${request.files.length}');
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    print('📥 PATCH Response - Status: ${response.statusCode}');
+    print('📄 Response body: ${response.body}');
+
+    return _handleResponse(response);
+  } catch (e) {
+    print('❌ PATCH Multipart failed: $e');
+    throw _handleError(e);
+  }
+}
+
   Future<Map<String, dynamic>> putMultipart(
   String endpoint, {
   required Map<String, String> fields,
