@@ -50,8 +50,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<Either<Failure, UserModel>> updateProfile({
-    String firstName,
-    String lastName,
+    String? firstName,
+    String? lastName,
     File? image,
   }) async {
 
@@ -62,7 +62,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     lastName: lastName,
     file: image,
 
-);}
+
+
+);
+final userResponse = UserModel.fromJson(response.data);
+return Right()
+
+
+
+
+}
 
   @override
   Future<Either<Failure, AuthResponse>> login({
