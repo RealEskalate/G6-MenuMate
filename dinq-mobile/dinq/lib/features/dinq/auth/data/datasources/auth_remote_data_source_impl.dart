@@ -62,8 +62,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     lastName: lastName,
     file: image,
 
-
-
 );
 final userResponse = UserModel.fromJson(response.data);
 return Right()
