@@ -9,6 +9,7 @@ class UserModel extends User {
     String? firstName,
     String? lastName,
     String? phoneNumber,
+    String? image,
   }) : super(
           id: id,
           username: username,
@@ -17,6 +18,7 @@ class UserModel extends User {
           firstName: firstName,
           lastName: lastName,
           phoneNumber: phoneNumber,
+          image: image
         );
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class UserModel extends User {
       firstName: json['first_name'],
       lastName: json['last_name'],
       phoneNumber: json['phone_number'] ?? '',
+      image: json['image'] ?? '',
     );
   }
   @override
@@ -41,6 +44,7 @@ class UserModel extends User {
       'first_name': firstName,
       'last_name': lastName,
       'phone_number': phoneNumber,
+      'image': image
     };
   }
 }

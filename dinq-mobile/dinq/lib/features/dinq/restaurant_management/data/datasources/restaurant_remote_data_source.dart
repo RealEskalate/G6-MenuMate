@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 
+import '../../../auth/data/models/user_model.dart';
 import '../model/menu_model.dart';
 import '../model/restaurant_model.dart';
 import '../model/restaurant_page_response.dart';
@@ -35,4 +36,5 @@ abstract class RestaurantRemoteDataSource {
   Future<void> deleteReview(String reviewId);
   // UserImage
   Future<List<String>> getUserImages(String slug);
+  Future<UserModel> updageUser(String firstName, String lastName,)
 }

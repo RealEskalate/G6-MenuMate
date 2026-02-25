@@ -5,6 +5,7 @@ class User {
   final String? firstName;
   final String? lastName;
   final String? phoneNumber;
+  final String? image;
   final String role;
 
   User({
@@ -15,6 +16,7 @@ class User {
     this.firstName,
     this.lastName,
     this.phoneNumber,
+    this.image
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class User {
       firstName: json['firstName'] as String?,
       lastName: json['lastName'] as String?,
       phoneNumber: json['phoneNumber'] as String?,
+      image:json['image'] as String?
     );
   }
 
@@ -38,6 +41,7 @@ class User {
       'firstName': firstName,
       'lastName': lastName,
       'phoneNumber': phoneNumber,
+      'image': image,
     };
   }
 }
