@@ -36,11 +36,11 @@ class AuthLoggedIn extends AuthState {
 class AuthUpdate extends AuthState {
   final String firstName;
   final String lastName;
-  final File image;
-  const AuthUpdate({required this.firstName, r});
+  final File? image;
+  const AuthUpdate({required this.firstName, required this.lastName, this.image});
 
   @override
-  List<Object?> get props => [user];
+  List<Object?> get props => [firstName, lastName, image];
 }
 
 // ✅ Logout success

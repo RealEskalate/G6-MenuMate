@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 
 abstract class AuthEvent extends Equatable {
@@ -29,8 +31,16 @@ class RegisterUserEvent extends AuthEvent {
   });
 
   @override
-  List<Object?> get props =>
-      [username, email, password, authProvider, role, firstName, lastName, phoneNumber];
+  List<Object?> get props => [
+        username,
+        email,
+        password,
+        authProvider,
+        role,
+        firstName,
+        lastName,
+        phoneNumber
+      ];
 }
 
 // ✅ Login
@@ -75,6 +85,16 @@ class CheckPhoneAvailabilityEvent extends AuthEvent {
 
   @override
   List<Object?> get props => [phoneNumber];
+}
+
+class UpdateUserProfileEvent extends AuthEvent {
+  final String firstName;
+  final String lastName;
+  final File? image;
+  const UpdateUserProfileEvent(
+      {required this.firstName, required this.lastName, this.image});
+  @override
+  List<Object?> get props => [firstName, lastName, image];
 }
 
 // ✅ Forgot Password
