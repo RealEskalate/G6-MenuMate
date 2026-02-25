@@ -36,5 +36,9 @@ abstract class RestaurantRemoteDataSource {
   Future<void> deleteReview(String reviewId);
   // UserImage
   Future<List<String>> getUserImages(String slug);
-  Future<UserModel> updageUser(String firstName, String lastName,)
+  Future<UserModel> updateProfile(
+    String firstName,
+    String lastName,
+    File? image,
+  );
 }
