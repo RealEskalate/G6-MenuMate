@@ -1,7 +1,10 @@
 // lib/features/DineQ_App/auth/data/datasources/auth_remote_data_source.dart
+import 'dart:io';
+
 import 'package:fpdart/fpdart.dart';
 import '../../../../../core/error/failures.dart';
 import '../entities/Auth_response.dart';
+import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<Either<Failure, AuthResponse>> register({
@@ -35,4 +38,9 @@ abstract class AuthRemoteDataSource {
   Future<Either<Failure, bool>> checkEmailAvailability(String email);
 
   Future<Either<Failure, bool>> checkPhoneAvailability(String phoneNumber);
+  Future<Either<Failure, UserModel>> updateProfile(
+    String firstName,
+    String lastName,
+    File? image,
+  );
 }

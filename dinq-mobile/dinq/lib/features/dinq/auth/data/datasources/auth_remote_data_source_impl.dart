@@ -1,7 +1,11 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import '../../../../../core/error/failures.dart';
 import '../../../../../core/network/api_client.dart';
 import '../entities/Auth_response.dart';
+import '../models/user_model.dart';
 import 'auth_remote_data_source.dart';
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -40,6 +44,37 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+
+
+
+  @override
+  Future<Either<Failure, UserModel>> updateProfile({
+    String? firstName,
+    String? lastName,
+    File? image,
+  }) async {
+  final formData = FormData.fromMap({
+    "firstName": firstName,
+    "lastName": lastName,
+    if (image != null)
+      "profileImage": await MultipartFile.fromFile(
+        image.path,
+        filename: image.path.split('/').last,
+      ),
+  });
+
+  final response = await apiClient.putMultipart(
+  '/profile/update',
+  fields: {
+    "firstName": firstName,
+    "lastName": lastName,
+  },
+  file: image,
+  fileFieldName: "profileImage",
+);
+
+return UserModel.fromJson(response);
 
   @override
   Future<Either<Failure, AuthResponse>> login({

@@ -639,27 +639,7 @@ class RestaurantRemoteDataSourceImpl implements RestaurantRemoteDataSource {
     }
   }
 
-  @override
-  Future<UserModel> updateProfile({
-    String? firstName,
-    String? lastName,
-    File? image,
-  }) async {
-  final formData = FormData.fromMap({
-    "firstName": firstName,
-    "lastName": lastName,
-    if (image != null)
-      "profileImage": await MultipartFile.fromFile(
-        image.path,
-        filename: image.path.split('/').last,
-      ),
-  });
 
-  final result = await dio.put(
-    '/users/update-profile',
-    data: formData,
-  );
-}
 
   @override
   Future<List<String>> getUserImages(String slug) async {

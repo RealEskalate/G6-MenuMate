@@ -113,7 +113,95 @@ class ApiClient {
       );
     }
   }
+  Future<Map<String, dynamic>> putMultipart(
+  String endpoint, {
+  required Map<String, String> fields,
+  File? file,
+  String fileFieldName = 'profileImage',
+  Map<String, String>? headers,
+}) async {
+  try {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    print('🌐 PUT Multipart URL: $uri');
 
+    final request = http.MultipartRequest('PUT', uri);
+
+    // Add auth headers
+    final authHeaders = await TokenManager.getAuthHeaders();
+    if (authHeaders != null) {
+      request.headers.addAll(authHeaders);
+    }
+
+    // Add extra headers (without Content-Type)
+    if (headers != null) {
+      final filteredHeaders = Map<String, String>.from(headers);
+      filteredHeaders.remove('Content-Type');
+      request.headers.addAll(filteredHeaders);
+    }
+
+    // Add text fields
+    request.fields.addAll(fields);
+    print('📋 Fields added: $fields');
+
+    // Add file if exists
+    if (file != null) {
+      final fileName = file.path.split('/').last;
+      final fileBytes = await file.readAsBytes();
+      final contentType = _getContentType(fileName);
+
+      final multipartFile = http.MultipartFile.fromBytes(
+        fileFieldName,
+        fileBytes,
+        filename: fileName,
+        contentType: contentType,
+      );
+
+      request.files.add(multipartFile);
+      print('📁 File added: $fileName');
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    print('📥 PUT Multipart Response - Status: ${response.statusCode}');
+    print('📄 Response body: ${response.body}');
+
+    return _handleResponse(response);
+  } catch (e) {
+    print('❌ PUT Multipart failed: $e');
+    throw _handleError(e);
+  }
+}
+Future<Map<String, dynamic>> put(
+  String endpoint, {
+  Map<String, String>? headers,
+  dynamic body,
+}) async {
+  try {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    print('🌐 PUT Request URL: $uri');
+
+    final requestHeaders = await _withDefaultHeaders(headers);
+    print('📋 Request headers: $requestHeaders');
+
+    final requestBody = body != null ? json.encode(body) : null;
+    print('📤 Request body: $requestBody');
+
+    final response = await client.put(
+      uri,
+      headers: requestHeaders,
+      body: requestBody,
+    );
+
+    print('📥 PUT Response - Status: ${response.statusCode}');
+    print('📄 PUT Response body: ${response.body}');
+
+    return _handleResponse(response);
+  } catch (e) {
+    print('❌ PUT Request failed: $e');
+    throw _handleError(e);
+  }
+}
   Future<Map<String, dynamic>> uploadFile(
     String endpoint,
     File file, {
