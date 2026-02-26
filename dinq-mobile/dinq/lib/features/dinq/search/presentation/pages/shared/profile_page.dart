@@ -21,6 +21,14 @@ class _ProfilePageState extends State<ProfilePage> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
+  late TextEditingController _firstNameController;
+  late TextEditingController _lastNameController;
+
+  String? _initialFirstName;
+  String? _initallastName;
+
+  bool _hasChanges = false;
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final pickedFile = await _picker.pickImage(source: source);
@@ -109,6 +117,8 @@ class _ProfilePageState extends State<ProfilePage> {
         builder: (context, state) {
           if (state is AuthLoggedIn) {
             final user = state.user;
+            _initialFirstName ??= user.firstName;
+            _init
 
             return ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -149,18 +159,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 12),
                 // Name & Email
-                 Center(
+                Center(
                   child: Column(
                     children: [
                       Text(
-                        '${user.firstName ?? 'firstname'}  ${ user.lastName ?? 'lastname'} ',
-                        style:const TextStyle(
+                        '${user.firstName ?? 'firstname'}  ${user.lastName ?? 'lastname'} ',
+                        style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 20),
                       ),
                       SizedBox(height: 4),
                       Text(
                         user.email,
-                        style: const TextStyle(color: Colors.grey, fontSize: 15),
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 15),
                       ),
                     ],
                   ),
@@ -235,7 +246,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     onPressed: () {
                       // TODO: Implement save changes
-
                     },
                     child: const Text(
                       '✓ Save Changes',
@@ -259,4 +269,4 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-}
+}

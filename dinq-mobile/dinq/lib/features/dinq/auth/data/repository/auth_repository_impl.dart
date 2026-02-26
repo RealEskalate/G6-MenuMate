@@ -21,7 +21,8 @@ class AuthRepositoryImpl implements AuthRepository {
     return TaskEither<Failure, UserModel>(() async {
       final result = await remoteDataSource.updateProfile(
           firstName: firstName, lastName: lastName, image: image);
-    });
+      return result;
+    }).run();
   }
 
   @override
