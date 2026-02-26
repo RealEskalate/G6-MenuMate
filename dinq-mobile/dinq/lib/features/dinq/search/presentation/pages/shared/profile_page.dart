@@ -7,7 +7,7 @@ import '../../../../../../core/routing/app_route.dart';
 import '../../../../../../core/util/theme.dart';
 import '../../../../auth/presentation/bloc/registration/registration_bloc.dart';
 import '../../../../auth/presentation/bloc/registration/registration_state.dart';
-import '../../../../restaurant_management/presentation/widgets/owner_navbar.dart';
+// import '../../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../../widgets/bottom_navbar.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -235,7 +235,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     onPressed: () {
                       // TODO: Implement save changes
-                      
+
                     },
                     child: const Text(
                       '✓ Save Changes',

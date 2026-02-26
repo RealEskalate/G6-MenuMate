@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dinq/core/network/token_manager.dart';
 import 'package:fpdart/fpdart.dart';
 import '../../../../../core/error/failures.dart';
@@ -9,6 +11,18 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
 
   AuthRepositoryImpl({required this.remoteDataSource});
+
+  @override
+  Future<Either<Failure, UserModel>> updateProfile({
+    required String firstName,
+    required String lastName,
+    File? image,
+  }) async {
+    return TaskEither<Failure, UserModel>(() async {
+      final result = await remoteDataSource.updateProfile(
+          firstName: firstName, lastName: lastName, image: image);
+    });
+  }
 
   @override
   Future<Either<Failure, UserModel>> register({
@@ -42,7 +56,6 @@ class AuthRepositoryImpl implements AuthRepository {
         // Return only the user
         return authResponse.userModel;
       });
-      
     }).run();
   }
 
@@ -52,7 +65,8 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) {
     return TaskEither<Failure, UserModel>(() async {
-      final result = await remoteDataSource.login(email: email, password: password);
+      final result =
+          await remoteDataSource.login(email: email, password: password);
 
       return result.map((authResponse) {
         TokenManager.saveTokens(
