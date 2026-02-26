@@ -11,6 +11,7 @@ import '../../../domain/usecases/check_user_name_availability.dart';
 import '../../../domain/usecases/forgot_password.dart';
 import '../../../domain/usecases/reset_password.dart';
 import '../../../domain/usecases/user_log_out.dart';
+import '../../../domain/usecases/user_profile_update.dart';
 import '../../../domain/usecases/user_sign_in.dart';
 import '../../../domain/usecases/user_sign_up.dart';
 import 'registration_event.dart';
@@ -25,22 +26,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final CheckPhoneAvailability checkPhoneAvailability;
   final ForgotPassword forgotPassword;
   final ResetPassword resetPassword;
+  final UserProfileUpdate userProfileUpdate;
 
-  AuthBloc({
-    required this.userSignUp,
-    required this.userSignIn,
-    required this.userLogout,
-    required this.checkUsernameAvailability,
-    required this.checkEmailAvailability,
-    required this.checkPhoneAvailability,
-    required this.forgotPassword,
-    required this.resetPassword,
-  }) : super(AuthInitial()) {
+  AuthBloc(
+      {required this.userSignUp,
+      required this.userSignIn,
+      required this.userLogout,
+      required this.checkUsernameAvailability,
+      required this.checkEmailAvailability,
+      required this.checkPhoneAvailability,
+      required this.forgotPassword,
+      required this.resetPassword,
+      required this.userProfileUpdate})
+      : super(AuthInitial()) {
     on<RegisterUserEvent>(_onRegisterUser);
     on<LoginUserEvent>(_onLoginUser);
     on<LogoutUserEvent>(_onLogoutUser);
     on<CheckUsernameAvailabilityEvent>(_onCheckUsernameAvailability);
     on<CheckEmailAvailabilityEvent>(_onCheckEmailAvailability);
+    on<UpdateUserProfileEvent>(_onUserProfileUpdate);
   }
 
   Future<void> _onRegisterUser(
@@ -131,6 +135,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       (failure) => emit(AuthError(message: _mapFailureToMessage(failure))),
       (isAvailable) => emit(EmailAvailable(isAvailable: isAvailable)),
     );
+  }
+
+  Future<void> _onUserProfileUpdate(
+    UpdateUserProfileEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    final result = await userProfileUpdate(
+      UserProfileUpdateParams(firstName: event.firstName, lastName: event.lastName)
+    );
+
+    result.fold(
+      (l) => ,
+      (r) =>
+
+      )
   }
 
   // Convert Failure into user-friendly messages
