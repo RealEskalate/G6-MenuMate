@@ -15,6 +15,7 @@ import 'features/dinq/auth/domain/usecases/check_user_name_availability.dart';
 import 'features/dinq/auth/domain/usecases/forgot_password.dart';
 import 'features/dinq/auth/domain/usecases/reset_password.dart';
 import 'features/dinq/auth/domain/usecases/user_log_out.dart';
+import 'features/dinq/auth/domain/usecases/user_profile_update.dart';
 import 'features/dinq/auth/domain/usecases/user_sign_in.dart';
 import 'features/dinq/auth/domain/usecases/user_sign_up.dart';
 import 'features/dinq/auth/presentation/bloc/registration/registration_bloc.dart';
@@ -54,6 +55,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => UserSignUp(sl()));
   sl.registerLazySingleton(() => UserSignIn(sl()));
   sl.registerLazySingleton(() => UserLogout(sl()));
+  sl.registerLazySingleton(()=> UserProfileUpdate(sl()));
   sl.registerLazySingleton(() => CheckUsernameAvailability(sl()));
   sl.registerLazySingleton(() => CheckEmailAvailability(sl()));
   sl.registerLazySingleton(() => CheckPhoneAvailability(sl()));
@@ -61,6 +63,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => ResetPassword(sl()));
 
   sl.registerFactory(() => AuthBloc(
+        userProfileUpdate:sl() ,
         userSignUp: sl(),
         userSignIn: sl(),
         userLogout: sl(),

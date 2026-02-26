@@ -33,14 +33,14 @@ class AuthLoggedIn extends AuthState {
   List<Object?> get props => [user];
 }
 
-class AuthProfileUpdated extends AuthState {
-  final User user;
+// class AuthProfileUpdated extends AuthState {
+//   final User user;
 
-  const AuthProfileUpdated({required this.user});
+//   const AuthProfileUpdated({required this.user});
 
-  @override
-  List<Object?> get props => [user];
-}
+//   @override
+//   List<Object?> get props => [user];
+// }
 
 // ✅ Logout success
 class AuthLoggedOut extends AuthState {}
