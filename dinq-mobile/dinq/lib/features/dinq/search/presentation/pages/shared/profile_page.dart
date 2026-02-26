@@ -6,6 +6,7 @@ import '../../../../../../core/network/token_manager.dart';
 import '../../../../../../core/routing/app_route.dart';
 import '../../../../../../core/util/theme.dart';
 import '../../../../auth/presentation/bloc/registration/registration_bloc.dart';
+import '../../../../auth/presentation/bloc/registration/registration_event.dart';
 import '../../../../auth/presentation/bloc/registration/registration_state.dart';
 // import '../../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../../widgets/bottom_navbar.dart';
@@ -25,7 +26,7 @@ class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _lastNameController;
 
   String? _initialFirstName;
-  String? _initallastName;
+  String? _initialLastName;
 
   bool _hasChanges = false;
 
@@ -37,9 +38,45 @@ class _ProfilePageState extends State<ProfilePage> {
           _selectedImage = File(pickedFile.path);
         });
       }
+      _checkForChanges();
     } catch (e) {
       // Handle error
       print('Error picking image: $e');
+    }
+  }
+  void _saveChanges() {
+  final updatedFirstName = _firstNameController.text.trim();
+  final updatedLastName = _lastNameController.text.trim();
+
+  context.read<AuthBloc>().add(
+        UpdateUserProfileEvent(
+          firstName: updatedFirstName,
+          lastName: updatedLastName,
+          image: _selectedImage,
+        ),
+      );
+
+  setState(() {
+    _initialFirstName = updatedFirstName;
+    _initialLastName = updatedLastName;
+    _selectedImage = null;
+    _hasChanges = false;
+  });
+}
+
+  void _checkForChanges() {
+    final firstChanged =
+        _firstNameController.text.trim() != (_initialFirstName ?? '');
+    final lastChanged =
+        _lastNameController.text.trim() != (_initialLastName ?? '');
+    final imageChanged = _selectedImage != null;
+
+    final hasChanges = firstChanged || lastChanged || imageChanged;
+
+    if (hasChanges != _hasChanges) {
+      setState(() {
+        _hasChanges = hasChanges;
+      });
     }
   }
 
@@ -118,7 +155,15 @@ class _ProfilePageState extends State<ProfilePage> {
           if (state is AuthLoggedIn) {
             final user = state.user;
             _initialFirstName ??= user.firstName;
-            _init
+            _initialFirstName ??= user.lastName;
+
+            _firstNameController ??=
+                TextEditingController(text: user.firstName ?? '');
+            _lastNameController ??=
+                TextEditingController(text: user.lastName ?? '');
+
+            _firstNameController.addListener(_checkForChanges);
+            _lastNameController.addListener(_checkForChanges);
 
             return ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -162,11 +207,38 @@ class _ProfilePageState extends State<ProfilePage> {
                 Center(
                   child: Column(
                     children: [
-                      Text(
-                        '${user.firstName ?? 'firstname'}  ${user.lastName ?? 'lastname'} ',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 20),
+                      // Text(
+                      //   '${user.firstName ?? 'firstname'}  ${user.lastName ?? 'lastname'} ',
+                      //   style: const TextStyle(
+                      //       fontWeight: FontWeight.bold, fontSize: 20),
+                      // ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: _firstNameController,
+                            decoration: const InputDecoration(
+                              labelText: 'First Name',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _lastNameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Last Name',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            user.email,
+                            style: const TextStyle(color: Colors.grey, fontSize: 15),
+                          ),
+                        ],
                       ),
+                    ),
                       SizedBox(height: 4),
                       Text(
                         user.email,
@@ -232,28 +304,48 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 32),
                 // Save Changes Button
+                // SizedBox(
+                //   width: double.infinity,
+                //   child: ElevatedButton(
+                //     style: ElevatedButton.styleFrom(
+                //       backgroundColor: AppColors.primaryColor,
+                //       foregroundColor: Colors.white,
+                //       padding: const EdgeInsets.symmetric(vertical: 16),
+                //       shape: RoundedRectangleBorder(
+                //         borderRadius: BorderRadius.circular(14),
+                //       ),
+                //       elevation: 0,
+                //     ),
+                //     onPressed: () {
+                //       // TODO: Implement save changes
+                //     },
+                //     child: const Text(
+                //       '✓ Save Changes',
+                //       style:
+                //           TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                //     ),
+                //   ),
+                // ),
                 SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 0,
-                    ),
-                    onPressed: () {
-                      // TODO: Implement save changes
-                    },
-                    child: const Text(
-                      '✓ Save Changes',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                  ),
-                ),
+  width: double.infinity,
+  child: ElevatedButton(
+    style: ElevatedButton.styleFrom(
+      backgroundColor:
+          _hasChanges ? AppColors.primaryColor : Colors.grey,
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      elevation: 0,
+    ),
+    onPressed: _hasChanges ? _saveChanges : null,
+    child: const Text(
+      '✓ Save Changes',
+      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+    ),
+  ),
+),
               ],
             );
           }
@@ -269,4 +361,4 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-}
+}
