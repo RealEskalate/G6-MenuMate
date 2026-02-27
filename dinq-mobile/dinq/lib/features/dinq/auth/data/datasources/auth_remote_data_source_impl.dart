@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:fpdart/fpdart.dart';
 import '../../../../../core/error/failures.dart';
 import '../../../../../core/network/api_client.dart';
+import '../../../../../core/network/api_exceptions.dart';
+import '../../presentation/bloc/registration/registration_bloc.dart';
 import '../entities/Auth_response.dart';
 import '../models/user_model.dart';
 import 'auth_remote_data_source.dart';
@@ -60,9 +62,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
       final userResponse = UserModel.fromJson(response['data']);
       return Right(userResponse);
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } on ApiException catch (e) {
+    return Left(ServerFailure('Failed to update profile: ${e.statusCode} ${e.message}'));
+  } catch (e) {
+    return Left(ServerFailure('Unexpected error: $e'));
+  }
   }
 
   @override

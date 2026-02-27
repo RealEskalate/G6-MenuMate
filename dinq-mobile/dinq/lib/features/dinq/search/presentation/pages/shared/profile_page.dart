@@ -19,6 +19,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
@@ -44,25 +45,26 @@ class _ProfilePageState extends State<ProfilePage> {
       print('Error picking image: $e');
     }
   }
+
   void _saveChanges() {
-  final updatedFirstName = _firstNameController.text.trim();
-  final updatedLastName = _lastNameController.text.trim();
+    final updatedFirstName = _firstNameController.text.trim();
+    final updatedLastName = _lastNameController.text.trim();
 
-  context.read<AuthBloc>().add(
-        UpdateUserProfileEvent(
-          firstName: updatedFirstName,
-          lastName: updatedLastName,
-          image: _selectedImage,
-        ),
-      );
+    context.read<AuthBloc>().add(
+          UpdateUserProfileEvent(
+            firstName: updatedFirstName,
+            lastName: updatedLastName,
+            image: _selectedImage,
+          ),
+        );
 
-  setState(() {
-    _initialFirstName = updatedFirstName;
-    _initialLastName = updatedLastName;
-    _selectedImage = null;
-    _hasChanges = false;
-  });
-}
+    setState(() {
+      _initialFirstName = updatedFirstName;
+      _initialLastName = updatedLastName;
+      _selectedImage = null;
+      _hasChanges = false;
+    });
+  }
 
   void _checkForChanges() {
     final firstChanged =
@@ -132,6 +134,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -152,6 +155,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
+
           if (state is AuthLoggedIn) {
             final user = state.user;
             _initialFirstName ??= user.firstName;
@@ -212,33 +216,34 @@ class _ProfilePageState extends State<ProfilePage> {
                       //   style: const TextStyle(
                       //       fontWeight: FontWeight.bold, fontSize: 20),
                       // ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Column(
-                        children: [
-                          TextField(
-                            controller: _firstNameController,
-                            decoration: const InputDecoration(
-                              labelText: 'First Name',
-                              border: OutlineInputBorder(),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(
+                          children: [
+                            TextField(
+                              controller: _firstNameController,
+                              decoration: const InputDecoration(
+                                labelText: 'First Name',
+                                border: OutlineInputBorder(),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _lastNameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Last Name',
-                              border: OutlineInputBorder(),
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: _lastNameController,
+                              decoration: const InputDecoration(
+                                labelText: 'Last Name',
+                                border: OutlineInputBorder(),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            user.email,
-                            style: const TextStyle(color: Colors.grey, fontSize: 15),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Text(
+                              user.email,
+                              style: const TextStyle(
+                                  color: Colors.grey, fontSize: 15),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                       SizedBox(height: 4),
                       Text(
                         user.email,
@@ -327,25 +332,26 @@ class _ProfilePageState extends State<ProfilePage> {
                 //   ),
                 // ),
                 SizedBox(
-  width: double.infinity,
-  child: ElevatedButton(
-    style: ElevatedButton.styleFrom(
-      backgroundColor:
-          _hasChanges ? AppColors.primaryColor : Colors.grey,
-      foregroundColor: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
-      elevation: 0,
-    ),
-    onPressed: _hasChanges ? _saveChanges : null,
-    child: const Text(
-      '✓ Save Changes',
-      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-    ),
-  ),
-),
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          _hasChanges ? AppColors.primaryColor : Colors.grey,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: _hasChanges ? _saveChanges : null,
+                    child: const Text(
+                      '✓ Save Changes',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ),
+                ),
               ],
             );
           }
@@ -353,6 +359,11 @@ class _ProfilePageState extends State<ProfilePage> {
             return const Center(
               child: CircularProgressIndicator(),
             );
+          }
+          if (state is AuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Failed to update profile')));
+            context.read<AuthBloc>().emit(AuthLoggedIn(user: user));
           }
           return const Center(
             child: Text('Not logged in'),
