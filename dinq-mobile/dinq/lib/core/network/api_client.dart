@@ -119,7 +119,7 @@ class ApiClient {
   String? firstName,
   String? lastName,
   File? file,
-  String fileFieldName = 'profileImage',
+  String fileFieldName = 'profile_image',
   Map<String, String>? headers,
 }) async {
   try {
@@ -151,11 +151,11 @@ class ApiClient {
 
     // Add optional text fields
     if (firstName != null) {
-      request.fields['firstName'] = firstName;
+      request.fields['first_name'] = firstName;
     }
 
     if (lastName != null) {
-      request.fields['lastName'] = lastName;
+      request.fields['last_name'] = lastName;
     }
 
     // Add optional file
