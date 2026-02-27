@@ -115,170 +115,173 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> patchMultipart(
-  String endpoint, {
-  String? firstName,
-  String? lastName,
-  File? file,
-  String fileFieldName = 'profile_image',
-  Map<String, String>? headers,
-}) async {
-  try {
-    final uri = Uri.parse('$baseUrl$endpoint');
-    print('🌐 PATCH Multipart URL: $uri');
+    String endpoint, {
+    String? firstName,
+    String? lastName,
+    File? file,
+    String fileFieldName = 'profile_image',
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl$endpoint');
+      print('🌐 PATCH Multipart URL: $uri');
 
-    // Prevent empty update
-    if (firstName == null && lastName == null && file == null) {
-      throw ApiException(
-        message: 'No fields provided for update.',
-        statusCode: 400,
-      );
+      // Prevent empty update
+      if (firstName == null && lastName == null && file == null) {
+        throw ApiException(
+          message: 'No fields provided for update.',
+          statusCode: 400,
+        );
+      }
+
+      final request = http.MultipartRequest('PATCH', uri);
+
+      // Add auth headers
+      final authHeaders = await TokenManager.getAuthHeaders();
+      if (authHeaders != null) {
+        request.headers.addAll(authHeaders);
+      }
+
+      // Remove Content-Type if provided (multipart sets it automatically)
+      if (headers != null) {
+        final filteredHeaders = Map<String, String>.from(headers);
+        filteredHeaders.remove('Content-Type');
+        request.headers.addAll(filteredHeaders);
+      }
+
+      // Add optional text fields
+      if (firstName != null) {
+        request.fields['first_name'] = firstName;
+      }
+
+      if (lastName != null) {
+        request.fields['last_name'] = lastName;
+      }
+
+      // Add optional file
+      if (file != null) {
+        final fileName = file.path.split('/').last;
+        final fileBytes = await file.readAsBytes();
+        final contentType = _getContentType(fileName);
+
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            fileFieldName,
+            fileBytes,
+            filename: fileName,
+            contentType: contentType,
+          ),
+        );
+      }
+
+      print('📤 Fields: ${request.fields}');
+      print('📁 Files count: ${request.files.length}');
+      print('headers: ${request.headers}');
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('📥 PATCH Response - Status: ${response.statusCode}');
+      print('📄 Response body: ${response.body}');
+
+      return _handleResponse(response);
+    } catch (e) {
+      print('❌ PATCH Multipart failed: $e');
+      throw _handleError(e);
     }
+  }
 
-    final request = http.MultipartRequest('PATCH', uri);
+  Future<Map<String, dynamic>> putMultipart(
+    String endpoint, {
+    required Map<String, String> fields,
+    File? file,
+    String fileFieldName = 'profileImage',
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl$endpoint');
+      print('🌐 PUT Multipart URL: $uri');
 
-    // Add auth headers
-    final authHeaders = await TokenManager.getAuthHeaders();
-    if (authHeaders != null) {
-      request.headers.addAll(authHeaders);
-    }
+      final request = http.MultipartRequest('PUT', uri);
 
-    // Remove Content-Type if provided (multipart sets it automatically)
-    if (headers != null) {
-      final filteredHeaders = Map<String, String>.from(headers);
-      filteredHeaders.remove('Content-Type');
-      request.headers.addAll(filteredHeaders);
-    }
+      // Add auth headers
+      final authHeaders = await TokenManager.getAuthHeaders();
+      if (authHeaders != null) {
+        request.headers.addAll(authHeaders);
+      }
 
-    // Add optional text fields
-    if (firstName != null) {
-      request.fields['first_name'] = firstName;
-    }
+      // Add extra headers (without Content-Type)
+      if (headers != null) {
+        final filteredHeaders = Map<String, String>.from(headers);
+        filteredHeaders.remove('Content-Type');
+        request.headers.addAll(filteredHeaders);
+      }
 
-    if (lastName != null) {
-      request.fields['last_name'] = lastName;
-    }
+      // Add text fields
+      request.fields.addAll(fields);
+      print('📋 Fields added: $fields');
 
-    // Add optional file
-    if (file != null) {
-      final fileName = file.path.split('/').last;
-      final fileBytes = await file.readAsBytes();
-      final contentType = _getContentType(fileName);
+      // Add file if exists
+      if (file != null) {
+        final fileName = file.path.split('/').last;
+        final fileBytes = await file.readAsBytes();
+        final contentType = _getContentType(fileName);
 
-      request.files.add(
-        http.MultipartFile.fromBytes(
+        final multipartFile = http.MultipartFile.fromBytes(
           fileFieldName,
           fileBytes,
           filename: fileName,
           contentType: contentType,
-        ),
-      );
+        );
+
+        request.files.add(multipartFile);
+        print('📁 File added: $fileName');
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('📥 PUT Multipart Response - Status: ${response.statusCode}');
+      print('📄 Response body: ${response.body}');
+
+      return _handleResponse(response);
+    } catch (e) {
+      print('❌ PUT Multipart failed: $e');
+      throw _handleError(e);
     }
-
-    print('📤 Fields: ${request.fields}');
-    print('📁 Files count: ${request.files.length}');
-
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-
-    print('📥 PATCH Response - Status: ${response.statusCode}');
-    print('📄 Response body: ${response.body}');
-
-    return _handleResponse(response);
-  } catch (e) {
-    print('❌ PATCH Multipart failed: $e');
-    throw _handleError(e);
   }
-}
 
-  Future<Map<String, dynamic>> putMultipart(
-  String endpoint, {
-  required Map<String, String> fields,
-  File? file,
-  String fileFieldName = 'profileImage',
-  Map<String, String>? headers,
-}) async {
-  try {
-    final uri = Uri.parse('$baseUrl$endpoint');
-    print('🌐 PUT Multipart URL: $uri');
+  Future<Map<String, dynamic>> put(
+    String endpoint, {
+    Map<String, String>? headers,
+    dynamic body,
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl$endpoint');
+      print('🌐 PUT Request URL: $uri');
 
-    final request = http.MultipartRequest('PUT', uri);
+      final requestHeaders = await _withDefaultHeaders(headers);
+      print('📋 Request headers: $requestHeaders');
 
-    // Add auth headers
-    final authHeaders = await TokenManager.getAuthHeaders();
-    if (authHeaders != null) {
-      request.headers.addAll(authHeaders);
-    }
+      final requestBody = body != null ? json.encode(body) : null;
+      print('📤 Request body: $requestBody');
 
-    // Add extra headers (without Content-Type)
-    if (headers != null) {
-      final filteredHeaders = Map<String, String>.from(headers);
-      filteredHeaders.remove('Content-Type');
-      request.headers.addAll(filteredHeaders);
-    }
-
-    // Add text fields
-    request.fields.addAll(fields);
-    print('📋 Fields added: $fields');
-
-    // Add file if exists
-    if (file != null) {
-      final fileName = file.path.split('/').last;
-      final fileBytes = await file.readAsBytes();
-      final contentType = _getContentType(fileName);
-
-      final multipartFile = http.MultipartFile.fromBytes(
-        fileFieldName,
-        fileBytes,
-        filename: fileName,
-        contentType: contentType,
+      final response = await client.put(
+        uri,
+        headers: requestHeaders,
+        body: requestBody,
       );
 
-      request.files.add(multipartFile);
-      print('📁 File added: $fileName');
+      print('📥 PUT Response - Status: ${response.statusCode}');
+      print('📄 PUT Response body: ${response.body}');
+
+      return _handleResponse(response);
+    } catch (e) {
+      print('❌ PUT Request failed: $e');
+      throw _handleError(e);
     }
-
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-
-    print('📥 PUT Multipart Response - Status: ${response.statusCode}');
-    print('📄 Response body: ${response.body}');
-
-    return _handleResponse(response);
-  } catch (e) {
-    print('❌ PUT Multipart failed: $e');
-    throw _handleError(e);
   }
-}
-Future<Map<String, dynamic>> put(
-  String endpoint, {
-  Map<String, String>? headers,
-  dynamic body,
-}) async {
-  try {
-    final uri = Uri.parse('$baseUrl$endpoint');
-    print('🌐 PUT Request URL: $uri');
 
-    final requestHeaders = await _withDefaultHeaders(headers);
-    print('📋 Request headers: $requestHeaders');
-
-    final requestBody = body != null ? json.encode(body) : null;
-    print('📤 Request body: $requestBody');
-
-    final response = await client.put(
-      uri,
-      headers: requestHeaders,
-      body: requestBody,
-    );
-
-    print('📥 PUT Response - Status: ${response.statusCode}');
-    print('📄 PUT Response body: ${response.body}');
-
-    return _handleResponse(response);
-  } catch (e) {
-    print('❌ PUT Request failed: $e');
-    throw _handleError(e);
-  }
-}
   Future<Map<String, dynamic>> uploadFile(
     String endpoint,
     File file, {
