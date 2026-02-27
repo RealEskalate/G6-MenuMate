@@ -157,9 +157,9 @@ class _ProfilePageState extends State<ProfilePage> {
             _initialFirstName ??= user.firstName;
             _initialFirstName ??= user.lastName;
 
-            _firstNameController ??=
+            _firstNameController =
                 TextEditingController(text: user.firstName ?? '');
-            _lastNameController ??=
+            _lastNameController =
                 TextEditingController(text: user.lastName ?? '');
 
             _firstNameController.addListener(_checkForChanges);

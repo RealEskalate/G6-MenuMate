@@ -53,7 +53,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }) async {
     try {
       final response = await apiClient.patchMultipart(
-        'user/profile_update',
+        'user/update-profile',
         firstName: firstName,
         lastName: lastName,
         file: image,
