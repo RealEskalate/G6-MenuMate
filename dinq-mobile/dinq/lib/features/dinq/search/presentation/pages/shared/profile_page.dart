@@ -362,8 +362,8 @@ class _ProfilePageState extends State<ProfilePage> {
           }
           if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Failed to update profile')));
-            context.read<AuthBloc>().emit(AuthLoggedIn(user: user));
+                 SnackBar(content: Text(state.message)));
+  
           }
           return const Center(
             child: Text('Not logged in'),

@@ -142,11 +142,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     emit(AuthLoading());
+    final currentstate = state;
 
     final result = await userProfileUpdate(UserProfileUpdateParams(
         firstName: event.firstName, lastName: event.lastName));
 
-    result.fold((failure) => AuthError(message: failure.message), (user) => AuthLoggedIn(user: user));
+    result.fold((failure) {
+      emit(AuthError(message: failure.message));
+      emit(currentstate);
+    }, (user) => AuthLoggedIn(user: user));
   }
 
   // Convert Failure into user-friendly messages
