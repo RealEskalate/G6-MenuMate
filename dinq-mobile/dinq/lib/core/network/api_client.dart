@@ -105,6 +105,7 @@ class ApiClient {
         statusCode: 0,
       );
     } else if (error is ApiException) {
+      print(error);
       throw error;
     } else {
       throw ApiException(

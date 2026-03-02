@@ -131,7 +131,22 @@ class _ProfilePageState extends State<ProfilePage> {
     // 2. Navigate to login page
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
+  @override
+void initState() {
+  super.initState();
+  _firstNameController = TextEditingController();
+  _lastNameController = TextEditingController();
 
+  _firstNameController.addListener(_checkForChanges);
+  _lastNameController.addListener(_checkForChanges);
+}
+
+@override
+void dispose() {
+  _firstNameController.dispose();
+  _lastNameController.dispose();
+  super.dispose();
+}
   @override
   Widget build(BuildContext context) {
 
@@ -153,21 +168,35 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-      body: BlocBuilder<AuthBloc, AuthState>(
+      body: BlocConsumer<AuthBloc, AuthState>(
+        listener: (context, state){
+          if (state is AuthError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                 SnackBar(content: Text(state.message)));
+
+          }
+
+
+           if (state is AuthLoggedIn) {
+          // Set initial values only once when logged in
+          _initialFirstName ??= state.user.firstName;
+          _initialLastName ??= state.user.lastName;
+
+          if (_firstNameController.text.isEmpty) {
+            _firstNameController.text = state.user.firstName ?? '';
+          }
+          if (_lastNameController.text.isEmpty) {
+            _lastNameController.text = state.user.lastName ?? '';
+          }
+        }
+          },
         builder: (context, state) {
 
-          if (state is AuthLoggedIn) {
+          if (state is AuthLoggedIn || state is AuthError) {
             final user = state.user;
-            _initialFirstName ??= user.firstName;
-            _initialFirstName ??= user.lastName;
+            _initialFirstName ??= user.firstName ?? '';
+            _initialLastName ??= user.lastName?? '';
 
-            _firstNameController =
-                TextEditingController(text: user.firstName ?? '');
-            _lastNameController =
-                TextEditingController(text: user.lastName ?? '');
-
-            _firstNameController.addListener(_checkForChanges);
-            _lastNameController.addListener(_checkForChanges);
 
             return ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -359,16 +388,10 @@ class _ProfilePageState extends State<ProfilePage> {
             return const Center(
               child: CircularProgressIndicator(),
             );
-          }
-          if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                 SnackBar(content: Text(state.message)));
-  
-          }
-          return const Center(
-            child: Text('Not logged in'),
-          );
-        },
+          }},
+
+
+
       ),
     );
   }
