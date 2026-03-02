@@ -148,9 +148,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final result = await userProfileUpdate(UserProfileUpdateParams(
         firstName: event.firstName, lastName: event.lastName));
 
-    result.fold((failure) {
+    result.fold((failure)async {
       print('$failure this is the failure found in bloc');
       emit(AuthError(message: failure.message));
+      // await Future.delayed(const Duration(milliseconds: 50));
       emit(currentstate);
     }, (user) => AuthLoggedIn(user: user));
   }

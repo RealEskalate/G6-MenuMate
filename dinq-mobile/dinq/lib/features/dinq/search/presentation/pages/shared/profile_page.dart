@@ -8,7 +8,6 @@ import '../../../../../../core/util/theme.dart';
 import '../../../../auth/presentation/bloc/registration/registration_bloc.dart';
 import '../../../../auth/presentation/bloc/registration/registration_event.dart';
 import '../../../../auth/presentation/bloc/registration/registration_state.dart';
-// import '../../../../restaurant_management/presentation/widgets/owner_navbar.dart';
 import '../../widgets/bottom_navbar.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -19,7 +18,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
@@ -31,6 +29,23 @@ class _ProfilePageState extends State<ProfilePage> {
 
   bool _hasChanges = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _firstNameController = TextEditingController();
+    _lastNameController = TextEditingController();
+
+    _firstNameController.addListener(_checkForChanges);
+    _lastNameController.addListener(_checkForChanges);
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    super.dispose();
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     try {
       final pickedFile = await _picker.pickImage(source: source);
@@ -38,11 +53,26 @@ class _ProfilePageState extends State<ProfilePage> {
         setState(() {
           _selectedImage = File(pickedFile.path);
         });
+        _checkForChanges();
       }
-      _checkForChanges();
     } catch (e) {
-      // Handle error
       print('Error picking image: $e');
+    }
+  }
+
+  void _checkForChanges() {
+    final firstChanged =
+        _firstNameController.text.trim() != (_initialFirstName ?? '');
+    final lastChanged =
+        _lastNameController.text.trim() != (_initialLastName ?? '');
+    final imageChanged = _selectedImage != null;
+
+    final hasChanges = firstChanged || lastChanged || imageChanged;
+
+    if (hasChanges != _hasChanges) {
+      setState(() {
+        _hasChanges = hasChanges;
+      });
     }
   }
 
@@ -66,90 +96,43 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
-  void _checkForChanges() {
-    final firstChanged =
-        _firstNameController.text.trim() != (_initialFirstName ?? '');
-    final lastChanged =
-        _lastNameController.text.trim() != (_initialLastName ?? '');
-    final imageChanged = _selectedImage != null;
-
-    final hasChanges = firstChanged || lastChanged || imageChanged;
-
-    if (hasChanges != _hasChanges) {
-      setState(() {
-        _hasChanges = hasChanges;
-      });
-    }
-  }
-
   void _showImageSourceDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Select Image Source'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.camera),
-                title: const Text('Camera'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Gallery'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-            ],
-          ),
-        );
-      },
+      builder: (context) => AlertDialog(
+        title: const Text('Select Image Source'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera),
+              title: const Text('Camera'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Gallery'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  void _onTabSelected(BuildContext context, BottomNavTab tab) {
-    if (tab == BottomNavTab.explore) {
-      Navigator.pushReplacementNamed(context, AppRoute.explore);
-    } else if (tab == BottomNavTab.favorites) {
-      Navigator.pushReplacementNamed(context, AppRoute.favorites);
-    } else if (tab == BottomNavTab.profile) {
-      // Already on profile
-    }
-  }
-
   Future<void> _logout(BuildContext context) async {
-    // 1. Clear tokens
     await TokenManager.clearTokens();
-
-    // 2. Navigate to login page
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
-  @override
-void initState() {
-  super.initState();
-  _firstNameController = TextEditingController();
-  _lastNameController = TextEditingController();
 
-  _firstNameController.addListener(_checkForChanges);
-  _lastNameController.addListener(_checkForChanges);
-}
-
-@override
-void dispose() {
-  _firstNameController.dispose();
-  _lastNameController.dispose();
-  super.dispose();
-}
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -169,34 +152,33 @@ void dispose() {
         ],
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state){
+        listener: (context, state) {
           if (state is AuthError) {
+            print("auth error");
             ScaffoldMessenger.of(context).showSnackBar(
-                 SnackBar(content: Text(state.message)));
-
+              SnackBar(content: Text(state.message), ),
+            );
           }
 
+          if (state is AuthLoggedIn) {
+            _initialFirstName ??= state.user.firstName;
+            _initialLastName ??= state.user.lastName;
 
-           if (state is AuthLoggedIn) {
-          // Set initial values only once when logged in
-          _initialFirstName ??= state.user.firstName;
-          _initialLastName ??= state.user.lastName;
-
-          if (_firstNameController.text.isEmpty) {
-            _firstNameController.text = state.user.firstName ?? '';
+            if (_firstNameController.text.isEmpty) {
+              _firstNameController.text = state.user.firstName ?? '';
+            }
+            if (_lastNameController.text.isEmpty) {
+              _lastNameController.text = state.user.lastName ?? '';
+            }
           }
-          if (_lastNameController.text.isEmpty) {
-            _lastNameController.text = state.user.lastName ?? '';
-          }
-        }
-          },
+        },
         builder: (context, state) {
+          if (state is AuthLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-          if (state is AuthLoggedIn || state is AuthError) {
+          if (state is AuthLoggedIn) {
             final user = state.user;
-            _initialFirstName ??= user.firstName ?? '';
-            _initialLastName ??= user.lastName?? '';
-
 
             return ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -236,44 +218,26 @@ void dispose() {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // Name & Email
-                Center(
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
-                      // Text(
-                      //   '${user.firstName ?? 'firstname'}  ${user.lastName ?? 'lastname'} ',
-                      //   style: const TextStyle(
-                      //       fontWeight: FontWeight.bold, fontSize: 20),
-                      // ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          children: [
-                            TextField(
-                              controller: _firstNameController,
-                              decoration: const InputDecoration(
-                                labelText: 'First Name',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            TextField(
-                              controller: _lastNameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Last Name',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              user.email,
-                              style: const TextStyle(
-                                  color: Colors.grey, fontSize: 15),
-                            ),
-                          ],
+                      TextField(
+                        controller: _firstNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'First Name',
+                          border: OutlineInputBorder(),
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _lastNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Last Name',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       Text(
                         user.email,
                         style:
@@ -315,11 +279,7 @@ void dispose() {
                         ),
                         onTap: () {},
                       ),
-                      const Divider(
-                        height: 1,
-                        thickness: 1,
-                        color: Color(0xFFEAEAEA),
-                      ),
+                      const Divider(height: 1, thickness: 1),
                       ListTile(
                         leading: const Icon(Icons.logout, color: Colors.red),
                         title: const Text(
@@ -329,37 +289,13 @@ void dispose() {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        onTap: () async {
-                          await _logout(context);
-                        },
+                        onTap: () async => await _logout(context),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 32),
                 // Save Changes Button
-                // SizedBox(
-                //   width: double.infinity,
-                //   child: ElevatedButton(
-                //     style: ElevatedButton.styleFrom(
-                //       backgroundColor: AppColors.primaryColor,
-                //       foregroundColor: Colors.white,
-                //       padding: const EdgeInsets.symmetric(vertical: 16),
-                //       shape: RoundedRectangleBorder(
-                //         borderRadius: BorderRadius.circular(14),
-                //       ),
-                //       elevation: 0,
-                //     ),
-                //     onPressed: () {
-                //       // TODO: Implement save changes
-                //     },
-                //     child: const Text(
-                //       '✓ Save Changes',
-                //       style:
-                //           TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                //     ),
-                //   ),
-                // ),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -384,14 +320,9 @@ void dispose() {
               ],
             );
           }
-          if (state is AuthLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }},
 
-
-
+          return const SizedBox(); // fallback empty widget
+        },
       ),
     );
   }
