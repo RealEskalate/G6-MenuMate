@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../../../core/network/token_manager.dart';
-import '../../../../../../core/util/theme.dart';
 import '../../../../auth/presentation/bloc/registration/registration_bloc.dart';
 import '../../../../auth/presentation/bloc/registration/registration_event.dart';
 import '../../../../auth/presentation/bloc/registration/registration_state.dart';
@@ -34,6 +33,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
+
     _firstNameController = TextEditingController();
     _lastNameController = TextEditingController();
     _emailController = TextEditingController();
@@ -52,22 +52,29 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
+
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);
       });
+
       _checkForChanges();
     }
   }
 
   void _checkForChanges() {
     if (!_isEditing) return;
+
     final firstChanged =
         _firstNameController.text.trim() != (_initialFirstName ?? '');
+
     final lastChanged =
         _lastNameController.text.trim() != (_initialLastName ?? '');
+
     final imageChanged = _selectedImage != null;
+
     final changed = firstChanged || lastChanged || imageChanged;
+
     if (changed != _hasChanges) {
       setState(() => _hasChanges = changed);
     }
@@ -95,6 +102,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _saveChanges() {
     if (!_hasChanges) return;
+
     final updatedFirst = _firstNameController.text.trim();
     final updatedLast = _lastNameController.text.trim();
 
@@ -117,8 +125,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _logout(BuildContext context) async {
     await TokenManager.clearTokens();
+
     if (mounted) {
-      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      Navigator.pushNamedAndRemoveUntil(
+          context, '/login', (route) => false);
     }
   }
 
@@ -158,10 +168,9 @@ class _ProfilePageState extends State<ProfilePage> {
     required bool enabled,
   }) {
     return TextField(
-      
       controller: controller,
       enabled: enabled,
-      cursorColor: Colors.orange, // Orange cursor when typing
+      cursorColor: Colors.orange,
       style: const TextStyle(
         color: Colors.black87,
         fontSize: 15,
@@ -176,23 +185,18 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         filled: true,
         fillColor: Colors.white,
-        // Default border (when not focused)
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
             color: enabled ? Colors.orange : Colors.grey[300]!,
-            width: enabled ? 1.5 : 1,
           ),
         ),
-        // Enabled but not focused
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
             color: enabled ? Colors.orange : Colors.grey[300]!,
-            width: enabled ? 1.5 : 1,
           ),
         ),
-        // FOCUSED - This overrides the default blue highlight
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(
@@ -200,12 +204,12 @@ class _ProfilePageState extends State<ProfilePage> {
             width: 2,
           ),
         ),
-        // Disabled (email field)
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey[300]!),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }
@@ -246,32 +250,39 @@ class _ProfilePageState extends State<ProfilePage> {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(state.message)));
           }
-          if (state is AuthLoggedIn) {
-            final user = state.user;
-            _initialFirstName ??= user.firstName;
-            _initialLastName ??= user.lastName;
-            if (_firstNameController.text.isEmpty) {
-              _firstNameController.text = user.firstName ?? '';
-            }
-            if (_lastNameController.text.isEmpty) {
-              _lastNameController.text = user.lastName ?? '';
-            }
-            if (_emailController.text.isEmpty) {
-              _emailController.text = user.email;
-            }
-          }
         },
         builder: (context, state) {
           if (state is AuthLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state is! AuthLoggedIn) return const SizedBox();
+          if (state is! AuthLoggedIn) {
+            return const SizedBox();
+          }
+
+          final user = state.user;
+
+          // Initialize controllers with user data
+          if (_firstNameController.text.isEmpty) {
+            _firstNameController.text = user.firstName ?? '';
+          }
+
+          if (_lastNameController.text.isEmpty) {
+            _lastNameController.text = user.lastName ?? '';
+          }
+
+          if (_emailController.text.isEmpty) {
+            _emailController.text = user.email ?? '';
+          }
+
+          _initialFirstName ??= user.firstName;
+          _initialLastName ??= user.lastName;
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // ─── Profile Image ─────────────────────────────────
+
+              /// Profile Image
               Center(
                 child: Stack(
                   alignment: Alignment.bottomRight,
@@ -281,7 +292,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       backgroundColor: Colors.grey[200],
                       backgroundImage: _selectedImage != null
                           ? FileImage(_selectedImage!)
-                          : const AssetImage("assets/images/profile.jpg")
+                          : const AssetImage(
+                                  "assets/images/profile.jpg")
                               as ImageProvider,
                     ),
                     if (_isEditing)
@@ -310,7 +322,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 24),
 
-              // ─── Personal Info Card ────────────────────────────
+              /// Personal Info
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -329,7 +341,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     _buildField(
                       controller: _firstNameController,
                       label: "First Name",
-
                       enabled: _isEditing,
                     ),
                     const SizedBox(height: 16),
@@ -350,21 +361,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 20),
 
-              // ─── Action Buttons (only in edit mode) ───────────
               if (_isEditing)
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
                         onPressed: _cancelEditing,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: Colors.grey),
-                        ),
-                        child: const Text(
-                          "Cancel",
-                          style: TextStyle(color: Colors.black87),
-                        ),
+                        child: const Text("Cancel"),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -372,9 +375,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: ElevatedButton(
                         onPressed: _hasChanges ? _saveChanges : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              _hasChanges ? Colors.orange : Colors.grey,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: _hasChanges
+                              ? Colors.orange
+                              : Colors.grey,
                         ),
                         child: const Text("Save"),
                       ),
@@ -384,68 +387,29 @@ class _ProfilePageState extends State<ProfilePage> {
 
               const SizedBox(height: 24),
 
-              // ─── Account Actions Card ─────────────────────────
+              /// Account actions
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
                 child: Column(
                   children: [
                     ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.orange[50],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.lock_outline,
-                          color: Colors.orange,
-                          size: 20,
-                        ),
-                      ),
-                      title: const Text(
-                        "Change Password",
-                        style: TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      trailing: const Icon(
-                        Icons.chevron_right,
-                        size: 18,
-                        color: Colors.grey,
-                      ),
+                      leading: const Icon(Icons.lock_outline,
+                          color: Colors.orange),
+                      title: const Text("Change Password"),
+                      trailing:
+                          const Icon(Icons.chevron_right),
                       onTap: () {},
                     ),
-                    const Divider(height: 1, indent: 72),
+                    const Divider(height: 1),
                     ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.red[50],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.logout,
-                          color: Colors.red,
-                          size: 20,
-                        ),
-                      ),
+                      leading:
+                          const Icon(Icons.logout, color: Colors.red),
                       title: const Text(
                         "Sign Out",
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: TextStyle(color: Colors.red),
                       ),
                       onTap: () => _logout(context),
                     ),
