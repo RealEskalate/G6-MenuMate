@@ -2,13 +2,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+
 import '../../../../../../core/network/token_manager.dart';
-import '../../../../../../core/routing/app_route.dart';
 import '../../../../../../core/util/theme.dart';
 import '../../../../auth/presentation/bloc/registration/registration_bloc.dart';
 import '../../../../auth/presentation/bloc/registration/registration_event.dart';
 import '../../../../auth/presentation/bloc/registration/registration_state.dart';
-import '../../widgets/bottom_navbar.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -23,17 +22,21 @@ class _ProfilePageState extends State<ProfilePage> {
 
   late TextEditingController _firstNameController;
   late TextEditingController _lastNameController;
+  late TextEditingController _emailController;
 
   String? _initialFirstName;
   String? _initialLastName;
 
   bool _hasChanges = false;
+  bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
+
     _firstNameController = TextEditingController();
     _lastNameController = TextEditingController();
+    _emailController = TextEditingController();
 
     _firstNameController.addListener(_checkForChanges);
     _lastNameController.addListener(_checkForChanges);
@@ -43,20 +46,19 @@ class _ProfilePageState extends State<ProfilePage> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    try {
-      final pickedFile = await _picker.pickImage(source: source);
-      if (pickedFile != null) {
-        setState(() {
-          _selectedImage = File(pickedFile.path);
-        });
-        _checkForChanges();
-      }
-    } catch (e) {
-      print('Error picking image: $e');
+    final pickedFile = await _picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+
+      _checkForChanges();
     }
   }
 
@@ -67,56 +69,62 @@ class _ProfilePageState extends State<ProfilePage> {
         _lastNameController.text.trim() != (_initialLastName ?? '');
     final imageChanged = _selectedImage != null;
 
-    final hasChanges = firstChanged || lastChanged || imageChanged;
+    final changed = firstChanged || lastChanged || imageChanged;
 
-    if (hasChanges != _hasChanges) {
+    if (changed != _hasChanges) {
       setState(() {
-        _hasChanges = hasChanges;
+        _hasChanges = changed;
       });
     }
   }
 
   void _saveChanges() {
-    final updatedFirstName = _firstNameController.text.trim();
-    final updatedLastName = _lastNameController.text.trim();
+    final updatedFirst = _firstNameController.text.trim();
+    final updatedLast = _lastNameController.text.trim();
 
     context.read<AuthBloc>().add(
           UpdateUserProfileEvent(
-            firstName: updatedFirstName,
-            lastName: updatedLastName,
+            firstName: updatedFirst,
+            lastName: updatedLast,
             image: _selectedImage,
           ),
         );
 
     setState(() {
-      _initialFirstName = updatedFirstName;
-      _initialLastName = updatedLastName;
+      _initialFirstName = updatedFirst;
+      _initialLastName = updatedLast;
       _selectedImage = null;
       _hasChanges = false;
+      _isEditing = false;
     });
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    await TokenManager.clearTokens();
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
   void _showImageSourceDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Image Source'),
+      builder: (_) => AlertDialog(
+        title: const Text("Select Image"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: const Icon(Icons.camera),
-              title: const Text('Camera'),
+              title: const Text("Camera"),
               onTap: () {
-                Navigator.of(context).pop();
+                Navigator.pop(context);
                 _pickImage(ImageSource.camera);
               },
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
+              title: const Text("Gallery"),
               onTap: () {
-                Navigator.of(context).pop();
+                Navigator.pop(context);
                 _pickImage(ImageSource.gallery);
               },
             ),
@@ -126,9 +134,19 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Future<void> _logout(BuildContext context) async {
-    await TokenManager.clearTokens();
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  Widget _buildField({
+    required TextEditingController controller,
+    required String label,
+    required bool enabled,
+  }) {
+    return TextField(
+      controller: controller,
+      enabled: enabled,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+    );
   }
 
   @override
@@ -136,39 +154,34 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
+        title: const Text("Profile"),
+        centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          'Profile',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
-            print("auth error");
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), ),
-            );
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(state.message)));
           }
 
           if (state is AuthLoggedIn) {
-            _initialFirstName ??= state.user.firstName;
-            _initialLastName ??= state.user.lastName;
+            final user = state.user;
+
+            _initialFirstName ??= user.firstName;
+            _initialLastName ??= user.lastName;
 
             if (_firstNameController.text.isEmpty) {
-              _firstNameController.text = state.user.firstName ?? '';
+              _firstNameController.text = user.firstName ?? '';
             }
+
             if (_lastNameController.text.isEmpty) {
-              _lastNameController.text = state.user.lastName ?? '';
+              _lastNameController.text = user.lastName ?? '';
+            }
+
+            if (_emailController.text.isEmpty) {
+              _emailController.text = user.email;
             }
           }
         },
@@ -178,89 +191,120 @@ class _ProfilePageState extends State<ProfilePage> {
           }
 
           if (state is AuthLoggedIn) {
-            final user = state.user;
-
             return ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               children: [
-                const SizedBox(height: 16),
-                // Profile Picture
+                const SizedBox(height: 25),
+
+                /// PROFILE IMAGE
                 Center(
                   child: Stack(
                     children: [
                       CircleAvatar(
-                        radius: 48,
+                        radius: 50,
                         backgroundImage: _selectedImage != null
-                            ? FileImage(_selectedImage!) as ImageProvider
-                            : const AssetImage('assets/images/profile.jpg'),
+                            ? FileImage(_selectedImage!)
+                            : const AssetImage("assets/images/profile.jpg")
+                                as ImageProvider,
                       ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: _showImageSourceDialog,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                            padding: const EdgeInsets.all(4),
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.white,
-                              size: 20,
+                      if (_isEditing)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: _showImageSourceDialog,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                             ),
                           ),
-                        ),
-                      ),
+                        )
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _firstNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'First Name',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _lastNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Last Name',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        user.email,
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 15),
-                      ),
-                    ],
+
+                const SizedBox(height: 25),
+
+                /// EDIT BUTTON
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.edit),
+                    label: const Text("Edit"),
+                    onPressed: () {
+                      setState(() {
+                        _isEditing = true;
+                      });
+                    },
                   ),
                 ),
-                const SizedBox(height: 24),
-                // Account Settings Card
+
+                const SizedBox(height: 10),
+
+                /// FIRST NAME
+                _buildField(
+                  controller: _firstNameController,
+                  label: "First Name",
+                  enabled: _isEditing,
+                ),
+
+                const SizedBox(height: 15),
+
+                /// LAST NAME
+                _buildField(
+                  controller: _lastNameController,
+                  label: "Last Name",
+                  enabled: _isEditing,
+                ),
+
+                const SizedBox(height: 15),
+
+                /// EMAIL (NOT EDITABLE)
+                _buildField(
+                  controller: _emailController,
+                  label: "Email",
+                  enabled: false,
+                ),
+
+                const SizedBox(height: 25),
+
+                /// SAVE BUTTON
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          _hasChanges ? AppColors.primaryColor : Colors.grey,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    onPressed: _hasChanges ? _saveChanges : null,
+                    child: const Text(
+                      "Save Changes",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                /// ACCOUNT SETTINGS
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 3,
-                        offset: Offset(0, 2),
-                      ),
+                      BoxShadow(color: Colors.black12, blurRadius: 4)
                     ],
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Column(
                     children: [
                       ListTile(
@@ -268,60 +312,30 @@ class _ProfilePageState extends State<ProfilePage> {
                           Icons.lock,
                           color: AppColors.primaryColor,
                         ),
-                        title: const Text(
-                          'Change Password',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 18,
-                          color: Colors.grey,
-                        ),
+                        title: const Text("Change Password"),
+                        trailing:
+                            const Icon(Icons.arrow_forward_ios, size: 16),
                         onTap: () {},
                       ),
-                      const Divider(height: 1, thickness: 1),
+                      const Divider(height: 1),
                       ListTile(
                         leading: const Icon(Icons.logout, color: Colors.red),
                         title: const Text(
-                          'Sign Out',
-                          style: TextStyle(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          "Sign Out",
+                          style: TextStyle(color: Colors.red),
                         ),
-                        onTap: () async => await _logout(context),
+                        onTap: () => _logout(context),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 32),
-                // Save Changes Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          _hasChanges ? AppColors.primaryColor : Colors.grey,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 0,
-                    ),
-                    onPressed: _hasChanges ? _saveChanges : null,
-                    child: const Text(
-                      '✓ Save Changes',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                  ),
-                ),
+
+                const SizedBox(height: 40),
               ],
             );
           }
 
-          return const SizedBox(); // fallback empty widget
+          return const SizedBox();
         },
       ),
     );
