@@ -158,6 +158,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required bool enabled,
   }) {
     return TextField(
+      
       controller: controller,
       enabled: enabled,
       cursorColor: Colors.orange, // Orange cursor when typing
@@ -328,6 +329,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     _buildField(
                       controller: _firstNameController,
                       label: "First Name",
+
                       enabled: _isEditing,
                     ),
                     const SizedBox(height: 16),
