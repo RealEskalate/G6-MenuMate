@@ -114,13 +114,13 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         );
 
-    setState(() {
-      _initialFirstName = updatedFirst;
-      _initialLastName = updatedLast;
-      _initialImage = _selectedImage;
-      _isEditing = false;
-      _hasChanges = false;
-    });
+    // setState(() {
+    //   _initialFirstName = updatedFirst;
+    //   _initialLastName = updatedLast;
+    //   _initialImage = _selectedImage;
+    //   _isEditing = false;
+    //   _hasChanges = false;
+    // });
   }
 
   Future<void> _logout(BuildContext context) async {
@@ -168,6 +168,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required bool enabled,
   }) {
     return TextField(
+
       controller: controller,
       enabled: enabled,
       cursorColor: Colors.orange,
