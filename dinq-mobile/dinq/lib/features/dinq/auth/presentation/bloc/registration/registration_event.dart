@@ -93,6 +93,7 @@ class UpdateUserProfileEvent extends AuthEvent {
   final File? image;
   const UpdateUserProfileEvent(
       {required this.firstName, required this.lastName, this.image});
+    
   @override
   List<Object?> get props => [firstName, lastName, image];
 }

@@ -54,6 +54,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     File? image,
   }) async {
     try {
+      print("IMAGE SENT TO API: ${image?.path}");
       final response = await apiClient.patchMultipart(
         '/users/update-profile',
         firstName: firstName,

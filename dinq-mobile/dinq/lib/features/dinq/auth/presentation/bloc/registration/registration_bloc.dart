@@ -146,7 +146,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
 
     final result = await userProfileUpdate(UserProfileUpdateParams(
-        firstName: event.firstName, lastName: event.lastName));
+        firstName: event.firstName, lastName: event.lastName, image: event.image));
 
     result.fold((failure)async {
       print('$failure this is the failure found in bloc');

@@ -57,6 +57,7 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         _selectedImage = File(pickedFile.path);
       });
+      print("IMAGE PICKED: ${_selectedImage!.path}");
 
       _checkForChanges();
     }
@@ -105,7 +106,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     final updatedFirst = _firstNameController.text.trim();
     final updatedLast = _lastNameController.text.trim();
-
+    print("IMAGE SENT TO BLOC: ${_selectedImage?.path}");
     context.read<AuthBloc>().add(
           UpdateUserProfileEvent(
             firstName: updatedFirst,
