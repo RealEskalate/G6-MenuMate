@@ -114,174 +114,92 @@ class ApiClient {
       );
     }
   }
+
   Future<Map<String, dynamic>> patchMultipart(
-  String endpoint, {
-  String? firstName,
-  String? lastName,
-  File? file,
-  String fileFieldName = 'profile_image',
-  Map<String, String>? headers,
-  String? refreshToken,
-}) async {
-  try {
-    final uri = Uri.parse('$baseUrl$endpoint');
-    print('🌐 PATCH Multipart URL: $uri');
+    String endpoint, {
+    String? firstName,
+    String? lastName,
+    File? file,
+    String fileFieldName = 'profile_image',
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final uri = Uri.parse('$baseUrl$endpoint');
+      print('🌐 PATCH Multipart URL: $uri');
 
-    // Prevent empty update
-    if (firstName == null && lastName == null && file == null) {
-      throw ApiException(
-        message: 'No fields provided for update.',
-        statusCode: 400,
-      );
+      // Prevent empty update
+      if (firstName == null && lastName == null && file == null) {
+        throw ApiException(
+          message: 'No fields provided for update.',
+          statusCode: 400,
+        );
+      }
+
+      final request = http.MultipartRequest('PATCH', uri);
+
+      // request.headers['Authorization'] = 'Bearer $token';
+request.headers['Accept'] = 'application/json';
+      // Add auth headers
+      final authHeaders = await TokenManager.getAuthHeaders();
+      if (authHeaders != null) {
+        request.headers.addAll(authHeaders);
+      }
+
+      // Remove Content-Type if provided (multipart sets it automatically)
+      if (headers != null) {
+        final filteredHeaders = Map<String, String>.from(headers);
+        filteredHeaders.remove('Content-Type');
+        request.headers.addAll(filteredHeaders);
+      }
+
+      // Add optional text fields
+      if (firstName != null) {
+        request.fields['first_name'] = firstName;
+      }
+
+      if (lastName != null) {
+        request.fields['last_name'] = lastName;
+      }
+
+      // Add optional file
+      if (file != null) {
+        final fileName = file.path.split('/').last;
+        final fileBytes = await file.readAsBytes();
+        final contentType = _getContentType(fileName);
+
+        // request.files.add(
+        //   http.MultipartFile.fromBytes(
+        //     fileFieldName,
+        //     fileBytes,
+        //     filename: fileName,
+        //     contentType: contentType,
+        //   ),
+        // );
+        request.files.add(
+  await http.MultipartFile.fromPath(
+    fileFieldName,
+    file.path,
+  ),
+);
+      }
+      print(request);
+      print('📤 Fields: ${request.fields} files: ${request.files}');
+
+      print('📁 Files count: ${request.files.length}');
+      print('headers: ${request.headers}');
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('📥 PATCH Response - Status: ${response.statusCode}');
+      print('📄 Response body: ${response.body}');
+
+      return _handleResponse(response);
+    } catch (e) {
+      print('❌ PATCH Multipart failed: $e');
+      throw _handleError(e);
     }
-
-    final request = http.MultipartRequest('PATCH', uri);
-
-    // Add auth headers
-    final authHeaders = await TokenManager.getAuthHeaders();
-    if (authHeaders != null) {
-      request.headers.addAll(authHeaders);
-    }
-
-    // Add Cookie header if refreshToken provided
-    if (refreshToken != null) {
-      request.headers['Cookie'] =
-          'accessToken=${authHeaders?['Authorization']?.split(' ').last}; refreshToken=$refreshToken';
-    }
-
-    // Merge any additional headers (without Content-Type)
-    if (headers != null) {
-      final filteredHeaders = Map<String, String>.from(headers);
-      filteredHeaders.remove('Content-Type');
-      request.headers.addAll(filteredHeaders);
-    }
-
-    // Add optional text fields
-    if (firstName != null) request.fields['first_name'] = firstName;
-    if (lastName != null) request.fields['last_name'] = lastName;
-
-    // Add optional file (only if file is not null)
-    if (file != null) {
-  final filePath = file.path.replaceAll(r'\', '/'); // normalize path
-  if (!await file.exists()) {
-    throw ApiException(message: 'File not found at path: $filePath', statusCode: 400);
   }
-
-  final fileName = filePath.split('/').last;
-  final fileBytes = await file.readAsBytes();
-
-  request.files.add(
-    http.MultipartFile.fromBytes(
-      fileFieldName,
-      fileBytes,
-      filename: fileName,
-      contentType: _getContentType(fileName),
-    ),
-  );
-}
-
-    print('📤 Fields: ${request.fields}');
-    print('📁 Files: ${request.files.map((f) => f.filename).toList()}');
-    print('📋 Headers: ${request.headers}');
-
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-
-    print('📥 PATCH Response - Status: ${response.statusCode}');
-    print('📄 Response body: ${response.body}');
-
-    return _handleResponse(response);
-  } catch (e) {
-    print('❌ PATCH Multipart failed: $e');
-    throw _handleError(e);
-  }
-}
-
-//   Future<Map<String, dynamic>> patchMultipart(
-//     String endpoint, {
-//     String? firstName,
-//     String? lastName,
-//     File? file,
-//     String fileFieldName = 'profile_image',
-//     Map<String, String>? headers,
-//   }) async {
-//     try {
-//       final uri = Uri.parse('$baseUrl$endpoint');
-//       print('🌐 PATCH Multipart URL: $uri');
-
-//       // Prevent empty update
-//       if (firstName == null && lastName == null && file == null) {
-//         throw ApiException(
-//           message: 'No fields provided for update.',
-//           statusCode: 400,
-//         );
-//       }
-
-//       final request = http.MultipartRequest('PATCH', uri);
-
-//       // request.headers['Authorization'] = 'Bearer $token';
-// request.headers['Accept'] = 'application/json';
-//       // Add auth headers
-//       final authHeaders = await TokenManager.getAuthHeaders();
-//       if (authHeaders != null) {
-//         request.headers.addAll(authHeaders);
-//       }
-
-//       // Remove Content-Type if provided (multipart sets it automatically)
-//       if (headers != null) {
-//         final filteredHeaders = Map<String, String>.from(headers);
-//         filteredHeaders.remove('Content-Type');
-//         request.headers.addAll(filteredHeaders);
-//       }
-
-//       // Add optional text fields
-//       if (firstName != null) {
-//         request.fields['first_name'] = firstName;
-//       }
-
-//       if (lastName != null) {
-//         request.fields['last_name'] = lastName;
-//       }
-
-//       // Add optional file
-//       if (file != null) {
-//         final fileName = file.path.split('/').last;
-//         final fileBytes = await file.readAsBytes();
-//         final contentType = _getContentType(fileName);
-
-//         // request.files.add(
-//         //   http.MultipartFile.fromBytes(
-//         //     fileFieldName,
-//         //     fileBytes,
-//         //     filename: fileName,
-//         //     contentType: contentType,
-//         //   ),
-//         // );
-//         request.files.add(
-//   await http.MultipartFile.fromPath(
-//     fileFieldName,
-//     file.path,
-//   ),
-// );
-//       }
-//       print(request);
-//       print('📤 Fields: ${request.fields} files: ${request.files}');
-
-//       print('📁 Files count: ${request.files.length}');
-//       print('headers: ${request.headers}');
-
-//       final streamedResponse = await request.send();
-//       final response = await http.Response.fromStream(streamedResponse);
-
-//       print('📥 PATCH Response - Status: ${response.statusCode}');
-//       print('📄 Response body: ${response.body}');
-
-//       return _handleResponse(response);
-//     } catch (e) {
-//       print('❌ PATCH Multipart failed: $e');
-//       throw _handleError(e);
-//     }
-//   }
 
   Future<Map<String, dynamic>> putMultipart(
     String endpoint, {
