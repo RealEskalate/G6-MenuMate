@@ -174,7 +174,7 @@ class ApiClient {
           ),
         );
       }
-
+      print(request);
       print('📤 Fields: ${request.fields} files: ${request.files}');
 
       print('📁 Files count: ${request.files.length}');
