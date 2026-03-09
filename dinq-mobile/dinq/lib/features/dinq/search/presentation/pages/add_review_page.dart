@@ -48,7 +48,7 @@ class _AddReviewPageState extends State<AddReviewPage> {
                       _photos.add(File(picked.path));
                     });
                   }
-                },
+                }, 
               ),
               ListTile(
                 leading: const Icon(Icons.camera_alt),

@@ -65,10 +65,20 @@ class TokenManager {
 
     print('✅ Using token: ${token.substring(0, 20)}...');
 
+    String? refreshToken = await getRefreshToken();
+
     // For multipart requests, don't include Content-Type
-    return {
+    final Map<String, String> authHeaders = {
       'Authorization': 'Bearer $token',
     };
+
+    if (refreshToken != null && refreshToken.isNotEmpty) {
+      authHeaders['Cookie'] = 'accessToken=$token; refreshToken=$refreshToken';
+    } else {
+      authHeaders['Cookie'] = 'accessToken=$token';
+    }
+
+    return authHeaders;
   }
 
   static Future<Map<String, String>?> getAuthHeadersWithContentType() async {
