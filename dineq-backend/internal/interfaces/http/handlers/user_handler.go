@@ -215,6 +215,9 @@ func (ctrl *UserController) ChangePassword(c *gin.Context) {
 	}
 	userID := c.GetString("userId")
 	if userID == "" {
+		userID = c.GetString("user_id")
+	}
+	if userID == "" {
 		dto.WriteError(c, domain.ErrUnauthorized)
 		return
 	}

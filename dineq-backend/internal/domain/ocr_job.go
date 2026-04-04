@@ -65,9 +65,12 @@ type IOCRJobUseCase interface {
 	CreateOCRJob(job *OCRJob) error
 	UpdateOCRJobStatus(id string, status OCRJobStatus) error
 	GetOCRJobByID(id string) (*OCRJob, error)
+	ListOCRJobsByUserID(userID string) ([]*OCRJob, error)
+	GetStructuredMenuByUserAndID(userID, structuredMenuID string) (*Menu, error)
 	ProcessJob(id string)
 	DeleteOCRJob(id string) error
 	RetryJob(id string) (*OCRJob, error)
+	UpdateStructuredMenu(ctx context.Context, userID, menuID string, items []Item) error
 }
 
 type IOCRJobRepository interface {
@@ -75,7 +78,10 @@ type IOCRJobRepository interface {
 	Update(ctx context.Context, id string, job *OCRJob) error
 	UpdateStatus(ctx context.Context, id, status string) error
 	GetByID(ctx context.Context, id string) (*OCRJob, error)
+	ListByUserID(ctx context.Context, userID string) ([]*OCRJob, error)
+	GetByUserAndStructuredMenuID(ctx context.Context, userID, structuredMenuID string) (*OCRJob, error)
 	Delete(ctx context.Context, id string) error
 	GetPendingJobs(ctx context.Context) ([]*OCRJob, error)
 	GetUserFCMToken(userID string) string
+	UpdateResultsMenu(ctx context.Context, userID, menuID string, menu *Menu) error
 }

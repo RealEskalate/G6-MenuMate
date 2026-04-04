@@ -273,6 +273,7 @@ func (r *ReviewRepository) AverageRatingByItem(ctx context.Context, itemID strin
 		{"$match": bson.M{
 			"itemId":    itemID,
 			"isDeleted": false,
+			"rating":    bson.M{"$gt": 0},
 		}},
 		{"$group": bson.M{
 			"_id": "$itemId",
@@ -313,7 +314,7 @@ func (r *ReviewRepository) AverageRatingByItem(ctx context.Context, itemID strin
 func (r *ReviewRepository) AverageRatingByRestaurant(ctx context.Context, restaurantID string) (float64, error) {
 	// First attempt: aggregate over menus' stored averageRating values
 	menuPipeline := []bson.M{
-		{"$match": bson.M{"restaurantId": restaurantID}},
+		{"$match": bson.M{"restaurantId": restaurantID, "averageRating": bson.M{"$gt": 0}}},
 		{"$group": bson.M{"_id": "$restaurantId", "avg": bson.M{"$avg": "$averageRating"}}},
 	}
 	cursor, err := r.DB.Collection("menus").Aggregate(ctx, menuPipeline)
@@ -334,7 +335,7 @@ func (r *ReviewRepository) AverageRatingByRestaurant(ctx context.Context, restau
 	// Fallback to reviews aggregation if menu average not available
 	if avg == 0 {
 		reviewPipeline := []bson.M{
-			{"$match": bson.M{"restaurantId": restaurantID, "isDeleted": false}},
+			{"$match": bson.M{"restaurantId": restaurantID, "isDeleted": false, "rating": bson.M{"$gt": 0}}},
 			{"$group": bson.M{"_id": "$restaurantId", "avg": bson.M{"$avg": "$rating"}}},
 		}
 		rc, err := r.DB.Collection(r.Collection).Aggregate(ctx, reviewPipeline)
@@ -389,15 +390,19 @@ func (r *ReviewRepository) AverageRatingByMenu(ctx context.Context, menuID strin
 		var itemDoc map[string]any
 		if err := r.DB.Collection("items").FindOne(ctx, bson.M{"_id": it.ID}).Decode(&itemDoc); err == nil {
 			if v, ok := itemDoc["averageRating"].(float64); ok {
-				total += v
-				count++
+				if v > 0 {
+					total += v
+					count++
+				}
 				continue
 			}
 		}
 		// Fallback compute
 		if v, err := r.AverageRatingByItem(ctx, it.ID); err == nil {
-			total += v
-			count++
+			if v > 0 {
+				total += v
+				count++
+			}
 		}
 	}
 	avg := 0.0
@@ -463,7 +468,7 @@ func (r *ReviewRepository) simpleAsyncCascade(itemID, restaurantID string) {
 		pipeline := []bson.M{
 			{"$match": bson.M{"restaurantId": restLookup}},
 			{"$unwind": "$items"},
-			{"$match": bson.M{"items.averageRating": bson.M{"$ne": nil}}},
+			{"$match": bson.M{"items.averageRating": bson.M{"$gt": 0}}},
 			{"$group": bson.M{"_id": "$restaurantId", "avg": bson.M{"$avg": "$items.averageRating"}}},
 		}
 		cur, err := r.DB.Collection("menus").Aggregate(ctx, pipeline)
@@ -481,7 +486,7 @@ func (r *ReviewRepository) simpleAsyncCascade(itemID, restaurantID string) {
 		// Fallback: compute directly from reviews tied to restaurantId if menu-based avg is zero
 		if restaurantAvg == 0 {
 			rPipeline := []bson.M{
-				{"$match": bson.M{"restaurantId": restaurantID, "isDeleted": false}},
+				{"$match": bson.M{"restaurantId": restaurantID, "isDeleted": false, "rating": bson.M{"$gt": 0}}},
 				{"$group": bson.M{"_id": "$restaurantId", "avg": bson.M{"$avg": "$rating"}}},
 			}
 			if rc, err := r.DB.Collection(r.Collection).Aggregate(ctx, rPipeline); err == nil {

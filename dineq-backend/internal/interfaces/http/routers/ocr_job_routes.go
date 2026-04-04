@@ -83,15 +83,20 @@ func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 	// TODO: Add notification dispatch integration guarded by feature flag.
 
 	// OCR Handler
-	ocrJobHandler := handler.NewOCRJobHandler(ocrJobUsecase, menuUsecase, cloudinaryStorage, notifUc)
+	ocrJobHandler := handler.NewOCRJobHandler(ocrJobUsecase, menuUsecase, cloudinaryStorage, notifUc, env.FrontendBaseURL)
 
 	// Single canonical OCR route group (legacy /ocr-jobs removed)
 	protected := group.Group("/ocr")
 	protected.Use(middleware.AuthMiddleware(*env))
 	{
+		protected.GET("", ocrJobHandler.ListMyOCRJobs)
 		protected.POST("/upload", ocrJobHandler.UploadMenu)
 		protected.GET("/:id", ocrJobHandler.GetOCRJobByID) // endpoint returns JSON for job
 		protected.DELETE("/:id", ocrJobHandler.DeleteOCRJob)
 		protected.POST("/:id/retry", ocrJobHandler.RetryOCRJob)
+		protected.GET("/me/menus", ocrJobHandler.GetMyPersonalMenus)
+		protected.GET("/me/menus/:id", ocrJobHandler.GetMyPersonalMenuByID)
+		protected.POST("/me/menus/:id/share", ocrJobHandler.ShareMyPersonalMenu)
+		protected.PUT("/me/menus/:id", ocrJobHandler.UpdateMyPersonalMenu)
 	}
 }

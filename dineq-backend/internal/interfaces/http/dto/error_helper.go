@@ -49,6 +49,7 @@ var domainErrorCode = map[error]string{
 	domain.ErrPasswordMustContainLowerLetter: "password_missing_lowercase",
 	domain.ErrPasswordMustContainNumber:      "password_missing_number",
 	domain.ErrPasswordMustContainSpecialChar: "password_missing_special_char",
+	domain.ErrQRCodeNotFound:                 "qr_code_not_found",
 }
 
 // NormalizeError converts an arbitrary error into our unified ErrorResponse metadata.
@@ -94,7 +95,7 @@ func NormalizeError(err error) (status int, resp ErrorResponse) {
 
 func statusFromDomainError(err error) int {
 	switch err {
-	case domain.ErrNotFound, domain.ErrUserNotFound, domain.ErrRestaurantNotFound:
+	case domain.ErrNotFound, domain.ErrUserNotFound, domain.ErrRestaurantNotFound, domain.ErrQRCodeNotFound:
 		return http.StatusNotFound
 	case domain.ErrRestaurantDeleted:
 		return http.StatusGone

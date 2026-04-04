@@ -59,6 +59,7 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 	protected.Use(middleware.ManagerAndOwnerOnly())
 	{
 		// Authenticated endpoints for managing menus
+		protected.GET("/manage/:restaurant_slug/:id", menuHandler.GetMenuByID)
 		protected.POST("/:restaurant_slug", menuHandler.CreateMenu)
 		protected.PATCH("/:restaurant_slug/:id", menuHandler.UpdateMenu)
 		protected.DELETE("/:restaurant_slug/:id", menuHandler.DeleteMenu)

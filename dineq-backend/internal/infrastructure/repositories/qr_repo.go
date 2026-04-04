@@ -58,6 +58,9 @@ func (r *qrRepository) GetByRestaurantId(ctx context.Context, id string) (*domai
 	var qr mapper.QRCodeModel
 	err := r.db.Collection(r.qrCollection).FindOne(ctx, bson.M{"restaurantId": id, "isDeleted": false}).Decode(&qr)
 	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments()) {
+			return nil, domain.ErrQRCodeNotFound
+		}
 		return nil, err
 	}
 	return mapper.ToDomainQRCode(&qr), nil

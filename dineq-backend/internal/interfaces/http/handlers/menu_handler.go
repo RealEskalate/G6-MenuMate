@@ -267,7 +267,13 @@ func (h *MenuHandler) DeleteMenu(c *gin.Context) {
 
 // get menu by id
 func (h *MenuHandler) GetMenuByID(c *gin.Context) {
-	_ = c.Param("restaurant_slug")
+	slug := c.Param("restaurant_slug")
+	userID := c.GetString("user_id")
+	if slug != "" && userID != "" {
+		if !h.ensureOwnership(c, slug, userID) {
+			return
+		}
+	}
 	menuID := c.Param("id")
 	menu, err := h.UseCase.GetByID(menuID)
 	if err != nil {

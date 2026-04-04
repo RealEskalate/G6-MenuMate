@@ -71,9 +71,19 @@ func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string
 	prompt := gs.createMenuStructuringPrompt(ocrText, "")
 	var lastErr error
 	var raw string
+	maxOutputTokens := int32(8192)
+	temperature := float32(0.15)
+	topP := float32(0.9)
 	// exponential backoff for transient errors (429/503) only
 	for attempt := 1; attempt <= 3; attempt++ {
-		resp, err := gs.client.Models.GenerateContent(ctx, gs.model, genai.Text(prompt), nil)
+		cfg := &genai.GenerateContentConfig{
+			ResponseMIMEType: "application/json",
+			MaxOutputTokens:  maxOutputTokens,
+			Temperature:      &temperature,
+			TopP:             &topP,
+			CandidateCount:   1,
+		}
+		resp, err := gs.client.Models.GenerateContent(ctx, gs.model, genai.Text(prompt), cfg)
 		if err != nil {
 			if transient(err) && attempt < 3 {
 				backoff := time.Duration(math.Pow(2, float64(attempt-1))) * 500 * time.Millisecond
@@ -87,8 +97,22 @@ func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string
 			lastErr = errors.New("no response from Gemini")
 			continue
 		}
+		cand := resp.Candidates[0]
+		if cand.FinishReason == genai.FinishReasonMaxTokens {
+			lastErr = fmt.Errorf("gemini output truncated by max tokens (token_count=%d)", cand.TokenCount)
+			if attempt < 3 {
+				if maxOutputTokens < 16384 {
+					maxOutputTokens += 2048
+					if maxOutputTokens > 16384 {
+						maxOutputTokens = 16384
+					}
+				}
+				time.Sleep(300 * time.Millisecond)
+				continue
+			}
+		}
 		var buf strings.Builder
-		for _, p := range resp.Candidates[0].Content.Parts {
+		for _, p := range cand.Content.Parts {
 			buf.WriteString(fmt.Sprintf("%v", p))
 		}
 		raw = buf.String()
@@ -96,6 +120,16 @@ func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string
 		results, err := gs.parseGeminiResponse(raw)
 		if err != nil {
 			lastErr = fmt.Errorf("failed to parse Gemini response: %w", err)
+			if cand.FinishReason == genai.FinishReasonMaxTokens && attempt < 3 {
+				if maxOutputTokens < 16384 {
+					maxOutputTokens += 2048
+					if maxOutputTokens > 16384 {
+						maxOutputTokens = 16384
+					}
+				}
+				time.Sleep(300 * time.Millisecond)
+				continue
+			}
 			if attempt < 3 {
 				time.Sleep(300 * time.Millisecond)
 				continue

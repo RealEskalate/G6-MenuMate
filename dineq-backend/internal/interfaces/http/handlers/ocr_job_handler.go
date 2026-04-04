@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 	"time"
 
@@ -21,6 +22,7 @@ type OCRJobHandler struct {
 	MenuUseCase         domain.IMenuUseCase
 	StorageService      services.StorageService
 	NotificationUseCase domain.INotificationUseCase
+	FrontendBaseURL      string
 
 	// Worker         *services.Worker
 }
@@ -125,8 +127,14 @@ func enforceAmharicScript(words []string) []string {
 	return out
 }
 
-func NewOCRJobHandler(uc domain.IOCRJobUseCase, mc domain.IMenuUseCase, stg services.StorageService, nc domain.INotificationUseCase) *OCRJobHandler {
-	return &OCRJobHandler{UseCase: uc, MenuUseCase: mc, StorageService: stg, NotificationUseCase: nc}
+func NewOCRJobHandler(uc domain.IOCRJobUseCase, mc domain.IMenuUseCase, stg services.StorageService, nc domain.INotificationUseCase, frontendBaseURL string) *OCRJobHandler {
+	return &OCRJobHandler{
+		UseCase:             uc,
+		MenuUseCase:         mc,
+		StorageService:      stg,
+		NotificationUseCase: nc,
+		FrontendBaseURL:      frontendBaseURL,
+	}
 }
 
 // CreateOCRJob handles the creation of a new OCR job
@@ -245,6 +253,190 @@ func (h *OCRJobHandler) GetOCRJobByID(c *gin.Context) {
 		}
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": response})
+}
+
+// ListMyOCRJobs returns OCR jobs for the authenticated user.
+func (h *OCRJobHandler) ListMyOCRJobs(c *gin.Context) {
+	userID := c.GetString("user_id")
+	if userID == "" {
+		userID = c.GetString("userId")
+	}
+	if userID == "" {
+		dto.WriteError(c, domain.ErrUnauthorized)
+		return
+	}
+
+	jobs, err := h.UseCase.ListOCRJobsByUserID(userID)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+
+	out := make([]gin.H, 0, len(jobs))
+	for _, j := range jobs {
+		if j == nil {
+			continue
+		}
+		row := gin.H{
+			"job_id":                    j.ID,
+			"status":                    j.Status,
+			"created_at":                j.CreatedAt,
+			"updated_at":                j.UpdatedAt,
+			"estimated_completion_time": j.EstimatedCompletion,
+			"phase":                     j.Phase,
+			"progress":                  j.Progress,
+		}
+		if j.CompletedAt != nil {
+			row["completed_at"] = j.CompletedAt
+		}
+		if j.StructuredMenuID != "" {
+			row["structured_menu_id"] = j.StructuredMenuID
+		}
+		out = append(out, row)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": out})
+}
+
+// GetMyPersonalMenus returns OCR-generated structured menus for the authenticated user.
+func (h *OCRJobHandler) GetMyPersonalMenus(c *gin.Context) {
+	userID := c.GetString("user_id")
+	if userID == "" {
+		userID = c.GetString("userId")
+	}
+	if userID == "" {
+		dto.WriteError(c, domain.ErrUnauthorized)
+		return
+	}
+
+	jobs, err := h.UseCase.ListOCRJobsByUserID(userID)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+
+	type menuRow struct {
+		menu      *dto.MenuResponse
+		createdAt time.Time
+	}
+	seen := map[string]bool{}
+	menus := make([]menuRow, 0)
+	for _, j := range jobs {
+		if j == nil || j.Results == nil || j.Results.Menu == nil {
+			continue
+		}
+		m := dto.MenuToResponse(j.Results.Menu)
+		if m == nil || m.ID == "" {
+			continue
+		}
+		if seen[m.ID] {
+			continue
+		}
+		seen[m.ID] = true
+		menus = append(menus, menuRow{menu: m, createdAt: j.CreatedAt})
+	}
+
+	sort.Slice(menus, func(i, j int) bool {
+		return menus[i].createdAt.After(menus[j].createdAt)
+	})
+
+	res := make([]*dto.MenuResponse, 0, len(menus))
+	for _, m := range menus {
+		res = append(res, m.menu)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": res})
+}
+
+// GetMyPersonalMenuByID returns one OCR-generated structured menu for the authenticated user.
+func (h *OCRJobHandler) GetMyPersonalMenuByID(c *gin.Context) {
+	userID := c.GetString("user_id")
+	if userID == "" {
+		userID = c.GetString("userId")
+	}
+	if userID == "" {
+		dto.WriteError(c, domain.ErrUnauthorized)
+		return
+	}
+
+	menuID := c.Param("id")
+	menu, err := h.UseCase.GetStructuredMenuByUserAndID(userID, menuID)
+	if err != nil {
+		dto.WriteError(c, domain.ErrNotFound)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": dto.MenuToResponse(menu)})
+}
+
+// ShareMyPersonalMenu returns a share URL for a personal OCR-generated menu.
+func (h *OCRJobHandler) ShareMyPersonalMenu(c *gin.Context) {
+	userID := c.GetString("user_id")
+	if userID == "" {
+		userID = c.GetString("userId")
+	}
+	if userID == "" {
+		dto.WriteError(c, domain.ErrUnauthorized)
+		return
+	}
+
+	menuID := c.Param("id")
+	menu, err := h.UseCase.GetStructuredMenuByUserAndID(userID, menuID)
+	if err != nil || menu == nil {
+		dto.WriteError(c, domain.ErrNotFound)
+		return
+	}
+
+	frontendBase := h.FrontendBaseURL
+	if frontendBase == "" {
+		scheme := "https"
+		if c.Request.TLS == nil {
+			scheme = "http"
+		}
+		frontendBase = fmt.Sprintf("%s://%s", scheme, c.Request.Host)
+	}
+	shareURL := fmt.Sprintf("%s/user/menu-display/%s", strings.TrimRight(frontendBase, "/"), menu.ID)
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"menu_id":   menu.ID,
+			"share_url": shareURL,
+		},
+		"message": "menu share URL generated",
+	})
+}
+
+// UpdateMyPersonalMenu updates items in a personal OCR-generated menu
+func (h *OCRJobHandler) UpdateMyPersonalMenu(c *gin.Context) {
+	userId := c.GetString("user_id")
+	if userId == "" {
+		userId = c.GetString("userId")
+	}
+	if userId == "" {
+		dto.WriteError(c, domain.ErrUnauthorized)
+		return
+	}
+
+	menuID := c.Param("id")
+	var req dto.MenuRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		dto.WriteValidationError(c, "payload", "invalid JSON body", "invalid_json", err)
+		return
+	}
+
+	domainMenu := dto.RequestToMenu(&req)
+	if domainMenu == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "error": "invalid menu items"})
+		return
+	}
+
+	if err := h.UseCase.UpdateStructuredMenu(c.Request.Context(), userId, menuID, domainMenu.Items); err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "menu updated successfully"})
 }
 
 // DeleteOCRJob marks an OCR job as deleted

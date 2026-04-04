@@ -35,8 +35,7 @@ func NewReviewRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 		c.Next()
 	})
 
-	// Authenticated routes (new nested path adjusted to avoid conflict with /restaurants/:slug): /restaurants/id/:id/items/:item_id/reviews
-	// IMPORTANT: keep wildcard name :id to match existing /restaurants/id/:id/* prefix and avoid Gin panic.
+	// Authenticated routes (nested under /restaurants/id/:id to avoid slug conflicts)
 	log.Println("[ROUTES] Attempting to register POST /restaurants/id/:id/items/:item_id/reviews (relative to /api/v1)")
 	debugGroup.POST("/restaurants/id/:id/items/:item_id/reviews", middleware.AuthMiddleware(*env), reviewHandler.CreateReview)
 	// Trailing slash variant for some API clients that auto-append /
@@ -54,6 +53,6 @@ func NewReviewRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 	group.GET("/reviews/:id", reviewHandler.GetReviewByID)
 	group.GET("/items/:item_id/reviews", reviewHandler.ListReviewsByItem)
 	group.GET("/items/:item_id/average-rating", reviewHandler.GetAverageRatingByItem)
-	group.GET("/restaurants/v/:restaurant_id/average-rating", reviewHandler.GetAverageRatingByRestaurant)
+	group.GET("/restaurants/v/:id/average-rating", reviewHandler.GetAverageRatingByRestaurant)
 	group.GET("/restaurants/id/:id/reviews", reviewHandler.ListReviewsByRestaurant)
 }

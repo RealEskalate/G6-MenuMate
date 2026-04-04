@@ -87,7 +87,8 @@ func (uc *OCRJobUseCase) ProcessJob(jobID string) {
 	appendPhase(job, domain.PhaseAIStructuring, "running")
 	job.Progress = 50
 	persistWithFallback(uc, job, "phase ai start")
-	trimmed := slimOCRText(text.OCRText, 8000)
+	// Keep much more OCR content so large menus can be fully structured.
+	trimmed := slimOCRText(text.OCRText, 32000)
 	for attempt := 1; attempt <= 2; attempt++ {
 		base := 180 * time.Second
 		if len(trimmed) > 6000 {
@@ -221,6 +222,41 @@ func (uc *OCRJobUseCase) GetOCRJobByID(id string) (*domain.OCRJob, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
 	defer cancel()
 	return uc.repo.GetByID(ctx, id)
+}
+
+func (uc *OCRJobUseCase) ListOCRJobsByUserID(userID string) ([]*domain.OCRJob, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
+	defer cancel()
+	return uc.repo.ListByUserID(ctx, userID)
+}
+
+func (uc *OCRJobUseCase) GetStructuredMenuByUserAndID(userID, structuredMenuID string) (*domain.Menu, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
+	defer cancel()
+	job, err := uc.repo.GetByUserAndStructuredMenuID(ctx, userID, structuredMenuID)
+	if err != nil {
+		return nil, err
+	}
+	if job == nil || job.Results == nil || job.Results.Menu == nil {
+		return nil, errors.New("structured menu not found")
+	}
+	return job.Results.Menu, nil
+}
+
+func (uc *OCRJobUseCase) UpdateStructuredMenu(ctx context.Context, userID, menuID string, items []domain.Item) error {
+	job, err := uc.repo.GetByUserAndStructuredMenuID(ctx, userID, menuID)
+	if err != nil {
+		return err
+	}
+	if job == nil || job.Results == nil || job.Results.Menu == nil {
+		return errors.New("menu not found or not structured")
+	}
+
+	job.Results.Menu.Items = items
+	job.Results.Menu.UpdatedAt = time.Now()
+	job.Results.Menu.Version++
+
+	return uc.repo.UpdateResultsMenu(ctx, userID, menuID, job.Results.Menu)
 }
 
 func (uc *OCRJobUseCase) DeleteOCRJob(id string) error {

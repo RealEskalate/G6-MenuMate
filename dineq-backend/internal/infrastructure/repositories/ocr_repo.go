@@ -8,6 +8,7 @@ import (
 	mongo "github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/database/mapper"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type OCRRepository struct {
@@ -74,6 +75,47 @@ func (r *OCRRepository) GetByID(ctx context.Context, id string) (*domain.OCRJob,
 	return mapper.ToDomainOCRJob(&dbocr), nil
 }
 
+// list OCR jobs for a specific user (newest first)
+func (r *OCRRepository) ListByUserID(ctx context.Context, userID string) ([]*domain.OCRJob, error) {
+	filter := bson.M{"userId": userID}
+	opts := options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}})
+	cursor, err := r.db.Collection(r.ocrCl).Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	jobs := make([]*domain.OCRJob, 0)
+	for cursor.Next(ctx) {
+		var dbocr mapper.OCRJobDB
+		if err := cursor.Decode(&dbocr); err != nil {
+			return nil, err
+		}
+		jobs = append(jobs, mapper.ToDomainOCRJob(&dbocr))
+	}
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+	return jobs, nil
+}
+
+// fetch a specific OCR job that owns a structured menu for this user
+func (r *OCRRepository) GetByUserAndStructuredMenuID(ctx context.Context, userID, structuredMenuID string) (*domain.OCRJob, error) {
+	var dbocr mapper.OCRJobDB
+	filter := bson.M{
+		"userId": userID,
+		"$or": bson.A{
+			bson.M{"structuredMenuId": structuredMenuID},
+			bson.M{"results.structured_menu_id": structuredMenuID},
+			bson.M{"results.menu.id": structuredMenuID},
+		},
+	}
+	if err := r.db.Collection(r.ocrCl).FindOne(ctx, filter).Decode(&dbocr); err != nil {
+		return nil, err
+	}
+	return mapper.ToDomainOCRJob(&dbocr), nil
+}
+
 // delete
 func (r *OCRRepository) Delete(ctx context.Context, id string) error {
 	oid, err := bson.ObjectIDFromHex(id)
@@ -128,9 +170,30 @@ func (r *OCRRepository) GetUserFCMToken(userID string) string {
 	var user struct {
 		FCMToken string `bson:"fcmToken"`
 	}
-	err := r.db.Collection("users").FindOne(context.Background(), bson.M{"_id": userID}).Decode(&user)
-	if err != nil {
-		return ""
+	if parsed, err := bson.ObjectIDFromHex(userID); err == nil {
+		err = r.db.Collection("users").FindOne(context.Background(), bson.M{"_id": parsed}).Decode(&user)
+	} else {
+		err = r.db.Collection("users").FindOne(context.Background(), bson.M{"_id": userID}).Decode(&user)
 	}
+
 	return user.FCMToken
+}
+
+func (r *OCRRepository) UpdateResultsMenu(ctx context.Context, userID, menuID string, menu *domain.Menu) error {
+	filter := bson.M{
+		"userId": userID,
+		"$or": bson.A{
+			bson.M{"structuredMenuId": menuID},
+			bson.M{"results.structured_menu_id": menuID},
+			bson.M{"results.menu.id": menuID},
+		},
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"results.menu": menu,
+			"updatedAt":    time.Now(),
+		},
+	}
+	_, err := r.db.Collection(r.ocrCl).UpdateOne(ctx, filter, update)
+	return err
 }
