@@ -35,12 +35,13 @@ func NewReviewRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 		c.Next()
 	})
 
-	// Authenticated routes (new nested path adjusted to avoid conflict with /restaurants/:slug): /restaurants/id/:restaurant_id/items/:item_id/reviews
-	log.Println("[ROUTES] Attempting to register POST /restaurants/id/:restaurant_id/items/:item_id/reviews (relative to /api/v1)")
-	debugGroup.POST("/restaurants/id/:restaurant_id/items/:item_id/reviews", middleware.AuthMiddleware(*env), reviewHandler.CreateReview)
+	// Authenticated routes (new nested path adjusted to avoid conflict with /restaurants/:slug): /restaurants/id/:id/items/:item_id/reviews
+	// IMPORTANT: keep wildcard name :id to match existing /restaurants/id/:id/* prefix and avoid Gin panic.
+	log.Println("[ROUTES] Attempting to register POST /restaurants/id/:id/items/:item_id/reviews (relative to /api/v1)")
+	debugGroup.POST("/restaurants/id/:id/items/:item_id/reviews", middleware.AuthMiddleware(*env), reviewHandler.CreateReview)
 	// Trailing slash variant for some API clients that auto-append /
-	debugGroup.POST("/restaurants/id/:restaurant_id/items/:item_id/reviews/", middleware.AuthMiddleware(*env), reviewHandler.CreateReview)
-	log.Println("[ROUTES] Registered POST /api/v1/restaurants/id/:restaurant_id/items/:item_id/reviews")
+	debugGroup.POST("/restaurants/id/:id/items/:item_id/reviews/", middleware.AuthMiddleware(*env), reviewHandler.CreateReview)
+	log.Println("[ROUTES] Registered POST /api/v1/restaurants/id/:id/items/:item_id/reviews")
 	// Temporary legacy fallback for clients still using body IDs (will be removed)
 	group.POST("/reviews", middleware.AuthMiddleware(*env), reviewHandler.CreateReview)
 	log.Println("[ROUTES] Registered TEMP legacy POST /api/v1/reviews")
@@ -54,5 +55,5 @@ func NewReviewRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 	group.GET("/items/:item_id/reviews", reviewHandler.ListReviewsByItem)
 	group.GET("/items/:item_id/average-rating", reviewHandler.GetAverageRatingByItem)
 	group.GET("/restaurants/v/:restaurant_id/average-rating", reviewHandler.GetAverageRatingByRestaurant)
-	group.GET("/restaurants/id/:restaurant_id/reviews", reviewHandler.ListReviewsByRestaurant)
+	group.GET("/restaurants/id/:id/reviews", reviewHandler.ListReviewsByRestaurant)
 }

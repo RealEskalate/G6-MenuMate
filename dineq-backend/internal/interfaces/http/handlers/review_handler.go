@@ -38,7 +38,7 @@ func (h *ReviewHandler) CreateReview(c *gin.Context) {
 		return
 	}
 	itemID := c.Param("item_id")
-	restaurantID := c.Param("restaurant_id")
+	restaurantID := pathRestaurantID(c)
 	if itemID == "" || restaurantID == "" {
 		reviewError(c, http.StatusBadRequest, "path_params_required", "restaurant_id and item_id are required in path", "", nil)
 		return
@@ -122,7 +122,7 @@ func (h *ReviewHandler) ListReviewsByItem(c *gin.Context) {
 
 // List reviews for a specific restaurant (with pagination)
 func (h *ReviewHandler) ListReviewsByRestaurant(c *gin.Context) {
-	restaurantID := c.Param("restaurant_id")
+	restaurantID := pathRestaurantID(c)
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 
@@ -230,7 +230,7 @@ func (h *ReviewHandler) GetAverageRatingByItem(c *gin.Context) {
 
 // Get average rating for a restaurant
 func (h *ReviewHandler) GetAverageRatingByRestaurant(c *gin.Context) {
-	restaurantID := c.Param("restaurant_id")
+	restaurantID := pathRestaurantID(c)
 	avg, err := h.uc.GetAverageRatingByRestaurant(c.Request.Context(), restaurantID)
 	if err != nil {
 		reviewError(c, http.StatusInternalServerError, "get_restaurant_average_failed", "Failed to get restaurant average rating", "restaurant_id", err)

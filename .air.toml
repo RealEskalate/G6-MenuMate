@@ -1,0 +1,20 @@
+# Root-level Air config so `air` works when executed from repository root.
+# The actual Go module is in `dineq-backend/`.
+
+root = "."
+
+[build]
+bin = "tmp/main"
+cmd = "cd dineq-backend && go build -o ../tmp/main ./cmd/api"
+# Run from module directory so godotenv.Load() resolves dineq-backend/.env
+full_bin = "cd dineq-backend && ../tmp/main"
+exclude_dir = ["tmp", ".git", "dineq-backend/tmp"]
+include_ext = ["go", "mod", "sum", "env"]
+delay = 500
+kill_delay = 500
+
+[log]
+color = true
+
+[misc]
+clean_on_exit = true
