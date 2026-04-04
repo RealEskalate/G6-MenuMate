@@ -69,6 +69,12 @@ func (m *mockReviewUsecase) GetAverageRatingByItem(ctx context.Context, itemID s
 func (m *mockReviewUsecase) GetAverageRatingByRestaurant(ctx context.Context, restaurantID string) (float64, error) {
 	panic("not used")
 }
+func (m *mockReviewUsecase) ListReviewsByRestaurant(ctx context.Context, restaurantID string, page, limit int) ([]*domain.Review, int64, error) {
+	panic("not used")
+}
+func (m *mockReviewUsecase) GetStarDistribution(ctx context.Context, restaurantID string) ([]domain.StarDistribution, error) {
+	panic("not used")
+}
 
 func TestCreateReviewHandler(t *testing.T) {
 	gin.SetMode(gin.TestMode)

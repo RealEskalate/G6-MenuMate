@@ -29,11 +29,11 @@ func NewReactionRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Data
 
 	reactionHandler := handler.NewReactionHandler(reactionUsecase, reviewUsecase)
 
-	// New nested route: all identifiers in path
-	// POST /restaurants/:restaurant_id/items/:item_id/reviews/:review_id/reaction
-	// To avoid conflict with existing /restaurants/:slug wildcard, mount under a distinct prefix /restaurants/id/:restaurant_id
-	log.Println("[ROUTES] (reaction) registering nested /restaurants/id/:restaurant_id/items/:item_id/reviews/:review_id/reaction routes")
-	base := group.Group("/restaurants/id/:restaurant_id/items/:item_id/reviews")
+	// New nested route: all identifiers in path.
+	// IMPORTANT: keep wildcard name as :id to match existing /restaurants/id/:id/*
+	// prefix registered by restaurant analytics route, otherwise Gin panics at startup.
+	log.Println("[ROUTES] (reaction) registering nested /restaurants/id/:id/items/:item_id/reviews/:review_id/reaction routes")
+	base := group.Group("/restaurants/id/:id/items/:item_id/reviews")
 	base.Use(middleware.AuthMiddleware(*env))
 	{
 		base.POST("/:review_id/reaction", reactionHandler.SaveReaction)

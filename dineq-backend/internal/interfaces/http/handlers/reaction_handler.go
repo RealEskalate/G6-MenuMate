@@ -32,7 +32,7 @@ func NewReactionHandler(reactionUC domain.IReactionUsecase, reviewUC domain.IRev
 }
 
 func (ctrl *ReactionHandler) SaveReaction(c *gin.Context) {
-	restaurantID := c.Param("restaurant_id")
+	restaurantID := pathRestaurantID(c)
 	itemID := c.Param("item_id")
 	reviewID := c.Param("review_id")
 	if restaurantID == "" {
@@ -95,7 +95,7 @@ func (ctrl *ReactionHandler) SaveReaction(c *gin.Context) {
 }
 
 func (ctrl *ReactionHandler) GetReactionStats(c *gin.Context) {
-	restaurantID := c.Param("restaurant_id")
+	restaurantID := pathRestaurantID(c)
 	itemID := c.Param("item_id")
 	reviewID := c.Param("review_id")
 	if restaurantID == "" || itemID == "" || reviewID == "" {
@@ -125,4 +125,12 @@ func (ctrl *ReactionHandler) GetReactionStats(c *gin.Context) {
 	}
 	resp := dto.ReactionStatsDTO{ReviewID: reviewID, ItemID: itemID, LikeCounts: likeCnt, DislikeCounts: dislikeCnt, Me: meStr}
 	c.JSON(http.StatusOK, resp)
+}
+
+func pathRestaurantID(c *gin.Context) string {
+	id := c.Param("restaurant_id")
+	if id == "" {
+		id = c.Param("id")
+	}
+	return id
 }
