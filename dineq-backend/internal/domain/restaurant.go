@@ -61,6 +61,7 @@ const (
 )
 
 type IRestaurantRepo interface {
+	GetByID(ctx context.Context, id string) (*Restaurant, error)
 	GetBySlug(ctx context.Context, slug string) (*Restaurant, error)
 	GetByOldSlug(ctx context.Context, oldSlug string) (*Restaurant, error)
 	Create(ctx context.Context, r *Restaurant) error
@@ -77,6 +78,7 @@ type IRestaurantRepo interface {
 }
 
 type IRestaurantUsecase interface {
+	GetRestaurantByID(ctx context.Context, id string) (*Restaurant, error)
 	CreateRestaurant(ctx context.Context, r *Restaurant, files map[string][]byte) error
 	UpdateRestaurant(ctx context.Context, r *Restaurant, files map[string][]byte) error
 	DeleteRestaurant(ctx context.Context, id string, manager string) error

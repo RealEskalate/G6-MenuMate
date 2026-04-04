@@ -28,6 +28,13 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 	viewEventRepo := repositories.NewViewEventRepository(db, env.ViewEventCollection)
 	restaurantHandler := handler.NewRestaurantHandler(restaurantUsecase, viewEventRepo)
 
+	// Analytics dependencies
+	itemRepo := repositories.NewItemRepository(db, env.ItemCollection)
+	reviewRepo := repositories.NewReviewRepository(db, env.ReviewCollection)
+	qrRepo := repositories.NewQRCodeRepository(db, env.QRCodeCollection)
+	analyticsUsecase := usecase.NewAnalyticsUsecase(restaurantRepo, itemRepo, reviewRepo, viewEventRepo, qrRepo, ctxTimeout)
+	analyticsHandler := handler.NewAnalyticsHandler(analyticsUsecase)
+
 	// Public endpoints (no auth required)
 	pub := group.Group("/restaurants")
 	{
@@ -49,7 +56,7 @@ func NewRestaurantRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 		admin.GET("/me", restaurantHandler.GetRestaurantByManagerId)
 		admin.PATCH("/:slug", restaurantHandler.UpdateRestaurant)
 		admin.DELETE("/:id", restaurantHandler.DeleteRestaurant)
-
+		admin.GET("/id/:id/analytics", analyticsHandler.GetRestaurantAnalytics)
 	}
 
 }

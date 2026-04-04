@@ -54,4 +54,5 @@ func NewReviewRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 	group.GET("/items/:item_id/reviews", reviewHandler.ListReviewsByItem)
 	group.GET("/items/:item_id/average-rating", reviewHandler.GetAverageRatingByItem)
 	group.GET("/restaurants/v/:restaurant_id/average-rating", reviewHandler.GetAverageRatingByRestaurant)
+	group.GET("/restaurants/id/:restaurant_id/reviews", reviewHandler.ListReviewsByRestaurant)
 }

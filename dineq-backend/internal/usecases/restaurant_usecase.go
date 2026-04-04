@@ -84,6 +84,12 @@ func (s *RestaurantUsecase) DeleteRestaurant(ctx context.Context, id string, man
 	return s.Repo.Delete(c, id, manager)
 }
 
+func (uc *RestaurantUsecase) GetRestaurantByID(ctx context.Context, id string) (*domain.Restaurant, error) {
+	ctx, cancel := context.WithTimeout(ctx, uc.ctxtimeout)
+	defer cancel()
+	return uc.Repo.GetByID(ctx, id)
+}
+
 func (s *RestaurantUsecase) GetRestaurantBySlug(ctx context.Context, slug string) (*domain.Restaurant, error) {
 	c, cancel := context.WithTimeout(ctx, s.ctxtimeout)
 	defer cancel()

@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 // ViewEvent logs every view of a restaurant, menu, or item
 // EntityType: "restaurant", "menu", "item"
@@ -16,4 +19,5 @@ type ViewEvent struct {
 
 type IViewEventRepository interface {
 	LogView(event *ViewEvent) error
+	GetAnalyticsByEntity(ctx context.Context, entityID string, entityType string) ([]VisitorPoint, error)
 }

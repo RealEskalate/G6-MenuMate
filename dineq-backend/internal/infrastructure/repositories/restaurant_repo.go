@@ -49,6 +49,24 @@ func (repo *RestaurantRepo) Create(ctx context.Context, r *domain.Restaurant) er
 	return nil
 }
 
+func (repo *RestaurantRepo) GetByID(ctx context.Context, id string) (*domain.Restaurant, error) {
+	oid, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, domain.ErrRestaurantNotFound
+	}
+	filter := bson.M{"_id": oid, "isDeleted": false}
+	var model mapper.RestaurantModel
+
+	err = repo.db.Collection(repo.restaurantCol).FindOne(ctx, filter).Decode(&model)
+	if err != nil {
+		if err == mongo.ErrNoDocuments() {
+			return nil, domain.ErrRestaurantNotFound
+		}
+		return nil, err
+	}
+	return model.ToDomain(), nil
+}
+
 func (repo *RestaurantRepo) GetBySlug(ctx context.Context, slug string) (*domain.Restaurant, error) {
 	filter := bson.M{"slug": slug, "isDeleted": false} // BEGIN:
 	var model mapper.RestaurantModel

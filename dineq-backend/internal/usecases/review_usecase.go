@@ -60,6 +60,18 @@ func (uc *ReviewUsecase) ListReviewsByItem(ctx context.Context, itemID string, p
 	return uc.repo.ListByItem(ctx, itemID, page, limit)
 }
 
+func (uc *ReviewUsecase) ListReviewsByRestaurant(ctx context.Context, restaurantID string, page, limit int) ([]*domain.Review, int64, error) {
+	ctx, cancel := context.WithTimeout(ctx, uc.ctxtimeout)
+	defer cancel()
+	return uc.repo.ListByRestaurant(ctx, restaurantID, page, limit)
+}
+
+func (uc *ReviewUsecase) GetStarDistribution(ctx context.Context, restaurantID string) ([]domain.StarDistribution, error) {
+	ctx, cancel := context.WithTimeout(ctx, uc.ctxtimeout)
+	defer cancel()
+	return uc.repo.GetStarDistribution(ctx, restaurantID)
+}
+
 func (uc *ReviewUsecase) UpdateReview(ctx context.Context, id string, userID string, update *domain.Review) (*domain.Review, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, uc.ctxtimeout)

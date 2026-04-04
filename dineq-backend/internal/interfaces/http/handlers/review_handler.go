@@ -120,6 +120,27 @@ func (h *ReviewHandler) ListReviewsByItem(c *gin.Context) {
 	})
 }
 
+// List reviews for a specific restaurant (with pagination)
+func (h *ReviewHandler) ListReviewsByRestaurant(c *gin.Context) {
+	restaurantID := c.Param("restaurant_id")
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	reviews, total, err := h.uc.ListReviewsByRestaurant(c.Request.Context(), restaurantID, page, limit)
+	if err != nil {
+		reviewError(c, http.StatusInternalServerError, "list_reviews_failed", "Failed to list reviews", "", err)
+		return
+	}
+
+	responses := dto.ToReviewResponseList(reviews, nil)
+	c.JSON(http.StatusOK, gin.H{
+		"total":   total,
+		"page":    page,
+		"limit":   limit,
+		"reviews": responses,
+	})
+}
+
 // Update a review (by ID and user)
 func (h *ReviewHandler) UpdateReview(c *gin.Context) {
 	userID := c.GetString("user_id")

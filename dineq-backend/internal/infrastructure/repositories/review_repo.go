@@ -102,6 +102,82 @@ func (r *ReviewRepository) ListByItem(ctx context.Context, itemID string, page, 
 	return reviews, count, nil
 }
 
+// ListByRestaurant lists all reviews for a restaurant across all its items
+func (r *ReviewRepository) ListByRestaurant(ctx context.Context, restaurantID string, page, limit int) ([]*domain.Review, int64, error) {
+	filter := bson.M{"restaurantId": restaurantID, "isDeleted": false}
+	skip := (page - 1) * limit
+
+	cursor, err := r.DB.Collection(r.Collection).Find(
+		ctx,
+		filter,
+		mongo_options.Find().SetSkip(int64(skip)).SetLimit(int64(limit)).SetSort(bson.M{"createdAt": -1}),
+	)
+
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var reviewModels []*mapper.ReviewModel
+	if err := cursor.All(ctx, &reviewModels); err != nil {
+		return nil, 0, err
+	}
+
+	var reviews []*domain.Review
+	for _, m := range reviewModels {
+		reviews = append(reviews, mapper.ReviewToDomain(m))
+	}
+
+	count, err := r.DB.Collection(r.Collection).CountDocuments(ctx, filter)
+	return reviews, count, err
+}
+
+// GetStarDistribution aggregates review counts by star rating (1-5)
+func (r *ReviewRepository) GetStarDistribution(ctx context.Context, restaurantID string) ([]domain.StarDistribution, error) {
+	pipeline := []bson.M{
+		{"$match": bson.M{"restaurantId": restaurantID, "isDeleted": false}},
+		{"$group": bson.M{
+			"_id":   "$rating",
+			"count": bson.M{"$sum": 1},
+		}},
+		{"$sort": bson.M{"_id": -1}},
+	}
+
+	cursor, err := r.DB.Collection(r.Collection).Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	distribution := make([]domain.StarDistribution, 0, 5)
+	var results []struct {
+		ID    float64 `bson:"_id"`
+		Count int     `bson:"count"`
+	}
+
+	if err := cursor.All(ctx, &results); err != nil {
+		return nil, err
+	}
+
+	// Initialize all stars 1-5 to zero
+	counts := make(map[int]int)
+	for i := 1; i <= 5; i++ {
+		counts[i] = 0
+	}
+	for _, res := range results {
+		counts[int(res.ID)] = res.Count
+	}
+
+	for i := 5; i >= 1; i-- {
+		distribution = append(distribution, domain.StarDistribution{
+			Stars: i,
+			Count: counts[i],
+		})
+	}
+
+	return distribution, nil
+}
+
 func (r *ReviewRepository) Update(ctx context.Context, id string, userID string, update *domain.Review) error {
 	uid, err := bson.ObjectIDFromHex(id)
 	if err != nil {

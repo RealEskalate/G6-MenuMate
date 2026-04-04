@@ -31,6 +31,8 @@ type ReviewRepository interface {
 	Create(ctx context.Context, review *Review) error
 	FindByUserAndItemWithin(ctx context.Context, userID, itemID string, since time.Time) (*Review, error)
 	ListByItem(ctx context.Context, itemID string, page, limit int) ([]*Review, int, error)
+	ListByRestaurant(ctx context.Context, restaurantID string, page, limit int) ([]*Review, int64, error)
+	GetStarDistribution(ctx context.Context, restaurantID string) ([]StarDistribution, error)
 }
 
 type IReviewRepository interface {
@@ -54,6 +56,12 @@ type IReviewRepository interface {
 
 	// Calculate average rating for a restaurant (from its items' averages)
 	AverageRatingByRestaurant(ctx context.Context, restaurantID string) (float64, error)
+
+	// List reviews for a specific restaurant (with pagination)
+	ListByRestaurant(ctx context.Context, restaurantID string, page, limit int) ([]*Review, int64, error)
+
+	// Get star distribution for a restaurant
+	GetStarDistribution(ctx context.Context, restaurantID string) ([]StarDistribution, error)
 }
 
 type IReviewUsecase interface {
@@ -77,4 +85,10 @@ type IReviewUsecase interface {
 
 	// Get average rating for a restaurant (from its items' averages)
 	GetAverageRatingByRestaurant(ctx context.Context, restaurantID string) (float64, error)
+
+	// List reviews for a specific restaurant (with pagination)
+	ListReviewsByRestaurant(ctx context.Context, restaurantID string, page, limit int) ([]*Review, int64, error)
+
+	// Get star distribution for a restaurant
+	GetStarDistribution(ctx context.Context, restaurantID string) ([]StarDistribution, error)
 }
