@@ -51,6 +51,14 @@ func (uc *qrCodeUseCase) GetQRCodeByRestaurantId(id string) (*domain.QRCode, err
 	return uc.repo.GetByRestaurantId(ctx, id)
 }
 
+// get qr code by menu id
+func (uc *qrCodeUseCase) GetQRCodeByMenuId(id string) (*domain.QRCode, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)
+	defer cancel()
+
+	return uc.repo.GetByMenuId(ctx, id)
+}
+
 // delete qr code
 func (uc *qrCodeUseCase) DeleteQRCode(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), uc.ctxTimeout)

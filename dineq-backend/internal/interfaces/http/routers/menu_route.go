@@ -18,11 +18,6 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 	// context time out
 	ctxTimeout := time.Duration(env.CtxTSeconds) * time.Second
 
-	qrService := services.NewQRService()
-
-	qrRepo := repositories.NewQRCodeRepository(db, env.QRCodeCollection)
-	qrUsecase := usecase.NewQRCodeUseCase(qrRepo, ctxTimeout)
-
 	// storage services
 	cloudinaryStorage := services.NewCloudinaryStorage(
 		env.CloudinaryName,
@@ -30,12 +25,16 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 		env.CloudinarySecret,
 	)
 
+	qrService := services.NewQRService(cloudinaryStorage)
+
+	qrRepo := repositories.NewQRCodeRepository(db, env.QRCodeCollection)
+	qrUsecase := usecase.NewQRCodeUseCase(qrRepo, ctxTimeout)
+
 	menuRepo := repositories.NewMenuRepository(db, env.MenuCollection)
 	menuUsecase := usecase.NewMenuUseCase(menuRepo, *qrService, ctxTimeout)
 
 	restaurantRepo := repositories.NewRestaurantRepo(db, env.RestaurantCollection)
 
-	cloudinaryStorage = services.NewCloudinaryStorage(env.CloudinaryName, env.CloudinaryAPIKey, env.CloudinarySecret)
 	restaurantUsecase := usecase.NewRestaurantUsecase(restaurantRepo, ctxTimeout, cloudinaryStorage)
 
 	// View events repository for logging views
@@ -63,6 +62,7 @@ func NewMenuRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 		protected.POST("/:restaurant_slug", menuHandler.CreateMenu)
 		protected.PATCH("/:restaurant_slug/:id", menuHandler.UpdateMenu)
 		protected.DELETE("/:restaurant_slug/:id", menuHandler.DeleteMenu)
+		protected.GET("/:restaurant_slug/qrcode/:id", menuHandler.GetQRCodeByMenu)
 		protected.POST("/:restaurant_slug/qrcode/:id", menuHandler.GenerateQRCode)
 		protected.POST("/:restaurant_slug/publish/:id", menuHandler.PublishMenu)
 		protected.PATCH("/item/:menu_slug", menuHandler.MenuItemUpdate)

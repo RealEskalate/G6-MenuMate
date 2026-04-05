@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"math"
+	"net/http"
 	"strings"
 	"time"
 
@@ -18,7 +20,7 @@ import (
 
 // Interface kept for existing callers
 type IAIService interface {
-	StructureWithGemini(ctx context.Context, ocrText string) (*domain.Menu, error)
+	StructureWithGemini(ctx context.Context, ocrText string, imageURL string) (*domain.Menu, error)
 	TranslateAIBit(text, target string) (string, error)
 	IsEthiopianFood(ctx context.Context, item string) (bool, error)
 }
@@ -66,14 +68,34 @@ type menuItemResult struct {
 	PreparationTime      int      `json:"preparationTime"`
 }
 
-// StructureWithGemini adapts ProcessOCRText style to existing domain.Menu output
-func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string) (*domain.Menu, error) {
+// StructureWithGemini adapts ProcessOCRText style to existing domain.Menu output, using both text and optionally an image
+func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string, imageURL string) (*domain.Menu, error) {
 	prompt := gs.createMenuStructuringPrompt(ocrText, "")
+
+	var parts []*genai.Part
+	if imageURL != "" {
+		imgResp, err := http.Get(imageURL)
+		if err == nil {
+			defer imgResp.Body.Close()
+			if imgData, err := io.ReadAll(imgResp.Body); err == nil {
+				mimeType := http.DetectContentType(imgData[:min(512, len(imgData))])
+				if !strings.HasPrefix(mimeType, "image/") {
+					mimeType = "image/jpeg"
+				}
+				parts = append(parts, &genai.Part{InlineData: &genai.Blob{Data: imgData, MIMEType: mimeType}})
+				prompt = "I have attached an image of the physical menu. Please extract ALL the menu items visible in this image. I have also provided some OCR text below, but it may be noisy, missing data, or incomplete. Rely on the attached IMAGE as your PRIMARY source of truth, and cross-reference with the text if needed.\n\n" + prompt
+			}
+		}
+	}
+	parts = append(parts, &genai.Part{Text: prompt})
+	contents := []*genai.Content{{Role: "user", Parts: parts}}
+
 	var lastErr error
 	var raw string
-	maxOutputTokens := int32(8192)
+	maxOutputTokens := int32(16384) // use max tokens available for large menus
 	temperature := float32(0.15)
 	topP := float32(0.9)
+
 	// exponential backoff for transient errors (429/503) only
 	for attempt := 1; attempt <= 3; attempt++ {
 		cfg := &genai.GenerateContentConfig{
@@ -83,7 +105,7 @@ func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string
 			TopP:             &topP,
 			CandidateCount:   1,
 		}
-		resp, err := gs.client.Models.GenerateContent(ctx, gs.model, genai.Text(prompt), cfg)
+		resp, err := gs.client.Models.GenerateContent(ctx, gs.model, contents, cfg)
 		if err != nil {
 			if transient(err) && attempt < 3 {
 				backoff := time.Duration(math.Pow(2, float64(attempt-1))) * 500 * time.Millisecond
@@ -101,32 +123,28 @@ func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string
 		if cand.FinishReason == genai.FinishReasonMaxTokens {
 			lastErr = fmt.Errorf("gemini output truncated by max tokens (token_count=%d)", cand.TokenCount)
 			if attempt < 3 {
-				if maxOutputTokens < 16384 {
-					maxOutputTokens += 2048
-					if maxOutputTokens > 16384 {
-						maxOutputTokens = 16384
-					}
-				}
 				time.Sleep(300 * time.Millisecond)
 				continue
 			}
 		}
 		var buf strings.Builder
 		for _, p := range cand.Content.Parts {
-			buf.WriteString(fmt.Sprintf("%v", p))
+			if p.Text != "" {
+				buf.WriteString(p.Text)
+			}
 		}
 		raw = buf.String()
 		gs.lastRaw = raw
+
+		// Enable robust multi-modal debugging
+		if imageURL != "" {
+			fmt.Printf("\n=== GEMINI MULTIMODAL API USED (IMAGE + TEXT) ===\n")
+		}
+
 		results, err := gs.parseGeminiResponse(raw)
 		if err != nil {
 			lastErr = fmt.Errorf("failed to parse Gemini response: %w", err)
 			if cand.FinishReason == genai.FinishReasonMaxTokens && attempt < 3 {
-				if maxOutputTokens < 16384 {
-					maxOutputTokens += 2048
-					if maxOutputTokens > 16384 {
-						maxOutputTokens = 16384
-					}
-				}
 				time.Sleep(300 * time.Millisecond)
 				continue
 			}
@@ -136,6 +154,7 @@ func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string
 			}
 			return nil, lastErr
 		}
+
 		// Build menu
 		menu := &domain.Menu{ID: bson.NewObjectID().Hex(), RestaurantSlug: bson.NewObjectID().Hex(), Version: 1, CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC()}
 		tabIndex := map[string]*domain.Tab{}
@@ -221,9 +240,6 @@ func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string
 		for _, t := range tabIndex {
 			menu.Tabs = append(menu.Tabs, *t)
 		}
-		// attach raw JSON to menu in a placeholder way (could be stored elsewhere via caller)
-		// The caller (usecase) will capture raw JSON via job.Results.RawAIJSON if integrated.
-		_ = raw
 		return menu, nil
 	}
 	if lastErr != nil {
@@ -234,7 +250,6 @@ func (gs *GeminiService) StructureWithGemini(ctx context.Context, ocrText string
 
 // RawLastAIJSON returns the last raw AI JSON (best-effort) produced by StructureWithGemini
 func (gs *GeminiService) RawLastAIJSON() string { return gs.lastRaw }
-
 // IsEthiopianFood asks the Gemini model a short yes/no question whether the
 // provided item is an Ethiopian food (origin/or commonly eaten there).
 // It expects the model to reply with exactly 'yes' or 'no' (case-insensitive)
@@ -261,7 +276,9 @@ func (gs *GeminiService) IsEthiopianFood(ctx context.Context, item string) (bool
 	}
 	var buf strings.Builder
 	for _, p := range resp.Candidates[0].Content.Parts {
-		buf.WriteString(fmt.Sprintf("%v", p))
+		if p.Text != "" {
+			buf.WriteString(p.Text)
+		}
 	}
 	out := strings.ToLower(strings.TrimSpace(buf.String()))
 	// Accept concise answers or answers that contain the token
@@ -325,6 +342,7 @@ OTHER RULES:
 - Absolutely NO null, markdown fences, or commentary. Output only JSON.
 - Ensure EVERY menu item has nameAmharic & descriptionAmharic filled (never identical Latin copy of English).
 - Absolutely forbid returning English words inside *_am fields when a standard Amharic equivalent exists; use Ethiopic characters (e.g. Breakfast -> ቁርስ, Lunch -> ምሳ, Meat -> ስጋ, Vegetable -> አትክልት, Stew -> ወጥ, Soup -> ሾርባ, Egg(s) -> እንቁላል, Combination -> ቅልቅል, Specialty -> ልዩ, Vegetarian -> በተክል).
+- CRITICAL: Extract ONLY items found in the OCR TEXT. If the OCR text does not contain any recognizable food items (e.g. just random numbers or noise), DO NOT hallucinate dishes. If no dishes are found, return exactly: {"menuItems": []}.
 
 Restaurant: %s
 OCR TEXT:
@@ -454,7 +472,9 @@ func (gs *GeminiService) TranslateAIBit(text, target string) (string, error) {
 	}
 	var out string
 	for _, part := range resp.Candidates[0].Content.Parts {
-		out += fmt.Sprintf("%v", part)
+		if part.Text != "" {
+			out += part.Text
+		}
 	}
 	return strings.TrimSpace(out), nil
 }

@@ -61,7 +61,11 @@ func AuthMiddleware(env bootstrap.Env) gin.HandlerFunc {
 			return []byte(env.ATS), nil
 		})
 		if err != nil || !token.Valid {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			if strings.Contains(err.Error(), "expired") {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "token expired"})
+			} else {
+				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			}
 			return
 		}
 		_, ok := token.Claims.(jwt.MapClaims)

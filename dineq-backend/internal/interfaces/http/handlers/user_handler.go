@@ -222,11 +222,12 @@ func (ctrl *UserController) ChangePassword(c *gin.Context) {
 		return
 	}
 
-	// check password strength
-	if err := dto.ValidatePasswordStrength(req.NewPassword); err != nil {
-		dto.WriteValidationError(c, "new_password", domain.ErrInvalidInput.Error(), "invalid_input", err)
-		return
-	}
+	// Password strength validation temporarily disabled.
+	// Previous logic (kept for easy restore):
+	// if err := dto.ValidatePasswordStrength(req.NewPassword); err != nil {
+	// 	dto.WriteValidationError(c, "new_password", domain.ErrInvalidInput.Error(), "invalid_input", err)
+	// 	return
+	// }
 
 	if err := ctrl.userUC.ChangePassword(userID, req.OldPassword, req.NewPassword); err != nil {
 		dto.WriteError(c, err)

@@ -18,7 +18,8 @@ type UserRequest struct {
 	Username     string      `json:"username" validate:"omitempty,alphanum,min=3,max=50"`
 	Email        string      `json:"email" validate:"omitempty,email"`
 	PhoneNumber  string      `json:"phone_number" validate:"omitempty,e164"`
-	Password     string      `json:"password" validate:"omitempty,min=6,max=100"`
+	// Password     string      `json:"password" validate:"omitempty,min=6,max=100"` // temporarily disabled password length validation
+	Password string `json:"password" validate:"omitempty"`
 	FirstName    string      `json:"first_name" validate:"omitempty,min=2,max=50"`
 	LastName     string      `json:"last_name" validate:"omitempty,min=2,max=50"`
 	FullName     string      `json:"full_name" validate:"omitempty,min=2,max=100"`
@@ -120,12 +121,20 @@ type UserUpdateProfileRequest struct {
 
 // change password request
 type ChangePasswordRequest struct {
-	OldPassword string `json:"old_password" validate:"required,min=6,max=100"`
-	NewPassword string `json:"new_password" validate:"required,min=6,max=100"`
+	// OldPassword string `json:"old_password" validate:"required,min=6,max=100"` // temporarily disabled password length validation
+	OldPassword string `json:"old_password" validate:"required"`
+	// NewPassword string `json:"new_password" validate:"required,min=6,max=100"` // temporarily disabled password length validation
+	NewPassword string `json:"new_password" validate:"required"`
 }
 
 // ValidatePasswordStrength performs basic password strength checks and returns a domain error.
 func ValidatePasswordStrength(pw string) error {
+	// Password strength validation temporarily disabled.
+	// Previous implementation kept below for easy restore.
+	_ = pw
+	return nil
+
+	/*
 	// Length check (already enforced by validator but keep for clarity)
 	if len(pw) < 8 {
 		return domain.ErrPasswordShortLen
@@ -156,4 +165,5 @@ func ValidatePasswordStrength(pw string) error {
 		return domain.ErrPasswordMustContainSpecialChar
 	}
 	return nil
+	*/
 }

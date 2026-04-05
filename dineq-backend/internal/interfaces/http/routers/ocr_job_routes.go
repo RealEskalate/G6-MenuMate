@@ -68,7 +68,7 @@ func NewOCRJobRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 	}
 
 	// qr services
-	qrServices := services.NewQRService()
+	qrServices := services.NewQRService(cloudinaryStorage)
 
 	// repositories
 	menuRepo := repositories.NewMenuRepository(db, env.MenuCollection)

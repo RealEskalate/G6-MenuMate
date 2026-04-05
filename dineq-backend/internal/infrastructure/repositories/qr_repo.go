@@ -66,6 +66,20 @@ func (r *qrRepository) GetByRestaurantId(ctx context.Context, id string) (*domai
 	return mapper.ToDomainQRCode(&qr), nil
 }
 
+// getbymenuid
+func (r *qrRepository) GetByMenuId(ctx context.Context, id string) (*domain.QRCode, error) {
+	log.Printf("Getting QR code for menu ID: %s\n", id)
+	var qr mapper.QRCodeModel
+	err := r.db.Collection(r.qrCollection).FindOne(ctx, bson.M{"menuId": id, "isDeleted": false}).Decode(&qr)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments()) {
+			return nil, domain.ErrQRCodeNotFound
+		}
+		return nil, err
+	}
+	return mapper.ToDomainQRCode(&qr), nil
+}
+
 // updateactivation
 func (r *qrRepository) UpdateActivation(ctx context.Context, id string, isActive bool) error {
 	_, err := r.db.Collection(r.qrCollection).UpdateOne(ctx, bson.M{"restaurantId": id}, bson.M{"$set": bson.M{"isActive": isActive}})

@@ -22,6 +22,7 @@ type QRCode struct {
 type IQRCodeUseCase interface {
 	CreateQRCode(qr *QRCode) error
 	GetQRCodeByRestaurantId(id string) (*QRCode, error)
+	GetQRCodeByMenuId(id string) (*QRCode, error)
 	ChangeQRCodeStatus(id string, isActive bool) error
 	// DeleteQRCode deletes a QR code by its restaurant ID
 	DeleteQRCode(id string) error
@@ -31,6 +32,7 @@ type IQRCodeUseCase interface {
 type IQRCodeRepository interface {
 	Create(ctx context.Context, qr *QRCode) error
 	GetByRestaurantId(ctx context.Context, id string) (*QRCode, error)
+	GetByMenuId(ctx context.Context, id string) (*QRCode, error)
 	UpdateActivation(ctx context.Context, id string, isActive bool) error
 	Delete(ctx context.Context, id string) error
 }

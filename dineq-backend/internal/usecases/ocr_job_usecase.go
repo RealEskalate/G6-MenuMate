@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -75,6 +76,7 @@ func (uc *OCRJobUseCase) ProcessJob(jobID string) {
 		return
 	}
 	logger.Log.Info().Str("job_id", jobID).Int("text_length", len(text.OCRText)).Msg("OCR extraction succeeded")
+	fmt.Printf("\n=== RAW OCR EXTRACTED TEXT ===\n%s\n==============================\n\n", text.OCRText)
 	job.Phase = domain.PhaseOCRExtraction
 	appendPhase(job, domain.PhaseOCRExtraction, "done")
 	job.Progress = 40
@@ -89,6 +91,7 @@ func (uc *OCRJobUseCase) ProcessJob(jobID string) {
 	persistWithFallback(uc, job, "phase ai start")
 	// Keep much more OCR content so large menus can be fully structured.
 	trimmed := slimOCRText(text.OCRText, 32000)
+
 	for attempt := 1; attempt <= 2; attempt++ {
 		base := 180 * time.Second
 		if len(trimmed) > 6000 {
@@ -104,7 +107,10 @@ func (uc *OCRJobUseCase) ProcessJob(jobID string) {
 			base = 390 * time.Second
 		}
 		aiCtx, cancelAI := context.WithTimeout(context.Background(), base)
-		menu, aiErr = uc.aiService.StructureWithGemini(aiCtx, trimmed)
+		
+		logger.Log.Info().Str("job_id", jobID).Msg("Using multi-modal Gemini structuring (Vision + OCR Text)")
+		menu, aiErr = uc.aiService.StructureWithGemini(aiCtx, trimmed, job.ImageURL)
+
 		cancelAI()
 		if aiErr == nil {
 			break
@@ -150,8 +156,10 @@ func (uc *OCRJobUseCase) ProcessJob(jobID string) {
 
 	job.StructuredMenuID = menu.ID
 	// capture raw AI JSON if available
-	if gs, ok := uc.aiService.(*services.GeminiService); ok {
-		job.RawAIJSON = gs.RawLastAIJSON()
+	if gs, ok := uc.aiService.(interface{ RawLastAIJSON() string }); ok {
+		rawJSON := gs.RawLastAIJSON()
+		// fmt.Printf("\n=== FULL GEMINI AI RESULT (JSON) ===\n%q\n====================================\n\n", rawJSON)
+		_ = rawJSON // could save to job result if we added a column
 	}
 	job.Status = domain.OCRCompleted
 	job.Phase = domain.PhaseCompleted
@@ -253,6 +261,22 @@ func (uc *OCRJobUseCase) UpdateStructuredMenu(ctx context.Context, userID, menuI
 	}
 
 	job.Results.Menu.Items = items
+	// Sync items back into a default tab/category structure so the UI (which reads from Tabs) sees them.
+	job.Results.Menu.Tabs = []domain.Tab{
+		{
+			ID:     "general-tab",
+			Name:   "General",
+			NameAm: "ጠቅላላ",
+			Categories: []domain.Category{
+				{
+					ID:     "general-cat",
+					Name:   "Menu Items",
+					NameAm: "የምግብ ዝርዝር",
+					Items:  items,
+				},
+			},
+		},
+	}
 	job.Results.Menu.UpdatedAt = time.Now()
 	job.Results.Menu.Version++
 

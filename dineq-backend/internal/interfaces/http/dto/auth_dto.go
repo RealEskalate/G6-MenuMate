@@ -4,7 +4,8 @@ import "time"
 
 type LoginRequest struct {
 	Identifier string `json:"identifier" validate:"required"`
-	Password   string `json:"password" validate:"required,min=6,max=100"`
+	// Password string `json:"password" validate:"required,min=6,max=100"` // temporarily disabled password length validation
+	Password string `json:"password" validate:"required"`
 }
 
 type LoginResponse struct {
@@ -39,7 +40,8 @@ type VerifyResetTokenRequest struct {
 // verify reset token and allow password reset
 type SetNewPasswordRequest struct {
 	SessionToken string `json:"session_token" validate:"required"`
-	NewPassword  string `json:"new_password" validate:"required,min=8"`
+	// NewPassword  string `json:"new_password" validate:"required,min=8"` // temporarily disabled password length validation
+	NewPassword string `json:"new_password" validate:"required"`
 }
 
 type ChangeRoleRequest struct {

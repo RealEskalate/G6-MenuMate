@@ -85,7 +85,11 @@ func NormalizeError(err error) (status int, resp ErrorResponse) {
 		status = http.StatusNotFound
 	} else if strings.Contains(strings.ToLower(raw), "unauthorized") || strings.Contains(strings.ToLower(raw), "forbidden") {
 		status = http.StatusUnauthorized
-	} else if strings.Contains(strings.ToLower(raw), "internal") || strings.Contains(strings.ToLower(raw), "timeout") {
+	} else if strings.Contains(strings.ToLower(raw), "internal") || 
+		strings.Contains(strings.ToLower(raw), "timeout") || 
+		strings.Contains(strings.ToLower(raw), "no such host") || 
+		strings.Contains(strings.ToLower(raw), "connection refused") || 
+		strings.Contains(strings.ToLower(raw), "dial tcp") {
 		status = http.StatusInternalServerError
 	}
 

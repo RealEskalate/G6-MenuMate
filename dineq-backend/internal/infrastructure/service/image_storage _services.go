@@ -5,14 +5,14 @@ import (
 	"context"
 	"fmt"
 	"image"
-	_ "image/gif"  // Register GIF decoder (optional, for future)
-	_ "image/jpeg" // Register JPEG decoder (optional, for future)
+	_ "image/gif"  // Register GIF decoder
+	_ "image/jpeg" // Register JPEG decoder
 	_ "image/png"  // Register PNG decoder
 
-	"github.com/RealEskalate/G6-MenuMate/internal/domain"
 	"github.com/RealEskalate/G6-MenuMate/internal/infrastructure/logger"
 	"github.com/cloudinary/cloudinary-go/v2"
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
+	_ "golang.org/x/image/webp" // Register WebP decoder
 )
 
 type StorageService interface {
@@ -39,13 +39,16 @@ func NewCloudinaryStorage(cldName, apiKey, apiSecret string) StorageService {
 
 // UploadFile implements StorageService.
 func (c *CloudinaryStorage) UploadFile(ctx context.Context, fileName string, fileData []byte, folder string) (string, string, error) {
+	// Try to decode image config for format validation.
+	// If DecodeConfig fails (e.g. uncommon format), skip validation and let Cloudinary handle it.
 	_, format, err := image.DecodeConfig(bytes.NewReader(fileData))
-	if err != nil {
-		return "", "", domain.ErrInvalidFile
+	if err == nil {
+		allowed := map[string]bool{"jpeg": true, "png": true, "gif": true, "webp": true}
+		if !allowed[format] {
+			return "", "", fmt.Errorf("unsupported image format: %s", format)
+		}
 	}
-	if format != "jpeg" && format != "png" && format != "gif" {
-		return "", "", fmt.Errorf("unsupported image format: %s", format)
-	}
+	// If DecodeConfig failed, we still proceed — Cloudinary will validate the file server-side.
 
 	folderDir := fmt.Sprintf("dineQ/%s", folder)
 

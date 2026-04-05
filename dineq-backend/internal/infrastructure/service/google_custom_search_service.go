@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -107,7 +109,9 @@ func (g *GoogleCustomSearchService) SearchFoodImages(ctx context.Context, itemNa
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("search API status %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		log.Printf("[google-search] API error status=%d body=%s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("search API status %d: %s", resp.StatusCode, string(body))
 	}
 
 	var raw googleSearchResponse

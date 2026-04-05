@@ -389,11 +389,12 @@ func (h *OCRJobHandler) ShareMyPersonalMenu(c *gin.Context) {
 
 	frontendBase := h.FrontendBaseURL
 	if frontendBase == "" {
-		scheme := "https"
-		if c.Request.TLS == nil {
-			scheme = "http"
-		}
-		frontendBase = fmt.Sprintf("%s://%s", scheme, c.Request.Host)
+		// Try to get from Origin header (common in CORS requests)
+		frontendBase = c.Request.Header.Get("Origin")
+	}
+	if frontendBase == "" {
+		// Fallback to standard local frontend port
+		frontendBase = "http://localhost:3000"
 	}
 	shareURL := fmt.Sprintf("%s/user/menu-display/%s", strings.TrimRight(frontendBase, "/"), menu.ID)
 

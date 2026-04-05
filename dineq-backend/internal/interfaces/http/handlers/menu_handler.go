@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -247,6 +248,27 @@ func (h *MenuHandler) GenerateQRCode(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgCreated, Data: gin.H{"qr_code": dto.DomainToQRCodeResponse(qrCode)}})
+}
+
+// GetQRCodeByMenu retrieves a QR code for a menu
+func (h *MenuHandler) GetQRCodeByMenu(c *gin.Context) {
+	menuID := c.Param("id")
+	if menuID == "" {
+		dto.WriteValidationError(c, "id", domain.ErrInvalidRequest.Error(), "invalid_request", errors.New("menu id is required"))
+		return
+	}
+
+	qrCode, err := h.QrUseCase.GetQRCodeByMenuId(menuID)
+	if err != nil {
+		if errors.Is(err, domain.ErrQRCodeNotFound) {
+			dto.WriteError(c, domain.ErrQRCodeNotFound)
+		} else {
+			dto.WriteError(c, err)
+		}
+		return
+	}
+
+	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess, Data: gin.H{"qr_code": dto.DomainToQRCodeResponse(qrCode)}})
 }
 
 // DeleteMenu marks a menu as deleted

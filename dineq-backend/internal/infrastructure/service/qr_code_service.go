@@ -29,21 +29,23 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
 	"github.com/skip2/go-qrcode"
+	_ "golang.org/x/image/webp"
 )
 
 type QRService struct {
 	qrDir   string
 	baseURL string
+	storage StorageService
 }
 
-func NewQRService() *QRService {
+func NewQRService(storage StorageService) *QRService {
 	qrDir := "./qr-codes"
 	os.MkdirAll(qrDir, 0755)
 	baseURL := os.Getenv("FRONTEND_BASE_URL")
 	if baseURL == "" {
 		baseURL = "https://dineqmenumate.vercel.app"
 	}
-	return &QRService{qrDir: qrDir, baseURL: baseURL}
+	return &QRService{qrDir: qrDir, baseURL: baseURL, storage: storage}
 }
 
 func (qs *QRService) GenerateQRCode(restaurantSlug string, menuSlug string, request *domain.QRCodeRequest) (*dto.QRCodeResponse, error) {
@@ -134,10 +136,9 @@ func (qs *QRService) GenerateQRCode(restaurantSlug string, menuSlug string, requ
 	if request.Customization != nil && request.Customization.Logo != "" {
 		logoImg, err := fetchLogoImage(request.Customization.Logo)
 		if err != nil {
-			log.Printf("Failed to fetch logo '%s': %v", request.Customization.Logo, err)
-			// Optionally return error: return nil, fmt.Errorf("fetch logo: %w", err)
+			log.Printf("[qr-logo] Failed to fetch logo '%s': %v (continuing without logo)", request.Customization.Logo, err)
 		} else {
-			log.Printf("Logo loaded: %dx%d", logoImg.Bounds().Dx(), logoImg.Bounds().Dy())
+			log.Printf("[qr-logo] Logo loaded: %dx%d", logoImg.Bounds().Dx(), logoImg.Bounds().Dy())
 			// Configurable logo size (default: 25% of QR code size)
 			logoSizePercent := 0.25
 			if request.Customization.LogoSizePercent > 0 {
@@ -184,7 +185,7 @@ func (qs *QRService) GenerateQRCode(restaurantSlug string, menuSlug string, requ
 			if lb.Dx() > maxSide || lb.Dy() > maxSide {
 				logoImg = imaging.Resize(logoImg, maxSide, 0, imaging.Lanczos)
 				lb = logoImg.Bounds()
-				log.Printf("Logo resized to: %dx%d", lb.Dx(), lb.Dy())
+				log.Printf("[qr-logo] Logo resized to: %dx%d", lb.Dx(), lb.Dy())
 			}
 
 			// Convert QR code to NRGBA
@@ -197,8 +198,6 @@ func (qs *QRService) GenerateQRCode(restaurantSlug string, menuSlug string, requ
 
 			// Calculate logo position (centered)
 			offset := image.Pt((baseNRGBA.Bounds().Dx()-lb.Dx())/2, (baseNRGBA.Bounds().Dy()-lb.Dy())/2)
-
-			// Draw background square using QR background color
 
 			draw.Draw(baseNRGBA, lb.Add(offset), logoImg, image.Point{}, draw.Over)
 			img = baseNRGBA
@@ -220,17 +219,14 @@ func (qs *QRService) GenerateQRCode(restaurantSlug string, menuSlug string, requ
 		}
 		var fontFace font.Face
 		if request.Customization != nil && request.Customization.LabelFontURL != "" {
-			log.Printf("Attempting to load custom label font from %s with size %d", request.Customization.LabelFontURL, request.Customization.LabelFontSize)
+			log.Printf("[qr-font] Attempting to load custom label font from %s", request.Customization.LabelFontURL)
 			if fface, err := loadRemoteFont(request.Customization.LabelFontURL, request.Customization.LabelFontSize); err == nil {
 				fontFace = fface
 				labelFontApplied = true
 			} else {
-				log.Printf("Custom font load failed (%v); falling back to basic font", err)
+				log.Printf("[qr-font] Custom font load failed (%v); falling back to basic font", err)
 				fontFace = basicfont.Face7x13
 			}
-		} else if request.Customization != nil && request.Customization.LabelFontSize > 0 {
-			log.Printf("No custom font URL provided; basic font does not scale. Using basic font.")
-			fontFace = basicfont.Face7x13
 		} else {
 			fontFace = basicfont.Face7x13
 		}
@@ -277,39 +273,7 @@ func (qs *QRService) GenerateQRCode(restaurantSlug string, menuSlug string, requ
 		}
 	}
 
-	cloudName := os.Getenv("CLOUDINARY_CLOUD_NAME")
-	apiKey := os.Getenv("CLOUDINARY_API_KEY")
-	apiSecret := os.Getenv("CLOUDINARY_API_SECRET")
-
-	if cloudName == "" {
-		cloudName = os.Getenv("CLD_NAME")
-	}
-	if apiKey == "" {
-		apiKey = os.Getenv("CLD_API_KEY")
-	}
-	if apiSecret == "" {
-		apiSecret = os.Getenv("CLD_SECRET")
-	}
-	if cloudName == "" || apiKey == "" || apiSecret == "" {
-		if raw := os.Getenv("CLOUDINARY_URL"); raw != "" {
-			parts := strings.SplitN(raw, "@", 2)
-			if len(parts) == 2 {
-				cred := strings.TrimPrefix(parts[0], "cloudinary://")
-				cParts := strings.SplitN(cred, ":", 2)
-				if len(cParts) == 2 {
-					apiKey = cParts[0]
-					apiSecret = cParts[1]
-					cloudName = parts[1]
-					cloudName = strings.TrimSuffix(cloudName, "/")
-				}
-			}
-		}
-	}
-	if cloudName == "" || apiKey == "" || apiSecret == "" {
-		return nil, fmt.Errorf("cloudinary env vars missing")
-	}
-	storage := NewCloudinaryStorage(cloudName, apiKey, apiSecret)
-	url, _, err := storage.UploadFile(context.Background(), filename, encodedBuf.Bytes(), "qr_codes")
+	url, _, err := qs.storage.UploadFile(context.Background(), filename, encodedBuf.Bytes(), "qr_codes")
 	if err != nil {
 		return nil, fmt.Errorf("cloudinary upload failed: %w", err)
 	}
@@ -357,10 +321,10 @@ func fetchLogoImage(path string) (image.Image, error) {
 	var rc io.ReadCloser
 	var err error
 	if strings.HasPrefix(strings.ToLower(path), "http://") || strings.HasPrefix(strings.ToLower(path), "https://") {
-		client := &http.Client{Timeout: 10 * time.Second}
+		client := &http.Client{Timeout: 3 * time.Second}
 		resp, err := client.Get(path)
 		if err != nil {
-			return nil, fmt.Errorf("fetch logo from URL: %w", err)
+			return nil, fmt.Errorf("fetch logo failed (timeout 3s): %w", err)
 		}
 		if resp.StatusCode != http.StatusOK {
 			resp.Body.Close()
@@ -375,21 +339,13 @@ func fetchLogoImage(path string) (image.Image, error) {
 	}
 	defer rc.Close()
 
-	buf, err := io.ReadAll(rc)
+	// Use imaging.Decode to support all registered formats (png, jpeg, gif, webp)
+	img, err := imaging.Decode(rc)
 	if err != nil {
-		return nil, fmt.Errorf("read logo image: %w", err)
+		return nil, fmt.Errorf("decode logo image (ensure format is supported): %w", err)
 	}
 
-	// Try decoding as PNG
-	if img, err := png.Decode(bytes.NewReader(buf)); err == nil {
-		return img, nil
-	}
-	// Try decoding as JPEG
-	if img, err := jpeg.Decode(bytes.NewReader(buf)); err == nil {
-		return img, nil
-	}
-
-	return nil, errors.New("unsupported logo image format (png/jpeg only)")
+	return img, nil
 }
 
 func recolorQRImage(src image.Image, fg, bg color.Color) image.Image {
@@ -465,7 +421,7 @@ func loadRemoteFont(url string, sizePx int) (font.Face, error) {
 			}
 		}
 		if strings.HasPrefix(strings.ToLower(u), "http://") || strings.HasPrefix(strings.ToLower(u), "https://") {
-			client := &http.Client{Timeout: 10 * time.Second}
+			client := &http.Client{Timeout: 3 * time.Second}
 			req, err := http.NewRequest("GET", u, nil)
 			if err != nil {
 				return nil, err
@@ -474,7 +430,7 @@ func loadRemoteFont(url string, sizePx int) (font.Face, error) {
 			req.Header.Set("Accept", "*/*")
 			resp, err := client.Do(req)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("font fetch (3s): %w", err)
 			}
 			defer resp.Body.Close()
 			if resp.StatusCode != http.StatusOK {
