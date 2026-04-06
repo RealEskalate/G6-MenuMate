@@ -30,6 +30,12 @@ mongosh "mongodb://localhost:27017/dineq_db" --file seeds/realistic_full_seed.mo
 
 ## Important
 
-- The script **deletes existing data** in seeded collections before insert.
+- The script is **append-only** and does **not delete existing data**.
+- Running it multiple times will add more seed records each run.
+- The script also repairs legacy seeded menu links so `menu.restaurantId` matches the persisted restaurant `_id` by slug.
+- It performs idempotent **upsert** for key collections to avoid duplicate slug/email collisions:
+  - `users` by `email`
+  - `restaurants` by `slug`
+  - `menus` by `slug`
 - Collection names match backend env defaults used in bootstrap config.
 - Seeded user `passwordHash` is a demo hash for testing seeded documents; use normal auth/reset flow for password-based login tests.

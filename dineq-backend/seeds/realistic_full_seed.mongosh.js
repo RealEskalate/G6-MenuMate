@@ -35,7 +35,8 @@
   const daysAgo = (d) => new Date(now.getTime() - d * 24 * 60 * 60 * 1000);
 
   // bcrypt hash for a common demo password (for seeded users)
-  const DEMO_PASSWORD_HASH = "$2a$10$7EqJtq98hPqEX7fNZaFWoOQJ8L5yN7EzxKQEiC5EvhczHxVh9Yx8e";
+  const DEMO_PASSWORD_HASH =
+    "$2a$10$7EqJtq98hPqEX7fNZaFWoOQJ8L5yN7EzxKQEiC5EvhczHxVh9Yx8e";
 
   const photo = {
     logos: [
@@ -77,49 +78,341 @@
   };
 
   const ethiopianItems = [
-    { name: "Doro Wot", am: "ዶሮ ወጥ", price: 360, tags: ["Lunch", "Traditional"], kcal: 620, prot: 41, carbs: 36, fat: 34, prep: 35, allergies: ["Egg", "Butter"] },
-    { name: "Shiro Wot", am: "ሽሮ ወጥ", price: 250, tags: ["Vegan", "Traditional"], kcal: 450, prot: 20, carbs: 65, fat: 12, prep: 20, allergies: ["Legumes"] },
-    { name: "Tibs", am: "ጥብስ", price: 410, tags: ["Dinner", "Spicy"], kcal: 580, prot: 50, carbs: 14, fat: 35, prep: 18, allergies: [] },
-    { name: "Kitfo", am: "ክትፎ", price: 470, tags: ["Dinner", "Traditional"], kcal: 690, prot: 38, carbs: 9, fat: 54, prep: 15, allergies: ["Butter"] },
-    { name: "Firfir", am: "ፍርፍር", price: 230, tags: ["Breakfast", "Traditional"], kcal: 510, prot: 16, carbs: 70, fat: 17, prep: 12, allergies: ["Gluten"] },
-    { name: "Beyaynetu", am: "በያይነቱ", price: 300, tags: ["Vegan", "Lunch"], kcal: 540, prot: 18, carbs: 74, fat: 16, prep: 25, allergies: ["Legumes"] },
+    {
+      name: "Doro Wot",
+      am: "ዶሮ ወጥ",
+      price: 360,
+      tags: ["Lunch", "Traditional"],
+      kcal: 620,
+      prot: 41,
+      carbs: 36,
+      fat: 34,
+      prep: 35,
+      allergies: ["Egg", "Butter"],
+    },
+    {
+      name: "Shiro Wot",
+      am: "ሽሮ ወጥ",
+      price: 250,
+      tags: ["Vegan", "Traditional"],
+      kcal: 450,
+      prot: 20,
+      carbs: 65,
+      fat: 12,
+      prep: 20,
+      allergies: ["Legumes"],
+    },
+    {
+      name: "Tibs",
+      am: "ጥብስ",
+      price: 410,
+      tags: ["Dinner", "Spicy"],
+      kcal: 580,
+      prot: 50,
+      carbs: 14,
+      fat: 35,
+      prep: 18,
+      allergies: [],
+    },
+    {
+      name: "Kitfo",
+      am: "ክትፎ",
+      price: 470,
+      tags: ["Dinner", "Traditional"],
+      kcal: 690,
+      prot: 38,
+      carbs: 9,
+      fat: 54,
+      prep: 15,
+      allergies: ["Butter"],
+    },
+    {
+      name: "Firfir",
+      am: "ፍርፍር",
+      price: 230,
+      tags: ["Breakfast", "Traditional"],
+      kcal: 510,
+      prot: 16,
+      carbs: 70,
+      fat: 17,
+      prep: 12,
+      allergies: ["Gluten"],
+    },
+    {
+      name: "Beyaynetu",
+      am: "በያይነቱ",
+      price: 300,
+      tags: ["Vegan", "Lunch"],
+      kcal: 540,
+      prot: 18,
+      carbs: 74,
+      fat: 16,
+      prep: 25,
+      allergies: ["Legumes"],
+    },
   ];
 
   const italianItems = [
-    { name: "Margherita Pizza", am: "ማርጋሪታ ፒዛ", price: 520, tags: ["Pizza", "Lunch"], kcal: 720, prot: 28, carbs: 82, fat: 30, prep: 18, allergies: ["Dairy", "Gluten"] },
-    { name: "Spaghetti Carbonara", am: "ካርቦናራ", price: 560, tags: ["Pasta", "Dinner"], kcal: 780, prot: 32, carbs: 76, fat: 38, prep: 20, allergies: ["Egg", "Dairy", "Gluten"] },
-    { name: "Minestrone Soup", am: "ሚነስትሮኔ", price: 290, tags: ["Soup", "Vegan"], kcal: 280, prot: 9, carbs: 44, fat: 7, prep: 15, allergies: ["Celery"] },
-    { name: "Chicken Alfredo", am: "ቺክን አልፍሬዶ", price: 610, tags: ["Pasta", "Dinner"], kcal: 860, prot: 39, carbs: 73, fat: 46, prep: 22, allergies: ["Dairy", "Gluten"] },
-    { name: "Bruschetta", am: "ብሩስኬታ", price: 240, tags: ["Starter"], kcal: 310, prot: 8, carbs: 35, fat: 15, prep: 10, allergies: ["Gluten"] },
-    { name: "Tiramisu", am: "ቲራሚሱ", price: 280, tags: ["Dessert"], kcal: 420, prot: 7, carbs: 40, fat: 25, prep: 8, allergies: ["Dairy", "Egg", "Gluten"] },
+    {
+      name: "Margherita Pizza",
+      am: "ማርጋሪታ ፒዛ",
+      price: 520,
+      tags: ["Pizza", "Lunch"],
+      kcal: 720,
+      prot: 28,
+      carbs: 82,
+      fat: 30,
+      prep: 18,
+      allergies: ["Dairy", "Gluten"],
+    },
+    {
+      name: "Spaghetti Carbonara",
+      am: "ካርቦናራ",
+      price: 560,
+      tags: ["Pasta", "Dinner"],
+      kcal: 780,
+      prot: 32,
+      carbs: 76,
+      fat: 38,
+      prep: 20,
+      allergies: ["Egg", "Dairy", "Gluten"],
+    },
+    {
+      name: "Minestrone Soup",
+      am: "ሚነስትሮኔ",
+      price: 290,
+      tags: ["Soup", "Vegan"],
+      kcal: 280,
+      prot: 9,
+      carbs: 44,
+      fat: 7,
+      prep: 15,
+      allergies: ["Celery"],
+    },
+    {
+      name: "Chicken Alfredo",
+      am: "ቺክን አልፍሬዶ",
+      price: 610,
+      tags: ["Pasta", "Dinner"],
+      kcal: 860,
+      prot: 39,
+      carbs: 73,
+      fat: 46,
+      prep: 22,
+      allergies: ["Dairy", "Gluten"],
+    },
+    {
+      name: "Bruschetta",
+      am: "ብሩስኬታ",
+      price: 240,
+      tags: ["Starter"],
+      kcal: 310,
+      prot: 8,
+      carbs: 35,
+      fat: 15,
+      prep: 10,
+      allergies: ["Gluten"],
+    },
+    {
+      name: "Tiramisu",
+      am: "ቲራሚሱ",
+      price: 280,
+      tags: ["Dessert"],
+      kcal: 420,
+      prot: 7,
+      carbs: 40,
+      fat: 25,
+      prep: 8,
+      allergies: ["Dairy", "Egg", "Gluten"],
+    },
   ];
 
   const asianItems = [
-    { name: "Chicken Teriyaki Bowl", am: "ቴሪያኪ ቦውል", price: 540, tags: ["Rice Bowl", "Lunch"], kcal: 650, prot: 36, carbs: 74, fat: 19, prep: 17, allergies: ["Soy", "Sesame"] },
-    { name: "Beef Ramen", am: "ቢፍ ራመን", price: 590, tags: ["Noodles", "Dinner"], kcal: 700, prot: 34, carbs: 78, fat: 26, prep: 20, allergies: ["Gluten", "Soy"] },
-    { name: "Sushi Combo", am: "ሱሺ ኮምቦ", price: 760, tags: ["Sushi", "Signature"], kcal: 590, prot: 30, carbs: 62, fat: 21, prep: 18, allergies: ["Fish", "Soy", "Sesame"] },
-    { name: "Pad Thai", am: "ፓድ ታይ", price: 530, tags: ["Noodles", "Popular"], kcal: 680, prot: 22, carbs: 86, fat: 24, prep: 16, allergies: ["Peanut", "Shellfish"] },
-    { name: "Spring Rolls", am: "ስፕሪንግ ሮልስ", price: 260, tags: ["Starter"], kcal: 330, prot: 9, carbs: 43, fat: 12, prep: 9, allergies: ["Gluten"] },
-    { name: "Mango Sticky Rice", am: "ማንጎ ስቲኪ ራይስ", price: 290, tags: ["Dessert"], kcal: 360, prot: 5, carbs: 68, fat: 8, prep: 7, allergies: [] },
+    {
+      name: "Chicken Teriyaki Bowl",
+      am: "ቴሪያኪ ቦውል",
+      price: 540,
+      tags: ["Rice Bowl", "Lunch"],
+      kcal: 650,
+      prot: 36,
+      carbs: 74,
+      fat: 19,
+      prep: 17,
+      allergies: ["Soy", "Sesame"],
+    },
+    {
+      name: "Beef Ramen",
+      am: "ቢፍ ራመን",
+      price: 590,
+      tags: ["Noodles", "Dinner"],
+      kcal: 700,
+      prot: 34,
+      carbs: 78,
+      fat: 26,
+      prep: 20,
+      allergies: ["Gluten", "Soy"],
+    },
+    {
+      name: "Sushi Combo",
+      am: "ሱሺ ኮምቦ",
+      price: 760,
+      tags: ["Sushi", "Signature"],
+      kcal: 590,
+      prot: 30,
+      carbs: 62,
+      fat: 21,
+      prep: 18,
+      allergies: ["Fish", "Soy", "Sesame"],
+    },
+    {
+      name: "Pad Thai",
+      am: "ፓድ ታይ",
+      price: 530,
+      tags: ["Noodles", "Popular"],
+      kcal: 680,
+      prot: 22,
+      carbs: 86,
+      fat: 24,
+      prep: 16,
+      allergies: ["Peanut", "Shellfish"],
+    },
+    {
+      name: "Spring Rolls",
+      am: "ስፕሪንግ ሮልስ",
+      price: 260,
+      tags: ["Starter"],
+      kcal: 330,
+      prot: 9,
+      carbs: 43,
+      fat: 12,
+      prep: 9,
+      allergies: ["Gluten"],
+    },
+    {
+      name: "Mango Sticky Rice",
+      am: "ማንጎ ስቲኪ ራይስ",
+      price: 290,
+      tags: ["Dessert"],
+      kcal: 360,
+      prot: 5,
+      carbs: 68,
+      fat: 8,
+      prep: 7,
+      allergies: [],
+    },
   ];
 
   const cafeItems = [
-    { name: "Avocado Toast", am: "አቮካዶ ቶስት", price: 290, tags: ["Breakfast", "Healthy"], kcal: 370, prot: 11, carbs: 39, fat: 18, prep: 8, allergies: ["Gluten"] },
-    { name: "Shakshuka", am: "ሻክሹካ", price: 320, tags: ["Breakfast", "Popular"], kcal: 430, prot: 21, carbs: 24, fat: 27, prep: 12, allergies: ["Egg"] },
-    { name: "Club Sandwich", am: "ክለብ ሳንድዊች", price: 340, tags: ["Lunch"], kcal: 560, prot: 27, carbs: 48, fat: 29, prep: 11, allergies: ["Gluten", "Egg"] },
-    { name: "Iced Latte", am: "አይስድ ላቴ", price: 180, tags: ["Drinks", "Coffee"], kcal: 160, prot: 7, carbs: 18, fat: 6, prep: 4, allergies: ["Dairy"] },
-    { name: "Blueberry Pancakes", am: "ብሉቤሪ ፓንኬክ", price: 310, tags: ["Breakfast", "Sweet"], kcal: 520, prot: 12, carbs: 74, fat: 18, prep: 10, allergies: ["Gluten", "Egg", "Dairy"] },
-    { name: "Cheesecake Slice", am: "ቺዝኬክ", price: 240, tags: ["Dessert"], kcal: 410, prot: 6, carbs: 34, fat: 28, prep: 5, allergies: ["Dairy", "Egg", "Gluten"] },
+    {
+      name: "Avocado Toast",
+      am: "አቮካዶ ቶስት",
+      price: 290,
+      tags: ["Breakfast", "Healthy"],
+      kcal: 370,
+      prot: 11,
+      carbs: 39,
+      fat: 18,
+      prep: 8,
+      allergies: ["Gluten"],
+    },
+    {
+      name: "Shakshuka",
+      am: "ሻክሹካ",
+      price: 320,
+      tags: ["Breakfast", "Popular"],
+      kcal: 430,
+      prot: 21,
+      carbs: 24,
+      fat: 27,
+      prep: 12,
+      allergies: ["Egg"],
+    },
+    {
+      name: "Club Sandwich",
+      am: "ክለብ ሳንድዊች",
+      price: 340,
+      tags: ["Lunch"],
+      kcal: 560,
+      prot: 27,
+      carbs: 48,
+      fat: 29,
+      prep: 11,
+      allergies: ["Gluten", "Egg"],
+    },
+    {
+      name: "Iced Latte",
+      am: "አይስድ ላቴ",
+      price: 180,
+      tags: ["Drinks", "Coffee"],
+      kcal: 160,
+      prot: 7,
+      carbs: 18,
+      fat: 6,
+      prep: 4,
+      allergies: ["Dairy"],
+    },
+    {
+      name: "Blueberry Pancakes",
+      am: "ብሉቤሪ ፓንኬክ",
+      price: 310,
+      tags: ["Breakfast", "Sweet"],
+      kcal: 520,
+      prot: 12,
+      carbs: 74,
+      fat: 18,
+      prep: 10,
+      allergies: ["Gluten", "Egg", "Dairy"],
+    },
+    {
+      name: "Cheesecake Slice",
+      am: "ቺዝኬክ",
+      price: 240,
+      tags: ["Dessert"],
+      kcal: 410,
+      prot: 6,
+      carbs: 34,
+      fat: 28,
+      prep: 5,
+      allergies: ["Dairy", "Egg", "Gluten"],
+    },
   ];
 
   const itemSets = [ethiopianItems, italianItems, asianItems, cafeItems];
 
   const users = [];
   const ownerUsers = [
-    { username: "mesfin_addis", first: "Mesfin", last: "Bekele", email: "mesfin@dineqseed.com", phone: "+251911200301", role: "OWNER" },
-    { username: "hana_harbor", first: "Hana", last: "Tesfaye", email: "hana@dineqseed.com", phone: "+251911200302", role: "OWNER" },
-    { username: "samuel_spice", first: "Samuel", last: "Mekonnen", email: "samuel@dineqseed.com", phone: "+251911200303", role: "MANAGER" },
-    { username: "liya_roast", first: "Liya", last: "Kassa", email: "liya@dineqseed.com", phone: "+251911200304", role: "MANAGER" },
+    {
+      username: "mesfin_addis",
+      first: "Mesfin",
+      last: "Bekele",
+      email: "mesfin@dineqseed.com",
+      phone: "+251911200301",
+      role: "OWNER",
+    },
+    {
+      username: "hana_harbor",
+      first: "Hana",
+      last: "Tesfaye",
+      email: "hana@dineqseed.com",
+      phone: "+251911200302",
+      role: "OWNER",
+    },
+    {
+      username: "samuel_spice",
+      first: "Samuel",
+      last: "Mekonnen",
+      email: "samuel@dineqseed.com",
+      phone: "+251911200303",
+      role: "MANAGER",
+    },
+    {
+      username: "liya_roast",
+      first: "Liya",
+      last: "Kassa",
+      email: "liya@dineqseed.com",
+      phone: "+251911200304",
+      role: "MANAGER",
+    },
   ];
 
   ownerUsers.forEach((u, i) => {
@@ -152,9 +445,18 @@
   });
 
   const customerNames = [
-    ["Abel", "Negash"], ["Mimi", "Belay"], ["Ruth", "Haile"], ["Jonas", "Alemu"],
-    ["Nati", "Hailu"], ["Eyerus", "Worku"], ["Bini", "Gebru"], ["Eden", "Fisseha"],
-    ["Mika", "Getnet"], ["Lina", "Assefa"], ["Noah", "Solomon"], ["Meron", "Ayalew"],
+    ["Abel", "Negash"],
+    ["Mimi", "Belay"],
+    ["Ruth", "Haile"],
+    ["Jonas", "Alemu"],
+    ["Nati", "Hailu"],
+    ["Eyerus", "Worku"],
+    ["Bini", "Gebru"],
+    ["Eden", "Fisseha"],
+    ["Mika", "Getnet"],
+    ["Lina", "Assefa"],
+    ["Noah", "Solomon"],
+    ["Meron", "Ayalew"],
   ];
 
   customerNames.forEach((n, i) => {
@@ -200,7 +502,12 @@
     profileImage: photo.logos[0],
     role: "ADMIN",
     status: "ACTIVE",
-    preferences: { language: "en-US", theme: "dark", notifications: true, favorites: [] },
+    preferences: {
+      language: "en-US",
+      theme: "dark",
+      notifications: true,
+      favorites: [],
+    },
     lastLoginAt: hoursAgo(1),
     createdAt: daysAgo(220),
     updatedAt: daysAgo(0),
@@ -208,7 +515,27 @@
     fcmToken: "fcm_admin_1",
   });
 
-  const managerPool = users.filter((u) => u.role === "OWNER" || u.role === "MANAGER");
+  // Reuse existing user IDs by email (idempotent runs, stable manager/customer references)
+  const existingUsers = db
+    .getCollection(COLLECTIONS.users)
+    .find(
+      { email: { $in: users.map((u) => u.email) } },
+      { projection: { _id: 1, email: 1 } },
+    )
+    .toArray();
+  const existingUserByEmail = Object.fromEntries(
+    existingUsers.map((u) => [u.email, u]),
+  );
+  users.forEach((u) => {
+    const existing = existingUserByEmail[u.email];
+    if (existing && existing._id) {
+      u._id = existing._id;
+    }
+  });
+
+  const managerPool = users.filter(
+    (u) => u.role === "OWNER" || u.role === "MANAGER",
+  );
   const customerPool = users.filter((u) => u.role === "CUSTOMER");
 
   const restaurantBlueprints = [
@@ -217,7 +544,8 @@
       name: "Abay Signature Addis",
       phone: "+251115123456",
       tags: ["Ethiopian", "Traditional", "Family"],
-      about: "A flagship Ethiopian dining experience with slow-cooked stews, injera from teff, and live traditional coffee ceremony every evening.",
+      about:
+        "A flagship Ethiopian dining experience with slow-cooked stews, injera from teff, and live traditional coffee ceremony every evening.",
       taxId: "ET-TIN-ABAY-001",
       coords: [38.7578, 8.9806],
       colors: ["#8B4513", "#D2691E"],
@@ -232,7 +560,8 @@
       name: "Porto Italia Bole",
       phone: "+251116345678",
       tags: ["Italian", "Pizza", "Date Night"],
-      about: "Wood-fired pizza oven, handmade pasta, and classic Italian desserts in a warm casual-fine setting.",
+      about:
+        "Wood-fired pizza oven, handmade pasta, and classic Italian desserts in a warm casual-fine setting.",
       taxId: "ET-TIN-PORTO-002",
       coords: [38.7893, 9.0107],
       colors: ["#1F7A1F", "#C0392B"],
@@ -247,7 +576,8 @@
       name: "Sakura Asian Kitchen",
       phone: "+251117456789",
       tags: ["Asian", "Sushi", "Noodles"],
-      about: "Modern pan-Asian kitchen serving ramen, sushi, rice bowls, and crafted tea pairings.",
+      about:
+        "Modern pan-Asian kitchen serving ramen, sushi, rice bowls, and crafted tea pairings.",
       taxId: "ET-TIN-SAKURA-003",
       coords: [38.7421, 9.0214],
       colors: ["#111827", "#EF4444"],
@@ -262,7 +592,8 @@
       name: "Sunrise Brunch House",
       phone: "+251118567890",
       tags: ["Cafe", "Brunch", "Coffee"],
-      about: "All-day brunch, premium coffee roast, and artisan bakery with bright naturally lit interiors.",
+      about:
+        "All-day brunch, premium coffee roast, and artisan bakery with bright naturally lit interiors.",
       taxId: "ET-TIN-SUNRISE-004",
       coords: [38.7728, 8.9982],
       colors: ["#F59E0B", "#0EA5E9"],
@@ -289,17 +620,62 @@
       verificationStatus: i === 3 ? "pending" : "verified",
       verificationDocs: `https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=1200&q=80&doc=${i + 1}`,
       schedule: [
-        { day: "monday", is_open: true, start_time: "08:00", end_time: "22:00" },
-        { day: "tuesday", is_open: true, start_time: "08:00", end_time: "22:00" },
-        { day: "wednesday", is_open: true, start_time: "08:00", end_time: "22:00" },
-        { day: "thursday", is_open: true, start_time: "08:00", end_time: "22:00" },
-        { day: "friday", is_open: true, start_time: "08:00", end_time: "23:00" },
-        { day: "saturday", is_open: true, start_time: "09:00", end_time: "23:00" },
-        { day: "sunday", is_open: true, start_time: "09:00", end_time: "21:00" },
+        {
+          day: "monday",
+          is_open: true,
+          start_time: "08:00",
+          end_time: "22:00",
+        },
+        {
+          day: "tuesday",
+          is_open: true,
+          start_time: "08:00",
+          end_time: "22:00",
+        },
+        {
+          day: "wednesday",
+          is_open: true,
+          start_time: "08:00",
+          end_time: "22:00",
+        },
+        {
+          day: "thursday",
+          is_open: true,
+          start_time: "08:00",
+          end_time: "22:00",
+        },
+        {
+          day: "friday",
+          is_open: true,
+          start_time: "08:00",
+          end_time: "23:00",
+        },
+        {
+          day: "saturday",
+          is_open: true,
+          start_time: "09:00",
+          end_time: "23:00",
+        },
+        {
+          day: "sunday",
+          is_open: true,
+          start_time: "09:00",
+          end_time: "21:00",
+        },
       ],
       specialDays: [
-        { date: "2026-12-25", is_open: true, start_time: "10:00", end_time: "20:00" },
-        { date: "2026-01-07", is_open: true, start_time: "10:00", end_time: "19:00" },
+        {
+          date: "2026-12-25",
+          is_open: true,
+          start_time: "10:00",
+          end_time: "20:00",
+        },
+        {
+          date: "2026-01-07",
+          is_open: true,
+          start_time: "10:00",
+          end_time: "19:00",
+        },
       ],
       defaultCurrency: r.currency,
       defaultLanguage: r.language,
@@ -318,6 +694,24 @@
     };
   });
 
+  // Reuse existing restaurant IDs by slug (prevents duplicate slugs breaking slug -> menu lookup)
+  const existingRestaurants = db
+    .getCollection(COLLECTIONS.restaurants)
+    .find(
+      { slug: { $in: restaurants.map((r) => r.slug) } },
+      { projection: { _id: 1, slug: 1 } },
+    )
+    .toArray();
+  const existingRestaurantBySlug = Object.fromEntries(
+    existingRestaurants.map((r) => [r.slug, r]),
+  );
+  restaurants.forEach((r) => {
+    const existing = existingRestaurantBySlug[r.slug];
+    if (existing && existing._id) {
+      r._id = existing._id;
+    }
+  });
+
   const menus = [];
   const items = [];
   let dishPhotoCursor = 0;
@@ -331,7 +725,9 @@
     ].forEach((menuMeta, mIndex) => {
       const menuId = ObjectId();
       const createdAt = daysAgo(60 - rIndex * 5 - mIndex * 2);
-      const selectedItems = set.slice(mIndex * 3, mIndex * 3 + 3).concat(set.slice(0, 1));
+      const selectedItems = set
+        .slice(mIndex * 3, mIndex * 3 + 3)
+        .concat(set.slice(0, 1));
 
       const embeddedItems = selectedItems.map((base, i) => {
         const itemId = ObjectId();
@@ -350,20 +746,32 @@
           image: [imageUrl],
           price: base.price + (mIndex === 1 ? 35 : 0),
           currency: "ETB",
-          allergies: base.allergies.length ? base.allergies : ["Contains none commonly recognized. Please inform staff of any allergies."],
-          allergiesAm: base.allergies.length ? "Please ask staff for allergen details." : "በተለምዶ የሚታወቁ አለርጂ አይደሉም።",
+          allergies: base.allergies.length
+            ? base.allergies
+            : [
+                "Contains none commonly recognized. Please inform staff of any allergies.",
+              ],
+          allergiesAm: base.allergies.length
+            ? "Please ask staff for allergen details."
+            : "በተለምዶ የሚታወቁ አለርጂ አይደሉም።",
           userImages: [],
           calories: base.kcal,
           protein: base.prot,
           carbs: base.carbs,
           fat: base.fat,
-          nutritionalInfo: { calories: base.kcal, protein: base.prot, carbs: base.carbs, fat: base.fat },
+          nutritionalInfo: {
+            calories: base.kcal,
+            protein: base.prot,
+            carbs: base.carbs,
+            fat: base.fat,
+          },
           tabTags: base.tags,
           tabTagsAm: base.tags.map((t) => `AM-${t}`),
           ingredients: ["House spice blend", "Fresh herbs", "Premium produce"],
           ingredientsAm: ["የቤት ቅመም", "አዲስ ቅጠል", "ጥራት ያለው እቃ"],
           preparationTime: base.prep,
-          howToEat: "Best enjoyed warm. Pair with the recommended side and beverage for full flavor experience.",
+          howToEat:
+            "Best enjoyed warm. Pair with the recommended side and beverage for full flavor experience.",
           howToEatAm: "ሞቅ ሞቅ ሆኖ ሲቀርብ ይሻላል።",
           createdAt,
           updatedAt: daysAgo(1),
@@ -397,13 +805,37 @@
     });
   });
 
+  // Reuse existing menu IDs by slug (idempotent updates, avoids duplicate menus per restaurant)
+  const existingMenus = db
+    .getCollection(COLLECTIONS.menus)
+    .find(
+      { slug: { $in: menus.map((m) => m.slug) } },
+      { projection: { _id: 1, slug: 1 } },
+    )
+    .toArray();
+  const existingMenuBySlug = Object.fromEntries(
+    existingMenus.map((m) => [m.slug, m]),
+  );
+  menus.forEach((m) => {
+    const existing = existingMenuBySlug[m.slug];
+    if (existing && existing._id) {
+      m._id = existing._id;
+    }
+  });
+
   const reviews = [];
   const reactions = [];
 
   // Generate realistic review distribution over first 32 items
   items.slice(0, 32).forEach((it, idx) => {
     const reviewCount = 2 + (idx % 3); // 2..4
-    const relevantRestaurant = restaurants.find((r) => menus.some((m) => m.restaurantId === r._id.valueOf() && m.items.some((mi) => mi._id.valueOf() === it._id.valueOf())));
+    const relevantRestaurant = restaurants.find((r) =>
+      menus.some(
+        (m) =>
+          m.restaurantId === r._id.valueOf() &&
+          m.items.some((mi) => mi._id.valueOf() === it._id.valueOf()),
+      ),
+    );
 
     for (let i = 0; i < reviewCount; i++) {
       const customer = customerPool[(idx + i) % customerPool.length];
@@ -415,8 +847,13 @@
         _id: rid,
         itemId: it._id.valueOf(),
         userId: customer._id.valueOf(),
-        restaurantId: relevantRestaurant ? relevantRestaurant._id.valueOf() : restaurants[0]._id.valueOf(),
-        imageUrls: i % 2 === 0 ? [photo.dishes[(idx + i + 5) % photo.dishes.length]] : [],
+        restaurantId: relevantRestaurant
+          ? relevantRestaurant._id.valueOf()
+          : restaurants[0]._id.valueOf(),
+        imageUrls:
+          i % 2 === 0
+            ? [photo.dishes[(idx + i + 5) % photo.dishes.length]]
+            : [],
         username: customer.username,
         userProfileImage: customer.profileImage,
         description:
@@ -476,16 +913,30 @@
     const list = itemReviewMap[it._id.valueOf()] || [];
     it.reviewIds = list.map((r) => r._id.valueOf());
     it.averageRating = list.length
-      ? Number((list.reduce((s, r) => s + r.rating, 0) / list.length).toFixed(2))
+      ? Number(
+          (list.reduce((s, r) => s + r.rating, 0) / list.length).toFixed(2),
+        )
       : 0;
   });
 
   // Sync embedded menu items with item collection ratings/reviews
-  const itemIndex = Object.fromEntries(items.map((it) => [it._id.valueOf(), it]));
+  const itemIndex = Object.fromEntries(
+    items.map((it) => [it._id.valueOf(), it]),
+  );
   menus.forEach((m) => {
-    m.items = m.items.map((it) => ({ ...it, reviewIds: itemIndex[it._id.valueOf()].reviewIds, averageRating: itemIndex[it._id.valueOf()].averageRating }));
+    m.items = m.items.map((it) => ({
+      ...it,
+      reviewIds: itemIndex[it._id.valueOf()].reviewIds,
+      averageRating: itemIndex[it._id.valueOf()].averageRating,
+    }));
     const rated = m.items.filter((it) => it.averageRating > 0);
-    m.averageRating = rated.length ? Number((rated.reduce((s, it) => s + it.averageRating, 0) / rated.length).toFixed(2)) : 0;
+    m.averageRating = rated.length
+      ? Number(
+          (
+            rated.reduce((s, it) => s + it.averageRating, 0) / rated.length
+          ).toFixed(2),
+        )
+      : 0;
   });
 
   // restaurant average/view count
@@ -493,9 +944,16 @@
     const relMenus = menus.filter((m) => m.restaurantId === r._id.valueOf());
     const ratedMenus = relMenus.filter((m) => (m.averageRating || 0) > 0);
     r.averageRating = ratedMenus.length
-      ? Number((ratedMenus.reduce((s, m) => s + m.averageRating, 0) / ratedMenus.length).toFixed(2))
+      ? Number(
+          (
+            ratedMenus.reduce((s, m) => s + m.averageRating, 0) /
+            ratedMenus.length
+          ).toFixed(2),
+        )
       : 0;
-    r.viewCount = relMenus.reduce((s, m) => s + m.viewCount, 0) + Math.floor(Math.random() * 400);
+    r.viewCount =
+      relMenus.reduce((s, m) => s + m.viewCount, 0) +
+      Math.floor(Math.random() * 400);
   });
 
   // QR codes
@@ -524,11 +982,12 @@
     notifications.push({
       _id: ObjectId(),
       userId: u._id.valueOf(),
-      message: i % 3 === 0
-        ? "Welcome to DineQ! Your profile is fully set up."
-        : i % 3 === 1
-          ? "A new review was posted on one of your menu items."
-          : "Your weekly analytics snapshot is ready.",
+      message:
+        i % 3 === 0
+          ? "Welcome to DineQ! Your profile is fully set up."
+          : i % 3 === 1
+            ? "A new review was posted on one of your menu items."
+            : "Your weekly analytics snapshot is ready.",
       type: i % 3 === 0 ? "SYSTEM" : i % 3 === 1 ? "INFO" : "INFO_UPDATE",
       isRead: i % 4 === 0,
       createdAt: daysAgo((i % 10) + 1),
@@ -586,46 +1045,93 @@
       imageUrl: photo.covers[(i + 2) % photo.covers.length],
       userId: owner ? owner._id.valueOf() : users[0]._id.valueOf(),
       status,
-      resultText: status === "failed" ? "OCR extraction failed due to low image quality." : "Parsed menu successfully with multilingual enrichment.",
+      resultText:
+        status === "failed"
+          ? "OCR extraction failed due to low image quality."
+          : "Parsed menu successfully with multilingual enrichment.",
       structuredMenuId: menu ? menu._id.valueOf() : "",
       error: status === "failed" ? "Image blur exceeded threshold." : "",
       createdAt: daysAgo(8 + i),
       updatedAt: daysAgo(1 + i),
       estimatedCompletion: daysAgo(7 + i),
       completedAt,
-      results: status === "failed" ? null : {
-        extracted_text: "Sample OCR extraction text including menu sections and item names.",
-        photo_matches: [photo.dishes[(i + 1) % photo.dishes.length], photo.dishes[(i + 5) % photo.dishes.length]],
-        confidence_score: status === "processing" ? 0.72 : 0.93,
-        structured_menu_id: menu ? menu._id.valueOf() : "",
-        menu: menu ? {
-          id: menu._id.valueOf(),
-          name: menu.name,
-          slug: menu.slug,
-          items: menu.items.slice(0, 2).map((mi) => ({ id: mi._id.valueOf(), name: mi.name, price: mi.price })),
-        } : null,
-        raw_ai_json: "{\"status\":\"ok\",\"source\":\"gemini\"}",
-      },
-      rawAiJson: status === "failed" ? "" : "{\"model\":\"gemini-2.0-flash\",\"structured\":true}",
-      phase: status === "failed" ? "ai_structuring" : status === "processing" ? "ocr_extraction" : "completed",
+      results:
+        status === "failed"
+          ? null
+          : {
+              extracted_text:
+                "Sample OCR extraction text including menu sections and item names.",
+              photo_matches: [
+                photo.dishes[(i + 1) % photo.dishes.length],
+                photo.dishes[(i + 5) % photo.dishes.length],
+              ],
+              confidence_score: status === "processing" ? 0.72 : 0.93,
+              structured_menu_id: menu ? menu._id.valueOf() : "",
+              menu: menu
+                ? {
+                    id: menu._id.valueOf(),
+                    name: menu.name,
+                    slug: menu.slug,
+                    items: menu.items
+                      .slice(0, 2)
+                      .map((mi) => ({
+                        id: mi._id.valueOf(),
+                        name: mi.name,
+                        price: mi.price,
+                      })),
+                  }
+                : null,
+              raw_ai_json: '{"status":"ok","source":"gemini"}',
+            },
+      rawAiJson:
+        status === "failed"
+          ? ""
+          : '{"model":"gemini-2.0-flash","structured":true}',
+      phase:
+        status === "failed"
+          ? "ai_structuring"
+          : status === "processing"
+            ? "ocr_extraction"
+            : "completed",
       progress: status === "failed" ? 58 : status === "processing" ? 41 : 100,
       phaseHistory: [
-        { name: "received", status: "done", startedAt: daysAgo(8 + i), endedAt: daysAgo(8 + i) },
-        { name: "ocr_extraction", status: status === "processing" ? "running" : "done", startedAt: daysAgo(8 + i), endedAt: status === "processing" ? null : daysAgo(7 + i) },
-        { name: "ai_structuring", status: status === "failed" ? "failed" : status === "processing" ? "pending" : "done", startedAt: status === "failed" || status === "completed" ? daysAgo(7 + i) : null, endedAt: status === "completed" ? daysAgo(6 + i) : null },
+        {
+          name: "received",
+          status: "done",
+          startedAt: daysAgo(8 + i),
+          endedAt: daysAgo(8 + i),
+        },
+        {
+          name: "ocr_extraction",
+          status: status === "processing" ? "running" : "done",
+          startedAt: daysAgo(8 + i),
+          endedAt: status === "processing" ? null : daysAgo(7 + i),
+        },
+        {
+          name: "ai_structuring",
+          status:
+            status === "failed"
+              ? "failed"
+              : status === "processing"
+                ? "pending"
+                : "done",
+          startedAt:
+            status === "failed" || status === "completed"
+              ? daysAgo(7 + i)
+              : null,
+          endedAt: status === "completed" ? daysAgo(6 + i) : null,
+        },
       ],
     };
   });
 
   // View events (restaurants + menus + items), last 30 days with strong recent traffic
   const views = [];
-  const entityTypes = ["restaurant", "menu", "item"];
-
   for (let d = 0; d < 30; d++) {
     restaurants.forEach((r, ri) => {
       const dailyBurst = d < 7 ? 22 : d < 14 ? 14 : 8;
       for (let j = 0; j < dailyBurst; j++) {
-        const hour = (8 + (j % 14));
+        const hour = 8 + (j % 14);
         const stamp = new Date(daysAgo(d).setHours(hour, (j * 7) % 60, 0, 0));
 
         views.push({
@@ -635,7 +1141,8 @@
           userId: customerPool[(ri + j) % customerPool.length]._id.valueOf(),
           timestamp: stamp,
           ip: `196.188.${(ri + 10) % 255}.${(j + 20) % 255}`,
-          userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/123.0.0.0 Safari/537.36",
+          userAgent:
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/123.0.0.0 Safari/537.36",
         });
       }
     });
@@ -650,7 +1157,8 @@
         userId: customerPool[(i + j) % customerPool.length]._id.valueOf(),
         timestamp: hoursAgo((j % 72) + i),
         ip: `102.89.${(i + 12) % 255}.${(j + 40) % 255}`,
-        userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
+        userAgent:
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
       });
     }
   });
@@ -664,7 +1172,8 @@
         userId: customerPool[(i + j + 1) % customerPool.length]._id.valueOf(),
         timestamp: hoursAgo((j % 48) + i),
         ip: `154.72.${(i + 30) % 255}.${(j + 77) % 255}`,
-        userAgent: "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/123.0.0.0 Mobile Safari/537.36",
+        userAgent:
+          "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/123.0.0.0 Mobile Safari/537.36",
       });
     }
   });
@@ -672,25 +1181,213 @@
   // Remove helper-only field from restaurants
   restaurants.forEach((r) => delete r.__setIndex);
 
-  // wipe and insert
-  Object.values(COLLECTIONS).forEach((name) => db.getCollection(name).deleteMany({}));
+  const asStringID = (value) => {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string") {
+      const m = value.match(/^[0-9a-fA-F]{24}$/);
+      if (m) return value;
+      const m2 = value.match(/ObjectId\((?:"|')?([0-9a-fA-F]{24})(?:"|')?\)/);
+      return m2 ? m2[1] : value;
+    }
+    if (typeof value === "object") {
+      if (typeof value.str === "string" && /^[0-9a-fA-F]{24}$/.test(value.str))
+        return value.str;
+      if (typeof value.toHexString === "function") return value.toHexString();
+      if (typeof value.valueOf === "function") {
+        const v = value.valueOf();
+        if (typeof v === "string") {
+          const m3 = v.match(/^[0-9a-fA-F]{24}$/);
+          if (m3) return v;
+          const m4 = v.match(/ObjectId\((?:"|')?([0-9a-fA-F]{24})(?:"|')?\)/);
+          if (m4) return m4[1];
+        }
+      }
+    }
+    return String(value);
+  };
 
-  db.getCollection(COLLECTIONS.users).insertMany(users);
-  db.getCollection(COLLECTIONS.restaurants).insertMany(restaurants);
-  db.getCollection(COLLECTIONS.menus).insertMany(menus);
-  db.getCollection(COLLECTIONS.items).insertMany(items);
-  db.getCollection(COLLECTIONS.reviews).insertMany(reviews);
-  db.getCollection(COLLECTIONS.reactions).insertMany(reactions);
-  db.getCollection(COLLECTIONS.qr).insertMany(qrs);
-  db.getCollection(COLLECTIONS.notifications).insertMany(notifications);
-  db.getCollection(COLLECTIONS.refreshTokens).insertMany(refreshTokens);
+  // Normalize generated docs to backend mapper expectations (string ref IDs)
+  const normalizedMenus = menus.map((m) => ({
+    ...m,
+    restaurantId: asStringID(m.restaurantId),
+    createdBy: asStringID(m.createdBy),
+    updatedBy: asStringID(m.updatedBy),
+    items: (m.items || []).map((it) => ({
+      ...it,
+      reviewIds: Array.isArray(it.reviewIds)
+        ? it.reviewIds.map((id) => asStringID(id))
+        : [],
+    })),
+  }));
+
+  const normalizedItems = items.map((it) => ({
+    ...it,
+    reviewIds: Array.isArray(it.reviewIds)
+      ? it.reviewIds.map((id) => asStringID(id))
+      : [],
+  }));
+
+  const normalizedReviews = reviews.map((r) => ({
+    ...r,
+    itemId: asStringID(r.itemId),
+    userId: asStringID(r.userId),
+    restaurantId: asStringID(r.restaurantId),
+    reactionIds: Array.isArray(r.reactionIds)
+      ? r.reactionIds.map((id) => asStringID(id))
+      : [],
+  }));
+
+  const normalizedReactions = reactions.map((r) => ({
+    ...r,
+    reviewId: asStringID(r.reviewId),
+    itemId: asStringID(r.itemId),
+    userId: asStringID(r.userId),
+  }));
+
+  const normalizedQrs = qrs.map((q) => ({
+    ...q,
+    menuId: asStringID(q.menuId),
+    restaurantId: asStringID(q.restaurantId),
+  }));
+
+  const normalizedNotifications = notifications.map((n) => ({
+    ...n,
+    userId: asStringID(n.userId),
+  }));
+
+  const normalizedRefreshTokens = refreshTokens.map((t) => ({
+    ...t,
+    userId: asStringID(t.userId),
+    tokenHash: `seed_refresh_hash_${asStringID(t.userId)}`,
+  }));
+
+  const normalizedResetSessions = passResetSessions.map((s) => ({
+    ...s,
+    userId: asStringID(s.userId),
+    token:
+      s.token || `reset_session_token_${asStringID(s.userId)}_${Date.now()}`,
+  }));
+
+  const normalizedOcrJobs = ocrJobs.map((j) => ({
+    ...j,
+    restaurantId: asStringID(j.restaurantId),
+    userId: asStringID(j.userId),
+    structuredMenuId: asStringID(j.structuredMenuId),
+    results: j.results
+      ? {
+          ...j.results,
+          structured_menu_id: asStringID(j.results.structured_menu_id),
+          menu: j.results.menu
+            ? {
+                ...j.results.menu,
+                id: asStringID(j.results.menu.id),
+                items: Array.isArray(j.results.menu.items)
+                  ? j.results.menu.items.map((mi) => ({
+                      ...mi,
+                      id: asStringID(mi.id),
+                    }))
+                  : [],
+              }
+            : null,
+        }
+      : null,
+  }));
+
+  const normalizedViews = views.map((v) => ({
+    ...v,
+    entityId: asStringID(v.entityId),
+    userId: asStringID(v.userId),
+  }));
+
+  // Repair legacy seed records that accidentally stored ObjectId refs in string fields.
+  // This keeps old data while making menu lookup work for owner/dashboard flows.
+  db.getCollection(COLLECTIONS.menus)
+    .find({ restaurantId: { $type: "objectId" } })
+    .forEach((doc) => {
+      db.getCollection(COLLECTIONS.menus).updateOne(
+        { _id: doc._id },
+        {
+          $set: {
+            restaurantId: asStringID(doc.restaurantId),
+            createdBy: asStringID(doc.createdBy),
+            updatedBy: asStringID(doc.updatedBy),
+          },
+        },
+      );
+    });
+
+  // append-only/upsert insert (preserve existing data)
+  const upsertByField = (collectionName, docs, keyField) => {
+    if (!docs || docs.length === 0) return;
+    const ops = docs.map((doc) => ({
+      updateOne: {
+        filter: { [keyField]: doc[keyField] },
+        update: {
+          $set: Object.fromEntries(
+            Object.entries(doc).filter(([k]) => k !== "_id"),
+          ),
+          $setOnInsert: { _id: doc._id },
+        },
+        upsert: true,
+      },
+    }));
+    db.getCollection(collectionName).bulkWrite(ops, { ordered: false });
+  };
+
+  upsertByField(COLLECTIONS.users, users, "email");
+  upsertByField(COLLECTIONS.restaurants, restaurants, "slug");
+
+  // Resolve persisted restaurant IDs by slug so menu.restaurantId always matches DB reality
+  const restaurantIdBySlug = {};
+  restaurants.forEach((r) => {
+    const persisted = db
+      .getCollection(COLLECTIONS.restaurants)
+      .findOne({ slug: r.slug }, { projection: { _id: 1 } });
+    restaurantIdBySlug[r.slug] = persisted
+      ? asStringID(persisted._id)
+      : asStringID(r._id);
+  });
+
+  // Repair historical mismatches from previous seed runs.
+  Object.entries(restaurantIdBySlug).forEach(([slug, rid]) => {
+    db.getCollection(COLLECTIONS.menus).updateMany(
+      { RestaurantSlug: slug },
+      { $set: { restaurantId: rid } },
+    );
+  });
+
+  const normalizedMenusWithCanonicalRestaurant = normalizedMenus.map((m) => ({
+    ...m,
+    restaurantId:
+      restaurantIdBySlug[m.RestaurantSlug] || asStringID(m.restaurantId),
+  }));
+
+  upsertByField(
+    COLLECTIONS.menus,
+    normalizedMenusWithCanonicalRestaurant,
+    "slug",
+  );
+  db.getCollection(COLLECTIONS.items).insertMany(normalizedItems);
+  db.getCollection(COLLECTIONS.reviews).insertMany(normalizedReviews);
+  db.getCollection(COLLECTIONS.reactions).insertMany(normalizedReactions);
+  db.getCollection(COLLECTIONS.qr).insertMany(normalizedQrs);
+  db.getCollection(COLLECTIONS.notifications).insertMany(
+    normalizedNotifications,
+  );
+  db.getCollection(COLLECTIONS.refreshTokens).insertMany(
+    normalizedRefreshTokens,
+  );
   db.getCollection(COLLECTIONS.otp).insertMany(otpDocs);
   db.getCollection(COLLECTIONS.passwordResetTokens).insertMany(passResetTokens);
-  db.getCollection(COLLECTIONS.passwordResetSessions).insertMany(passResetSessions);
-  db.getCollection(COLLECTIONS.ocrJobs).insertMany(ocrJobs);
-  db.getCollection(COLLECTIONS.views).insertMany(views);
+  db.getCollection(COLLECTIONS.passwordResetSessions).insertMany(
+    normalizedResetSessions,
+  );
+  db.getCollection(COLLECTIONS.ocrJobs).insertMany(normalizedOcrJobs);
+  db.getCollection(COLLECTIONS.views).insertMany(normalizedViews);
 
-  print("\n✅ Seed completed successfully");
+  print(
+    "\n✅ Seed completed successfully (append-only, existing data preserved)",
+  );
   printjson({
     users: users.length,
     restaurants: restaurants.length,
@@ -712,5 +1409,7 @@
   print("  Owner:   mesfin@dineqseed.com");
   print("  Manager: samuel@dineqseed.com");
   print("  Customer: abel.negash@mailseed.com");
-  print("  Password hash is seeded (demo hash), use your normal auth flow / reset to test plain passwords.");
+  print(
+    "  Password hash is seeded (demo hash), use your normal auth flow / reset to test plain passwords.",
+  );
 })();

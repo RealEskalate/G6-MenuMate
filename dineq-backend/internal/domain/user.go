@@ -37,11 +37,13 @@ type Preferences struct {
 type UserRole string
 
 const (
-	RoleAdmin    UserRole = "ADMIN"
-	RoleOwner    UserRole = "OWNER"
-	RoleManager  UserRole = "MANAGER"
-	RoleStaff    UserRole = "STAFF"
-	RoleCustomer UserRole = "CUSTOMER"
+	RoleAdmin      UserRole = "ADMIN"
+	RoleOwner      UserRole = "OWNER"
+	RoleManager    UserRole = "MANAGER"
+	RoleStaff      UserRole = "STAFF"
+	RoleCustomer   UserRole = "CUSTOMER"
+	RoleWaiter     UserRole = "WAITER"
+	RoleSuperAdmin UserRole = "SUPER_ADMIN"
 )
 
 const (
@@ -74,6 +76,14 @@ type UserProfileUpdate struct {
 	AvatarURL  string
 }
 
+type UserFilter struct {
+	Role     string
+	Status   string
+	Search   string // search by name/email/username
+	Page     int
+	PageSize int
+}
+
 type IUserUsecase interface {
 	FindByUsernameOrEmail(context.Context, string) (*User, error)
 	FindUserByID(string) (*User, error)
@@ -92,7 +102,8 @@ type IUserRepository interface {
 	GetUserByUsername(context.Context, string) (*User, error)
 	GetUserByPhone(context.Context, string) (*User, error)
 	UpdateUser(context.Context, string, *User) error
-	GetAllUsers(context.Context) ([]*User, error)
+	GetAllUsers(ctx context.Context, filter UserFilter) ([]*User, int64, error)
+	CountUsers(ctx context.Context, filter UserFilter) (int64, error)
 	FindByUsernameOrEmail(context.Context, string) (User, error)
 	ChangeRole(context.Context, string, string, string) error
 	GetUserByEmail(context.Context, string) (*User, error)

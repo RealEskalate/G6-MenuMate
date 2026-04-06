@@ -46,7 +46,7 @@ type SetNewPasswordRequest struct {
 
 type ChangeRoleRequest struct {
 	UserID string `json:"user_id" validate:"required"`
-	Role   string `json:"role" validate:"required,oneof=admin user superadmin"`
+	Role   string `json:"role" validate:"required,oneof=ADMIN OWNER MANAGER STAFF WAITER CUSTOMER SUPER_ADMIN"`
 }
 
 type VerifyEmailRequest struct {

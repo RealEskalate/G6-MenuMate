@@ -112,6 +112,34 @@ func AdminOnly() gin.HandlerFunc {
 	}
 }
 
+// SuperAdminOnly allows only users with SUPER_ADMIN role.
+func SuperAdminOnly() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.GetString("role") != string(domain.RoleSuperAdmin) {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "SUPER_ADMIN access required"})
+			return
+		}
+		c.Next()
+	}
+}
+
+// RolesAllowed allows access only to users with any of the supplied roles.
+func RolesAllowed(roles ...domain.UserRole) gin.HandlerFunc {
+	allowed := make(map[string]struct{}, len(roles))
+	for _, r := range roles {
+		allowed[string(r)] = struct{}{}
+	}
+
+	return func(c *gin.Context) {
+		role := c.GetString("role")
+		if _, ok := allowed[role]; !ok {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "insufficient role permissions"})
+			return
+		}
+		c.Next()
+	}
+}
+
 // manager or Owner only
 func ManagerAndOwnerOnly() gin.HandlerFunc {
 	return func(c *gin.Context) {

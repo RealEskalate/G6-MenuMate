@@ -49,27 +49,77 @@ func (repo *UserRepository) CreateUser(ctx context.Context, user *domain.User) e
 	return nil
 }
 
-func (repo *UserRepository) GetAllUsers(ctx context.Context) ([]*domain.User, error) {
-	var models []*mapper.UserModel
+func (repo *UserRepository) GetAllUsers(ctx context.Context, filter domain.UserFilter) ([]*domain.User, int64, error) {
+	query := bson.M{"isDeleted": false}
 
-	cur, err := repo.DB.Collection(repo.Collection).Find(ctx, bson.M{})
+	if filter.Role != "" {
+		query["role"] = filter.Role
+	}
+	if filter.Status != "" {
+		query["status"] = filter.Status
+	}
+	if filter.Search != "" {
+		query["$or"] = []bson.M{
+			{"firstName": bson.M{"$regex": filter.Search, "$options": "i"}},
+			{"lastName": bson.M{"$regex": filter.Search, "$options": "i"}},
+			{"email": bson.M{"$regex": filter.Search, "$options": "i"}},
+			{"username": bson.M{"$regex": filter.Search, "$options": "i"}},
+		}
+	}
+
+	page := filter.Page
+	pageSize := filter.PageSize
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 {
+		pageSize = 20
+	}
+	skip := int64((page - 1) * pageSize)
+	limit := int64(pageSize)
+
+	total, err := repo.DB.Collection(repo.Collection).CountDocuments(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
+	}
+
+	cur, err := repo.DB.Collection(repo.Collection).Find(
+		ctx,
+		query,
+		options.Find().SetSkip(skip).SetLimit(limit).SetSort(bson.M{"createdAt": -1}),
+	)
+	if err != nil {
+		return nil, 0, err
 	}
 	defer cur.Close(ctx)
 
-	for cur.Next(ctx) {
-		var m mapper.UserModel
-		if err := cur.Decode(&m); err != nil {
-			return nil, err
-		}
-		models = append(models, &m)
-	}
-	if err := cur.Err(); err != nil {
-		return nil, err
+	var models []*mapper.UserModel
+	if err := cur.All(ctx, &models); err != nil {
+		return nil, 0, err
 	}
 
-	return mapper.UserToDomainList(models), nil
+	return mapper.UserToDomainList(models), total, nil
+}
+
+func (repo *UserRepository) CountUsers(ctx context.Context, filter domain.UserFilter) (int64, error) {
+	query := bson.M{"isDeleted": false}
+
+	if filter.Role != "" {
+		query["role"] = filter.Role
+	}
+	if filter.Status != "" {
+		query["status"] = filter.Status
+	}
+	if filter.Search != "" {
+		query["$or"] = []bson.M{
+			{"firstName": bson.M{"$regex": filter.Search, "$options": "i"}},
+			{"lastName": bson.M{"$regex": filter.Search, "$options": "i"}},
+			{"email": bson.M{"$regex": filter.Search, "$options": "i"}},
+			{"username": bson.M{"$regex": filter.Search, "$options": "i"}},
+		}
+	}
+
+	return repo.DB.Collection(repo.Collection).CountDocuments(ctx, query)
 }
 
 func (repo *UserRepository) UpdateUser(ctx context.Context, id string, user *domain.User) error {

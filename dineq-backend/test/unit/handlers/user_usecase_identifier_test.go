@@ -29,7 +29,12 @@ func (s *stubUserRepo) GetUserByPhone(ctx context.Context, phone string) (*domai
 	return nil, domain.ErrNotFound
 }
 func (s *stubUserRepo) UpdateUser(ctx context.Context, id string, u *domain.User) error { return nil }
-func (s *stubUserRepo) GetAllUsers(ctx context.Context) ([]*domain.User, error)         { return nil, nil }
+func (s *stubUserRepo) GetAllUsers(ctx context.Context, filter domain.UserFilter) ([]*domain.User, int64, error) {
+	return nil, 0, nil
+}
+func (s *stubUserRepo) CountUsers(ctx context.Context, filter domain.UserFilter) (int64, error) {
+	return 0, nil
+}
 func (s *stubUserRepo) FindByUsernameOrEmail(ctx context.Context, key string) (domain.User, error) {
 	for _, u := range s.users {
 		if u.Username == key || u.Email == key || u.PhoneNumber == key {

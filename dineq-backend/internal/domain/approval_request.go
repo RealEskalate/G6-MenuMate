@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type ApprovalRequest struct {
 	ID          string
@@ -13,6 +16,7 @@ type ApprovalRequest struct {
 	ReviewedAt  time.Time
 	Comments    string
 }
+
 type ApprovalStatus string
 
 const (
@@ -28,10 +32,16 @@ type IApprovalRequestUseCase interface {
 	DeleteApprovalRequest(id string) error
 }
 
-// repository
+// IApprovalRequestRepository defines the persistence contract for approval requests.
+// All methods accept a context for timeout/cancellation propagation.
 type IApprovalRequestRepository interface {
-	Create(request *ApprovalRequest) error
-	UpdateStatus(id, status string) error
-	GetByID(id string) (*ApprovalRequest, error)
-	Delete(id string) error
+	Create(ctx context.Context, request *ApprovalRequest) error
+	UpdateStatus(ctx context.Context, id, status string) error
+	GetByID(ctx context.Context, id string) (*ApprovalRequest, error)
+	Delete(ctx context.Context, id string) error
+	// List returns a paginated list of approval requests, optionally filtered by status.
+	// Pass an empty status string to return all requests regardless of status.
+	List(ctx context.Context, page, pageSize int, status string) ([]*ApprovalRequest, int64, error)
+	// GetByEntityID returns the most recent approval request for a given entity ID.
+	GetByEntityID(ctx context.Context, entityID string) (*ApprovalRequest, error)
 }

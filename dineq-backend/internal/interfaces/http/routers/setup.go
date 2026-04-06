@@ -54,6 +54,13 @@ func Setup(env *bootstrap.Env, timeout time.Duration, db mongo.Database, router 
 		NewUploadRoutes(env, api)
 		NewItemRoutes(env, api, db, notifySvc)
 		NewReviewRoutes(env, api, db)
+		NewOrderRoutes(env, api, db)
+		NewTableSessionRoutes(env, api, db)
+		NewWaiterLogRoutes(env, api, db)
+		NewCustomerProfileRoutes(env, api, db)
+		NewCRMRoutes(env, api, db)
+		NewStaffManagementRoutes(env, api, db)
+		NewSuperAdminRoutes(env, api, db)
 		h := handler.NewHealthHandler(db, 2*time.Second)
 		api.GET("/health", h.Health)
 	}

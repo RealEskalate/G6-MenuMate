@@ -23,7 +23,7 @@ type UserRequest struct {
 	FirstName    string      `json:"first_name" validate:"omitempty,min=2,max=50"`
 	LastName     string      `json:"last_name" validate:"omitempty,min=2,max=50"`
 	FullName     string      `json:"full_name" validate:"omitempty,min=2,max=100"`
-	Role         string      `json:"role" validate:"omitempty,oneof=OWNER MANAGER STAFF CUSTOMER ADMIN"`
+	Role         string      `json:"role" validate:"omitempty,oneof=OWNER MANAGER STAFF WAITER CUSTOMER ADMIN SUPER_ADMIN"`
 	AuthProvider string      `json:"auth_provider" validate:"omitempty,oneof=EMAIL GOOGLE PHONE"`
 	Status       string      `json:"status" validate:"omitempty,oneof=ACTIVE INACTIVE SUSPENDED"`
 	ProfileImage string      `json:"profile_image" validate:"omitempty,url"`

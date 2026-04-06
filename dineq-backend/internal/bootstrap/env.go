@@ -129,6 +129,15 @@ type Env struct {
 	// view event collection
 	ViewEventCollection string `mapstructure:"VIEW_EVENT_COLLECTION"`
 
+	// platform & CRM collections
+	OrderCollection           string `mapstructure:"ORDER_COLLECTION"`
+	TableSessionCollection    string `mapstructure:"TABLE_SESSION_COLLECTION"`
+	WaiterLogCollection       string `mapstructure:"WAITER_LOG_COLLECTION"`
+	CustomerProfileCollection string `mapstructure:"CUSTOMER_PROFILE_COLLECTION"`
+	StaffInvitationCollection string `mapstructure:"STAFF_INVITATION_COLLECTION"`
+	ApprovalRequestCollection string `mapstructure:"APPROVAL_REQUEST_COLLECTION"`
+	AuditLogCollection        string `mapstructure:"AUDIT_LOG_COLLECTION"`
+
 	// reset password session expiry
 	PasswordResetSessionExpiry     int    `mapstructure:"PASSWORD_RESET_SESSION_EXPIRE_MINUTES"` // in minutes
 	PasswordResetSessionCollection string `mapstructure:"PASSWORD_RESET_SESSION_COLLECTION"`
@@ -205,6 +214,13 @@ func NewEnv() (*Env, error) {
 	env.QRCodeCollection = os.Getenv("QR_CODE_COLLECTION")
 	env.ItemCollection = os.Getenv("ITEM_COLLECTION")
 	env.ViewEventCollection = os.Getenv("VIEW_EVENT_COLLECTION")
+	env.OrderCollection = os.Getenv("ORDER_COLLECTION")
+	env.TableSessionCollection = os.Getenv("TABLE_SESSION_COLLECTION")
+	env.WaiterLogCollection = os.Getenv("WAITER_LOG_COLLECTION")
+	env.CustomerProfileCollection = os.Getenv("CUSTOMER_PROFILE_COLLECTION")
+	env.StaffInvitationCollection = os.Getenv("STAFF_INVITATION_COLLECTION")
+	env.ApprovalRequestCollection = os.Getenv("APPROVAL_REQUEST_COLLECTION")
+	env.AuditLogCollection = os.Getenv("AUDIT_LOG_COLLECTION")
 	env.CookieSecure = strings.ToLower(os.Getenv("COOKIE_SECURE")) == "true"
 	env.CookieDomain = os.Getenv("COOKIE_DOMAIN")
 	env.CORSAllowedOriginsRaw = os.Getenv("CORS_ALLOWED_ORIGINS")
@@ -227,6 +243,28 @@ func NewEnv() (*Env, error) {
 	env.QRCodeContent = os.Getenv("QR_CODE_CONTENT")
 	env.PasswordResetSessionExpiry, _ = strconv.Atoi(os.Getenv("PASSWORD_RESET_SESSION_EXPIRE_MINUTES"))
 	env.PasswordResetSessionCollection = os.Getenv("PASSWORD_RESET_SESSION_COLLECTION")
+
+	if env.OrderCollection == "" {
+		env.OrderCollection = "orders"
+	}
+	if env.TableSessionCollection == "" {
+		env.TableSessionCollection = "table_sessions"
+	}
+	if env.WaiterLogCollection == "" {
+		env.WaiterLogCollection = "waiter_logs"
+	}
+	if env.CustomerProfileCollection == "" {
+		env.CustomerProfileCollection = "customer_profiles"
+	}
+	if env.StaffInvitationCollection == "" {
+		env.StaffInvitationCollection = "staff_invitations"
+	}
+	if env.ApprovalRequestCollection == "" {
+		env.ApprovalRequestCollection = "approval_requests"
+	}
+	if env.AuditLogCollection == "" {
+		env.AuditLogCollection = "audit_logs"
+	}
 
 	if env.AppEnv == "development" {
 		log.Println("The App is running in development env")
