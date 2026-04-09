@@ -6,7 +6,6 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/google/uuid"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -28,11 +27,8 @@ func GenerateSlug(text string) string {
 	if base == "" {
 		base = "item"
 	}
-	// create short uuid (first 8 hex chars, remove hyphens first)
-	raw := uuid.New().String()
-	raw = strings.ReplaceAll(raw, "-", "")
-	suffix := raw[:8]
-	return base + "-" + suffix
+	// User requested removal of unique suffix
+	return base
 }
 
 // sanitizeToSlugCore performs normalization & transliteration then builds the core slug (without unique suffix)

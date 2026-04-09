@@ -50,6 +50,9 @@ func (s *stubUserRepo) ChangeRole(ctx context.Context, targetUserID, role, usern
 func (s *stubUserRepo) AssignRole(ctx context.Context, userID, branchID string, role domain.UserRole) error {
 	return nil
 }
+func (s *stubUserRepo) PermanentDeleteUser(ctx context.Context, userID string) error {
+	return nil
+}
 
 // storage stub
 type noopStorage struct{}

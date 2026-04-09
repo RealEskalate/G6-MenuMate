@@ -68,12 +68,17 @@ type SystemHealthStats struct {
 type ISuperAdminUsecase interface {
 	GetPlatformAnalytics(ctx context.Context, period string) (*PlatformAnalytics, error)
 	GetAllUsers(ctx context.Context, filter UserFilter) ([]*User, int64, error)
+	CreateUser(ctx context.Context, user *User) error
 	GetAllRestaurants(ctx context.Context, page, pageSize int, status, search string) ([]*Restaurant, int64, error)
+	UpdateRestaurant(ctx context.Context, r *Restaurant) error
 	UpdateUserStatus(ctx context.Context, userID string, status UserStatus, reason string) error
 	UpdateUserRole(ctx context.Context, userID string, role UserRole) error
 	ApproveRestaurant(ctx context.Context, restaurantID, adminID, comment string) error
 	RejectRestaurant(ctx context.Context, restaurantID, adminID, reason string) error
 	GetPendingApprovals(ctx context.Context, page, pageSize int) ([]*ApprovalRequest, int64, error)
 	DeleteUser(ctx context.Context, adminID, targetUserID, reason string) error
+	PermanentDeleteUser(ctx context.Context, adminID, targetUserID string) error
+	DeleteRestaurant(ctx context.Context, id string, adminID string) error
+	PermanentDeleteRestaurant(ctx context.Context, id string, adminID string) error
 	GetAuditLogs(ctx context.Context, filter AuditLogFilter) ([]*AuditLog, int64, error)
 }

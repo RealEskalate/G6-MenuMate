@@ -42,11 +42,16 @@ func NewSuperAdminRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Da
 		r.GET("/dashboard", h.GetPlatformAnalytics)
 
 		r.GET("/users", h.ListUsers)
+		r.POST("/users", h.CreateUser)
 		r.PATCH("/users/:userId/status", h.UpdateUserStatus)
 		r.PATCH("/users/:userId/role", h.UpdateUserRole)
 		r.DELETE("/users/:userId", h.DeleteUser)
+		r.DELETE("/users/:userId/permanent", h.PermanentDeleteUser)
 
 		r.GET("/restaurants", h.ListRestaurants)
+		r.PUT("/restaurants/:restaurantId", h.UpdateRestaurant)
+		r.DELETE("/restaurants/:restaurantId", h.DeleteRestaurant)
+		r.DELETE("/restaurants/:restaurantId/permanent", h.PermanentDeleteRestaurant)
 		r.POST("/restaurants/:restaurantId/approve", h.ApproveRestaurant)
 		r.POST("/restaurants/:restaurantId/reject", h.RejectRestaurant)
 

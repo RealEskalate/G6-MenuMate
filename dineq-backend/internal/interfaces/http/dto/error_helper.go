@@ -103,7 +103,7 @@ func statusFromDomainError(err error) int {
 		return http.StatusNotFound
 	case domain.ErrRestaurantDeleted:
 		return http.StatusGone
-	case domain.ErrUnauthorized:
+	case domain.ErrUnauthorized, domain.ErrTokenExpired, domain.ErrTokenInvalidOrExpired, domain.ErrRefreshTokenNotFound, domain.ErrUserAlreadyLoggedOut, domain.ErrUserNotLoggedIn:
 		return http.StatusUnauthorized
 	case domain.ErrForbidden:
 		return http.StatusForbidden

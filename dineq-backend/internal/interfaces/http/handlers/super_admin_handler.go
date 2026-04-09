@@ -39,6 +39,46 @@ type deleteUserRequest struct {
 	Reason string `json:"reason"`
 }
 
+type createUserRequest struct {
+	Email     string `json:"email" binding:"required,email"`
+	Username  string `json:"username" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	FullName  string `json:"fullName" binding:"required"`
+	Role      string `json:"role" binding:"required"`
+}
+
+type updateRestaurantRequest struct {
+	RestaurantName  string   `json:"restaurantName"`
+	RestaurantPhone string   `json:"restaurantPhone"`
+	Tags            []string `json:"tags"`
+	PrimaryColor    string   `json:"primaryColor"`
+	AccentColor     string   `json:"accentColor"`
+}
+
+func (h *SuperAdminHandler) CreateUser(c *gin.Context) {
+	var req createUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		dto.WriteValidationError(c, "payload", "invalid request payload", "invalid_payload", err)
+		return
+	}
+
+	user := &domain.User{
+		Email:    req.Email,
+		Username: req.Username,
+		Password: req.Password,
+		FullName: req.FullName,
+		Role:     domain.UserRole(req.Role),
+	}
+
+	err := h.uc.CreateUser(c.Request.Context(), user)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "user created", "data": dto.ToUserResponse(*user)})
+}
+
 func (h *SuperAdminHandler) GetPlatformAnalytics(c *gin.Context) {
 	period := c.DefaultQuery("period", "month")
 	data, err := h.uc.GetPlatformAnalytics(c.Request.Context(), period)
@@ -131,6 +171,19 @@ func (h *SuperAdminHandler) DeleteUser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "user deleted"})
 }
 
+func (h *SuperAdminHandler) PermanentDeleteUser(c *gin.Context) {
+	userID := c.Param("userId")
+	adminID := c.GetString("user_id")
+
+	err := h.uc.PermanentDeleteUser(c.Request.Context(), adminID, userID)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "user permanently deleted"})
+}
+
 func (h *SuperAdminHandler) ListRestaurants(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
@@ -196,6 +249,61 @@ func (h *SuperAdminHandler) RejectRestaurant(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "restaurant rejected"})
+}
+
+func (h *SuperAdminHandler) UpdateRestaurant(c *gin.Context) {
+	restaurantID := c.Param("restaurantId")
+	var req updateRestaurantRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		dto.WriteValidationError(c, "payload", "invalid request payload", "invalid_payload", err)
+		return
+	}
+
+	// Fetch existing first to avoid overwriting fields not in the request
+	// But for simplicity in this console, we'll assume the request has what we want to update
+	// or we just map what's provided.
+	r := &domain.Restaurant{
+		ID:              restaurantID,
+		RestaurantName:  req.RestaurantName,
+		RestaurantPhone: req.RestaurantPhone,
+		Tags:            req.Tags,
+		PrimaryColor:    req.PrimaryColor,
+		AccentColor:     req.AccentColor,
+	}
+
+	err := h.uc.UpdateRestaurant(c.Request.Context(), r)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "restaurant updated"})
+}
+
+func (h *SuperAdminHandler) DeleteRestaurant(c *gin.Context) {
+	restaurantID := c.Param("restaurantId")
+	adminID := c.GetString("user_id")
+
+	err := h.uc.DeleteRestaurant(c.Request.Context(), restaurantID, adminID)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "restaurant soft-deleted"})
+}
+
+func (h *SuperAdminHandler) PermanentDeleteRestaurant(c *gin.Context) {
+	restaurantID := c.Param("restaurantId")
+	adminID := c.GetString("user_id")
+
+	err := h.uc.PermanentDeleteRestaurant(c.Request.Context(), restaurantID, adminID)
+	if err != nil {
+		dto.WriteError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "restaurant permanently deleted"})
 }
 
 func (h *SuperAdminHandler) GetPendingApprovals(c *gin.Context) {

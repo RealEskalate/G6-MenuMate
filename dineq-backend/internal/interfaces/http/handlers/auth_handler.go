@@ -227,8 +227,16 @@ func (ac *AuthController) LogoutRequest(c *gin.Context) {
 	utils.DeleteCookie(c, string(domain.AccessTokenType))
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUserAlreadyLoggedOut.Error(), Error: err.Error()})
-		return
+		// Fallback: check JSON body for refresh_token
+		var body struct {
+			RefreshToken string `json:"refresh_token"`
+		}
+		if bindErr := c.ShouldBindJSON(&body); bindErr == nil && body.RefreshToken != "" {
+			refreshToken = body.RefreshToken
+		} else {
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse{Message: domain.ErrUserAlreadyLoggedOut.Error(), Error: "missing refresh token in cookie or body"})
+			return
+		}
 	}
 
 	tokenDoc, err := ac.RefreshTokenUsecase.FindByToken(refreshToken)

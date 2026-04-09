@@ -166,6 +166,10 @@ func (repo *UserRepository) UpdateUser(ctx context.Context, id string, user *dom
 	if user.Preferences != nil {
 		set["preferences"] = user.Preferences
 	}
+	set["isDeleted"] = user.IsDeleted
+	if user.DeletedAt != nil {
+		set["deletedAt"] = user.DeletedAt
+	}
 	set["updatedAt"] = time.Now()
 	res, err := repo.DB.Collection(repo.Collection).UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": set})
 	if err != nil {
@@ -313,5 +317,13 @@ func (repo *UserRepository) ChangeRole(ctx context.Context, userID, branchID, ro
 		"branchId":  branchID,
 		"updatedAt": time.Now(),
 	}})
+	return err
+}
+func (repo *UserRepository) PermanentDeleteUser(ctx context.Context, userID string) error {
+	oid, err := bson.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	_, err = repo.DB.Collection(repo.Collection).DeleteOne(ctx, bson.M{"_id": oid})
 	return err
 }

@@ -232,12 +232,17 @@ func (r *OrderRepository) GetBySessionID(ctx context.Context, sessionID string) 
 func (r *OrderRepository) GetRevenueByRestaurant(ctx context.Context, restaurantID string, from, to time.Time) (float64, error) {
 	pipeline := []bson.M{
 		{
-			"$match": bson.M{
-				"restaurantId": restaurantID,
-				"isDeleted":    false,
-				"status":       bson.M{"$in": []string{string(domain.OrderStatusCompleted), string(domain.OrderStatusServed)}},
-				"createdAt":    bson.M{"$gte": from, "$lte": to},
-			},
+			"$match": func() bson.M {
+				m := bson.M{
+					"isDeleted":    false,
+					"status":       bson.M{"$in": []string{string(domain.OrderStatusCompleted), string(domain.OrderStatusServed)}},
+					"createdAt":    bson.M{"$gte": from, "$lte": to},
+				}
+				if restaurantID != "" {
+					m["restaurantId"] = restaurantID
+				}
+				return m
+			}(),
 		},
 		{
 			"$group": bson.M{
@@ -265,11 +270,14 @@ func (r *OrderRepository) GetRevenueByRestaurant(ctx context.Context, restaurant
 }
 
 func (r *OrderRepository) GetOrderCountByRestaurant(ctx context.Context, restaurantID string, from, to time.Time) (int64, error) {
-	return r.DB.Collection(r.Collection).CountDocuments(ctx, bson.M{
-		"restaurantId": restaurantID,
-		"isDeleted":    false,
-		"createdAt":    bson.M{"$gte": from, "$lte": to},
-	})
+	query := bson.M{
+		"isDeleted": false,
+		"createdAt": bson.M{"$gte": from, "$lte": to},
+	}
+	if restaurantID != "" {
+		query["restaurantId"] = restaurantID
+	}
+	return r.DB.Collection(r.Collection).CountDocuments(ctx, query)
 }
 
 func (r *OrderRepository) GetTopItemsByRestaurant(ctx context.Context, restaurantID string, limit int) ([]domain.PopularOrderItem, error) {
@@ -327,11 +335,16 @@ func (r *OrderRepository) GetTopItemsByRestaurant(ctx context.Context, restauran
 func (r *OrderRepository) GetOrdersByHour(ctx context.Context, restaurantID string, from, to time.Time) ([]domain.HourlyOrderData, error) {
 	pipeline := []bson.M{
 		{
-			"$match": bson.M{
-				"restaurantId": restaurantID,
-				"isDeleted":    false,
-				"createdAt":    bson.M{"$gte": from, "$lte": to},
-			},
+			"$match": func() bson.M {
+				m := bson.M{
+					"isDeleted": false,
+					"createdAt": bson.M{"$gte": from, "$lte": to},
+				}
+				if restaurantID != "" {
+					m["restaurantId"] = restaurantID
+				}
+				return m
+			}(),
 		},
 		{
 			"$group": bson.M{
@@ -372,11 +385,16 @@ func (r *OrderRepository) GetOrdersByHour(ctx context.Context, restaurantID stri
 func (r *OrderRepository) GetOrdersByDay(ctx context.Context, restaurantID string, from, to time.Time) ([]domain.DailyOrderData, error) {
 	pipeline := []bson.M{
 		{
-			"$match": bson.M{
-				"restaurantId": restaurantID,
-				"isDeleted":    false,
-				"createdAt":    bson.M{"$gte": from, "$lte": to},
-			},
+			"$match": func() bson.M {
+				m := bson.M{
+					"isDeleted": false,
+					"createdAt": bson.M{"$gte": from, "$lte": to},
+				}
+				if restaurantID != "" {
+					m["restaurantId"] = restaurantID
+				}
+				return m
+			}(),
 		},
 		{
 			"$group": bson.M{

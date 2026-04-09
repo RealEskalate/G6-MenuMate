@@ -14,12 +14,6 @@ This folder contains an exhaustive, realistic Mongo seed script aligned to backe
 - items (full nutritional/allergen/translations/metadata)
 - review + reaction
 - qr
-- notifications
-- refresh_tokens
-- otp
-- password_reset_tokens
-- password_reset_session_collections
-- ocr_jobs (completed, processing, failed states + phase history)
 - views (restaurant/menu/item analytics events over time)
 
 ## Run

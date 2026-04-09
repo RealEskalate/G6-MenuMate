@@ -104,6 +104,7 @@ type IUserRepository interface {
 	UpdateUser(context.Context, string, *User) error
 	GetAllUsers(ctx context.Context, filter UserFilter) ([]*User, int64, error)
 	CountUsers(ctx context.Context, filter UserFilter) (int64, error)
+	PermanentDeleteUser(ctx context.Context, userID string) error
 	FindByUsernameOrEmail(context.Context, string) (User, error)
 	ChangeRole(context.Context, string, string, string) error
 	GetUserByEmail(context.Context, string) (*User, error)
