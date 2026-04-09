@@ -67,14 +67,16 @@ func NewAuthRoutes(env *bootstrap.Env, api *gin.RouterGroup, db mongo.Database) 
 	notifyRepo := repositories.NewNotificationRepository(db, env.NotificationCollection)
 	notifySvc := services.NewNotificationService()
 	notificationUseCase := usecase.NewNotificationUseCase(notifyRepo, notifySvc)
+	auditLogUsecase := usecase.NewAuditLogUsecase(repositories.NewAuditLogRepository(db, env.AuditLogCollection), ctxTimeout)
 
 	authController := handler.AuthController{
-		UserUsecase:          usecase.NewUserUsecase(userRepo, cloudinaryStorage, ctxTimeout),
+		UserUsecase:          usecase.NewUserUsecase(userRepo, cloudinaryStorage, ctxTimeout, auditLogUsecase),
 		OTP:                  otpUsecase,
 		AuthService:          authService,
 		RefreshTokenUsecase:  usecase.NewRefreshTokenUsecase(repositories.NewRefreshTokenRepository(db, env.RefreshTokenCollection)),
 		NotificationUseCase:  notificationUseCase,
 		PasswordResetUsecase: passwordResetUsecase,
+		AuditLogUsecase:      auditLogUsecase,
 		GoogleClientID:       env.GoogleClientID,
 		GoogleClientSecret:   env.GoogleClientSecret,
 		GoogleRedirectURL:    env.GoogleRedirectURL,

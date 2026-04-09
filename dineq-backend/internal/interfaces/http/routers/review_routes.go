@@ -23,7 +23,7 @@ func NewReviewRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Databa
 	reviewRepo := repositories.NewReviewRepository(db, env.ReviewCollection)
 	reviewUsecase := usecase.NewReviewUsecase(reviewRepo, ctxTimeout)
 	userRepo := repositories.NewUserRepository(db, env.UserCollection)
-	userUsecase := usecase.NewUserUsecase(userRepo, nil, ctxTimeout) // nil storage: not needed for read
+	userUsecase := usecase.NewUserUsecase(userRepo, nil, ctxTimeout, nil) // nil storage & audit: not needed for read
 	reviewHandler := handler.NewReviewHandler(reviewUsecase, userUsecase)
 
 	// Temporary debug middleware for this subgroup to trace 404s

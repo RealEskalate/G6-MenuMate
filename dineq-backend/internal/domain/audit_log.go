@@ -41,6 +41,7 @@ type AuditLogFilter struct {
 	EntityType string
 	EntityID   string
 	Action     string
+	Search     string // partial match on name/description/actor
 	DateFrom   *time.Time
 	DateTo     *time.Time
 	Page       int

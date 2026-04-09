@@ -67,6 +67,7 @@ type IRestaurantRepo interface {
 	Create(ctx context.Context, r *Restaurant) error
 	Update(ctx context.Context, r *Restaurant) error
 	Delete(ctx context.Context, id string, manager string) error
+	PermanentDelete(ctx context.Context, id string) error
 	ListAllBranches(ctx context.Context, slug string, page, pageSize int) ([]*Restaurant, int64, error)
 	ListUniqueRestaurants(ctx context.Context, page, pageSize int) ([]*Restaurant, int64, error)
 	FindNearby(ctx context.Context, lat, lng float64, maxDistance int, page, pageSize int) ([]*Restaurant, int64, error)

@@ -31,7 +31,9 @@ func NewUserRoutes(env *bootstrap.Env, group *gin.RouterGroup, db mongo.Database
 
 	// repositories and usecases
 	userRepo := repositories.NewUserRepository(db, env.UserCollection)
-	userUsecase := usecase.NewUserUsecase(userRepo, cloudinaryStorage, ctxTimeout)
+	auditLogRepo := repositories.NewAuditLogRepository(db, env.AuditLogCollection)
+	auditLogUsecase := usecase.NewAuditLogUsecase(auditLogRepo, ctxTimeout)
+	userUsecase := usecase.NewUserUsecase(userRepo, cloudinaryStorage, ctxTimeout, auditLogUsecase)
 	userController := handler.NewUserController(userUsecase, notificationUseCase)
 
 	group.PATCH("/users/update-profile", middleware.AuthMiddleware(*env), userController.UpdateProfile)

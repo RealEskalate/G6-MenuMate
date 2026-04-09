@@ -842,6 +842,142 @@
     fastingAndVeganItems,
   ];
 
+  // Extra variety across all categories
+  ethiopianTraditionalItems.push(
+    {
+      name: "Alicha Siga",
+      am: "አሊጫ ስጋ",
+      price: 410,
+      tags: ["Traditional", "Mild"],
+      kcal: 590,
+      prot: 36,
+      carbs: 16,
+      fat: 42,
+      prep: 28,
+      allergies: ["Butter"],
+    },
+    {
+      name: "Tibs Firfir",
+      am: "ጥብስ ፍርፍር",
+      price: 380,
+      tags: ["Traditional", "Popular"],
+      kcal: 610,
+      prot: 32,
+      carbs: 38,
+      fat: 34,
+      prep: 20,
+      allergies: ["Gluten"],
+    },
+  );
+
+  grillAndMeatItems.push(
+    {
+      name: "Lamb Tibs",
+      am: "የበግ ጥብስ",
+      price: 520,
+      tags: ["Grill", "Dinner", "Signature"],
+      kcal: 700,
+      prot: 45,
+      carbs: 11,
+      fat: 49,
+      prep: 19,
+      allergies: [],
+    },
+    {
+      name: "Roasted Chicken Plate",
+      am: "የተጠበሰ ዶሮ",
+      price: 420,
+      tags: ["Grill", "Popular"],
+      kcal: 560,
+      prot: 43,
+      carbs: 14,
+      fat: 33,
+      prep: 22,
+      allergies: [],
+    },
+  );
+
+  breakfastAndCafeItems.push(
+    {
+      name: "Bula Porridge",
+      am: "ቡላ",
+      price: 230,
+      tags: ["Breakfast", "Traditional"],
+      kcal: 340,
+      prot: 7,
+      carbs: 61,
+      fat: 7,
+      prep: 9,
+      allergies: ["Butter"],
+    },
+    {
+      name: "French Toast Addis Style",
+      am: "ፍሬንች ቶስት",
+      price: 300,
+      tags: ["Breakfast", "Cafe", "Sweet"],
+      kcal: 490,
+      prot: 13,
+      carbs: 62,
+      fat: 20,
+      prep: 11,
+      allergies: ["Gluten", "Egg", "Dairy"],
+    },
+  );
+
+  drinksAndDessertsItems.push(
+    {
+      name: "Iced Macchiato",
+      am: "አይስድ ማኪያቶ",
+      price: 170,
+      tags: ["Coffee", "Drinks", "Cafe"],
+      kcal: 95,
+      prot: 5,
+      carbs: 10,
+      fat: 4,
+      prep: 5,
+      allergies: ["Dairy"],
+    },
+    {
+      name: "Honey Cake Slice",
+      am: "የማር ኬክ",
+      price: 230,
+      tags: ["Dessert", "Sweet", "Cafe"],
+      kcal: 390,
+      prot: 5,
+      carbs: 44,
+      fat: 21,
+      prep: 5,
+      allergies: ["Gluten", "Egg", "Dairy"],
+    },
+  );
+
+  fastingAndVeganItems.push(
+    {
+      name: "Dinich Wot",
+      am: "ድንች ወጥ",
+      price: 240,
+      tags: ["Vegan", "Fasting", "Traditional"],
+      kcal: 360,
+      prot: 7,
+      carbs: 54,
+      fat: 11,
+      prep: 14,
+      allergies: [],
+    },
+    {
+      name: "Fasting Firfir",
+      am: "የጾም ፍርፍር",
+      price: 250,
+      tags: ["Vegan", "Breakfast", "Popular"],
+      kcal: 430,
+      prot: 11,
+      carbs: 63,
+      fat: 13,
+      prep: 11,
+      allergies: ["Gluten"],
+    },
+  );
+
   const users = [];
   const testUsers = [
     {
@@ -1517,7 +1653,7 @@
     return x - Math.floor(x);
   };
   const seededAddisCoords = (seed) => {
-    const lon = 38.70 + seededUnit(seed) * 0.18;
+    const lon = 38.7 + seededUnit(seed) * 0.18;
     const lat = 8.93 + seededUnit(seed + 1) * 0.18;
     return [Number(lon.toFixed(6)), Number(lat.toFixed(6))];
   };
@@ -1527,7 +1663,7 @@
     restaurantBlueprints.push({
       slug,
       name,
-      phone: `+25111667${(300 + idx).toString().padStart(3, "0")}`,
+      phone: `+25111666${(300 + idx).toString().padStart(3, "0")}`,
       tags: ["Ethiopian", "Modern", "Popular"],
       about: `${name} is a well-known Addis Ababa restaurant offering Ethiopian cuisine with a modern dining experience and consistent service.`,
       taxId: `ET-TIN-EXTRA-${(300 + idx).toString()}`,
@@ -1628,7 +1764,7 @@
       coverImage: queryPhoto(
         1800,
         1000,
-        `${r.name}, modern elegant restaurant interior, dining, addis ababa`,
+        `${r.name}, restaurant interior, dining, addis ababa`,
         12000 + i,
       ),
       averageRating: 0,
@@ -1816,7 +1952,14 @@
         restaurantId: relevantRestaurant
           ? relevantRestaurant._id.valueOf()
           : restaurants[0]._id.valueOf(),
-        imageUrls: i % 3 !== 0 ? [dishPhoto(7000 + idx * 10 + i, it.name)] : [],
+        imageUrls: [
+          queryPhoto(
+            1000,
+            800,
+            `${it.name}, ethiopian food, restaurant table`,
+            8000 + i + idx,
+          ),
+        ],
         username: customer.username,
         userProfileImage: customer.profileImage,
         description:

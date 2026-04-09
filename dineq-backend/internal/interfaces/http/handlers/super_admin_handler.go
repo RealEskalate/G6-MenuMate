@@ -70,7 +70,8 @@ func (h *SuperAdminHandler) CreateUser(c *gin.Context) {
 		Role:     domain.UserRole(req.Role),
 	}
 
-	err := h.uc.CreateUser(c.Request.Context(), user)
+	adminID := c.GetString("user_id")
+	err := h.uc.CreateUser(c.Request.Context(), adminID, user)
 	if err != nil {
 		dto.WriteError(c, err)
 		return
@@ -129,7 +130,8 @@ func (h *SuperAdminHandler) UpdateUserStatus(c *gin.Context) {
 		return
 	}
 
-	err := h.uc.UpdateUserStatus(c.Request.Context(), userID, domain.UserStatus(req.Status), req.Reason)
+	adminID := c.GetString("user_id")
+	err := h.uc.UpdateUserStatus(c.Request.Context(), adminID, userID, domain.UserStatus(req.Status), req.Reason)
 	if err != nil {
 		dto.WriteError(c, err)
 		return
@@ -146,7 +148,8 @@ func (h *SuperAdminHandler) UpdateUserRole(c *gin.Context) {
 		return
 	}
 
-	err := h.uc.UpdateUserRole(c.Request.Context(), userID, domain.UserRole(req.Role))
+	adminID := c.GetString("user_id")
+	err := h.uc.UpdateUserRole(c.Request.Context(), adminID, userID, domain.UserRole(req.Role))
 	if err != nil {
 		dto.WriteError(c, err)
 		return
@@ -271,7 +274,8 @@ func (h *SuperAdminHandler) UpdateRestaurant(c *gin.Context) {
 		AccentColor:     req.AccentColor,
 	}
 
-	err := h.uc.UpdateRestaurant(c.Request.Context(), r)
+	adminID := c.GetString("user_id")
+	err := h.uc.UpdateRestaurant(c.Request.Context(), adminID, r)
 	if err != nil {
 		dto.WriteError(c, err)
 		return
@@ -347,6 +351,7 @@ func (h *SuperAdminHandler) GetAuditLogs(c *gin.Context) {
 		EntityType: c.Query("entityType"),
 		EntityID:   c.Query("entityId"),
 		Action:     c.Query("action"),
+		Search:     c.Query("search"),
 		Page:       page,
 		PageSize:   pageSize,
 	}

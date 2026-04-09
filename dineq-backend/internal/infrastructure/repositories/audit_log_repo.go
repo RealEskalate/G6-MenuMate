@@ -144,6 +144,16 @@ func (r *AuditLogRepository) buildQuery(filter domain.AuditLogFilter) bson.M {
 		query["action"] = filter.Action
 	}
 
+	if filter.Search != "" {
+		// Use regex for partial, case-insensitive match across metadata fields
+		searchRegex := bson.M{"$regex": filter.Search, "$options": "i"}
+		query["$or"] = []bson.M{
+			{"actorName": searchRegex},
+			{"entityName": searchRegex},
+			{"description": searchRegex},
+		}
+	}
+
 	if filter.DateFrom != nil || filter.DateTo != nil {
 		dateFilter := bson.M{}
 		if filter.DateFrom != nil {

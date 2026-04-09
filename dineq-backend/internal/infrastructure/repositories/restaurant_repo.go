@@ -167,9 +167,18 @@ func (repo *RestaurantRepo) Delete(ctx context.Context, id string, manager strin
 	}
 
 	_, err = repo.db.Collection(repo.restaurantCol).UpdateOne(ctx,
-		bson.M{"_id": oid, "managerId": m_oid, "isDeleted": false}, // BEGIN:
-		bson.M{"$set": bson.M{"isDeleted": true}},                  // END:
+		bson.M{"_id": oid, "managerId": m_oid, "isDeleted": false},
+		bson.M{"$set": bson.M{"isDeleted": true}},
 	)
+	return err
+}
+
+func (repo *RestaurantRepo) PermanentDelete(ctx context.Context, id string) error {
+	oid, err := bson.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = repo.db.Collection(repo.restaurantCol).DeleteOne(ctx, bson.M{"_id": oid})
 	return err
 }
 

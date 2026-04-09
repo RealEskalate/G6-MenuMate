@@ -65,7 +65,7 @@ func (n noopStorage) DeleteFile(ctx context.Context, publicID string) error { re
 
 func TestFindByIdentifier_UserEmailUsernamePhone(t *testing.T) {
 	repo := &stubUserRepo{}
-	uc := usecase.NewUserUsecase(repo, noopStorage{}, 2*time.Second)
+	uc := usecase.NewUserUsecase(repo, noopStorage{}, 2*time.Second, nil)
 
 	user := domain.User{ID: "1", Username: "alpha", Email: "alpha@example.com", PhoneNumber: "+15551234567", Password: "hash"}
 	repo.CreateUser(context.Background(), &user)

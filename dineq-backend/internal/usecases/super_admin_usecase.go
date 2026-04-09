@@ -229,7 +229,7 @@ func (uc *SuperAdminUsecase) GetAllUsers(ctx context.Context, filter domain.User
 }
 
 // CreateUser creates a new user account with the provided details.
-func (uc *SuperAdminUsecase) CreateUser(ctx context.Context, user *domain.User) error {
+func (uc *SuperAdminUsecase) CreateUser(ctx context.Context, adminID string, user *domain.User) error {
 	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
@@ -245,6 +245,7 @@ func (uc *SuperAdminUsecase) CreateUser(ctx context.Context, user *domain.User) 
 	}
 
 	go uc.writeAuditLog(domain.AuditLog{
+		ActorID:     adminID,
 		Action:      domain.AuditActionCreate,
 		EntityType:  "user",
 		EntityID:    user.ID,
@@ -261,6 +262,7 @@ func (uc *SuperAdminUsecase) CreateUser(ctx context.Context, user *domain.User) 
 // Accepted values for status: domain.StatusActive, domain.StatusInactive, domain.StatusSuspended.
 func (uc *SuperAdminUsecase) UpdateUserStatus(
 	ctx context.Context,
+	adminID string,
 	userID string,
 	status domain.UserStatus,
 	reason string,
@@ -292,6 +294,7 @@ func (uc *SuperAdminUsecase) UpdateUserStatus(
 
 	// Asynchronous audit trail – must not block the API response
 	go uc.writeAuditLog(domain.AuditLog{
+		ActorID:     adminID,
 		Action:      domain.AuditActionUpdate,
 		EntityType:  "user",
 		EntityID:    userID,
@@ -308,6 +311,7 @@ func (uc *SuperAdminUsecase) UpdateUserStatus(
 // UpdateUserRole reassigns a user's platform role and appends an audit log entry.
 func (uc *SuperAdminUsecase) UpdateUserRole(
 	ctx context.Context,
+	adminID string,
 	userID string,
 	role domain.UserRole,
 ) error {
@@ -332,6 +336,7 @@ func (uc *SuperAdminUsecase) UpdateUserRole(
 	}
 
 	go uc.writeAuditLog(domain.AuditLog{
+		ActorID:     adminID,
 		Action:      domain.AuditActionUpdate,
 		EntityType:  "user",
 		EntityID:    userID,
@@ -473,7 +478,7 @@ func (uc *SuperAdminUsecase) GetAllRestaurants(
 }
 
 // UpdateRestaurant updates the core details of a restaurant.
-func (uc *SuperAdminUsecase) UpdateRestaurant(ctx context.Context, r *domain.Restaurant) error {
+func (uc *SuperAdminUsecase) UpdateRestaurant(ctx context.Context, adminID string, r *domain.Restaurant) error {
 	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
@@ -483,6 +488,7 @@ func (uc *SuperAdminUsecase) UpdateRestaurant(ctx context.Context, r *domain.Res
 	}
 
 	go uc.writeAuditLog(domain.AuditLog{
+		ActorID:     adminID,
 		Action:      domain.AuditActionUpdate,
 		EntityType:  "restaurant",
 		EntityID:    r.ID,
@@ -526,13 +532,34 @@ func (uc *SuperAdminUsecase) PermanentDeleteRestaurant(ctx context.Context, id s
 	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
 
-	// Implement permanent delete or reuse existing logic if available.
-	// For now, let's assume Delete on repo with a special flag if needed, 
-	// but domain repo only has Delete. 
-	// I'll stick to soft delete or check if repo has a hard delete.
-	// Since permanent delete was requested, I'll assume we might want to extend the repo.
-	// But I will follow the patterns.
-	return uc.DeleteRestaurant(ctx, id, adminID) // Placeholder if no hard delete exists
+	res, err := uc.restaurantRepo.GetByID(ctx, id)
+	if err != nil {
+		// If not found by GetByID (which filters isDeleted=false), maybe it's already soft-deleted.
+		// Try to find it regardless of isDeleted for hard deletion.
+		// For simplicity, we'll try to delete anyway or fetch without filter if needed.
+		// But usually super admin deletes already listed (active) or listed (deleted) restaurants.
+	}
+
+	if err := uc.restaurantRepo.PermanentDelete(ctx, id); err != nil {
+		return err
+	}
+
+	resName := id
+	if res != nil {
+		resName = res.RestaurantName
+	}
+
+	go uc.writeAuditLog(domain.AuditLog{
+		ActorID:     adminID,
+		Action:      domain.AuditActionDelete,
+		EntityType:  "restaurant",
+		EntityID:    id,
+		EntityName:  resName,
+		Description: "Restaurant permanently deleted by super admin",
+		CreatedAt:   time.Now(),
+	})
+
+	return nil
 }
 
 // ApproveRestaurant marks a restaurant's verification status as "verified",
@@ -717,6 +744,16 @@ func (uc *SuperAdminUsecase) writeAuditLog(log domain.AuditLog) {
 	if log.CreatedAt.IsZero() {
 		log.CreatedAt = time.Now()
 	}
+
+	// Fetch actor details if missing but ID is present
+	if log.ActorID != "" && (log.ActorName == "" || log.ActorRole == "") {
+		actor, _ := uc.userRepo.FindUserByID(bgCtx, log.ActorID)
+		if actor != nil {
+			log.ActorName = actor.FullName
+			log.ActorRole = string(actor.Role)
+		}
+	}
+
 	if err := uc.auditLogRepo.Create(bgCtx, &log); err != nil {
 		fmt.Printf("[WARN] super_admin: failed to write audit log (action=%s entity=%s/%s): %v\n",
 			log.Action, log.EntityType, log.EntityID, err)

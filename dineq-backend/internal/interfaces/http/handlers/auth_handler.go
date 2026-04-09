@@ -37,6 +37,7 @@ type AuthController struct {
 	CookieDomain         string
 	FrontendBaseURL      string
 	CookieHTTPOnly       bool
+	AuditLogUsecase      domain.IAuditLogUsecase
 }
 
 func (ac *AuthController) sameSiteMode() http.SameSite {
@@ -122,6 +123,23 @@ func (ac *AuthController) LoginRequest(c *gin.Context) {
 	}
 	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.RefreshTokenType), Value: tokens.RefreshToken, MaxAge: int(time.Until(tokens.RefreshTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: ac.sameSiteMode()})
 	utils.SetCookie(c, utils.CookieOptions{Name: string(domain.AccessTokenType), Value: tokens.AccessToken, MaxAge: int(time.Until(tokens.AccessTokenExpiresAt).Seconds()), Path: "/", Domain: ac.CookieDomain, Secure: ac.CookieSecure, HttpOnly: ac.CookieHTTPOnly, SameSite: ac.sameSiteMode()})
+
+	// Record LOGIN audit log
+	go func() {
+		_ = ac.AuditLogUsecase.Log(context.Background(), &domain.AuditLog{
+			ActorID:    user.ID,
+			ActorName:  user.FullName,
+			ActorRole:  string(user.Role),
+			Action:     "LOGIN",
+			EntityType: "USER",
+			EntityID:   user.ID,
+			EntityName: user.Username,
+			IPAddress:  c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+			Description: fmt.Sprintf("User %s logged in", user.Username),
+		})
+	}()
+
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "user": dto.ToUserResponse(*user), "tokens": dto.LoginResponse{AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken}})
 }
 
@@ -262,6 +280,30 @@ func (ac *AuthController) LogoutRequest(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{Message: domain.ErrFailedToDeleteToken.Error(), Error: err.Error()})
 		return
 	}
+
+	// Record LOGOUT audit log
+	go func() {
+		user, _ := ac.UserUsecase.FindUserByID(tokenDoc.UserID)
+		actorName := "Unknown"
+		actorUsername := "unknown"
+		if user != nil {
+			actorName = user.FullName
+			actorUsername = user.Username
+		}
+		_ = ac.AuditLogUsecase.Log(context.Background(), &domain.AuditLog{
+			ActorID:    tokenDoc.UserID,
+			ActorName:  actorName,
+			ActorRole:  string(user.Role),
+			Action:     "LOGOUT",
+			EntityType: "USER",
+			EntityID:   tokenDoc.UserID,
+			EntityName: actorUsername,
+			IPAddress:  c.ClientIP(),
+			UserAgent:  c.Request.UserAgent(),
+			Description: fmt.Sprintf("User %s logged out", actorUsername),
+		})
+	}()
+
 	c.JSON(http.StatusOK, dto.SuccessResponse{Message: domain.MsgSuccess})
 }
 
@@ -457,7 +499,24 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 			fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
 			redir = "http://localhost:3000"
 		}
-		fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success#code=...\n", redir)
+		// Record LOGIN audit log for Google user
+		if ac.AuditLogUsecase != nil {
+			go func() {
+				_ = ac.AuditLogUsecase.Log(context.Background(), &domain.AuditLog{
+					ActorID:     user.ID,
+					ActorName:   user.FullName,
+					ActorRole:   string(user.Role),
+					Action:      "LOGIN",
+					EntityType:  "USER",
+					EntityID:    user.ID,
+					EntityName:  user.Username,
+					IPAddress:   c.ClientIP(),
+					UserAgent:   c.Request.UserAgent(),
+					Description: fmt.Sprintf("User %s logged in via Google", user.Username),
+				})
+			}()
+		}
+
 		redirectURL := fmt.Sprintf("%s/auth/google/success#code=%s", strings.TrimRight(redir, "/"), url.QueryEscape(code))
 		c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 		return
@@ -486,7 +545,24 @@ func (ac *AuthController) GoogleCallback(c *gin.Context) {
 		fmt.Println("[DEBUG] FrontendBaseURL is empty, defaulting to 'http://localhost:3000' for redirect.")
 		redir = "http://localhost:3000"
 	}
-	fmt.Printf("[DEBUG] Redirecting to: %s/auth/google/success#new=1&code=...\n", redir)
+	// Record REGISTER audit log for new Google user
+	if ac.AuditLogUsecase != nil {
+		go func() {
+			_ = ac.AuditLogUsecase.Log(context.Background(), &domain.AuditLog{
+				ActorID:     newUser.ID,
+				ActorName:   newUser.FullName,
+				ActorRole:   string(newUser.Role),
+				Action:      "REGISTER",
+				EntityType:  "USER",
+				EntityID:    newUser.ID,
+				EntityName:  newUser.Username,
+				IPAddress:   c.ClientIP(),
+				UserAgent:   c.Request.UserAgent(),
+				Description: fmt.Sprintf("User %s registered via Google", newUser.Username),
+			})
+		}()
+	}
+
 	redirectURL := fmt.Sprintf("%s/auth/google/success#new=1&code=%s", strings.TrimRight(redir, "/"), url.QueryEscape(code))
 	c.Redirect(http.StatusTemporaryRedirect, redirectURL)
 }
