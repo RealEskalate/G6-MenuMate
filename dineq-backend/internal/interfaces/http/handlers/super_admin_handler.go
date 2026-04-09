@@ -93,6 +93,10 @@ func (h *SuperAdminHandler) GetPlatformAnalytics(c *gin.Context) {
 func (h *SuperAdminHandler) ListUsers(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
+	sortBy := c.DefaultQuery("sortBy", "createdAt")
+	sortOrderStr := c.DefaultQuery("sortOrder", "-1")
+	sortOrder, _ := strconv.Atoi(sortOrderStr)
+
 	if page < 1 {
 		page = 1
 	}
@@ -101,11 +105,13 @@ func (h *SuperAdminHandler) ListUsers(c *gin.Context) {
 	}
 
 	users, total, err := h.uc.GetAllUsers(c.Request.Context(), domain.UserFilter{
-		Role:     c.Query("role"),
-		Status:   c.Query("status"),
-		Search:   c.Query("search"),
-		Page:     page,
-		PageSize: pageSize,
+		Role:      c.Query("role"),
+		Status:    c.Query("status"),
+		Search:    c.Query("search"),
+		Page:      page,
+		PageSize:  pageSize,
+		SortBy:    sortBy,
+		SortOrder: sortOrder,
 	})
 	if err != nil {
 		dto.WriteError(c, err)
@@ -190,6 +196,10 @@ func (h *SuperAdminHandler) PermanentDeleteUser(c *gin.Context) {
 func (h *SuperAdminHandler) ListRestaurants(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "20"))
+	sortBy := c.DefaultQuery("sortBy", "created")
+	sortOrderStr := c.DefaultQuery("sortOrder", "-1")
+	sortOrder, _ := strconv.Atoi(sortOrderStr)
+
 	if page < 1 {
 		page = 1
 	}
@@ -203,6 +213,8 @@ func (h *SuperAdminHandler) ListRestaurants(c *gin.Context) {
 		pageSize,
 		c.Query("status"),
 		c.Query("search"),
+		sortBy,
+		sortOrder,
 	)
 	if err != nil {
 		dto.WriteError(c, err)

@@ -225,6 +225,13 @@ func (uc *SuperAdminUsecase) GetAllUsers(ctx context.Context, filter domain.User
 		filter.PageSize = 200
 	}
 
+	if filter.SortBy == "" {
+		filter.SortBy = "createdAt"
+	}
+	if filter.SortOrder == 0 {
+		filter.SortOrder = -1 // Default to DESC
+	}
+
 	return uc.userRepo.GetAllUsers(ctx, filter)
 }
 
@@ -409,7 +416,8 @@ func (uc *SuperAdminUsecase) DeleteUser(
 func (uc *SuperAdminUsecase) GetAllRestaurants(
 	ctx context.Context,
 	page, pageSize int,
-	status, search string,
+	status, search, sortBy string,
+	sortOrder int,
 ) ([]*domain.Restaurant, int64, error) {
 	ctx, cancel := context.WithTimeout(ctx, uc.timeout)
 	defer cancel()
@@ -430,8 +438,14 @@ func (uc *SuperAdminUsecase) GetAllRestaurants(
 			Name:     search,
 			Page:     page,
 			PageSize: pageSize,
-			SortBy:   "created",
-			Order:    -1,
+			SortBy:   sortBy,
+			Order:    sortOrder,
+		}
+		if filter.SortBy == "" {
+			filter.SortBy = "created"
+		}
+		if filter.Order == 0 {
+			filter.Order = -1
 		}
 		return uc.restaurantRepo.SearchRestaurants(ctx, filter)
 	}
@@ -448,8 +462,14 @@ func (uc *SuperAdminUsecase) GetAllRestaurants(
 		Name:     search,
 		Page:     1,
 		PageSize: overFetch,
-		SortBy:   "created",
-		Order:    -1,
+		SortBy:   sortBy,
+		Order:    sortOrder,
+	}
+	if filter.SortBy == "" {
+		filter.SortBy = "created"
+	}
+	if filter.Order == 0 {
+		filter.Order = -1
 	}
 	all, _, err := uc.restaurantRepo.SearchRestaurants(ctx, filter)
 	if err != nil {

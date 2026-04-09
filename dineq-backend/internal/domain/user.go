@@ -77,11 +77,13 @@ type UserProfileUpdate struct {
 }
 
 type UserFilter struct {
-	Role     string
-	Status   string
-	Search   string // search by name/email/username
-	Page     int
-	PageSize int
+	Role      string
+	Status    string
+	Search    string // search by name/email/username
+	Page      int
+	PageSize  int
+	SortBy    string // createdAt|fullName|role|status
+	SortOrder int    // 1 for ASC, -1 for DESC
 }
 
 type IUserUsecase interface {

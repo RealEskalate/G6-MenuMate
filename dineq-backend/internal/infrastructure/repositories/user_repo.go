@@ -83,10 +83,22 @@ func (repo *UserRepository) GetAllUsers(ctx context.Context, filter domain.UserF
 		return nil, 0, err
 	}
 
+	sortField := filter.SortBy
+	if sortField == "fullName" {
+		sortField = "fullName" // Ensure it matches BSON key
+	} else if sortField == "" {
+		sortField = "createdAt"
+	}
+
+	sortOrder := filter.SortOrder
+	if sortOrder == 0 {
+		sortOrder = -1
+	}
+
 	cur, err := repo.DB.Collection(repo.Collection).Find(
 		ctx,
 		query,
-		options.Find().SetSkip(skip).SetLimit(limit).SetSort(bson.M{"createdAt": -1}),
+		options.Find().SetSkip(skip).SetLimit(limit).SetSort(bson.M{sortField: sortOrder}),
 	)
 	if err != nil {
 		return nil, 0, err

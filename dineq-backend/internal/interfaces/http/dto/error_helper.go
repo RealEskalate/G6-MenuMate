@@ -85,12 +85,16 @@ func NormalizeError(err error) (status int, resp ErrorResponse) {
 		status = http.StatusNotFound
 	} else if strings.Contains(strings.ToLower(raw), "unauthorized") || strings.Contains(strings.ToLower(raw), "forbidden") {
 		status = http.StatusUnauthorized
-	} else if strings.Contains(strings.ToLower(raw), "internal") || 
+	} else if strings.Contains(strings.ToLower(raw), "deadline exceeded") || 
 		strings.Contains(strings.ToLower(raw), "timeout") || 
 		strings.Contains(strings.ToLower(raw), "no such host") || 
 		strings.Contains(strings.ToLower(raw), "connection refused") || 
+		strings.Contains(strings.ToLower(raw), "incomplete read") || 
 		strings.Contains(strings.ToLower(raw), "dial tcp") {
-		status = http.StatusInternalServerError
+		status = http.StatusGatewayTimeout // Using 504 for timeouts/connectivity
+		if !strings.Contains(strings.ToLower(raw), "timeout") && !strings.Contains(strings.ToLower(raw), "deadline") {
+			status = http.StatusInternalServerError
+		}
 	}
 
 	resp = ErrorResponse{Message: userFacingMessage(raw), Code: canonicalizeCode(raw), Error: raw}
@@ -145,11 +149,17 @@ func parseDuplicateKey(msg string) (field, value string) {
 	return
 }
 
-// userFacingMessage trims overly verbose messages.
+// userFacingMessage trims overly verbose messages or maps infrastructure errors to friendly ones.
 func userFacingMessage(raw string) string {
-	// For now just strip common mongo prefix
-	if i := strings.Index(raw, "duplicate key error"); i >= 0 {
-		return "duplicate value"
+	lower := strings.ToLower(raw)
+	if strings.Contains(lower, "duplicate key error") {
+		return "This record already exists. Please use a unique value."
+	}
+	if strings.Contains(lower, "context deadline exceeded") || strings.Contains(lower, "timeout") {
+		return "The server is taking too long to respond. This usually happens when the database is slow. Please try again in personal moments."
+	}
+	if strings.Contains(lower, "connection refused") || strings.Contains(lower, "no such host") || strings.Contains(lower, "incomplete read") || strings.Contains(lower, "dial tcp") {
+		return "The database is currently unreachable. Please check your internet connection or if the database server is running."
 	}
 	return raw
 }

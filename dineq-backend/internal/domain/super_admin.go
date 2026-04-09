@@ -69,7 +69,7 @@ type ISuperAdminUsecase interface {
 	GetPlatformAnalytics(ctx context.Context, period string) (*PlatformAnalytics, error)
 	GetAllUsers(ctx context.Context, filter UserFilter) ([]*User, int64, error)
 	CreateUser(ctx context.Context, adminID string, user *User) error
-	GetAllRestaurants(ctx context.Context, page, pageSize int, status, search string) ([]*Restaurant, int64, error)
+	GetAllRestaurants(ctx context.Context, page, pageSize int, status, search, sortBy string, sortOrder int) ([]*Restaurant, int64, error)
 	UpdateRestaurant(ctx context.Context, adminID string, r *Restaurant) error
 	UpdateUserStatus(ctx context.Context, adminID string, userID string, status UserStatus, reason string) error
 	UpdateUserRole(ctx context.Context, adminID string, userID string, role UserRole) error
